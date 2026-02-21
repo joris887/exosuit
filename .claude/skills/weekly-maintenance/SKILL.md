@@ -1,6 +1,6 @@
 ______________________________________________________________________
 
-## name: weekly-maintenance description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, alignment verification, and planning. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## name: weekly-maintenance description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 
 Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended):
 
@@ -44,6 +44,33 @@ Check for outdated dependencies using the project's package manager:
 # npm outdated, pip list --outdated, cargo outdated, etc.
 ```
 
+### Dependency Health Check
+
+Run dependency auditing tools:
+
+```bash
+# npm audit / pip-audit / cargo audit / bundler-audit
+```
+
+Flag and report:
+
+- **Recently added packages** (added since last maintenance) — verify they exist in the registry and are well-established
+- **Young packages** (< 7 days old) — flag as supply chain risk
+- **Known vulnerabilities** — categorize by severity
+- **Lockfile sync** — verify lockfile matches dependency manifest
+- **Recently deprecated packages** — check for deprecation notices
+
+### Dependency Report
+
+```markdown
+### Dependency Health
+- Total dependencies: [count]
+- Outdated: [count]
+- Vulnerabilities: [critical/high/medium/low counts]
+- Recently added: [list with age and download counts]
+- Lockfile in sync: [yes/no]
+```
+
 ## 5. Weekly Summary
 
 Update @docs/progress.md with:
@@ -56,12 +83,14 @@ Update @docs/progress.md with:
 
 ### Metrics
 - Stories completed: X
+- Test count: X (delta: +/-Y)
 - Test coverage: X% (delta: +/-Y)
 
 ### Health Indicators
 - Complexity trend: [stable/increasing/decreasing]
 - Duplication: X%
 - High-churn files: [list if concerning]
+- Dependency health: [count] vulnerabilities, [count] outdated
 
 ### Technical Debt Identified
 - [Item]: [Location] - [Priority]

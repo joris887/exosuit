@@ -4,30 +4,34 @@ This folder is for the **new project flow**. Use it when starting a project from
 
 ## How to Use
 
-1. Open `BRAINDUMP_PROMPT.md` — it contains a structured research prompt
-2. Copy the research prompt into Claude Projects, ChatGPT, Perplexity, or your preferred AI research tool
-3. Fill in the `[YOUR IDEA HERE]` section with your raw idea braindump
-4. Have a deep research conversation — explore the problem space, ask follow-ups, challenge assumptions
-5. Save the final structured output back here as `.md` files
-6. Run `/bootstrap` to generate your project structure from the vision
+### Step 1: Research Your Idea
 
-## What Goes Here
+Open `BRAINDUMP_PROMPT.md`. It contains a structured research prompt with clear sections to fill in.
 
-- Research output from AI conversations
-- Structured specifications
-- Architecture proposals
-- Technology evaluations
-- Competitive analysis
+### Step 2: Run Deep Research
 
-## What Happens Next
+Copy the filled-in prompt into Claude Projects, ChatGPT, Perplexity, or your preferred AI research tool. Have a deep conversation — explore the problem space, challenge assumptions, ask follow-ups.
 
-When you run `/bootstrap` with content in this folder, the framework will:
+### Step 3: Save Output
 
-- Generate a PRD summary (`docs/reference/PRD_SUMMARY.md`)
-- Propose an architecture (`docs/architecture/ARCHITECTURE.md`)
-- Create an epic structure (`docs/reference/BACKLOG_INDEX.md`)
-- Generate individual epic files with typed stories (`docs/reference/backlog/`)
-- Configure `CLAUDE.md` with your project overview
+Save the final structured output back here as `.md` files. Name them descriptively:
+- `research-output.md` — Main specification
+- `architecture-proposal.md` — If architecture was discussed separately
+- `competitive-analysis.md` — If alternatives were analyzed
+
+### Step 4: Generate Project
+
+Run `/bootstrap` in Claude Code. It reads everything in this folder and generates:
+
+- **PRD summary** → `docs/reference/PRD_SUMMARY.md`
+- **Architecture** → `docs/architecture/ARCHITECTURE.md`
+- **Epic structure** → `docs/reference/BACKLOG_INDEX.md`
+- **Typed stories** → `docs/reference/backlog/E01-*.md` through `E0N-*.md`
+- **Project config** → `CLAUDE.md`
+
+### Alternative: Quick Start
+
+Don't want to do deep research? Run `/bootstrap` with an empty vision folder. It will ask you to describe your idea inline and will ask clarifying questions before generating.
 
 ## Note for Existing Projects
 

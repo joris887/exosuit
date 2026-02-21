@@ -1,6 +1,6 @@
 ______________________________________________________________________
 
-## name: continue description: Resume development with smart session continuation. Analyzes git state, project status, and pending work to determine the best path forward. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## name: continue description: Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
 
 Resume development. Execute this smart continuation workflow:
 
@@ -9,6 +9,16 @@ Resume development. Execute this smart continuation workflow:
 - **Branch**: !`git branch --show-current`
 - **Status**: !`git status --short`
 - **Open PRs**: !`gh pr list --author @me --state open --limit 5 2>/dev/null || echo "No PRs or gh not configured"`
+
+## 0. Read Latest Session Handoff
+
+Check for the most recent session file:
+
+```bash
+ls -t docs/sessions/session-*.md 2>/dev/null | head -1
+```
+
+If a session file exists, read it as the primary context source. It contains: completed work, pending items, next steps, files to load, test status, and warnings.
 
 ## 1. Assess Git State
 

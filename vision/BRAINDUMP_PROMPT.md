@@ -6,7 +6,7 @@ Use this prompt with Claude Projects (or any AI research tool) to transform your
 
 1. Create a new Claude Project for your idea
 2. Copy everything below the line into the project as the initial prompt
-3. Fill in the `[YOUR IDEA HERE]` section with your braindump
+3. Fill in the bracketed sections with your information
 4. Have a research conversation with Claude — ask follow-ups, explore edge cases
 5. Save the final research output (the structured spec) back to this `vision/` folder
 6. Run `/bootstrap` or `/ideate` to generate epics and stories from the vision
@@ -26,9 +26,43 @@ I have an idea for a software project. I'm going to describe it as a braindump �
 7. **Suggest** a phased delivery approach (MVP → V1 → future)
 8. **Output** a structured specification document that can be used to generate epics and user stories
 
-### My Idea (Braindump)
+---
 
-[YOUR IDEA HERE — Write freely. Include the problem you're solving, who it's for, what you've tried, what you imagine the solution looks like, any constraints (budget, timeline, team size, technology preferences), and anything else relevant. The more raw context, the better.]
+### Problem Statement
+
+What problem are you solving? Who experiences this problem? How is it currently handled?
+
+[YOUR PROBLEM STATEMENT HERE]
+
+### Target Users
+
+Who are the primary users? What are their technical skill levels? How many users do you expect?
+
+[YOUR TARGET USERS HERE]
+
+### Solution Vision
+
+What does the solution look like? What's the core experience? What makes it different from alternatives?
+
+[YOUR SOLUTION VISION HERE]
+
+### Technical Constraints
+
+Any requirements around: language/framework, hosting, budget, existing systems to integrate with, compliance?
+
+[YOUR CONSTRAINTS HERE — or "no constraints, open to suggestions"]
+
+### Similar Products / Prior Art
+
+What existing products are similar? What do you like/dislike about them?
+
+[YOUR EXAMPLES HERE — or "none that I know of"]
+
+### Non-Negotiable Requirements
+
+What absolutely must be true for this project to succeed?
+
+[YOUR REQUIREMENTS HERE]
 
 ### Additional Context (optional)
 
@@ -37,5 +71,4 @@ I have an idea for a software project. I'm going to describe it as a braindump �
 - Timeline:
 - Budget constraints:
 - Technology preferences/constraints:
-- Similar products I've seen:
-- Non-negotiable requirements:
+- Anything else relevant:

@@ -1,0 +1,31 @@
+# CODEOWNERS — Require human review for critical files
+# Customize with your GitHub usernames after /bootstrap
+
+# Test files — prevent AI from degrading test quality
+*.test.* @TEAM_LEAD
+*.spec.* @TEAM_LEAD
+**/test_* @TEAM_LEAD
+**/tests/** @TEAM_LEAD
+**/conftest.py @TEAM_LEAD
+**/__tests__/** @TEAM_LEAD
+**/fixtures/** @TEAM_LEAD
+**/testutils/** @TEAM_LEAD
+**/test-utils/** @TEAM_LEAD
+
+# CI/CD configuration
+.github/workflows/** @TEAM_LEAD
+.gitlab-ci.yml @TEAM_LEAD
+Jenkinsfile @TEAM_LEAD
+
+# Security-sensitive files
+**/*.env* @TEAM_LEAD
+**/auth/** @TEAM_LEAD
+**/security/** @TEAM_LEAD
+
+# Dependency files
+package.json @TEAM_LEAD
+package-lock.json @TEAM_LEAD
+pyproject.toml @TEAM_LEAD
+Cargo.toml @TEAM_LEAD
+go.mod @TEAM_LEAD
+Gemfile @TEAM_LEAD

@@ -45,6 +45,8 @@ Determine which skills benefit this story. If the story metadata already defines
 
 ### 1d. Write the Plan
 
+Keep the plan concise — **under 50 lines**. Save complex plans to `docs/plans/` for persistence across compaction. Reference files by path rather than inlining content.
+
 Write a plan covering:
 
 - **Story type** and methodology to use
@@ -52,7 +54,6 @@ Write a plan covering:
 - **Testing strategy** (what tests, where, what approach)
 - **Skills to load** during execution
 - **Acceptance criteria** (how to verify completion)
-- **Documentation updates** needed (if any)
 - **Non-goals** — what is explicitly out of scope
 
 **CRITICAL — Story-Cycle Context Preservation:**
@@ -71,6 +72,8 @@ This plan is part of a `/story-cycle` execution. After implementing the plan bel
 5. **Print completion report** with: story description, type, approach, files modified, test count, and commit hash
 ```
 
+For complex stories, use `ultrathink` to reason through architectural decisions before writing the plan.
+
 Present the plan for user approval.
 
 ## Phase 2: Context Reset
@@ -87,6 +90,8 @@ After plan approval, clear the context and reload only:
 ## Phase 3: Execute by Story Type
 
 ### Feature Story (TDD)
+
+For Feature stories, write tests without implementation knowledge when possible. This prevents the "testing the mock" anti-pattern.
 
 **RED:**
 

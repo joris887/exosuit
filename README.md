@@ -1,135 +1,147 @@
 # JD-LLM Development Framework
 
-A project-agnostic, drop-in development framework for [Claude Code](https://claude.com/claude-code). Provides structured sprint workflows, TDD practices, quality gates, and backlog management — all powered by Claude Code skills.
+A drop-in development framework for [Claude Code](https://claude.com/claude-code). Provides structured sprint workflows, TDD practices, quality gates, and backlog management — all encoded as Claude Code skills. Drop it into any repo, run `/bootstrap`, and start building.
 
-## What This Is
+## Prerequisites
 
-A complete development methodology encoded as Claude Code skills. Drop it into any repository and run `/bootstrap` to auto-configure for your stack.
-
-**18 skills** covering the full development lifecycle:
-
-- **Sprint workflow**: `/sprint-start` → `/story-cycle` → `/sprint-end`
-- **Planning**: `/ideate` for decomposing ideas into typed stories
-- **Quality**: `/code-quality`, `/test-validator`, `/security-audit`
-- **Maintenance**: `/weekly-maintenance`, `/retrospective`, `/backlog-review`
-- **Utilities**: `/commit`, `/fix-issue`, `/pr-status`, `/debug-session`
-
-## Two Modes
-
-### 1. Existing Repository
-
-Drop the framework into your project and run `/bootstrap`. It will:
-
-- Detect your languages, package manager, test framework, linter, and CI/CD
-- Auto-configure `CLAUDE.md` with your project's commands and conventions
-- Generate `docs/reference/CODING_STANDARDS.md` for your stack
-- Run `/skill-create` to generate technology-specific skills
-
-### 2. New Project (Braindump → Build)
-
-Start from an idea:
-
-1. Use `vision/BRAINDUMP_PROMPT.md` to do deep research on your idea
-2. Save the output to `vision/`
-3. Run `/bootstrap` to generate PRD, architecture, epics, and stories
-4. Start building with `/sprint-start` → `/story-cycle`
+- [Claude Code](https://claude.com/claude-code) installed and working
+- [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated
+- Git configured with your identity
 
 ## Installation
 
-### For an Existing Project
+### Path A: Drop into an Existing Project
 
 ```bash
-# From your project root:
-git clone https://github.com/joris887/JD-LLM-Development_framework.git /tmp/jd-framework
+# Option 1: Use the install script (recommended)
+curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
 
-# Copy framework files (won't overwrite your existing files)
+# Option 2: Manual install
+git clone https://github.com/joris887/JD-LLM-Development_framework.git /tmp/jd-framework
 cp -rn /tmp/jd-framework/.claude .
 cp -rn /tmp/jd-framework/docs .
 cp -rn /tmp/jd-framework/vision .
-cp -rn /tmp/jd-framework/scripts .
 cp -n /tmp/jd-framework/CLAUDE.md .
-cp -n /tmp/jd-framework/CLAUDE.local.md.template .
-
-# Clean up
+cp -n /tmp/jd-framework/.gitignore .
 rm -rf /tmp/jd-framework
-
-# Open Claude Code and run:
-# /bootstrap
 ```
 
-### For a New Project
+Then open Claude Code and run:
+
+```
+/bootstrap
+```
+
+Bootstrap will detect your languages, package manager, test framework, linter, and CI/CD. It auto-configures `CLAUDE.md`, generates coding standards, and creates technology-specific skills for your stack.
+
+### Path B: Start a New Project from Scratch
 
 ```bash
-# Clone directly as your project
 git clone https://github.com/joris887/JD-LLM-Development_framework.git my-project
 cd my-project
-rm -rf .git
-git init
-
-# Open Claude Code and either:
-# /bootstrap     (guided setup)
-# or fill in vision/BRAINDUMP_PROMPT.md first
+rm -rf .git && git init
 ```
 
-## Quick Start
+Then open Claude Code and either:
 
-After installation and `/bootstrap`:
+1. **Quick start:** Run `/bootstrap` and describe your idea when prompted
+2. **Deep research first:** Open `vision/BRAINDUMP_PROMPT.md`, copy the prompt into a Claude Project (or any AI research tool), braindump your idea, save the structured output back to `vision/`, then run `/bootstrap`
+
+Bootstrap reads the vision files and generates: PRD, architecture, epic structure, typed stories, and project configuration.
+
+## First Run: /bootstrap
+
+| Your situation | What `/bootstrap` does |
+|---|---|
+| Existing repo with code | Detects stack, configures CLAUDE.md, generates coding standards and tech skills |
+| Empty repo with vision files | Generates PRD, architecture, epics, stories from your research output |
+| Empty repo, no vision | Guides you through the braindump flow or accepts your idea inline |
+
+## The Development Cycle
 
 ```
-/sprint-start           # Create a sprint branch
-/story-cycle "Add X"    # Deliver a story with TDD
-/story-cycle "Fix Y"    # Deliver another story
-/sprint-end             # Quality gates → PR → merge
+/bootstrap → /ideate → /sprint-start → /story-cycle (repeat) → /sprint-end
+   setup      plan       branch          deliver stories        PR + merge
 ```
+
+### Starting a Session
+
+| Situation | Command |
+|---|---|
+| First time with this project | `/bootstrap` |
+| Resuming work | `/continue` |
+| Starting new sprint | `/sprint-start` |
+
+### During Development
+
+| I want to... | Command |
+|---|---|
+| Deliver a story | `/story-cycle "add user authentication"` |
+| Plan new work | `/ideate "payment processing"` |
+| Debug an issue | `/debug-session "TypeError in checkout"` |
+| Quick commit | `/commit` |
 
 ### Session Management
 
-```
-/continue               # Resume where you left off
-/handoff                # End session, generate next-session prompt
-```
+| I want to... | Command |
+|---|---|
+| Resume where I left off | `/continue` |
+| End session with handoff | `/handoff` |
 
-### Planning
-
-```
-/ideate "New feature"   # Decompose idea into typed stories
-/backlog-review         # Check backlog health
-```
-
-### Testing
+### Testing Workflow
 
 ```
-/manual-test            # Generate test plan from recent changes
-/testing-cycle "Bug X"  # Process a testing feedback item
-/UAT-cycle UAT-001      # Execute a formal UAT test case
-/UAT-cycle              # Browse available UAT test cases
+/sprint-start → /manual-test → user tests → /testing-cycle (repeat) → /sprint-end
 ```
 
-## Skills Reference
+For structured UAT with tracked test cases:
 
-| Skill | Purpose | Invocation |
-|---|---|---|
-| `/bootstrap` | First-run setup, auto-detect stack | Manual |
-| `/sprint-start` | Pre-flight checks + branch | Manual |
-| `/story-cycle` | Universal story delivery | Manual |
-| `/sprint-end` | Quality gates + PR + merge | Manual |
-| `/ideate` | Ideas → typed stories | Manual |
-| `/continue` | Smart session resumption | Manual |
-| `/handoff` | Session end + next prompt | Manual |
-| `/skill-create` | Generate tech skills | Manual |
-| `/code-quality` | Complexity, duplication, patterns | Auto/Manual |
-| `/test-validator` | Coverage, TDD compliance | Auto/Manual |
-| `/security-audit` | Vulnerability review | Auto/Manual |
-| `/manual-test` | Generate test plan from changes | Manual |
-| `/testing-cycle` | Process user test feedback | Manual |
-| `/UAT-cycle` | Execute formal UAT test case | Manual |
-| `/weekly-maintenance` | Weekly health check | Manual |
-| `/retrospective` | 4Ls framework | Manual |
-| `/backlog-review` | Backlog health | Manual |
-| `/commit` | Conventional commit | Manual |
-| `/fix-issue` | GitHub issue fixer | Manual |
-| `/pr-status` | PR status checker | Manual |
-| `/debug-session` | Structured debugging | Manual |
+```
+/sprint-start → /UAT-cycle (repeat per test case) → /sprint-end
+```
+
+| I want to... | Command |
+|---|---|
+| Generate a test plan | `/manual-test` |
+| Process test feedback | `/testing-cycle "login button unresponsive"` |
+| Run a UAT test case | `/UAT-cycle UAT-001` |
+| Browse UAT test cases | `/UAT-cycle` |
+
+### Completing Work
+
+| I want to... | Command |
+|---|---|
+| Finish a sprint | `/sprint-end` |
+| Weekly health check | `/weekly-maintenance` |
+| Sprint retrospective | `/retrospective` |
+
+## Skill Reference
+
+| Skill | Purpose |
+|---|---|
+| `/bootstrap` | First-run setup — detect stack or generate from vision |
+| `/sprint-start` | Pre-flight checks + create sprint branch |
+| `/story-cycle` | Deliver a story using the right methodology for its type |
+| `/sprint-end` | Quality gates, documentation, PR, merge, cleanup |
+| `/ideate` | Transform ideas into typed backlog stories |
+| `/continue` | Smart session resumption from git state |
+| `/handoff` | End session with structured handoff document |
+| `/skill-create` | Generate technology-specific skills for your stack |
+| `/code-quality` | Complexity, duplication, pattern analysis |
+| `/test-validator` | Coverage, TDD compliance, test quality |
+| `/security-audit` | Vulnerability review for sensitive code |
+| `/manual-test` | Generate test plan from recent changes |
+| `/testing-cycle` | Process user testing feedback |
+| `/UAT-cycle` | Execute formal UAT test cases |
+| `/weekly-maintenance` | Comprehensive weekly health check |
+| `/retrospective` | 4Ls framework retrospective |
+| `/backlog-review` | Backlog health analysis |
+| `/commit` | Guided conventional commit |
+| `/fix-issue` | Fix a GitHub issue |
+| `/pr-status` | Check PR status |
+| `/debug-session` | Structured debugging session |
+| `/parallel-work` | Manage parallel worktrees for concurrent stories |
+| `/architecture-check` | Validate architecture and module boundaries |
 
 ## Story Types
 
@@ -147,38 +159,60 @@ The `/story-cycle` skill adapts methodology by story type:
 | Security | Threat model → Implement → Audit |
 | Performance | Baseline → Optimize → Benchmark |
 
-## Philosophy
-
-- **TDD-first**: Tests are how you communicate intent to the AI
-- **Sprint-based**: Small, focused increments with quality gates
-- **Git-disciplined**: Feature branches, conventional commits, squash merges
-- **Documentation-lean**: Only create docs when explicitly needed
-- **AI-aware**: Guard rails against common LLM pitfalls (hallucinated APIs, weakened tests, over-engineering)
-
 ## File Structure
 
 ```
 .claude/
-  skills/               # 18 framework skills
-  rules/                # Path-scoped rules (generated by /bootstrap)
-vision/                 # New project braindump flow
+  skills/               # Framework skills (20+)
+  rules/                # Path-scoped rules for testing, security, git, etc.
+  hooks/                # Hook scripts for auto-format, quality gates, safety
+  settings.json         # Claude Code configuration with hooks
 docs/
   reference/
     BACKLOG_INDEX.md    # Epic status matrix
-    CODING_STANDARDS.md # Code conventions
+    CODING_STANDARDS.md # Code conventions (filled by /bootstrap)
     TESTING_STRATEGY.md # TDD workflow + quality criteria
-    PRD_SUMMARY.md      # Requirements overview
     backlog/            # Epic files with stories
   architecture/
     ARCHITECTURE.md     # System architecture
   adr/                  # Architecture Decision Records
   sprints/              # Sprint spec files
+  sessions/             # Session handoff files
+  plans/                # Saved plan files
   testing/              # Test coverage docs
   progress.md           # Sprint history + metrics
-  technical-debt.md     # TD inventory
-scripts/                # Project-specific scripts
-CLAUDE.md               # Framework entry point (< 200 lines)
+vision/                 # New project braindump flow
+CLAUDE.md               # Framework entry point (auto-loaded, <100 lines)
+AGENTS.md               # Cross-tool compatibility (symlink to CLAUDE.md)
+llms.txt                # LLM-friendly project index
+install.sh              # Drop-in installer script
 ```
+
+## FAQ
+
+**Q: Can I use this with other AI coding tools (Cursor, Aider, Windsurf)?**
+A: The skills are Claude Code-specific, but `AGENTS.md` provides cross-tool compatibility for the project context. Other tools will pick up the project overview, commands, and conventions.
+
+**Q: Does this work with monorepos?**
+A: Yes. Run `/bootstrap` at the monorepo root. It detects multiple languages and generates skills for each.
+
+**Q: What if `/bootstrap` gets something wrong?**
+A: Edit `CLAUDE.md` directly. It's the source of truth. Re-run `/bootstrap` anytime to re-detect.
+
+**Q: How do I customize the workflow?**
+A: Edit the skill files in `.claude/skills/`. They're plain markdown — modify any step, add rules, change the flow.
+
+**Q: What about git worktrees for parallel work?**
+A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stories in isolated worktrees.
+
+## Philosophy
+
+- **TDD-first** — Tests communicate intent to the AI
+- **Sprint-based** — Small, focused increments with quality gates
+- **Git-disciplined** — Feature branches, conventional commits, squash merges
+- **Documentation-lean** — Only create docs when explicitly needed
+- **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, over-engineering)
+- **Progressive disclosure** — Load only what you need, when you need it
 
 ## Contributing
 

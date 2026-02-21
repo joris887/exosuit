@@ -1,6 +1,6 @@
 ______________________________________________________________________
 
-## name: handoff description: Generate a comprehensive handoff document for ending a development session. Creates session summary and ready-to-use prompt for next session. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## name: handoff description: Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 
 Generate a comprehensive handoff for ending a development session:
 
@@ -22,32 +22,46 @@ If work was done this session, ensure it's captured:
 - Any decisions documented
 - Blockers noted
 
-## 3. Generate Session Summary
+## 3. Generate Session File
+
+Save a structured session file to `docs/sessions/session-YYYY-MM-DD.md`:
 
 ```markdown
-## Session Summary - [Date/Time]
+# Session Handoff — [YYYY-MM-DD]
 
-### Git State
-- Branch: [branch-name]
-- PR Status: [Open #123 / Merged / Not created]
+## Git State
+- **Branch:** [branch-name]
+- **Uncommitted changes:** [yes/no — list if yes]
+- **PR Status:** [Open #123 / Merged / Not created]
 
-### Work Completed
+## Work Completed
 - [x] [Task/story completed]
-- [ ] [Task in progress - X% done]
+- [ ] [Task in progress — what's done, what remains]
 
-### Key Decisions
+## Key Decisions
 - [Decision]: [Rationale]
 
-### Blockers/Issues
+## Blockers / Issues
 - [Issue]: [Status]
 
-### Files Modified
+## Files Modified This Session
 - [path/to/file]: [what changed]
 
-### Tests Status
-- Passing: X
-- Failing: Y
-- Coverage: Z%
+## Test Status
+- Passing: [count]
+- Failing: [count]
+- Coverage: [percentage if available]
+
+## Next Steps (Minimal First Action)
+1. [The single next thing to do — be very specific]
+2. [Second priority]
+3. [Third priority]
+
+## Files to Load on Resume
+- @[path] — [why this file is needed]
+
+## Warnings / Gotchas
+- [Any issues the next session should be aware of]
 ```
 
 ## 4. Create Next Session Prompt

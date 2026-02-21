@@ -1,6 +1,6 @@
 ______________________________________________________________________
 
-## name: skill-create description: Analyze the repository's technology stack and generate appropriate skills with documentation references. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## name: skill-create description: Analyze the repository's technology stack and generate appropriate skills, rules, and hook configurations. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 
 Analyzing repository and generating technology skills.
 
@@ -96,7 +96,28 @@ Each generated skill should include:
 <Links to official docs for our version>
 ```
 
-## 4. Version Management
+## 4. Generate Path-Scoped Rules
+
+For detected file types that don't already have rules:
+
+- If a linter/formatter was detected, create or update rules referencing its config
+- If the project has specific file patterns (e.g., `*.component.tsx`, `*.service.py`), add path-scoped rules for those patterns
+- Create per-module rules if major modules have distinct conventions
+
+Save rules to `.claude/rules/<rule-name>.md` with YAML frontmatter containing `paths:`.
+
+## 5. Configure Hooks
+
+Based on detected tools:
+
+- **Formatter found** → Configure `post-edit-format.sh` for the detected formatter
+- **Linter found** → Add to `pre-stop-quality.sh`
+- **Type checker found** → Add to `pre-stop-quality.sh`
+- **Test runner found** → Add to `pre-stop-quality.sh`
+
+Update `.claude/hooks/` scripts and `.claude/settings.json` as needed.
+
+## 6. Version Management
 
 For each technology with a reference doc:
 
@@ -104,7 +125,7 @@ For each technology with a reference doc:
 - Note when the reference doc was last verified
 - Flag if a major version update is available
 
-## 5. Update Inventory
+## 7. Update Inventory
 
 After creating all skills:
 
@@ -112,7 +133,7 @@ After creating all skills:
 - Add entries to the Technology Skills category
 - List each skill with its technology, version, and whether it has a reference doc
 
-## 6. Output
+## 8. Output
 
 Present a summary:
 
@@ -122,12 +143,19 @@ Present a summary:
 **Technologies analyzed:** [count]
 **Skills created:** [count]
 **Reference docs created:** [count]
+**Rules created:** [count]
+**Hooks configured:** [list]
 **Skills skipped (already exists or not needed):** [count]
 
 #### Created Skills:
 | Technology | Skill | Reference Doc | Version |
 |---|---|---|---|
 | [name] | `/[skill-name]` | Yes/No | [version] |
+
+#### Rules Created:
+| Rule | Paths | Purpose |
+|---|---|---|
+| [name] | [patterns] | [what it enforces] |
 
 #### Skipped (standard/minor):
 - [list of technologies that didn't warrant skills]

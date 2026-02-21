@@ -1,0 +1,38 @@
+# JD-LLM Development Framework
+
+> A drop-in development framework for Claude Code with structured sprint workflows, TDD practices, quality gates, and backlog management.
+
+## Project Entry Point
+- CLAUDE.md: Project configuration, commands, conventions, skill quick-reference
+
+## Key Documentation
+- docs/reference/CODING_STANDARDS.md: Language-specific coding standards
+- docs/reference/TESTING_STRATEGY.md: TDD workflow, test quality criteria, guard rails
+- docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
+- docs/reference/BACKLOG_INDEX.md: Epic and story status overview
+- docs/progress.md: Sprint history and metrics
+
+## Skills (invoked via /skill-name in Claude Code)
+- .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
+- .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery by type
+- .claude/skills/sprint-end/SKILL.md: Quality gates, PR, merge
+- .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories
+- .claude/skills/continue/SKILL.md: Smart session resumption
+- .claude/skills/handoff/SKILL.md: Session end, handoff document
+- .claude/skills/skill-create/SKILL.md: Generate technology-specific skills
+- .claude/skills/parallel-work/SKILL.md: Git worktree management
+- .claude/skills/architecture-check/SKILL.md: Architecture validation
+- .claude/skills/SKILLS_INVENTORY.md: Full skill inventory
+
+## Rules
+- .claude/rules/testing.md: Test file protection rules
+- .claude/rules/documentation.md: Documentation rules
+- .claude/rules/security.md: Security-sensitive file rules
+- .claude/rules/git.md: Git workflow rules
+- .claude/rules/dependencies.md: Dependency management rules
+
+## Hooks
+- .claude/hooks/post-edit-format.sh: Auto-format after edits
+- .claude/hooks/pre-stop-quality.sh: Quality gate before completion
+- .claude/hooks/pre-tool-safety.sh: Block dangerous operations

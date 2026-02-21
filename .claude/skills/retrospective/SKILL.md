@@ -1,6 +1,6 @@
 ______________________________________________________________________
 
-## name: retrospective description: Run a sprint or weekly retrospective using the 4Ls framework. Analyzes what worked, what was learned, what was lacking, and what we wish we had. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## name: retrospective description: Run a sprint or weekly retrospective using the 4Ls framework with metrics dashboard. Analyzes what worked, what was learned, what was lacking, and what we wish we had. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
 
 Run a sprint or weekly retrospective:
 
@@ -13,9 +13,49 @@ Review:
 - Git log for commits and their messages
 - Any blockers or issues encountered
 
-## 2. Metrics Review
+## 2. Metrics Dashboard
 
-Run the project's test and quality commands (from CLAUDE.md Commands section) to get current metrics.
+Collect and present quantitative metrics:
+
+### Sprint Metrics
+
+```bash
+# Commits this sprint
+git log main..HEAD --oneline | wc -l
+
+# Files changed
+git diff --stat main...HEAD
+
+# Test count (use project test command)
+# Lines of code added/removed
+git diff --stat main...HEAD | tail -1
+```
+
+### Quality Metrics
+
+Run the project's test and quality commands (from CLAUDE.md Commands section):
+
+| Metric | This Sprint | Previous Sprint | Trend |
+|--------|-------------|-----------------|-------|
+| Test count | [X] | [Y] | [+/-] |
+| Coverage | [X%] | [Y%] | [+/-] |
+| Code duplication | [X%] | [Y%] | [+/-] |
+| Churn rate* | [X files] | [Y files] | [+/-] |
+| Security findings | [X] | [Y] | [+/-] |
+| Stories delivered | [X] | [Y] | [+/-] |
+
+*Churn rate: files added then quickly modified or deleted within the same sprint (indicates rework)
+
+### AI-Specific Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| AI suggestion survival rate* | [estimate] | Code from AI that survives first review |
+| Context resets | [count] | Number of /clear or compaction events |
+| Agent invocations | [count] | Quality/test/security agents used |
+| TDD compliance | [high/medium/low] | Were tests written first? |
+
+*Estimate based on commit history — code added then immediately changed indicates low survival rate
 
 ## 3. Retrospective Framework
 
@@ -46,6 +86,7 @@ Reflect on Claude Code usage:
 - TDD discipline: Did we maintain test-first?
 - Quality gates: Did verification catch issues?
 - Documentation: Did we keep docs updated?
+- Test quality: Were any tests weakened or deleted?
 
 ## 5. Action Items
 
@@ -71,6 +112,14 @@ If patterns or gotchas were discovered:
 ### Period Covered
 [Sprint X / Week of Y]
 
+### Metrics Summary
+| Metric | Value | Trend |
+|--------|-------|-------|
+| Stories | [X] | [+/-] |
+| Tests | [X] | [+/-] |
+| Coverage | [X%] | [+/-] |
+| Quality | [score] | [+/-] |
+
 ### Top 3 Positives
 1. [Most impactful positive]
 2.
@@ -80,11 +129,6 @@ If patterns or gotchas were discovered:
 1. [Most important improvement]
 2.
 3.
-
-### Key Metrics
-- Velocity: [stories/points completed]
-- Quality: [test coverage, bugs found]
-- Process: [adherence to TDD, doc updates]
 
 ### Action Items
 [List from above]

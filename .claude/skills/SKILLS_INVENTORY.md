@@ -6,7 +6,7 @@ Last updated: 2026-02-21
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 1.0
+**Framework Version:** 2.0
 
 ## Core Workflow
 
@@ -26,24 +26,24 @@ For technology skill generation: `/skill-create`
 
 | Skill        | Trigger             | Description                                      |
 | ------------ | ------------------- | ------------------------------------------------ |
-| `/bootstrap` | First-run or reset  | Auto-detect stack or guide new project creation   |
+| `/bootstrap` | First-run or reset  | Auto-detect stack, configure hooks/rules, or guide new project creation |
 
 ### Sprint Workflow (Manual-only)
 
 | Skill           | Trigger            | Arguments             | Description                               |
 | --------------- | ------------------ | --------------------- | ----------------------------------------- |
-| `/sprint-start` | Starting new work  | `[branch-name]`       | Pre-flight checks + branch creation       |
-| `/sprint-end`   | Completing sprint  | -                     | Quality gates, docs, PR, merge, cleanup   |
-| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (adapts by type) |
-| `/continue`     | Session start      | -                     | Smart continuation based on git state     |
-| `/handoff`      | Session end        | -                     | Generate session summary & next prompt    |
+| `/sprint-start` | Starting new work  | `[branch] [--worktree]` | Pre-flight checks + branch (supports worktrees) |
+| `/sprint-end`   | Completing sprint  | -                     | Quality gates, test protection, docs, PR, merge, worktree cleanup |
+| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (adapts by type, context-budget aware) |
+| `/continue`     | Session start      | -                     | Smart continuation from session files + git state |
+| `/handoff`      | Session end        | -                     | Structured session file to docs/sessions/ |
 
 ### Backlog & Planning (Manual-only)
 
 | Skill           | Arguments               | Description                                 |
 | --------------- | ----------------------- | ------------------------------------------- |
-| `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed backlog stories  |
-| `/skill-create` | -                       | Analyze repo and generate technology skills |
+| `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed stories (single context window sized) |
+| `/skill-create` | -                       | Generate tech skills, rules, and hook configs |
 
 ### Quality & Testing (Manual + Auto)
 
@@ -53,13 +53,25 @@ For technology skill generation: `/skill-create`
 | `/test-validator` | After implementation  | Explore (forked)    |
 | `/security-audit` | Auth/credentials code | general-purpose (forked) |
 
+### Architecture (Manual + Auto)
+
+| Skill                | Trigger              | Agent Type       |
+| -------------------- | -------------------- | ---------------- |
+| `/architecture-check` | Major code changes  | Explore (forked) |
+
 ### Maintenance (Manual-only)
 
-| Skill                 | Frequency  | Description                |
-| --------------------- | ---------- | -------------------------- |
-| `/weekly-maintenance` | Fridays    | 1-2hr health check         |
-| `/retrospective`      | Sprint-end | 4Ls framework reflection   |
-| `/backlog-review`     | As needed  | Backlog health analysis    |
+| Skill                 | Frequency  | Description                        |
+| --------------------- | ---------- | ---------------------------------- |
+| `/weekly-maintenance` | Fridays    | Health check + dependency governance |
+| `/retrospective`      | Sprint-end | 4Ls framework with metrics dashboard |
+| `/backlog-review`     | As needed  | Backlog health analysis            |
+
+### Parallel Development (Manual-only)
+
+| Skill            | Arguments                   | Description                              |
+| ---------------- | --------------------------- | ---------------------------------------- |
+| `/parallel-work` | `[list\|create\|cleanup]`   | Manage git worktrees for concurrent stories |
 
 ### Testing Workflow (Manual-only)
 
@@ -119,7 +131,7 @@ The `/story-cycle` skill adapts its methodology based on story type:
 
 ### Agent Types
 
-- **`agent: Explore`** — Read-only analysis (code-quality, test-validator)
+- **`agent: Explore`** — Read-only analysis (code-quality, test-validator, architecture-check)
 - **`agent: general-purpose`** — Full capabilities (security-audit needs Bash)
 - **`agent: Plan`** — Planning without execution
 
@@ -133,16 +145,34 @@ The `/story-cycle` skill adapts its methodology based on story type:
 - **`disable-model-invocation: true`** — Workflow skills with side effects
 - **Auto-invocable** — Analysis agents triggered by context keywords
 
+## Enforcement Layers
+
+### Rules (`.claude/rules/`)
+Path-scoped rules loaded automatically when matching files are edited:
+- `testing.md` — Test protection (never weaken, never delete)
+- `documentation.md` — Documentation discipline
+- `security.md` — CWE checklist for sensitive files
+- `git.md` — Git workflow rules
+- `dependencies.md` — Dependency governance
+
+### Hooks (`.claude/hooks/`)
+Deterministic enforcement via shell scripts:
+- `post-edit-format.sh` — Auto-format after edits
+- `pre-stop-quality.sh` — Quality gate before completion
+- `pre-tool-safety.sh` — Block dangerous operations
+
 ## References
 
 - Skill Template: `.claude/skills/SKILL_TEMPLATE.md`
 - Coding Standards: `docs/reference/CODING_STANDARDS.md`
 - Testing Strategy: `docs/reference/TESTING_STRATEGY.md`
 - Architecture: `docs/architecture/ARCHITECTURE.md`
+- Hooks: `.claude/hooks/README.md`
 
 ## Version History
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 2.0     | 2026-02-21 | Hooks, rules, worktrees, test protection, CWE checks, metrics, architecture-check, parallel-work, session persistence, context management |
 | 1.1     | 2026-02-21 | Added testing workflow: UAT-cycle, testing-cycle, manual-test |
 | 1.0     | 2026-02-21 | Initial framework release: 18 skills, bootstrap flow         |

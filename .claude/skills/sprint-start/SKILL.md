@@ -1,6 +1,6 @@
 ______________________________________________________________________
 
-## name: sprint-start description: Pre-sprint checks and feature branch creation. Ensures clean state before starting work. argument-hint: \[branch-name\] disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## name: sprint-start description: Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development. argument-hint: \[branch-name\] \[--worktree\] disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
 
 Starting a new sprint.
 
@@ -52,15 +52,38 @@ If tests fail on main, stop and alert user — main should always be green.
 
 Determine the next sprint number by reading `docs/progress.md` and finding the highest sprint number, then adding 1.
 
+### Standard Mode (default)
+
 Create a new branch from main:
 
 ```bash
 git checkout -b sprint-<number>
 ```
 
+### Worktree Mode (when `--worktree` is in $ARGUMENTS or user requests it)
+
+Create an isolated worktree for parallel development:
+
+```bash
+# Create worktree in sibling directory
+git worktree add ../$(basename $(pwd))-sprint-<number> -b sprint-<number>
+```
+
+Inform the user:
+
+```markdown
+**Worktree created:** `../<project>-sprint-<number>`
+
+To work in this worktree, open a new Claude Code instance in that directory.
+Each worktree has its own branch and working tree, so you can work on multiple stories in parallel.
+
+**Important:** When done, run `/sprint-end` from within the worktree. It will clean up after merge.
+```
+
+### Branch Naming
+
 - Branch naming convention: `sprint-<number>` (e.g., `sprint-001`, `sprint-002`)
 - The number is always the next sequential sprint number
-- `$ARGUMENTS` are ignored for branch naming
 
 ## 3. Done
 
@@ -70,6 +93,7 @@ Output a summary:
 ### Sprint Ready
 
 **Branch:** `sprint-<number>`
+**Mode:** [Standard / Worktree at ../<path>]
 **Main status:** Tests passing, up to date
 **Open PRs:** None (or list any that exist)
 

@@ -12,6 +12,7 @@ Thumbs.db
 # Claude Code local overrides
 CLAUDE.local.md
 .claude/settings.local.json
+*.session-handoff.md
 
 # Environment
 .env

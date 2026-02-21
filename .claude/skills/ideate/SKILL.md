@@ -1,6 +1,6 @@
 ______________________________________________________________________
 
-## name: ideate description: Transform ideas and requirements into properly typed, LLM-optimized backlog stories with testing strategy and skill metadata. argument-hint: <idea-or-requirement> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## name: ideate description: Transform ideas and requirements into properly typed, LLM-optimized backlog stories with testing strategy and skill metadata. Stories are sized for a single context window. argument-hint: <idea-or-requirement> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 
 Transforming idea into backlog stories: **$ARGUMENTS**
 
@@ -41,6 +41,17 @@ Break the idea into properly typed stories. For each story, determine the best t
 | **Security**       | "Harden \[component\] against \[threat\]. Verify with \[method\]."            | Hardened code + audit         |
 | **Performance**    | "Optimize \[operation\] to meet \[target\]. Baseline: \[current\]."           | Optimized code + benchmarks   |
 | **Skill/Tooling**  | "Create \[skill/tool\] to automate \[workflow\]."                             | New skill + docs              |
+
+### Story Sizing Constraint
+
+**Each story must fit within a single Claude Code context window.** This means:
+
+- 1-3 hours of focused work maximum
+- Touches no more than 5-8 files
+- Has a clear, atomic deliverable
+- Can be fully tested within the story
+
+If a story feels too large, split it further. Prefer many small stories over few large ones.
 
 ### Story Structure
 
@@ -132,7 +143,8 @@ After user approval:
 
 ## Rules
 
-- Each story must be scoped for 1-3 hours of focused work
+- Each story must be scoped for 1-3 hours of focused work (single context window)
+- Each story should touch no more than 5-8 files
 - Acceptance criteria must be machine-verifiable where possible
 - Non-goals must be explicit to prevent scope creep
 - Skills-to-load must be defined for every story

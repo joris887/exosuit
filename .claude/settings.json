@@ -1,3 +1,16 @@
 {
-  "$schema": "https://claude.ai/settings-schema.json"
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-tool-safety.sh \"$COMMAND\""
+          }
+        ]
+      }
+    ]
+  }
 }

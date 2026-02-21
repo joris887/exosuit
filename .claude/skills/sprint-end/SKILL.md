@@ -19,6 +19,8 @@ git diff --name-only main...HEAD
 
 **If no commits ahead of main:** Nothing to ship. Inform user and stop.
 
+**If in a worktree:** Detect with `git rev-parse --git-common-dir`. Note the worktree path for cleanup in step 6.
+
 Analyze:
 
 - Branch name
@@ -36,7 +38,24 @@ Run the project's test command (from CLAUDE.md Commands section). If the project
 
 **If tests fail:** Stop. Fix failures first, then re-run `/sprint-end`.
 
-### 2b. Quality Agents
+### 2b. Test Protection
+
+Compare test metrics on branch vs main:
+
+```bash
+# Get test count on main
+git stash && git checkout main
+# Run test count command (framework-specific)
+git checkout - && git stash pop
+```
+
+- **Test count gate:** Total tests on branch must be >= total on main. Fail if tests were deleted.
+- **Coverage delta gate:** Coverage for touched files must not decrease. Warn if overall coverage drops.
+- **Assertion density:** Check for weakened assertions (e.g., `toBeTruthy` replacing specific `toBe` checks).
+
+If test count decreased, present the deleted tests and ask user to confirm before proceeding.
+
+### 2c. Quality Agents
 
 Run the following quality agents (forked context to keep main clean):
 
@@ -103,6 +122,7 @@ gh pr create --title "<type>(<scope>): <summary>" --body "$(cat <<'EOF'
 
 ## Testing
 - [ ] All tests pass
+- [ ] Test count did not decrease
 - [ ] Quality agents reviewed
 
 ## Acceptance Criteria
@@ -131,6 +151,20 @@ git checkout main
 git pull origin main
 ```
 
+### Worktree Cleanup
+
+If running in a worktree (detected in step 1):
+
+```bash
+# From the main working tree, remove the worktree
+WORKTREE_PATH=$(pwd)
+cd <main-worktree-path>
+git worktree remove "$WORKTREE_PATH"
+git worktree prune
+```
+
+Inform the user that the worktree has been removed and they should close the Claude Code instance that was using it.
+
 Verify clean state:
 
 ```bash
@@ -149,7 +183,7 @@ Output a summary:
 **PR:** #<number> (<url>)
 **Stories delivered:** [list]
 **Commits squashed:** [count]
-**Tests:** [total count] passing
+**Tests:** [total count] passing ([delta] vs main)
 **Documentation:** Updated [list of docs updated]
 
 **Main is clean and up to date.**
@@ -160,7 +194,9 @@ Output a summary:
 - NEVER merge without CI passing
 - NEVER force push or skip hooks
 - NEVER merge without running quality agents
+- NEVER merge if test count decreased (without explicit user approval)
 - ALWAYS discover state from git — assume no prior context
 - ALWAYS update documentation for completed stories
 - ALWAYS squash merge to keep main history clean
+- ALWAYS clean up worktrees after merge
 - Follow coding standards in `docs/reference/CODING_STANDARDS.md`
