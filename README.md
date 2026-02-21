@@ -96,6 +96,15 @@ After installation and `/bootstrap`:
 /backlog-review         # Check backlog health
 ```
 
+### Testing
+
+```
+/manual-test            # Generate test plan from recent changes
+/testing-cycle "Bug X"  # Process a testing feedback item
+/UAT-cycle UAT-001      # Execute a formal UAT test case
+/UAT-cycle              # Browse available UAT test cases
+```
+
 ## Skills Reference
 
 | Skill | Purpose | Invocation |
@@ -111,6 +120,9 @@ After installation and `/bootstrap`:
 | `/code-quality` | Complexity, duplication, patterns | Auto/Manual |
 | `/test-validator` | Coverage, TDD compliance | Auto/Manual |
 | `/security-audit` | Vulnerability review | Auto/Manual |
+| `/manual-test` | Generate test plan from changes | Manual |
+| `/testing-cycle` | Process user test feedback | Manual |
+| `/UAT-cycle` | Execute formal UAT test case | Manual |
 | `/weekly-maintenance` | Weekly health check | Manual |
 | `/retrospective` | 4Ls framework | Manual |
 | `/backlog-review` | Backlog health | Manual |

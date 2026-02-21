@@ -64,16 +64,19 @@ See `.claude/skills/SKILLS_INVENTORY.md` for all skills.
 
 ### Quick Reference
 
-| I want to...         | Use                                |
-| -------------------- | ---------------------------------- |
-| Setup framework      | `/bootstrap`                       |
-| Start working        | `/continue`                        |
-| Begin new sprint     | `/sprint-start [branch-name]`      |
-| Deliver a story      | `/story-cycle <description-or-id>` |
-| Plan new work        | `/ideate <idea>`                   |
-| Finish sprint        | `/sprint-end`                      |
-| End session          | `/handoff`                         |
-| Generate tech skills | `/skill-create`                    |
+| I want to...           | Use                                |
+| ---------------------- | ---------------------------------- |
+| Setup framework        | `/bootstrap`                       |
+| Start working          | `/continue`                        |
+| Begin new sprint       | `/sprint-start [branch-name]`      |
+| Deliver a story        | `/story-cycle <description-or-id>` |
+| Plan new work          | `/ideate <idea>`                   |
+| Finish sprint          | `/sprint-end`                      |
+| End session            | `/handoff`                         |
+| Generate tech skills   | `/skill-create`                    |
+| Generate test plan     | `/manual-test`                     |
+| Process test feedback  | `/testing-cycle <feedback>`        |
+| Run a UAT test case    | `/UAT-cycle <test-case-id>`        |
 
 ### Starting a Session
 
@@ -98,6 +101,26 @@ Working on stories?
     |
     +-> Debugging? ---------> /debug-session "error description"
 ```
+
+### Testing Workflow
+
+```
+/sprint-start → /manual-test → user tests → /testing-cycle (repeat) → /sprint-end
+```
+
+For structured UAT with tracked test cases:
+
+```
+/sprint-start → /UAT-cycle (repeat per test case) → /sprint-end
+```
+
+| I want to...              | Use                                |
+| ------------------------- | ---------------------------------- |
+| Generate a test plan      | `/manual-test`                     |
+| Process test feedback     | `/testing-cycle <feedback>`        |
+| Run a UAT test case       | `/UAT-cycle <test-case-id>`        |
+| Browse UAT test cases     | `/UAT-cycle` (no argument)         |
+| UAT coverage overview     | See `docs/testing/UAT_COVERAGE.md` |
 
 ### Completing Work
 
@@ -146,3 +169,4 @@ feature/<story-id>-<short-description>
 - docs/reference/TESTING_STRATEGY.md - Testing practices
 - docs/progress.md - Sprint history
 - docs/architecture/ARCHITECTURE.md - System architecture
+- docs/testing/UAT_COVERAGE.md - UAT test cases and status

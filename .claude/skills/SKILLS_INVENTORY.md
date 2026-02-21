@@ -61,6 +61,28 @@ For technology skill generation: `/skill-create`
 | `/retrospective`      | Sprint-end | 4Ls framework reflection   |
 | `/backlog-review`     | As needed  | Backlog health analysis    |
 
+### Testing Workflow (Manual-only)
+
+The user testing workflow runs parallel to the development workflow:
+
+```
+/sprint-start → /manual-test → user tests → /testing-cycle (repeat) → /sprint-end
+```
+
+For structured UAT with tracked test cases:
+
+```
+/sprint-start → /UAT-cycle (repeat per test case) → /sprint-end
+```
+
+| Skill            | Arguments                       | Description                                      |
+| ---------------- | ------------------------------- | ------------------------------------------------ |
+| `/manual-test`   | -                               | Generate test plan from recent changes/issues    |
+| `/testing-cycle` | `<feedback-description>`        | Process one user feedback item (classify → fix)  |
+| `/UAT-cycle`     | `<test-case-id-or-description>` | Execute a formal UAT test case, process findings |
+
+**UAT Coverage File:** `docs/testing/UAT_COVERAGE.md`
+
 ### Utility (Manual-only)
 
 | Skill            | Arguments        | Description          |
@@ -122,4 +144,5 @@ The `/story-cycle` skill adapts its methodology based on story type:
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
-| 1.0     | 2026-02-21 | Initial framework release: 18 skills, bootstrap flow   |
+| 1.1     | 2026-02-21 | Added testing workflow: UAT-cycle, testing-cycle, manual-test |
+| 1.0     | 2026-02-21 | Initial framework release: 18 skills, bootstrap flow         |
