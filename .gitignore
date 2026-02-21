@@ -1,0 +1,46 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Claude Code local overrides
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies (language-specific, filled by /bootstrap)
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+target/
+.build/
+vendor/
+Pods/
+
+# Build outputs
+dist/
+build/
+out/
+*.egg-info/
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+*.lcov
+
+# Logs
+*.log
+npm-debug.log*

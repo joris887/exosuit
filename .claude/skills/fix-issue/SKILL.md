@@ -1,0 +1,88 @@
+______________________________________________________________________
+
+## name: fix-issue description: Fix a GitHub issue following project coding standards. Creates branch, implements fix with TDD, and prepares PR. argument-hint: <issue-number> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+
+Fix GitHub issue **$ARGUMENTS** following project coding standards.
+
+## 1. Get Issue Details
+
+```bash
+gh issue view $ARGUMENTS
+```
+
+## 2. Understand the Problem
+
+- Read the issue description carefully
+- Check for related issues or PRs
+- Identify acceptance criteria
+
+## 3. Create Feature Branch
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b fix/issue-$ARGUMENTS
+```
+
+## 4. Search for Relevant Code
+
+- Use Glob and Grep to find related files
+- Understand the current implementation
+- Identify what needs to change
+
+## 5. Implement Fix (TDD)
+
+1. Write a failing test that reproduces the issue
+1. Verify the test fails for the right reason
+1. Implement the minimal fix
+1. Verify the test passes
+1. Run full test suite (use project's test command from CLAUDE.md)
+
+## 6. Verify Fix
+
+- Ensure code passes linting and type checking
+- Review changes for quality
+
+## 7. Commit and Push
+
+```bash
+git add .
+git commit -m "$(cat <<'EOF'
+fix: resolve issue #$ARGUMENTS
+
+[Description of what was fixed and how]
+
+Closes #$ARGUMENTS
+
+Co-Authored-By: Claude <model> <noreply@anthropic.com>
+EOF
+)"
+git push -u origin fix/issue-$ARGUMENTS
+```
+
+## 8. Create PR
+
+```bash
+gh pr create --title "fix: resolve issue #$ARGUMENTS" --body "$(cat <<'EOF'
+## Summary
+Fixes #$ARGUMENTS
+
+## Changes
+- [List of changes made]
+
+## Testing
+- Added test to reproduce issue
+- All tests passing
+
+## Checklist
+- [x] Issue reproduced with failing test
+- [x] Fix implemented
+- [x] All tests pass
+- [x] Code follows project standards
+
+Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+Output the PR URL when complete.
