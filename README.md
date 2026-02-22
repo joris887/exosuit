@@ -77,6 +77,7 @@ Bootstrap reads the vision files and generates: PRD, architecture, epic structur
 | I want to... | Command |
 |---|---|
 | Deliver a story | `/story-cycle "add user authentication"` |
+| Explore a design | `/brainstorm "payment processing"` |
 | Plan new work | `/ideate "payment processing"` |
 | Debug an issue | `/debug-session "TypeError in checkout"` |
 | Quick commit | `/commit` |
@@ -123,6 +124,7 @@ For structured UAT with tracked test cases:
 | `/sprint-start` | Pre-flight checks + create sprint branch |
 | `/story-cycle` | Deliver a story using the right methodology for its type |
 | `/sprint-end` | Quality gates, documentation, PR, merge, cleanup |
+| `/brainstorm` | Design exploration with alternative approaches |
 | `/ideate` | Transform ideas into typed backlog stories |
 | `/continue` | Smart session resumption from git state |
 | `/handoff` | End session with structured handoff document |
@@ -139,7 +141,7 @@ For structured UAT with tracked test cases:
 | `/commit` | Guided conventional commit |
 | `/fix-issue` | Fix a GitHub issue |
 | `/pr-status` | Check PR status |
-| `/debug-session` | Structured debugging session |
+| `/debug-session` | 5-phase structured debugging with root cause tracing |
 | `/parallel-work` | Manage parallel worktrees for concurrent stories |
 | `/architecture-check` | Validate architecture and module boundaries |
 | `/review-security` | Security review of a specific file (prompt snippet) |
@@ -167,8 +169,9 @@ The `/story-cycle` skill adapts methodology by story type:
 ```
 .claude/
   skills/               # Framework skills (20+)
-  prompts/              # Lightweight prompt snippets (review-security, etc.)
-  rules/                # Path-scoped rules for testing, security, git, etc.
+  prompts/              # Prompt snippets + subagent templates
+    agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer)
+  rules/                # Path-scoped rules for testing, security, git, verification
   hooks/                # Hook scripts for auto-format, quality gates, safety
   settings.json         # Claude Code configuration with hooks
 docs/
@@ -216,6 +219,7 @@ A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stori
 - **Git-disciplined** — Feature branches, conventional commits, squash merges
 - **Documentation-lean** — Only create docs when explicitly needed
 - **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, over-engineering)
+- **Verification-driven** — Evidence before claims, fresh output before completion
 - **Progressive disclosure** — Load only what you need, when you need it
 
 ## Contributing

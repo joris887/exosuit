@@ -1,6 +1,6 @@
 ______________________________________________________________________
 
-## name: ideate description: Transform ideas and requirements into properly typed, LLM-optimized backlog stories with testing strategy and skill metadata. Stories are sized for a single context window. argument-hint: <idea-or-requirement> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## name: ideate description: Use when the user has an idea or requirement to decompose into backlog stories. argument-hint: <idea-or-requirement> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 
 Transforming idea into backlog stories: **$ARGUMENTS**
 
@@ -131,6 +131,10 @@ Present the decomposed stories to the user:
 ```
 
 Ask user for approval before writing to backlog files.
+
+<HARD-GATE>
+Do NOT write any stories to backlog files, create epic files, or update BACKLOG_INDEX.md until the user has explicitly approved the decomposition. Present the stories, wait for approval.
+</HARD-GATE>
 
 ## 7. Write to Backlog
 

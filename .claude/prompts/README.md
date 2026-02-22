@@ -43,3 +43,12 @@ Report findings with severity (critical/high/medium/low) and suggested fixes.
 | `/review-security` | `<file-path>` | Security review of a specific file |
 | `/explain-pattern` | `<pattern> [file]` | Explain a code pattern found in the codebase |
 | `/suggest-tests` | `<file-path>` | Suggest test cases for a file |
+
+## Subagent Templates (`agents/`)
+
+Structured prompt templates for dispatching subagents with context and review checklists. These are not invoked directly — they're used by skills (like `/sprint-end`) when dispatching quality agents.
+
+| Template | Purpose |
+|----------|---------|
+| `agents/code-reviewer.md` | Code review with severity classification (Critical/Important/Minor) |
+| `agents/spec-reviewer.md` | Spec compliance verification with file:line references |

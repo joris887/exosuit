@@ -1,8 +1,25 @@
 ______________________________________________________________________
 
-## name: sprint-end description: Complete a sprint by discovering work from git, running quality gates, updating docs, creating PR, and merging to main. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## name: sprint-end description: Use when the user wants to ship a sprint's work to main via PR. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 
 Ending the sprint. Discovering and wrapping up all work on the current branch.
+
+## Process Flow (authoritative — prose below is supporting detail)
+
+```
+START → 1. Discover Sprint State (from git, no assumptions)
+  → [On main or no commits?] → STOP (nothing to ship)
+  → 2. Quality Gates (tests, test protection, quality agents)
+    → [All gates pass?]
+      → NO: Fix issues → re-run gates
+      → YES: 3. Documentation Updates (epics, backlog, progress)
+        → 4. Push and Create PR
+          → 5. Wait for CI
+            → [CI green?]
+              → NO: Fix → push → re-check
+              → YES: 6. Merge and Clean Up (squash, delete branch, worktree)
+                → 7. Sprint Complete Summary → DONE
+```
 
 ## 1. Discover Sprint State
 
@@ -67,6 +84,19 @@ If auth/credentials/data/security files were changed:
 - **Security Audit Agent** (`/security-audit`): Vulnerabilities, secrets, SQL injection
 
 Present agent findings to user. If critical issues found, stop and fix first.
+
+<HARD-GATE>
+Do NOT proceed to documentation updates, PR creation, or merge if ANY quality gate has failed. All gates must pass. "It's probably fine" is not a pass.
+</HARD-GATE>
+
+### Red Flags — Stop If You're Thinking:
+
+| Rationalization | Why It's Wrong | Correct Action |
+|----------------|----------------|----------------|
+| "Tests mostly pass, good enough" | Mostly is not all | Fix all failures |
+| "The quality agent found minor issues, skip them" | Minor issues compound | Present to user, let them decide |
+| "CI will catch it" | CI is a safety net, not the primary check | Pass local checks first |
+| "I already ran tests during story-cycle" | That was then, this is now | Run fresh test suite |
 
 ### Recovery: If Quality Gates Fail
 

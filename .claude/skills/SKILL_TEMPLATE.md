@@ -95,6 +95,54 @@ Workflow skills should include a `## Recovery` section for predictable failure h
 3. If critical (security): must fix before proceeding
 ```
 
+## Description Trap Warning
+
+Descriptions MUST contain only triggering conditions ("Use when..."). NEVER summarize the workflow in the description — Claude will follow the summary as a shortcut instead of reading the full skill content.
+
+```yaml
+# BAD: Workflow summary in description
+description: Complete a sprint by discovering work from git, running quality gates, updating docs, creating PR, and merging to main.
+
+# GOOD: Trigger conditions only
+description: Use when the user wants to ship a sprint's work to main via PR.
+```
+
+## Hard Gate Pattern
+
+Use `<HARD-GATE>` blocks at critical decision points to prevent Claude from skipping mandatory steps:
+
+```markdown
+<HARD-GATE>
+Do NOT proceed to implementation until the user has approved the plan.
+</HARD-GATE>
+```
+
+Place gates inline at the decision point, not just as rules at the end. Gates are stronger enforcement than prose instructions.
+
+## Red Flag Tables
+
+For skills where Claude commonly shortcuts processes, add a table of rationalizations and their refutations:
+
+```markdown
+### Red Flags — Stop If You're Thinking:
+
+| Rationalization | Why It's Wrong | Correct Action |
+|----------------|----------------|----------------|
+| "The user wants this fast" | Fast now = rework later | Follow the process |
+```
+
+## Skill Testing Methodology
+
+Before finalizing a new skill, validate that it actually changes Claude's behavior:
+
+1. **Define pressure scenario**: A realistic user prompt that would cause Claude to take the wrong action WITHOUT the skill
+   - Example: "Just fix this test quickly" → should trigger investigation, not guess-and-fix
+2. **Verify failure (RED)**: Present the pressure scenario without the skill active. Observe Claude taking the wrong action.
+3. **Enable skill (GREEN)**: Present the same scenario with the skill active. Verify Claude follows the skill's process.
+4. **Refine**: If Claude still shortcuts, strengthen the skill (add hard gates, red flags, explicit prohibitions).
+
+This is TDD applied to documentation: write the test (pressure scenario), observe failure, write the skill, observe compliance.
+
 ## Naming Conventions
 
 - Skill names: lowercase, hyphenated (`story-cycle`, `skill-create`)

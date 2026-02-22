@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.1 — Deep Dive
+# JD-LLM Development Framework v2.2 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -247,9 +247,25 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Key feature:** CWE checklist of the 10 most common weaknesses in AI-generated code. When Claude edits security-sensitive files, it sees this checklist and checks against it.
 
-**Why this matters:** AI-generated code has measurably higher vulnerability rates in certain categories (hardcoded credentials, injection, path traversal). This checklist creates a "pause and check" moment.
+**Fix-immediately pattern** (*new in v2.2*): When safety issues are discovered during normal work (exposed secrets, missing .gitignore entries, unsafe permissions), the rule mandates immediate fix without asking or deferring. This prevents broken state from propagating.
+
+**Why this matters:** AI-generated code has measurably higher vulnerability rates in certain categories (hardcoded credentials, injection, path traversal). This checklist creates a "pause and check" moment. The fix-immediately pattern ensures safety issues aren't deferred into a backlog where they might be forgotten.
 
 **Optimization opportunity:** The path patterns are broad — `**/*key*` matches files like `keyboard.ts`. Consider refining. The CWE list could be expanded or tailored per project type (web app vs CLI vs library).
+
+#### verification.md (*new in v2.2*)
+
+**File:** `.claude/rules/verification.md`
+**Paths:** `**` (applies everywhere)
+**Added value:** Mandates evidence before completion claims
+
+**Key rules:**
+- Never claim "tests pass" without showing command output
+- Never say "should work" — run the verification command
+- Fresh evidence required — "I already ran this" is not sufficient
+- Partial verification is not proof
+
+**Why this matters:** Claude frequently reports tasks as complete with "tests pass" or "should work" without actually running the commands. This rule enforces a "show, don't tell" discipline — every completion claim must have supporting command output from the current turn.
 
 #### git.md
 
@@ -345,15 +361,22 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Purpose:** Universal story delivery. The core development skill.
 **Added value:** Ensures every story follows the right methodology with proper quality gates.
 
-**Four phases:**
+**Five phases** (*updated in v2.2 — added Phase 3.5*):
 1. **Plan** (in plan mode) — Research, identify type, write plan with context preservation header
 2. **Context Transition** — Selectively prune exploration context, keeping discovery metadata (file paths, edge cases, patterns) while discarding bulk content (full file reads, dead-end searches). Reload coding standards + relevant files fresh.
 3. **Execute** — Follow the methodology for the story type (TDD for features, reproduce-first for bugs, etc.)
+3.5. **Self-Review** (*new in v2.2*) — Completeness, quality, testing, discipline checklists + spec compliance verification for complex stories
 4. **Wrap Up** — Run tests, update docs, commit, print completion report
+
+**Process flowchart** (*new in v2.2*): A flowchart at the top of the skill defines the authoritative process, with decision diamonds for plan approval and self-review pass/fail. Prose sections below provide supporting detail.
 
 **The Context Transition is the most important innovation.** After planning, Claude selectively prunes its context — keeping the *insights* from exploration (~200 tokens of file paths and edge cases) while discarding the *bulk* (~20,000 tokens of full file reads). The plan's "Story-Cycle Context" header (including cumulative `<files-read>` and `<files-modified>` tags) ensures Claude knows it's in a story-cycle, what files it has explored, and what steps remain.
 
 **Recovery guidance** (*new in v2.1*): The skill now includes explicit failure recovery instructions for test failures, context exhaustion, git conflicts, and missing skills — making behavior predictable when things go wrong.
+
+**Hard gates** (*new in v2.2*): A `<HARD-GATE>` block between planning and execution prevents Claude from writing code before plan approval. Red flag tables in the self-review prevent common rationalizations ("tests probably pass", "user wants this fast").
+
+**Self-review** (*new in v2.2*): Phase 3.5 adds inline quality verification during story execution. Checklists cover completeness, quality, testing, and discipline. For stories with 4+ acceptance criteria, Claude must re-read each criterion and cite the implementing code (file:line) and test (file:line), preventing drift between intent and implementation.
 
 **10 story types** with distinct methodologies. This matters because the approach for a Feature (TDD) is fundamentally different from a Refactoring (characterization tests first) or a Spike (explore, no production code required). Using the wrong methodology leads to poor outcomes.
 
@@ -388,6 +411,10 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Why test protection matters:** Without it, a sprint that "adds 5 features and deletes 3 test files" would pass all other quality gates. The test count gate catches this. The assertion density gate catches the more subtle pattern where tests still exist but have been weakened.
 
 **Recovery guidance** (*new in v2.1*): When quality gates fail, the skill now provides explicit recovery instructions: debug-session for test failures, explicit approval for decreased test count, mandatory fix for security issues, and log-to-technical-debt for deferrable issues.
+
+**Hard gate and red flags** (*new in v2.2*): A `<HARD-GATE>` between quality gates and PR creation prevents proceeding with failures. A red flag table catches rationalizations like "tests mostly pass" and "CI will catch it."
+
+**Process flowchart** (*new in v2.2*): An authoritative flowchart at the top of the skill defines the 7-step process with decision points for quality gates and CI status.
 
 **Optimization opportunity:** The test count comparison requires checking out main to run tests, then switching back. This is slow and fragile. Consider caching the main test count in progress.md (updated per sprint-end) to avoid the branch switch. Also: the quality agents (code-quality, test-validator, security-audit) run as forked contexts — monitor their usefulness and whether they catch real issues.
 
@@ -442,6 +469,26 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 ---
 
 ## 7. Skills — Planning & Backlog
+
+### /brainstorm (*new in v2.2*)
+
+**File:** `.claude/skills/brainstorm/SKILL.md`
+**Purpose:** Structured design exploration before story decomposition.
+**Added value:** Prevents building the wrong thing by exploring alternatives first.
+
+**Six steps:**
+1. Explore the problem space (what, who, why, constraints)
+2. Research the codebase (existing patterns, architecture constraints)
+3. Propose 2-3 alternative approaches with tradeoffs
+4. Identify risks and open questions
+5. Present design for approval
+6. Next steps (invoke /ideate, save design, or create spikes)
+
+**Hard gate:** A `<HARD-GATE>` prevents story decomposition or implementation until the user approves a design approach.
+
+**When to use:** For complex features where the architecture decision matters more than the implementation details. For simple features, skip brainstorm and go directly to `/ideate`.
+
+**Workflow:** `/brainstorm` → design approval → `/ideate` → stories → `/sprint-start` → `/story-cycle`
 
 ### /ideate
 
@@ -651,18 +698,36 @@ Or for formal UAT:
 
 ## 12. Skills — Utility
 
-### /commit, /fix-issue, /pr-status, /debug-session
+### /debug-session (*significantly enhanced in v2.2*)
 
-Small, focused skills for common operations.
+**File:** `.claude/skills/debug-session/SKILL.md`
+**Purpose:** Systematic debugging with mandatory root cause investigation.
+**Added value:** Prevents guess-and-check debugging loops.
+
+**Five phases:**
+1. **Root Cause Investigation** (MANDATORY) — Read full error, reproduce, check recent changes, trace backward from symptom to source
+2. **Pattern Analysis** — Find working examples, compare against broken code, identify differences
+3. **Hypothesis and Testing** — Single hypothesis, one variable at a time, explicit stopping points after 3 failed attempts
+4. **Fix Implementation** — TDD: write reproduction test (must fail), implement minimal fix, verify
+5. **Verify and Document** — All tests pass, error no longer reproducible, commit with root cause explanation
+
+**Hard gate:** A `<HARD-GATE>` between investigation and fix prevents attempting fixes without identified root cause.
+
+**Stopping points table:** Explicit situations where Claude must stop and reconsider (3+ failed fixes, "just try this", multiple changes at once).
+
+**Supporting references:**
+- `root-cause-tracing.md` — Backward tracing technique through call stacks, multi-component tracing, git bisect
+- `condition-based-waiting.md` — Replacing arbitrary timeouts with condition polling for deterministic tests
+
+### /commit, /fix-issue, /pr-status
+
+Small, focused utility skills:
 
 | Skill | What It Does | Added Value |
 |---|---|---|
 | `/commit` | Generates conventional commit message | Consistent commit history |
 | `/fix-issue` | Reads GitHub issue, creates fix | Structured bug-fixing workflow |
 | `/pr-status` | Checks PR status and CI | Quick status check without leaving the terminal |
-| `/debug-session` | Structured debugging approach | Prevents "random changes until it works" |
-
-**Optimization opportunity:** These are simple skills with small files. They could potentially be combined into a single "utility" skill with subcommands. However, the current separation makes them easy to discover via `/skill-name`.
 
 ---
 
@@ -798,6 +863,15 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 
 **Design principle:** Lighter than full skills — simple parameterized templates for common prompts. No workflow scaffolding, no plan mode, just the prompt with `$1`/`$2` argument expansion.
 
+### Subagent Prompt Templates (*new in v2.2*)
+
+| File | Purpose |
+|---|---|
+| .claude/prompts/agents/code-reviewer.md | Code review dispatch with severity classification (Critical/Important/Minor) |
+| .claude/prompts/agents/spec-reviewer.md | Spec compliance verification with file:line references |
+
+**Design principle:** Structured templates for dispatching quality subagents. Each includes: context slots ($1, $2), review checklists, explicit skepticism ("do NOT trust claims — read actual code"), and severity classification requirements. Used by sprint-end when dispatching quality agents.
+
 ---
 
 ## 16. Cross-Tool Compatibility
@@ -824,9 +898,30 @@ Lists all key files with descriptions so any LLM tool can understand the project
 
 ## 17. Optimization Opportunities
 
-### High Impact
+### Implemented in v2.2
 
-1. **Measure actual token consumption** — Instrument a few sessions to measure how many tokens each auto-loaded file consumes. Trim the most expensive low-value content.
+The following optimizations were identified and implemented:
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-10 | Hard gate markers in skills | Implemented |
+| OPT-11 | Trigger-only skill descriptions | Implemented |
+| OPT-12 | Verification-before-completion rule | Implemented |
+| OPT-13 | Red flag tables in key skills | Implemented |
+| OPT-14 | Inline self-review in story-cycle | Implemented |
+| OPT-15 | Spec-compliance review for complex stories | Implemented |
+| OPT-16 | Deepened debug-session skill | Implemented |
+| OPT-17 | Brainstorm skill (design exploration) | Implemented |
+| OPT-18 | Process flowcharts in complex skills | Implemented |
+| OPT-19 | Subagent prompt templates | Implemented |
+| OPT-20 | TDD for skill creation | Implemented |
+| OPT-21 | Fix-immediately pattern | Implemented |
+
+See `CHANGELOG.md` for detailed test and revert instructions for each.
+
+### Remaining High Impact
+
+1. **Measure actual token consumption** — Instrument a few sessions to measure how many tokens each auto-loaded file consumes. Trim the most expensive low-value content. Note: v2.2 added the verification rule (`**` path) which adds token overhead. Monitor whether this cost is justified by compliance improvement.
 
 2. **Test bootstrap against diverse projects** — Run /bootstrap against 5+ different project types and record: detection accuracy, command correctness, generated skill quality. This is the highest-leverage test because bootstrap is every user's first experience.
 
@@ -834,23 +929,25 @@ Lists all key files with descriptions so any LLM tool can understand the project
 
 4. **Monitor hook behavior** — Enable all three hooks on a real project and track: how often they trigger, false positive rate, whether the self-correction loop resolves issues or creates loops.
 
-### Medium Impact
+5. **Validate v2.2 compliance improvements** — Test whether hard gates, red flag tables, and trigger-only descriptions actually improve Claude's process compliance. Use the skill testing methodology (OPT-20) with pressure scenarios.
 
-5. **Automate metrics collection** — The retrospective skill's metrics dashboard is mostly manual. A `scripts/metrics.sh` that computes test count, coverage, churn, and LOC from git would make retrospectives much faster.
+### Remaining Medium Impact
 
-6. **Session file lifecycle** — Define when old session files get archived or deleted. Without this, `docs/sessions/` will grow indefinitely.
+6. **Automate metrics collection** — The retrospective skill's metrics dashboard is mostly manual. A `scripts/metrics.sh` that computes test count, coverage, churn, and LOC from git would make retrospectives much faster.
 
-7. **Skill size audit** — Some skills are long (story-cycle is ~200 lines). When loaded, they consume significant context. Consider a "skill summary" mode for large skills.
+7. **Session file lifecycle** — Define when old session files get archived or deleted. Without this, `docs/sessions/` will grow indefinitely.
 
-8. **Rule path refinement** — The security rule's `**/*key*` pattern matches too broadly. Audit all rule paths against a real project to check for false matches.
+8. **Skill size audit** — Story-cycle is now ~300 lines with the self-review addition. When loaded, it consumes significant context. Consider whether Phase 3.5 should be a separate reference file.
 
-### Lower Impact
+9. **Rule path refinement** — The security rule's `**/*key*` pattern matches too broadly. The verification rule uses `**` (all files). Audit token cost of rules loaded per-edit.
 
-9. **install.sh optimization** — Currently clones the full repo. Consider using `git archive` or a release tarball for faster, lighter installation.
+### Remaining Lower Impact
 
-10. **Worktree integration depth** — The parallel-work skill is new. Test it with 2-3 concurrent Claude Code instances to verify coordination works.
+10. **install.sh optimization** — Currently clones the full repo. Consider using `git archive` or a release tarball for faster, lighter installation.
 
-11. **llms.txt auto-update** — Auto-generate llms.txt content during /bootstrap based on actual project files.
+11. **Worktree integration depth** — The parallel-work skill is new. Test it with 2-3 concurrent Claude Code instances to verify coordination works.
+
+12. **llms.txt auto-update** — Auto-generate llms.txt content during /bootstrap based on actual project files.
 
 ---
 
@@ -863,8 +960,9 @@ Lists all key files with descriptions so any LLM tool can understand the project
 
 ### Advisory vs Deterministic
 
-- **Rules are advisory:** Claude can technically ignore rules. The testing, security, and documentation rules are strong guidance, but not unbypassable. Critical protections should be hooks (deterministic), not just rules.
-- **Skill compliance varies:** Skills are markdown instructions. Claude follows them well most of the time, but complex multi-step skills (like story-cycle's 4-phase flow) sometimes have steps skipped or combined.
+- **Rules are advisory:** Claude can technically ignore rules. The testing, security, verification, and documentation rules are strong guidance, but not unbypassable. Critical protections should be hooks (deterministic), not just rules.
+- **Skill compliance varies:** Skills are markdown instructions. Claude follows them well most of the time, but complex multi-step skills sometimes have steps skipped or combined. Mitigations added in v2.2: hard gate markers, red flag tables, trigger-only descriptions, process flowcharts. Monitor whether these improve compliance.
+- **Hard gates are still advisory:** The `<HARD-GATE>` blocks added in v2.2 are stronger than prose but are not deterministic enforcement. They rely on Claude respecting the XML-style markers. If a hard gate is consistently bypassed, consider escalating to a hook.
 
 ### Git Workflow Assumptions
 

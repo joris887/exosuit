@@ -34,3 +34,15 @@ Check against these before committing security-sensitive code:
 - CWE-306: Missing authentication for critical function
 - CWE-502: Deserialization of untrusted data
 - CWE-918: Server-side request forgery (SSRF)
+
+## Fix Safety Issues Immediately
+
+When you discover a safety issue during normal work — do NOT ask, do NOT defer, do NOT "note for later":
+
+- Secret/credential exposed in code → Remove and commit immediately
+- Worktree or temp directory not in .gitignore → Add it and commit immediately
+- Unsafe file permissions on sensitive files → Fix immediately
+- Missing input validation at a system boundary → Fix immediately
+- Dependency with known critical vulnerability → Flag to user immediately
+
+Fix, commit with `fix(security): <description>`, then continue your original task.

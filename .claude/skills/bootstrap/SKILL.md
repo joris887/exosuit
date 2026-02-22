@@ -4,6 +4,26 @@ ______________________________________________________________________
 
 Setting up the JD-LLM Development Framework for this project.
 
+## Process Flow (authoritative — prose below is supporting detail)
+
+```
+START → 1. Detect Project State
+  → [Source files exist?]
+    → YES: Path A (Existing Repository)
+      → A1: Detect stack → A2: Detect commands → A2.5: Assess docs
+        → A2.6: Assess coverage → A2.7: Assess architecture
+          → A3: Measure codebase → A3.5: Generate architecture
+            → A4: Generate config → A5: Run /skill-create
+              → A5.5: Configure hooks → A5.6: Configure rules
+                → A6: Clean up → A7: Present summary → DONE
+    → NO: Path B (New Project)
+      → B1: Check vision/ content
+        → [Vision files exist?]
+          → YES: B3: Generate from vision → B4: Present summary → DONE
+          → NO: B2: Guide braindump → B2.5: Accept inline braindump
+            → B3: Generate from vision → B4: Present summary → DONE
+```
+
 ## 1. Detect Project State
 
 Determine which path to follow:

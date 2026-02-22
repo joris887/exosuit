@@ -1,8 +1,23 @@
 ______________________________________________________________________
 
-## name: story-cycle description: Deliver a single story using the right methodology for its type. Starts in plan mode, clears context after plan approval, then executes. argument-hint: <story-description-or-id> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## name: story-cycle description: Use when the user wants to implement a single story or deliver a backlog item. argument-hint: <story-description-or-id> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 
 Delivering story: **$ARGUMENTS**
+
+## Process Flow (authoritative — prose below is supporting detail)
+
+```
+START → Phase 1: Plan Mode (research, identify type, write plan)
+  → [User approved?]
+    → NO: Revise plan → back to approval
+    → YES: Phase 2: Context Transition (keep insights, discard bulk)
+      → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
+        → Phase 3.5: Self-Review (completeness, quality, testing, discipline)
+          → [Review passes?]
+            → NO: Fix issues → back to Phase 3
+            → YES: Phase 4: Wrap Up (tests, docs, commit, report)
+              → DONE
+```
 
 ## Phase 1: Story Analysis (Plan Mode)
 
@@ -85,6 +100,10 @@ When context compacts, MERGE new file paths into these lists — never discard p
 For complex stories, use `ultrathink` to reason through architectural decisions before writing the plan.
 
 Present the plan for user approval.
+
+<HARD-GATE>
+Do NOT write any implementation code, edit source files, or take any implementation action until the plan has been presented and the user has explicitly approved it. "I already know what to do" is NOT approval. Wait for the user.
+</HARD-GATE>
 
 ## Phase 2: Context Transition
 
@@ -204,6 +223,50 @@ Repeat RED-GREEN-REFACTOR for each behavior in the acceptance criteria.
 1. Test the skill manually
 1. Document usage and examples
 1. Update SKILLS_INVENTORY.md
+
+## Phase 3.5: Self-Review Before Wrap-Up
+
+Before proceeding to Phase 4, complete this checklist honestly. Do NOT skip items.
+
+### Completeness
+- [ ] Every acceptance criterion has been implemented
+- [ ] Every acceptance criterion has a corresponding test
+- [ ] No "TODO" or "FIXME" left in new code (unless explicitly deferred)
+
+### Quality
+- [ ] New code follows patterns found in existing codebase
+- [ ] No unnecessary features added beyond acceptance criteria (YAGNI)
+- [ ] Error handling covers realistic failure modes
+
+### Testing
+- [ ] All tests pass — run the test command and show output (not from memory)
+- [ ] Tests are meaningful — would fail if implementation was naive
+- [ ] Edge cases from planning phase are covered
+
+### Discipline
+- [ ] Did not weaken or delete any existing tests
+- [ ] Did not add dependencies without noting them
+- [ ] Implementation matches the approved plan
+
+### Spec Compliance (for stories with 4+ acceptance criteria)
+
+For each acceptance criterion:
+1. Re-read the criterion text from the plan
+2. Find the code that implements it (cite file:line)
+3. Find the test that verifies it (cite file:line)
+4. Confirm they match — do NOT rely on memory, re-read the plan and the code
+
+### Red Flags — Stop If You're Thinking:
+
+| Rationalization | Why It's Wrong | Correct Action |
+|----------------|----------------|----------------|
+| "The tests probably pass, I'll commit" | "Probably" is not evidence | Run the test command, show output |
+| "This is a small change, no need for TDD" | Small changes cause big regressions | Write the test first |
+| "I already verified this earlier" | Earlier is not fresh evidence | Re-run verification now |
+| "The user wants this done fast, skip review" | Fast now = rework later | Complete the self-review |
+| "Close enough to the acceptance criteria" | Close is not done | Implement exactly what was specified |
+
+If any checklist item fails, go back to Phase 3 and fix the issue before proceeding.
 
 ## Phase 4: Wrap Up
 

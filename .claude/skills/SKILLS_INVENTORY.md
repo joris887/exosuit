@@ -1,12 +1,12 @@
 # Skills Inventory
 
-Last updated: 2026-02-21
+Last updated: 2026-02-22
 
 ## Overview
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 2.0
+**Framework Version:** 2.2
 
 ## Core Workflow
 
@@ -42,6 +42,7 @@ For technology skill generation: `/skill-create`
 
 | Skill           | Arguments               | Description                                 |
 | --------------- | ----------------------- | ------------------------------------------- |
+| `/brainstorm`   | `<idea-or-topic>`       | Design exploration with alternatives before story decomposition |
 | `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed stories (single context window sized) |
 | `/skill-create` | -                       | Generate tech skills, rules, and hook configs |
 
@@ -102,7 +103,7 @@ For structured UAT with tracked test cases:
 | `/commit`        | `[type] [scope]` | Conventional commit  |
 | `/fix-issue`     | `<issue-number>` | GitHub issue fixer   |
 | `/pr-status`     | -                | Check PR status      |
-| `/debug-session` | `<error>`        | Structured debugging |
+| `/debug-session` | `<error>`        | 5-phase structured debugging with root cause tracing |
 
 ### Prompt Snippets (`.claude/prompts/`)
 
@@ -113,6 +114,15 @@ Lightweight, reusable prompt templates — simpler than full skills. See `.claud
 | `/review-security`  | `<file-path>`        | Security review of a specific file   |
 | `/explain-pattern`  | `<pattern> [file]`   | Explain a code pattern in this codebase |
 | `/suggest-tests`    | `<file-path>`        | Suggest test cases for a file        |
+
+### Subagent Prompt Templates (`.claude/prompts/agents/`)
+
+Structured templates for dispatching subagents with context and review checklists:
+
+| Template          | Purpose                                          |
+| ----------------- | ------------------------------------------------ |
+| `code-reviewer`   | Code review with severity classification         |
+| `spec-reviewer`   | Spec compliance verification with file:line refs |
 
 ### Technology Skills (Auto-invocable)
 
@@ -161,9 +171,10 @@ The `/story-cycle` skill adapts its methodology based on story type:
 Path-scoped rules loaded automatically when matching files are edited:
 - `testing.md` — Test protection (never weaken, never delete)
 - `documentation.md` — Documentation discipline
-- `security.md` — CWE checklist for sensitive files
+- `security.md` — CWE checklist for sensitive files + fix-immediately pattern
 - `git.md` — Git workflow rules
 - `dependencies.md` — Dependency governance
+- `verification.md` — Evidence required before completion claims
 
 ### Hooks (`.claude/hooks/`)
 Deterministic enforcement via shell scripts:
@@ -183,6 +194,7 @@ Deterministic enforcement via shell scripts:
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 2.2     | 2026-02-22 | Hard gates, trigger-only descriptions, verification rule, red flag tables, inline self-review, deepened debug-session, brainstorm skill, process flowcharts, subagent templates, TDD for skills, fix-immediately pattern |
 | 2.1     | 2026-02-22 | Structured compaction, cumulative file tracking, graduated context reset, enriched handoffs, expanded safety hooks, incremental linting, error recovery, health dashboard, prompt snippets |
 | 2.0     | 2026-02-21 | Hooks, rules, worktrees, test protection, CWE checks, metrics, architecture-check, parallel-work, session persistence, context management |
 | 1.1     | 2026-02-21 | Added testing workflow: UAT-cycle, testing-cycle, manual-test |
