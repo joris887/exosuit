@@ -1,10 +1,10 @@
 ---
 name: ideate
-version: 2.4.0
+version: 2.8.0
 description: Use when the user has an idea or requirement to decompose into backlog stories.
 trigger: manual
 depends-on: []
-references: []
+references: [references/story-template.md]
 ---
 ______________________________________________________________________
 
@@ -72,17 +72,21 @@ If a story feels too large, split it further. Prefer many small stories over few
 
 ### Story Structure
 
-For each story, define:
+Follow the story template in `references/story-template.md`. For each story, define:
 
 ```markdown
-### <Story-ID>: <Title> [<Type>]
+### <Story-ID>: <Brief user-facing title — NO technical terms> [<Type>]
 
-**Description:** <What and why>
+**As a** [user role], **I want** [capability], **so that** [value].
 
 **Acceptance Criteria:**
-- [ ] <Verifiable criterion 1>
-- [ ] <Verifiable criterion 2>
-- [ ] <Verifiable criterion 3>
+1. **Given** [state], **When** [action], **Then** [outcome]
+2. **Given** [state], **When** [action], **Then** [outcome]
+
+**Independent Test:** [How to verify this story works without other stories]
+
+**Priority:** P1/P2/P3
+**Why this priority:** [Value justification]
 
 **Skills:** <skills to load in story-cycle, e.g., `/code-quality`, `/test-validator`>
 
@@ -183,6 +187,10 @@ Output: 5 stories decomposed:
         S04: Login endpoint with JWT tokens [Feature]
         S05: Auth middleware for protected routes [Feature]
         Dependency graph: S01 → S02 → S03/S04 → S05
+
+Next Steps:
+→ /sprint-start — create a sprint branch to start implementing
+→ /story-cycle "S01: Testing infrastructure" — deliver the first story
 ```
 
 ## Rules

@@ -8,10 +8,11 @@
 ## Key Documentation
 - docs/reference/CODING_STANDARDS.md: Language-specific coding standards
 - docs/reference/TESTING_STRATEGY.md: TDD workflow, test quality criteria, guard rails
+- docs/reference/CONSTITUTION.md: Per-project architectural principles (MUST/SHOULD), checked at planning and shipping time
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.7)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.8)
 
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
@@ -19,24 +20,26 @@
   - references/new-project.md: New project braindump and generation workflow
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with intent decomposition, reasoning scaffolds, control flow markers, error recovery, and completion verification
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with clarification scanning, WHAT/HOW plan separation, constitution checks, intent decomposition, reasoning scaffolds, control flow markers, error recovery, completion verification, and handoff suggestions
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
   - references/self-review.md: Self-review checklist with red flags
-  - references/reasoning-tools.md: Named reasoning scaffolds (scope_analysis, test_strategy_selection, failure_diagnosis, architectural_impact, plan_completeness)
+  - references/reasoning-tools.md: Named reasoning scaffolds (scope_analysis, ambiguity_scan, test_strategy_selection, failure_diagnosis, architectural_impact, plan_completeness)
+  - references/plan-template.md: Plan output template with Specification (WHAT/WHY) and Implementation (HOW) sections, anti-patterns
   - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (19 error patterns)
 - .claude/skills/sprint-end/SKILL.md: Quality gates with control flow markers, error recovery, graceful degradation, project state adaptation, PR, merge
   - references/quality-gates.md: Detailed quality gate checks and recovery
   - references/error-recovery.md: Step-specific error/cause/recovery decision tables (18 error patterns)
   - scripts/test-count-delta.sh: Compare test counts between branch and main
-- .claude/skills/brainstorm/SKILL.md: Design exploration with alternative approaches
-- .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories with doc quality check
+- .claude/skills/brainstorm/SKILL.md: Design exploration with alternative approaches and handoff suggestions
+- .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories with story template, doc quality check, and handoff suggestions
+  - references/story-template.md: Story output template with user-centric framing (As a/I want/So that), Given/When/Then criteria, independent testability, and priority justification
 - .claude/skills/continue/SKILL.md: Smart session resumption
 - .claude/skills/handoff/SKILL.md: Session end, handoff document with quality check
 - .claude/skills/skill-create/SKILL.md: Generate technology-specific skills with co-located references
   - scripts/init-skill.sh: Scaffold a new skill directory with SKILL.md template
   - scripts/update-registry.sh: Generate skills-registry.json from YAML frontmatter
 - .claude/skills/skills-registry.json: Machine-readable index of all skills (generated)
-- .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with reasoning scaffolds, error recovery tables, and halt conditions
+- .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with reasoning scaffolds, error recovery tables, halt conditions, and handoff suggestions
   - references/root-cause-tracing.md: Backward tracing technique
   - references/condition-based-waiting.md: Replace timeouts with condition polling
   - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (15 error patterns)

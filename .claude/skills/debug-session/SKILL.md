@@ -136,6 +136,11 @@ Output: Phase 1 → traced to `fetchUsers()` returning `undefined` when API retu
         Phase 3 → hypothesis: missing error handling for non-200 responses
         Phase 4 → added guard clause + regression test
         Phase 5 → commit: "fix(api): handle non-200 response in fetchUsers"
+
+Next Steps:
+→ /story-cycle "[next story]" — continue with the next story
+→ /sprint-end — if the fix was the last item in the sprint
+→ /handoff — if ending the session
 ```
 
 ## Recovery

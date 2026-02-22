@@ -33,7 +33,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v2.7
+## Skills — JD-LLM Development Framework v2.8
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow
@@ -64,6 +64,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 - `docs/reference/CODING_STANDARDS.md` — Code conventions
 - `docs/reference/TESTING_STRATEGY.md` — Testing practices
 - `docs/architecture/ARCHITECTURE.md` — System architecture
+- `docs/reference/CONSTITUTION.md` — Architectural principles
 - `docs/testing/UAT_COVERAGE.md` — UAT test cases
 
 ## Compaction Directive

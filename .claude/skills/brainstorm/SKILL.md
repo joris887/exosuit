@@ -94,7 +94,10 @@ Input:  /brainstorm "real-time notifications"
 Output: 3 approaches explored (WebSockets, SSE, polling)
         Recommended: SSE — simpler, sufficient for one-way notifications
         Risks: browser support for SSE reconnection, scaling beyond 1000 connections
-        Next: /ideate with SSE approach after user approval
+
+Next Steps:
+→ /ideate "real-time notifications using SSE" — decompose into stories
+→ /handoff — if ending the session
 ```
 
 ## Rules

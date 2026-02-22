@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.7 — Deep Dive
+# JD-LLM Development Framework v2.8 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -44,6 +44,8 @@ The framework is built on six principles. Each one addresses a specific failure 
 | **Progressive disclosure** | Loading the entire project context into every conversation | Load only what's needed. Reference files by path. Session files capture state for resumption. |
 | **Verification-driven** | AI claims completion without evidence | Evidence before claims, fresh output before completion, task list enforcement. |
 | **Context-efficient** | Context window exhaustion during long sessions | Priority-based compaction, context budget awareness heuristics, directory-level context files. |
+| **Clarification-first** | LLM makes plausible but incorrect assumptions | Forced `[NEEDS CLARIFICATION]` markers and structured ambiguity scanning make uncertainty visible at planning time. |
+| **Constitution-governed** | Architectural decisions erode across sprints | Per-project principles (MUST/SHOULD) checked at planning and shipping time. |
 
 ### Why This Matters
 
@@ -116,7 +118,7 @@ This is the most important file in the framework. It's loaded into every Claude 
 - Backlog file references
 - Testing strategy reference
 - Skill quick-reference table
-- Important file paths
+- Important file paths (including constitution)
 - Compaction directive
 
 **What it does NOT contain:**
@@ -355,12 +357,13 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 5. A2.7: Assess architecture (module boundaries, entry points) — *new in v2.0*
 6. A3: Measure codebase (file counts, test counts)
 7. A3.5: Generate architecture overview — *new in v2.0*
-8. A4: Generate configuration (CLAUDE.md, CODING_STANDARDS.md, progress.md)
-9. A5: Run /skill-create
-10. A5.5: Configure hooks — *new in v2.0*
-11. A5.6: Configure rules — *new in v2.0*
-12. A6: Clean up templates
-13. A7: Present summary
+8. A3.6: Establish project constitution — *new in v2.8*
+9. A4: Generate configuration (CLAUDE.md, CODING_STANDARDS.md, progress.md)
+10. A5: Run /skill-create
+11. A5.5: Configure hooks — *new in v2.0*
+12. A5.6: Configure rules — *new in v2.0*
+13. A6: Clean up templates
+14. A7: Present summary
 
 **Path B (New Project):**
 1. B1: Check for vision content
@@ -380,6 +383,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Helper script** (*new in v2.3*): `scripts/detect-stack.sh` automates basic stack detection. Run with `--help` for usage.
 
 **Document quality check** (*new in v2.3*): After generating ARCHITECTURE.md, a fresh sub-agent reviews it from a reader's perspective to catch context blindness.
+
+**Constitution establishment** (*new in v2.8*): Step A3.6 prompts the user for 3-7 non-negotiable architectural principles, classified as MUST or SHOULD. These are stored in `docs/reference/CONSTITUTION.md` and checked during `/story-cycle` planning (Phase 1e) and `/sprint-end` quality gates. If users have no strong preferences, bootstrap suggests principles based on detected stack.
 
 **Optimization opportunity:** Bootstrap is the first thing users experience. It must be robust. Test it against diverse project types: pure Python, TypeScript monorepo, Rust CLI, Swift iOS app, Go microservice. Each should detect correctly.
 
@@ -462,6 +467,18 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Phase-specific error recovery** (*new in v2.7*): A dedicated `references/error-recovery.md` provides error/cause/recovery tables for every phase (19 error patterns across 7 phases). Skills reference specific phases: "Consult `references/error-recovery.md` — search for `## Phase 3`."
 
+**Forced clarification markers** (*new in v2.8*): Any uncertain requirement in the plan must be marked with `[NEEDS CLARIFICATION: specific question]` instead of assumed. Maximum 3 markers before triggering a hard gate for user input. The `scope_analysis` reasoning tool now includes ambiguity detection as step 6.
+
+**Structured clarification sub-phase** (*new in v2.8*): A new Phase 1f between plan draft and approval gate applies the `ambiguity_scan` reasoning tool to scan for assumptions across seven categories (scope, data model, UX, non-functional, integration, edge cases, constraints). Top 3-5 questions ranked by impact are presented to the user. Answers integrate into the plan before approval.
+
+**WHAT/WHY vs HOW plan separation** (*new in v2.8*): Plans now require two distinct sections: Specification (WHAT/WHY — user-visible behavior, Given/When/Then acceptance criteria, no technical terms) and Implementation Approach (HOW — files, patterns, technical strategy). A `plan-template.md` reference file enforces this structure. The `plan_completeness` reasoning tool (now Phase 1g) verifies the spec section contains zero implementation details and the implementation section traces to every acceptance criterion.
+
+**Constitution compliance checking** (*new in v2.8*): Phase 1e checks the plan against `docs/reference/CONSTITUTION.md` if it exists. MUST violations trigger HALT. SHOULD violations require documented justification in an Architectural Violations table.
+
+**Contextual handoff suggestions** (*new in v2.8*): The completion report now includes a Next Steps section with ready-to-use slash commands (next story, sprint-end, handoff) so users can proceed without remembering the workflow sequence.
+
+**Per-phase context loading manifests** (*new in v2.8*): Phase 2 now includes prescriptive manifests listing exactly which files to load (RELOAD) and skip (SKIP) per phase, replacing the previous generic guidance. This prevents unnecessary file reads.
+
 **Optimization opportunity:** The context reset is manual — Claude follows the instruction to "clear and reload." In practice, Claude sometimes carries over more context than intended. Consider whether a more forceful reset mechanism is possible. Also: the 50-line plan limit may be too restrictive for complex stories — monitor and adjust.
 
 ### /sprint-end
@@ -515,6 +532,10 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Phase-specific error recovery** (*new in v2.7*): A dedicated `references/error-recovery.md` provides error/cause/recovery tables for all 6 steps (18 error patterns). Quality gate failures, push rejections, CI failures, and merge conflicts each have specific recovery actions.
 
 **Micro-component references** (*new in v2.7*): Project State Adaptation now references the `discover-commands` micro-component from `.claude/prompts/` for standardized command extraction from CLAUDE.md.
+
+**Constitution compliance gate** (*new in v2.8*): Quality gates now include constitution compliance — verifying sprint changes don't introduce untracked violations of MUST principles.
+
+**Handoff suggestions** (*new in v2.8*): Sprint complete summary now includes contextual next-step suggestions (sprint-start, retrospective, handoff).
 
 **Optimization opportunity:** The quality agents run as forked contexts — monitor their usefulness and whether confidence scoring effectively reduces false positives.
 
@@ -609,6 +630,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Why non-goals matter:** LLMs are scope-creep machines. If a story says "add login form" without non-goals, Claude might also add: password reset, remember me, OAuth, 2FA. Explicit non-goals prevent this.
 
 **Document quality check** (*new in v2.3*): Before presenting stories for approval, a fresh sub-agent reviews the decomposition from an implementer's perspective — "Is each story clear enough to start work? Are acceptance criteria testable?"
+
+**Story template** (*new in v2.8*): Stories now follow a structured template in `references/story-template.md` with user-centric framing (As a/I want/So that), Given/When/Then acceptance criteria, independent testability requirement, priority justification, and anti-pattern guidance.
 
 **Optimization opportunity:** The "1-3 hours, 5-8 files" sizing constraint is a heuristic. Track actual story completion rates — are stories consistently finishing within context? If many stories require multiple sessions, the sizing guidance may need tightening. Conversely, if stories are trivially small, loosen it.
 
@@ -944,6 +967,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 
 **v2.7 context efficiency improvements:** Symbolic state encoding — compaction format changed from prose paragraphs to structured key-value pairs (`goal:`, `commands:`, `branch:`, `decisions:`) that LLMs preserve with higher fidelity. Context relevance scoring — a 5-level classification system (ACTIVE/ANCHORED/REFERENCE/STALE/DUPLICATE) for systematic context pruning, applied at phase transitions and after extended exploration. Reusable micro-components — 3 commonly duplicated operations (discover-commands, quality-gate-sequence, verify-clean-git-state) extracted into shared snippets in `.claude/prompts/`, reducing cross-skill duplication.
 
+**v2.8 context efficiency improvements:** Per-phase context loading manifests in story-cycle prescribe exactly which files to load and skip at each phase transition, preventing unnecessary reads. Plan template enforces structured output that separates specification from implementation, reducing plan revision cycles. Clarification scanning surfaces ambiguity before execution, avoiding costly mid-implementation rework and context consumption.
+
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
 ---
@@ -1000,6 +1025,7 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 | docs/reference/TESTING_STRATEGY.md | /story-cycle, /test-validator | TDD workflow and quality criteria |
 | docs/architecture/ARCHITECTURE.md | /architecture-check, /story-cycle | Module boundaries and structure |
 | docs/reference/backlog/E##-*.md | /sprint-start, /ideate | Individual epic with story details |
+| docs/reference/CONSTITUTION.md | /story-cycle Phase 1e, /sprint-end | Architectural principles |
 
 **Design principle:** Loaded only when needed. Not every story needs the full testing strategy. Not every conversation needs architecture details.
 
@@ -1092,6 +1118,22 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v2.8
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-71 | Forced clarification markers in story planning (`[NEEDS CLARIFICATION]` convention) | Implemented |
+| OPT-72 | Structured clarification sub-phase with ambiguity scanning (7-category scan, ranked questions) | Implemented |
+| OPT-73 | WHAT/WHY vs HOW plan separation with output templates (plan-template.md, story-template.md) | Implemented |
+| OPT-74 | Project constitution pattern (MUST/SHOULD principles, checked at planning and shipping) | Implemented |
+| OPT-75 | Violation tracking with justification (architectural violations table in plans) | Implemented |
+| OPT-76 | Consistent handoff suggestions with pre-filled commands across all workflow skills | Implemented |
+| OPT-77 | Per-phase context loading manifests (prescriptive RELOAD/SKIP lists per story-cycle phase) | Implemented |
+
+**Key changes in v2.8:** Specification quality improved with forced clarification markers and structured ambiguity scanning that prevent LLM assumptions. Plan quality improved with WHAT/WHY vs HOW separation enforced by output templates. Architectural governance added with project constitution pattern and violation tracking. Workflow polish with consistent handoff suggestions across all skills and per-phase context manifests.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v2.7
 
@@ -1260,6 +1302,9 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Control flow markers are still advisory:** The `<IF>/<ELSE>/<LOOP>/<HALT>` markers are stronger than prose but not unbypassable — Claude could still interpret them loosely. If consistently bypassed, consider escalating critical conditionals to hooks.
 - **Error recovery tables may not cover all errors:** The 52 error patterns across 3 skills cover known failure modes. Novel errors not in the tables will still require Claude to improvise. Expand the tables as new patterns are observed.
 - **Micro-components add a level of indirection:** Skills referencing micro-components must read two files instead of one. If this causes issues with Claude not finding the component, consider inlining the most critical operations.
+- **Constitution is optional:** The project constitution is only checked if `docs/reference/CONSTITUTION.md` exists and has principles defined. Projects that skip the bootstrap constitution step get no architectural governance.
+- **Clarification markers depend on Claude's uncertainty detection:** The `[NEEDS CLARIFICATION]` convention relies on Claude recognizing its own uncertainty. Confidently wrong assumptions will still pass through without markers.
+- **Ambiguity scan adds turns:** Phase 1f introduces additional user interaction before plan approval. For simple, unambiguous stories this adds latency. Monitor whether it catches real issues or just slows down obvious work.
 
 ### Git Workflow Assumptions
 

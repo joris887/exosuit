@@ -16,8 +16,9 @@ Steps:
 3. Identify dependencies between deliverables (which must complete before others can start)
 4. Flag any deliverable rated complexity ≥4 as candidate for splitting into its own story
 5. Check: are there implicit deliverables not stated but expected? (e.g., "add endpoint" implies tests)
+6. For each deliverable: is the user's intent unambiguous? If multiple valid interpretations exist, mark with `[NEEDS CLARIFICATION: specific question]`
 
-**Output:** Numbered scope list with types, complexity ratings, and dependency arrows.
+**Output:** Numbered scope list with types, complexity ratings, dependency arrows, and any `[NEEDS CLARIFICATION]` markers.
 
 ---
 
@@ -69,9 +70,30 @@ Steps:
 
 ---
 
+## Tool: ambiguity_scan
+
+**Apply when:** story-cycle Phase 1f (Clarification Check), after the plan draft and before the approval gate.
+
+Steps:
+1. Scan the plan for assumptions across these seven categories:
+   - **Scope & Behavior** — Are all user-visible behaviors explicit?
+   - **Data Model** — Are entity relationships and validation rules clear?
+   - **UX Flow** — Are interaction patterns specified or assumed?
+   - **Non-Functional** — Are performance/security/accessibility requirements stated?
+   - **Integration** — Are external dependency behaviors documented?
+   - **Edge Cases** — Are failure modes and boundary conditions covered?
+   - **Constraints** — Are technical limitations acknowledged?
+2. For each assumption found, generate a focused question with 2-4 discrete answer options
+3. Rank questions by impact: scope > security > UX > technical
+4. Present top 3-5 highest-impact questions to user
+
+**Output:** Numbered question list (max 5) ranked by impact, each with answer options. If zero assumptions found, output "No ambiguity detected — plan is ready for approval."
+
+---
+
 ## Tool: plan_completeness
 
-**Apply when:** story-cycle Phase 1e, before presenting the plan for approval.
+**Apply when:** story-cycle Phase 1g, before presenting the plan for approval.
 
 Steps:
 1. Re-read the original user request and Phase 0 scope list
@@ -80,5 +102,7 @@ Steps:
 4. Are non-goals explicitly stated? (prevents scope creep during execution)
 5. Is the testing strategy explicit? (which tests, where, what approach)
 6. Does the plan fit under 50 lines? If not, trim detail — reference files by path instead of inlining
+7. Verify the Specification section contains zero implementation details (no file paths, no function names, no framework references)
+8. Verify the Implementation Approach section traces back to every acceptance criterion in the Specification section
 
 **Output:** Completeness checklist (all items checked) or list of gaps to address.

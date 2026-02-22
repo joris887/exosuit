@@ -1,6 +1,6 @@
 ---
 name: sprint-end
-version: 2.7.0
+version: 2.8.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -53,6 +53,10 @@ Analyze: branch name, all commits since branching, all files changed, stories co
 **Mindset:** Assume there are problems. Your job is to find them. Your first assessment is almost never "all clear."
 
 All gates must pass before proceeding. Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents, recovery). For error recovery during this step, consult `references/error-recovery.md` — search for `## Step 2`.
+
+<IF condition="docs/reference/CONSTITUTION.md exists and has principles defined">
+**Constitution compliance:** Verify sprint changes don't introduce untracked constitution violations. Check commit diffs against MUST principles. Any violations must have been documented in story plans with justification.
+</IF>
 
 <HARD-GATE>
 Do NOT proceed to documentation updates, PR creation, or merge if ANY quality gate has failed. All gates must pass. "It's probably fine" is not a pass.
@@ -156,6 +160,11 @@ git log --oneline -3
 **Documentation:** Updated [list of docs updated]
 
 **Main is clean and up to date.**
+
+**Next Steps:**
+→ `/sprint-start` — begin the next sprint
+→ `/retrospective` — review what worked and what to improve
+→ `/handoff` — if ending the session
 ```
 
 ## Graceful Degradation

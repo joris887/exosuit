@@ -32,7 +32,7 @@ Then open Claude Code and run:
 /bootstrap
 ```
 
-Bootstrap will detect your languages, package manager, test framework, linter, and CI/CD. It auto-configures `CLAUDE.md`, generates coding standards, and creates technology-specific skills for your stack.
+Bootstrap will detect your languages, package manager, test framework, linter, and CI/CD. It auto-configures `CLAUDE.md`, generates coding standards, establishes a project constitution (architectural principles), and creates technology-specific skills for your stack.
 
 ### Path B: Start a New Project from Scratch
 
@@ -53,7 +53,7 @@ Bootstrap reads the vision files and generates: PRD, architecture, epic structur
 
 | Your situation | What `/bootstrap` does |
 |---|---|
-| Existing repo with code | Detects stack, configures CLAUDE.md, generates coding standards and tech skills |
+| Existing repo with code | Detects stack, configures CLAUDE.md, establishes constitution, generates coding standards and tech skills |
 | Empty repo with vision files | Generates PRD, architecture, epics, stories from your research output |
 | Empty repo, no vision | Guides you through the braindump flow or accepts your idea inline |
 
@@ -122,7 +122,7 @@ For structured UAT with tracked test cases:
 |---|---|
 | `/bootstrap` | First-run setup — detect stack or generate from vision |
 | `/sprint-start` | Pre-flight checks + create sprint branch |
-| `/story-cycle` | Deliver a story using the right methodology for its type |
+| `/story-cycle` | Deliver a story with clarification scanning, constitution checks, and WHAT/HOW plan separation |
 | `/sprint-end` | Quality gates, documentation, PR, merge, cleanup |
 | `/brainstorm` | Design exploration with alternative approaches |
 | `/ideate` | Transform ideas into typed backlog stories |
@@ -143,7 +143,7 @@ For structured UAT with tracked test cases:
 | `/commit` | Guided conventional commit |
 | `/fix-issue` | Fix a GitHub issue |
 | `/pr-status` | Check PR status |
-| `/debug-session` | 5-phase structured debugging with reasoning scaffolds and error recovery |
+| `/debug-session` | 5-phase structured debugging with reasoning scaffolds, error recovery, and handoff suggestions |
 | `/parallel-work` | Manage parallel worktrees for concurrent stories |
 | `/architecture-check` | Validate architecture and module boundaries |
 | `/review-security` | Security review of a specific file (prompt snippet) |
@@ -174,7 +174,7 @@ The `/story-cycle` skill adapts methodology by story type:
   skills/               # Framework skills (27+, each with YAML frontmatter)
     <skill>/
       SKILL.md          # Lean entry point (<150 lines)
-      references/       # Detailed docs loaded on demand
+      references/       # Detailed docs loaded on demand (plan-template, story-template, reasoning-tools)
       scripts/          # Executable helper scripts (--help supported)
       assets/           # Output templates — copy, don't read
   prompts/              # Prompt snippets, micro-components, and subagent templates
@@ -187,6 +187,7 @@ docs/
     BACKLOG_INDEX.md    # Epic status matrix
     CODING_STANDARDS.md # Code conventions (filled by /bootstrap)
     TESTING_STRATEGY.md # TDD workflow + quality criteria
+    CONSTITUTION.md     # Architectural principles (filled by /bootstrap)
     backlog/            # Epic files with stories
   architecture/
     ARCHITECTURE.md     # System architecture
@@ -229,8 +230,10 @@ A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stori
 - **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, code slop, over-engineering)
 - **Verification-driven** — Evidence before claims, fresh output before completion
 - **Progressive disclosure** — Load only what you need, when you need it
-- **Context-efficient** — Skills split into lean entry points + on-demand references; symbolic state encoding; context relevance scoring
-- **Reasoning-scaffolded** — Named reasoning tools (scope_analysis, failure_diagnosis, etc.) structure thinking at critical decision points
+- **Context-efficient** — Skills split into lean entry points + on-demand references; symbolic state encoding; per-phase context manifests
+- **Reasoning-scaffolded** — Named reasoning tools (scope_analysis, ambiguity_scan, failure_diagnosis, etc.) structure thinking at critical decision points
+- **Clarification-first** — Forced `[NEEDS CLARIFICATION]` markers and structured ambiguity scanning prevent LLM assumptions
+- **Constitution-governed** — Per-project architectural principles checked at planning and shipping time
 
 ## Contributing
 

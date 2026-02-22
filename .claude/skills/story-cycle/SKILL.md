@@ -1,10 +1,10 @@
 ---
 name: story-cycle
-version: 2.7.0
+version: 2.8.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
-references: [references/story-types.md, references/self-review.md, references/reasoning-tools.md, references/error-recovery.md]
+references: [references/story-types.md, references/self-review.md, references/reasoning-tools.md, references/error-recovery.md, references/plan-template.md]
 ---
 ______________________________________________________________________
 
@@ -15,8 +15,13 @@ Delivering story: **$ARGUMENTS**
 ## Process Flow (authoritative — prose below is supporting detail)
 
 ```
-START → Phase 0: Intent Decomposition (identify ALL deliverables)
-  → Phase 1: Plan Mode (research, identify type, write plan)
+START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncertainties)
+  → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
+    → Phase 1f: Clarification Check (ambiguity_scan across 7 categories)
+      → [Clarifications needed?]
+        → YES: Present questions → integrate answers → update plan
+        → NO: Continue
+    → Phase 1g: Plan Completeness (verify spec/implementation sections)
     → [User approved?]
       → NO: Revise plan → back to approval
       → YES: Phase 2: Context Transition (keep insights, discard bulk)
@@ -99,16 +104,34 @@ Determine which skills benefit this story. If the story metadata already defines
 
 Keep the plan concise — **under 50 lines**. Save complex plans to `docs/plans/` for persistence across compaction. Reference files by path rather than inlining content.
 
-Before presenting the plan, apply the `plan_completeness` reasoning tool from `references/reasoning-tools.md` to verify all deliverables and acceptance criteria are covered.
+Follow the plan template structure in `references/plan-template.md`. The plan MUST have two distinct sections:
 
-Write a plan covering:
+1. **Specification (WHAT/WHY)** — User-visible behavior changes, acceptance criteria in Given/When/Then format. NO file paths, NO function names, NO framework references.
+2. **Implementation Approach (HOW)** — Files to modify/create, patterns to follow, technical strategy with rationale.
 
-- **Story type** and methodology to use
-- **Files to modify/create** (specific paths)
-- **Testing strategy** (what tests, where, what approach) — apply `test_strategy_selection` reasoning tool
-- **Skills to load** during execution
-- **Acceptance criteria** (how to verify completion)
-- **Non-goals** — what is explicitly out of scope
+For any requirement where the user's intent is ambiguous or multiple valid interpretations exist, insert `[NEEDS CLARIFICATION: specific question]` in the plan. Maximum 3 markers before triggering a hard gate for user input.
+
+Apply the `test_strategy_selection` reasoning tool for the testing section.
+
+<IF condition="docs/reference/CONSTITUTION.md exists">
+Check the plan against `docs/reference/CONSTITUTION.md`. Any MUST violation → HALT. Any SHOULD violation → document justification in an Architectural Violations table (see `references/plan-template.md`).
+</IF>
+
+### 1f. Clarification Check
+
+Apply the `ambiguity_scan` reasoning tool from `references/reasoning-tools.md`. Scan the plan for assumptions across 7 categories (scope, data model, UX, non-functional, integration, edge cases, constraints).
+
+<IF condition="ambiguity_scan produces questions OR plan contains [NEEDS CLARIFICATION] markers">
+Present questions to user. Integrate answers into the plan. Remove resolved `[NEEDS CLARIFICATION]` markers.
+</IF>
+
+### 1g. Plan Completeness
+
+Apply the `plan_completeness` reasoning tool from `references/reasoning-tools.md` to verify:
+- All deliverables from Phase 0 have implementation steps
+- All acceptance criteria have verification approaches
+- Specification section contains zero implementation details
+- Implementation section traces to every acceptance criterion
 
 **CRITICAL — Story-Cycle Context Preservation:**
 
@@ -162,10 +185,13 @@ After plan approval, selectively prune the context — keep discovery metadata, 
 - Irrelevant code discovered during broad searches
 - Search results that didn't lead anywhere
 
-**THEN RELOAD fresh:**
-1. `docs/reference/CODING_STANDARDS.md` (coding standards)
-2. Files identified in the plan as relevant (re-read for fresh content)
-3. Skill-specific context (if skills were defined)
+**RELOAD for Phase 3** (prescriptive — load these, skip the rest):
+1. `docs/reference/CODING_STANDARDS.md` — coding conventions for implementation
+2. `docs/reference/TESTING_STRATEGY.md` — TDD workflow and test quality criteria
+3. Files identified in the plan's Implementation Approach as targets (re-read for fresh content)
+4. Skill-specific context (if skills were defined in Phase 1d)
+
+**SKIP until Phase 4:** `docs/progress.md`, `docs/architecture/ARCHITECTURE.md` (decisions already captured in plan), backlog files, `docs/reference/CONSTITUTION.md` (already checked in Phase 1e)
 
 The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 file paths costs ~200 tokens; the contents of those 20 files costs ~20,000.
 
@@ -248,7 +274,10 @@ Do NOT print the completion report until every acceptance criterion has been ver
 **Commit:** [hash and message]
 **Verification:** [All N acceptance criteria verified — see evidence above]
 
-**Ready for next story or sprint-end.**
+**Next Steps:**
+→ `/story-cycle "[next story from backlog]"` — deliver the next story
+→ `/sprint-end` — if this was the last story in the sprint
+→ `/handoff` — if ending the session
 ```
 
 ## Recovery
@@ -273,3 +302,4 @@ General recovery:
 - Follow coding standards in `docs/reference/CODING_STANDARDS.md`
 - Follow testing strategy in `docs/reference/TESTING_STRATEGY.md`
 - Follow architecture constraints in `docs/architecture/ARCHITECTURE.md`
+- Follow project constitution in `docs/reference/CONSTITUTION.md` (if exists)

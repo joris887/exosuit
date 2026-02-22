@@ -1,5 +1,72 @@
 # Changelog
 
+## [2.8.0] - 2026-02-22
+
+### Specification Quality & Planning (OPT-71, OPT-72, OPT-73)
+
+#### OPT-71: Forced Clarification Markers in Story Planning
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 1e), `.claude/skills/story-cycle/references/reasoning-tools.md` (scope_analysis tool)
+- **What:** Added `[NEEDS CLARIFICATION: specific question]` convention to story-cycle planning. When the user's intent is ambiguous or multiple valid interpretations exist, the plan must mark uncertainties explicitly instead of making assumptions. Maximum 3 markers before triggering a hard gate for user input. The `scope_analysis` reasoning tool now includes a step 6 that checks each deliverable for ambiguity.
+- **Why:** LLMs naturally fill gaps with plausible-sounding assumptions. This convention makes uncertainty visible at planning time, preventing rework from incorrect assumptions. It's the specification equivalent of the `<HARD-GATE>` pattern — but for knowledge gaps.
+- **To test:** Run `/story-cycle` with an ambiguous request (e.g., "add user auth"). Verify the plan contains `[NEEDS CLARIFICATION]` markers for decisions like auth method, storage, session handling. Verify markers are presented to user before plan approval.
+- **To revert:** Remove `[NEEDS CLARIFICATION]` instruction from story-cycle Phase 1e. Remove step 6 and output format change from `scope_analysis` tool in reasoning-tools.md.
+
+#### OPT-72: Structured Clarification Sub-Phase with Ambiguity Scanning
+- **New reasoning tool:** `ambiguity_scan` in `.claude/skills/story-cycle/references/reasoning-tools.md`
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (new Phase 1f between plan draft and approval gate, process flow updated)
+- **What:** Added a dedicated clarification check (Phase 1f) that scans the plan for assumptions across seven categories: scope & behavior, data model, UX flow, non-functional requirements, integration dependencies, edge cases, and constraints. Uses a new `ambiguity_scan` reasoning tool that ranks questions by impact (scope > security > UX > technical) and presents top 3-5 to user. Answers integrate directly into the plan before approval.
+- **Why:** The `scope_analysis` tool (OPT-71) catches ambiguity in deliverables; this catches ambiguity in the plan itself. Together they form a two-layer defense against incorrect assumptions — at decomposition and at planning.
+- **To test:** Run `/story-cycle` with a request that has UX implications (e.g., "add a search feature"). Verify Phase 1f fires after the plan draft and asks focused questions about search behavior, result display, pagination, etc.
+- **To revert:** Remove the `## Tool: ambiguity_scan` section from reasoning-tools.md. Remove Phase 1f section and its references from story-cycle SKILL.md. Restore the original process flow (remove Phase 1f and 1g lines).
+
+#### OPT-73: WHAT/WHY vs HOW Separation in Plans with Output Templates
+- **New files:** `.claude/skills/story-cycle/references/plan-template.md`, `.claude/skills/ideate/references/story-template.md`
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 1e plan format, YAML frontmatter references), `.claude/skills/ideate/SKILL.md` (story structure, version, YAML frontmatter references), `.claude/skills/story-cycle/references/reasoning-tools.md` (plan_completeness tool — added steps 7-8)
+- **What:** Plans now require two distinct sections: Specification (WHAT/WHY — user-visible behavior, acceptance criteria in Given/When/Then, no file paths or technical terms) and Implementation Approach (HOW — files, patterns, technical strategy). Created `plan-template.md` reference with the full structure including anti-patterns. Created `story-template.md` for ideate with user-centric framing (As a/I want/So that), independent testability requirement, and priority justification. Updated `plan_completeness` reasoning tool (now Phase 1g) to verify spec contains zero implementation details and implementation traces to every acceptance criterion.
+- **Why:** Mixing specification and implementation in plans leads to premature technical decisions that constrain the solution space. Templates-as-meta-prompts shape LLM behavior through structure (showing the right format) rather than instruction (saying "don't do X"), which is more reliable.
+- **To test:** Run `/story-cycle` and verify the plan output has separate Specification and Implementation Approach sections. Verify Specification section has Given/When/Then criteria and no file paths. Read the new template files and verify they include anti-pattern guidance.
+- **To revert:** Delete `references/plan-template.md` from story-cycle and `references/story-template.md` from ideate. Remove `references/plan-template.md` from story-cycle YAML frontmatter. Remove `references/story-template.md` from ideate YAML frontmatter. Restore original Phase 1e plan section (single flat list: story type, files, testing, skills, AC, non-goals). Restore original ideate story structure (Description instead of As a/I want). Revert plan_completeness tool to remove steps 7-8 and rename back to Phase 1e.
+
+### Architectural Governance (OPT-74, OPT-75)
+
+#### OPT-74: Project Constitution Pattern
+- **New file:** `docs/reference/CONSTITUTION.md`
+- **Modified:** `.claude/skills/bootstrap/SKILL.md` (new step A3.6, process flow updated, version bumped), `.claude/skills/story-cycle/SKILL.md` (Phase 1e constitution check, Rules section), `.claude/skills/sprint-end/SKILL.md` (Step 2 constitution compliance gate)
+- **What:** Added a "project constitution" concept — a set of non-negotiable architectural principles per project (MUST/SHOULD classification). Created during `/bootstrap` (step A3.6) by prompting user for 3-7 principles. Checked during `/story-cycle` Phase 1e (MUST violation = HALT, SHOULD violation = document justification). Checked during `/sprint-end` quality gates (verify no untracked violations). The constitution template includes sections for principles, amendment history, and tracked violations.
+- **Why:** Architectural decisions made in sprint 1 erode by sprint 5 because they exist only in ARCHITECTURE.md prose. A constitution creates checkable constraints validated at planning time and shipping time, catching architectural drift before code is written.
+- **To test:** Run `/bootstrap` on a project and verify it prompts for architectural principles and populates CONSTITUTION.md. Run `/story-cycle` with a plan that violates a MUST principle and verify HALT. Run `/sprint-end` and verify constitution compliance is checked.
+- **To revert:** Delete `docs/reference/CONSTITUTION.md`. Remove step A3.6 and its process flow line from bootstrap SKILL.md. Remove the `<IF condition="docs/reference/CONSTITUTION.md exists">` block from story-cycle Phase 1e. Remove the constitution compliance `<IF>` block from sprint-end Step 2. Remove the constitution reference from story-cycle Rules section.
+
+#### OPT-75: Violation Tracking with Justification
+- **Modified:** `.claude/skills/story-cycle/references/plan-template.md` (Architectural Violations table section)
+- **What:** When a story plan violates a constitutional principle, the plan template now requires an explicit table: Principle Violated | Why Needed | Rejected Alternative. These violations are tracked in the constitution's Tracked Violations section and cross-referenced with `docs/technical-debt.md`.
+- **Why:** Creates accountability for technical debt at creation time, not retroactively. Forces justification and documentation of what simpler alternative was rejected.
+- **To test:** Run `/story-cycle` with a plan that violates a SHOULD principle. Verify the Architectural Violations table appears in the plan with justification.
+- **To revert:** Remove the "## Architectural Violations (if any)" section from plan-template.md. Remove the Tracked Violations section from CONSTITUTION.md.
+
+### Workflow Polish (OPT-76, OPT-77)
+
+#### OPT-76: Consistent Handoff Suggestions with Pre-Filled Commands
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (completion report), `.claude/skills/sprint-end/SKILL.md` (sprint complete summary), `.claude/skills/ideate/SKILL.md` (example output), `.claude/skills/brainstorm/SKILL.md` (example output), `.claude/skills/debug-session/SKILL.md` (example output)
+- **What:** Every workflow skill's completion output now includes a "Next Steps" section with 1-3 contextual, ready-to-use slash commands. Story-cycle suggests next story/sprint-end/handoff. Sprint-end suggests sprint-start/retrospective/handoff. Ideate suggests sprint-start/story-cycle. Brainstorm suggests ideate/handoff. Debug-session suggests story-cycle/sprint-end/handoff.
+- **Why:** Reduces friction between workflow steps. Users can proceed without remembering the workflow sequence or typing commands from memory. The suggestions are contextual — they reference actual workflow state.
+- **To test:** Run any workflow skill to completion. Verify the output includes a "Next Steps" section with valid slash commands.
+- **To revert:** Remove the "Next Steps" sections from: story-cycle completion report, sprint-end step 7 summary, ideate example, brainstorm example, debug-session example.
+
+#### OPT-77: Per-Phase Context Loading Manifests
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 2 Context Transition)
+- **What:** Phase 2 now includes a prescriptive "RELOAD for Phase 3" manifest listing exactly which files to load (CODING_STANDARDS.md, TESTING_STRATEGY.md, plan target files, skill-specific context) and a "SKIP until Phase 4" list (progress.md, ARCHITECTURE.md, backlog files, CONSTITUTION.md). This replaces the previous generic "reload coding standards and relevant files."
+- **Why:** The framework's progressive disclosure and context relevance scoring are reactive (classify after loading). Per-phase manifests are prescriptive (define before loading), preventing unnecessary file reads in the first place.
+- **To test:** Run `/story-cycle` through Phase 2. Verify Claude loads only the files listed in the RELOAD manifest and does not load files in the SKIP list.
+- **To revert:** Restore the original Phase 2 "THEN RELOAD fresh" section (3 generic items) and remove the "RELOAD for Phase 3" and "SKIP until Phase 4" sections.
+
+### Version Updates
+
+- Updated CLAUDE.md version reference to v2.8
+- Updated story-cycle, sprint-end, bootstrap, ideate skill versions to 2.8.0
+- Added `references/plan-template.md` to story-cycle YAML frontmatter
+- Added `references/story-template.md` to ideate YAML frontmatter
+
 ## [2.7.0] - 2026-02-22
 
 ### Prompt Engineering & Reasoning Quality (OPT-65, OPT-66)
