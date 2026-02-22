@@ -31,6 +31,17 @@ paths:
 - When tool outputs are verbose (>50 lines), summarize the key findings before continuing
 - If the conversation feels heavy with prior tool outputs, proactively note what you've learned and move on rather than re-reading
 
+## Pre-Compaction State Persistence
+
+When context is approaching compaction (multiple large tool outputs, 15+ turns of conversation, or system compaction trigger), persist state before it's lost:
+
+1. Save current state to `docs/sessions/.auto-save.md` — branch, phase, active plan, key decisions, files modified
+2. Use the same format as the pre-stop-quality hook auto-save, adding: `goal`, `phase`, and `active_plan` fields
+3. After compaction, verify critical state survived by cross-checking against the auto-save file
+4. If critical state was lost in compaction, reload from the auto-save file
+
+This complements the pre-stop-quality hook auto-save (which triggers at session end) by also protecting against mid-session compaction loss.
+
 ## Context Relevance Scoring
 
 At phase transitions and every 5+ sequential tool calls, classify context items:

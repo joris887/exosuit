@@ -39,6 +39,38 @@ references: [references/file1.md, references/file2.md]
 
 The frontmatter goes BEFORE the `______________________________________________________________________` separator line.
 
+## Skill Prerequisites (requires)
+
+Skills can declare runtime prerequisites in YAML frontmatter. These are checked at skill startup — if missing, the skill reports what's needed and halts.
+
+```yaml
+---
+name: sprint-end
+requires:
+  binaries: [gh, git]        # CLI tools that must be installed
+  commands: [test]            # References CLAUDE.md Commands section (test, lint, format, build, typecheck)
+  files: [docs/progress.md]  # Files that must exist
+---
+```
+
+| Field | Purpose | Check Method |
+|-------|---------|--------------|
+| `binaries` | CLI tools required | `command -v <binary>` |
+| `commands` | CLAUDE.md Commands that must be configured | Read CLAUDE.md Commands section |
+| `files` | Project files that must exist | File existence check |
+
+**Validation step:** At skill start, before Phase 0 or Step 1, check all `requires` entries. If any prerequisite is missing, report clearly and HALT:
+
+```
+PREREQUISITE MISSING: `gh` CLI not installed.
+Required by: /sprint-end (push and PR creation)
+Install: https://cli.github.com/
+```
+
+**Graceful alternative:** If a prerequisite has a documented fallback in the skill's Graceful Degradation table, skip the prerequisite check for that item and use the fallback instead.
+
+Not all skills need `requires` — only add it when the skill has hard dependencies that cause confusing failures if missing.
+
 ## Standard Header Format
 
 Below the frontmatter, every skill file has a metadata header line:
@@ -82,6 +114,32 @@ For analysis agents that should not pollute the main context. Use when the skill
 | `Plan`            | Planning without execution             | Read, Glob, Grep (no edits)        |
 | *(none)*          | Workflow orchestration in main context | As specified in `allowed-tools`    |
 
+## Subagent Context Protocol
+
+When skills dispatch forked subagents (quality analysis, code review), define what context the subagent receives. This prevents subagents from inheriting irrelevant framework context.
+
+### Full Mode (default for inline skills)
+Receives: Full conversation context, CLAUDE.md commands, active plan
+Use for: Workflow skills that orchestrate the main conversation (story-cycle, sprint-end)
+
+### Minimal Mode (for forked analysis agents)
+Receives: CLAUDE.md Commands section + relevant coding standards only
+Excludes: Conversation history, backlog state, sprint context, other skill references
+Use for: code-quality, test-validator, security-audit, architecture-check
+
+### Specifying Context Mode
+
+In the skill's YAML frontmatter or dispatch template, specify what the subagent needs:
+
+```markdown
+## Subagent Context
+- **Mode:** minimal
+- **Include:** CLAUDE.md Commands, docs/reference/CODING_STANDARDS.md
+- **Exclude:** Conversation history, backlog files, sprint state
+```
+
+Subagent dispatch templates in `.claude/prompts/agents/` should specify their context requirements. When dispatching a forked agent, pass only the files listed in its context specification — not the full project context.
+
 ## Referencing Standards
 
 Skills should reference rather than duplicate standards:
@@ -101,6 +159,12 @@ Follow architecture constraints in `docs/architecture/ARCHITECTURE.md`.
 | `scripts/`     | Executable code — run, don't read   | Zero (black-box execution) |
 | `references/`  | Documentation — load on demand      | Medium (grep for sections) |
 | `assets/`      | Output templates — copy, don't read | Zero (copy and edit)       |
+
+### Reference File Budgets
+
+- Individual reference files: ≤200 lines — if larger, split by topic
+- Total references per skill: ≤500 lines across all files
+- When loading references, prefer section-level grep (search for `## Heading`) over reading entire files
 
 **assets/** contains templates and boilerplate used in output. Copy an asset to the
 target location and Edit it — never Read the asset into context first.

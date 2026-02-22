@@ -122,7 +122,7 @@ For structured UAT with tracked test cases:
 |---|---|
 | `/bootstrap` | First-run setup — detect stack or generate from vision |
 | `/sprint-start` | Pre-flight checks + create sprint branch |
-| `/story-cycle` | Deliver a story with clarification scanning, constitution checks, and WHAT/HOW plan separation |
+| `/story-cycle` | Deliver a story with clarification scanning, constitution checks, WHAT/HOW plan separation, and dead code detection |
 | `/sprint-end` | Quality gates, documentation, PR, merge, cleanup |
 | `/brainstorm` | Design exploration with alternative approaches |
 | `/ideate` | Transform ideas into typed backlog stories |
@@ -146,6 +146,7 @@ For structured UAT with tracked test cases:
 | `/debug-session` | 5-phase structured debugging with reasoning scaffolds, error recovery, and handoff suggestions |
 | `/parallel-work` | Manage parallel worktrees for concurrent stories |
 | `/architecture-check` | Validate architecture and module boundaries |
+| `/doctor` | Framework health check — validate config, hooks, dependencies |
 | `/review-security` | Security review of a specific file (prompt snippet) |
 | `/explain-pattern` | Explain a code pattern in this codebase (prompt snippet) |
 | `/suggest-tests` | Suggest test cases for a file (prompt snippet) |
@@ -177,10 +178,10 @@ The `/story-cycle` skill adapts methodology by story type:
       references/       # Detailed docs loaded on demand (plan-template, story-template, reasoning-tools)
       scripts/          # Executable helper scripts (--help supported)
       assets/           # Output templates — copy, don't read
-  prompts/              # Prompt snippets, micro-components, and subagent templates
+  prompts/              # Prompt snippets, micro-components (incl. context-budget), and subagent templates
     agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer)
-  rules/                # Path-scoped rules for testing, security, git, verification, code-slop, edit-recovery, context relevance
-  hooks/                # Hook scripts for auto-format, quality gates, safety
+  rules/                # Path-scoped rules for testing, security, git, verification, code-slop, edit-recovery, documentation budgets
+  hooks/                # Hook scripts for auto-format, quality gates, safety, secrets detection
   settings.json         # Claude Code configuration with hooks
 docs/
   reference/
@@ -230,10 +231,12 @@ A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stori
 - **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, code slop, over-engineering)
 - **Verification-driven** — Evidence before claims, fresh output before completion
 - **Progressive disclosure** — Load only what you need, when you need it
-- **Context-efficient** — Skills split into lean entry points + on-demand references; symbolic state encoding; per-phase context manifests
+- **Context-efficient** — Skills split into lean entry points + on-demand references; symbolic state encoding; per-phase context manifests; reference file budgets
 - **Reasoning-scaffolded** — Named reasoning tools (scope_analysis, ambiguity_scan, failure_diagnosis, etc.) structure thinking at critical decision points
 - **Clarification-first** — Forced `[NEEDS CLARIFICATION]` markers and structured ambiguity scanning prevent LLM assumptions
 - **Constitution-governed** — Per-project architectural principles checked at planning and shipping time
+- **Observable** — Context budget visibility, framework health checks (`/doctor`), hook self-validation with requirements metadata
+- **Secrets-aware** — Automated credential detection in post-edit hooks catches leaked secrets deterministically
 
 ## Contributing
 

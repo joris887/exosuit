@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.8 — Deep Dive
+# JD-LLM Development Framework v2.9 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -197,9 +197,13 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 
 **Supported linters (auto-fix):** ruff (Python), eslint/biome (JS/TS), golangci-lint (Go). Rust clippy and Swift swiftlint are skipped because they require full project context.
 
-**Why this matters:** LLMs produce code with inconsistent formatting and occasional lint violations. Auto-formatting and auto-linting after every edit means issues are caught immediately rather than accumulating until sprint-end.
+**Automated secrets detection** (*new in v2.9*): After formatting and linting, the hook scans the edited file for credential patterns: AWS access keys (AKIA...), OpenAI/Stripe-style keys (sk-...), GitHub personal access tokens (ghp_...), private keys (BEGIN PRIVATE KEY), and generic hardcoded credentials. Findings are reported but do NOT block edits. Per-file session state tracking avoids duplicate warnings.
 
-**Optimization opportunity:** Currently commented out in settings.json (not configured by default). The /bootstrap skill should detect the project's formatter and enable this hook. Monitor whether incremental linting causes noticeable slowdown on save.
+**Hook self-validation** (*new in v2.9*): The hook now declares its requirements in a header comment and includes a `report_missing()` helper that reports missing formatters/linters once per session. This replaces silent degradation with informed degradation.
+
+**Why this matters:** LLMs produce code with inconsistent formatting and occasional lint violations. Auto-formatting and auto-linting after every edit means issues are caught immediately rather than accumulating until sprint-end. The secrets detection adds a deterministic safety net that catches leaked credentials regardless of which skill is running.
+
+**Optimization opportunity:** The secrets detection uses regex patterns — consider adding support for `detect-secrets` when installed for more comprehensive scanning. Monitor false positive rate on the credential patterns.
 
 #### pre-stop-quality.sh (Stop)
 
@@ -247,7 +251,9 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Key rules:** Only create docs when explicitly requested. Update existing over creating new. Keep auto-loaded files lean.
 
-**Why this matters:** LLMs love generating documentation. Without this rule, Claude will happily create README files, add JSDoc to every function, and generate architectural diagrams nobody asked for. This wastes context and creates maintenance burden.
+**Reference file size budgets** (*new in v2.9*): Explicit line budgets prevent reference files from silently consuming context as projects grow: individual references ≤200 lines, total per skill ≤500 lines, CODING_STANDARDS ≤200, TESTING_STRATEGY ≤250, CONSTITUTION ≤100, ARCHITECTURE ≤200. When loading references, prefer section-level grep over full file reads.
+
+**Why this matters:** LLMs love generating documentation. Without this rule, Claude will happily create README files, add JSDoc to every function, and generate architectural diagrams nobody asked for. This wastes context and creates maintenance burden. The size budgets prevent progressive disclosure from being undermined by growing reference files.
 
 **Directory-level context** (*new in v2.6*): `.claude-context.md` files in directories provide module-specific context (patterns, conventions, quirks). Story-cycle reads the nearest one when working in a directory. These are never created proactively — only when a user explicitly requests module-specific documentation.
 
@@ -284,6 +290,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Context budget awareness** (*new in v2.6*): Five heuristics for managing context consumption: summarize after 10+ file reads, discard bulk after exploration phases, prefer targeted grep over full file reads, summarize verbose tool outputs, proactively note findings and move on.
 
 **Context relevance scoring** (*new in v2.7*): A 5-level classification system (ACTIVE, ANCHORED, REFERENCE, STALE, DUPLICATE) for systematically identifying and pruning irrelevant context. Applied at phase transitions, after 5+ file reads, and before compaction. Includes "signs of context rot" detection heuristics to catch performance degradation from accumulated stale context.
+
+**Pre-compaction state persistence** (*new in v2.9*): When context is approaching compaction (15+ turns, large tool outputs), Claude persists session state to `docs/sessions/.auto-save.md` before compaction occurs. After compaction, critical state is verified against the auto-save. This complements the pre-stop hook auto-save (session end) by protecting against mid-session compaction loss.
 
 #### code-slop.md (*new in v2.6*)
 
@@ -688,6 +696,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **v2.4 additions:** Confidence-based scoring (0–100) with ≥80 threshold for actionable findings. `<example>` block triggers for better auto-invocation reliability.
 
+**Dead code detection** (*new in v2.9*): The analysis process now includes dead code detection — unused exports, orphaned functions, unreferenced modules. Uses language-specific tools when available (knip/ts-prune for JS/TS, vulture for Python) with manual grep-based fallback. Findings use the existing confidence scoring (≥80 actionable). Also added to `/weekly-maintenance` as a periodic check.
+
 ### /test-validator
 
 **File:** `.claude/skills/test-validator/SKILL.md`
@@ -770,12 +780,14 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Added value:** Catches issues before they compound.
 
 **Six steps:**
-1. Codebase health (complexity, duplication, churn)
+1. Codebase health (complexity, duplication, churn, dead code)
 2. Code quality agent review
 3. Documentation review (accuracy, efficiency, drift)
 4. Dependency review (outdated, vulnerable, recently added)
 5. Weekly summary (update progress.md)
 6. Plan next week
+
+**Dead code detection** (*new in v2.9*): Step 1 now includes dead code scanning — unused exports, orphaned functions. Run monthly or when codebase exceeds 5K LOC.
 
 **Dependency governance** (*new in v2.0*):
 - Run vulnerability scanners (npm audit, pip-audit, cargo audit)
@@ -786,6 +798,28 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Why regular maintenance matters:** Quality degrades slowly. One complex function this week, two next week. Dependencies go stale. Documentation drifts from implementation. Weekly checks catch the early signals.
 
 **Optimization opportunity:** 1-2 hours is a significant time investment. Consider a "quick maintenance" mode (30 minutes) that only checks the most critical items (tests pass, no high-severity vulnerabilities, progress.md is current). Full maintenance can be monthly.
+
+### /doctor (*new in v2.9*)
+
+**File:** `.claude/skills/doctor/SKILL.md`
+**Purpose:** Quick framework health check — validates that configuration, hooks, dependencies, and documentation are consistent and functional.
+**Added value:** Catches misconfigurations early (missing commands, broken hooks, stale docs) before they cause failures in other skills.
+
+**Six check categories:**
+1. **Command Verification** — Confirms CLAUDE.md commands (test, lint, format, build, typecheck) actually work
+2. **Hook Dependencies** — Validates each hook's declared requirements are installed (prettier, eslint, etc.)
+3. **Rule Relevance** — Checks that rule glob patterns match actual files in the project
+4. **Skill Dependencies** — Validates `requires` fields in skill YAML frontmatter
+5. **Documentation Freshness** — Flags docs not updated in >30 days
+6. **Git State** — Reports uncommitted changes, unpushed commits, diverged branches
+
+**Output format:** Structured health report with PASS/WARN/FAIL per check and actionable fix suggestions.
+
+**When to use:**
+- After `/bootstrap` to verify setup
+- When a skill or hook fails unexpectedly
+- After updating framework files manually
+- As a periodic sanity check
 
 ### /retrospective
 
@@ -969,6 +1003,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 
 **v2.8 context efficiency improvements:** Per-phase context loading manifests in story-cycle prescribe exactly which files to load and skip at each phase transition, preventing unnecessary reads. Plan template enforces structured output that separates specification from implementation, reducing plan revision cycles. Clarification scanning surfaces ambiguity before execution, avoiding costly mid-implementation rework and context consumption.
 
+**v2.9 context efficiency improvements:** Reference file token budgets — explicit line limits for on-demand references (individual ≤200, per-skill total ≤500) and project docs (CODING_STANDARDS ≤200, TESTING_STRATEGY ≤250, CONSTITUTION ≤100, ARCHITECTURE ≤200) prevent context creep as projects grow. Context budget visibility — a new `context-budget` micro-component lets users estimate context usage and compaction proximity. Pre-compaction state persistence saves session state before compaction events, not just at session end. Subagent context protocol formalizes what context forked agents receive (Full vs Minimal mode), preventing token waste from irrelevant framework state in analysis agents.
+
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
 ---
@@ -1079,6 +1115,7 @@ All skills now include YAML frontmatter with machine-readable metadata: `name`, 
 | .claude/prompts/discover-commands.md | Extract configured commands from CLAUDE.md | sprint-start, sprint-end, story-cycle, continue |
 | .claude/prompts/quality-gate-sequence.md | Run lint → typecheck → test in order | sprint-end, story-cycle Phase 4, pre-stop hook |
 | .claude/prompts/verify-clean-git-state.md | Check working tree cleanliness | sprint-start, sprint-end, continue |
+| .claude/prompts/context-budget.md | Estimate context budget usage and compaction proximity | story-cycle Phase 2, manual invocation |
 
 **Design principle:** Reusable operation sequences that multiple skills reference to avoid duplicating the same logic. Each is 5-15 lines — lightweight enough to not burden context, but centralized enough to maintain once. Skills reference them as shared procedures: "Use the `discover-commands` micro-component."
 
@@ -1118,6 +1155,24 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v2.9
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-78 | Pre-compaction state persistence (save state before mid-session compaction) | Implemented |
+| OPT-79 | Reference file token budgets (explicit line limits for on-demand references) | Implemented |
+| OPT-80 | Automated secrets detection in post-edit hook (AWS keys, API tokens, private keys, credentials) | Implemented |
+| OPT-81 | Skill prerequisites declaration (`requires` field in YAML frontmatter) | Implemented |
+| OPT-82 | Subagent context protocol (Full vs Minimal mode for forked agents) | Implemented |
+| OPT-83 | Hook self-validation with requirements metadata (once-per-session missing tool reports) | Implemented |
+| OPT-84 | Context budget visibility (micro-component for estimating context usage) | Implemented |
+| OPT-85 | Framework health check skill (`/doctor` — validates config, hooks, dependencies, docs) | Implemented |
+| OPT-86 | Dead code detection in code-quality and weekly-maintenance (unused exports, orphaned functions) | Implemented |
+
+**Key changes in v2.9:** Resilience improved with pre-compaction state persistence and reference file budgets that prevent context creep. Security improved with automated secrets detection in the post-edit hook. Skill architecture improved with prerequisites declaration, subagent context protocol, and hook self-validation. Observability improved with context budget visibility and a `/doctor` health check skill. Quality tooling expanded with dead code detection.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v2.8
 
@@ -1305,6 +1360,12 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Constitution is optional:** The project constitution is only checked if `docs/reference/CONSTITUTION.md` exists and has principles defined. Projects that skip the bootstrap constitution step get no architectural governance.
 - **Clarification markers depend on Claude's uncertainty detection:** The `[NEEDS CLARIFICATION]` convention relies on Claude recognizing its own uncertainty. Confidently wrong assumptions will still pass through without markers.
 - **Ambiguity scan adds turns:** Phase 1f introduces additional user interaction before plan approval. For simple, unambiguous stories this adds latency. Monitor whether it catches real issues or just slows down obvious work.
+- **Pre-compaction state persistence is best-effort:** The auto-save to `docs/sessions/.auto-save.md` triggers based on heuristics (15+ turns, large outputs). It may not fire before every compaction event, and the saved state may already be slightly stale. It supplements, not replaces, the compaction directive.
+- **Secrets detection is regex-based:** The post-edit hook scans for known patterns (AWS keys, API tokens, private keys). Novel credential formats or obfuscated secrets will not be caught. This is a safety net, not a replacement for proper secrets management (`.gitignore`, vault tools).
+- **Skill prerequisites are not enforced deterministically:** The `requires` field in YAML frontmatter tells Claude what to check, but Claude may skip the check if it's confident the tools exist. Missing prerequisites will surface as errors mid-execution rather than upfront.
+- **Reference file budgets are advisory:** The ≤200 lines per reference file guideline in documentation.md is a rule, not a hook. Files can exceed the budget without triggering a block. Monitor via `/doctor` or periodic manual review.
+- **Hook self-validation degrades gracefully but silently:** When a hook dependency is missing, it reports once per session and continues. This means the hook's intended protection (formatting, linting) is quietly absent. Check `/doctor` output if quality seems to drift.
+- **Dead code detection depends on language tooling:** The code-quality skill's dead code detection relies on language-specific tools (ts-prune, vulture, etc.). If no tool is available for the project's language, the check is skipped silently.
 
 ### Git Workflow Assumptions
 

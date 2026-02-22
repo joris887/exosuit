@@ -53,6 +53,7 @@ Reusable operation sequences referenced by skills to avoid duplication. These ar
 | `discover-commands.md` | Extract configured commands from CLAUDE.md | sprint-start, sprint-end, story-cycle, continue |
 | `quality-gate-sequence.md` | Run lint → typecheck → test in order | sprint-end, story-cycle Phase 4, pre-stop hook |
 | `verify-clean-git-state.md` | Check for clean working tree | sprint-start, sprint-end, continue |
+| `context-budget.md` | Estimate context budget usage and compaction proximity | story-cycle Phase 2, manual invocation |
 
 ## Subagent Templates (`agents/`)
 

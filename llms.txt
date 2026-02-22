@@ -12,7 +12,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.8)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.9)
 
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
@@ -46,18 +46,21 @@
 - .claude/skills/parallel-work/SKILL.md: Git worktree management
   - scripts/worktree-status.sh: Worktree status with merge info
 - .claude/skills/architecture-check/SKILL.md: Architecture validation
+- .claude/skills/doctor/SKILL.md: Framework health check — validates config, hooks, dependencies, rules, documentation freshness
 - .claude/skills/skill-eval/SKILL.md: Skill evaluation — test, A/B compare, metrics
 - .claude/skills/refine-loop/SKILL.md: Iterative self-improvement until completion criteria met
 - .claude/skills/SKILLS_INVENTORY.md: Full skill inventory
-- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, resource types, control flow markers (IF/ELSE/LOOP/HALT), reasoning tools, error recovery tables, script policy, grep navigation, graceful degradation, pre-execution validation, and TDD methodology
+- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, skill prerequisites (requires), subagent context protocol, resource types, reference file budgets, control flow markers (IF/ELSE/LOOP/HALT), reasoning tools, error recovery tables, script policy, grep navigation, graceful degradation, pre-execution validation, and TDD methodology
 
 ## Rules
 - .claude/rules/testing.md: Test file protection rules
-- .claude/rules/documentation.md: Documentation rules
+- .claude/rules/documentation.md: Documentation rules + reference file size budgets
 - .claude/rules/security.md: Security-sensitive file rules + fix-immediately pattern
 - .claude/rules/git.md: Git workflow rules
 - .claude/rules/dependencies.md: Dependency management rules
-- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern + task completion enforcement + context budget awareness + context relevance scoring (5-level classification)
+- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern + task completion enforcement + context budget awareness + context relevance scoring (5-level classification) + pre-compaction state persistence
+- .claude/rules/code-slop.md: AI slop detection — banned comment patterns, obvious comment detection, code prose anti-patterns
+- .claude/rules/edit-recovery.md: Edit failure recovery decision tree — re-read before retry, escalating recovery
 
 ## Prompt Snippets
 - .claude/prompts/review-security.md: Security review of a specific file
@@ -68,19 +71,17 @@
 - .claude/prompts/discover-commands.md: Extract configured commands from CLAUDE.md
 - .claude/prompts/quality-gate-sequence.md: Run lint → typecheck → test sequence
 - .claude/prompts/verify-clean-git-state.md: Verify clean git working tree
+- .claude/prompts/context-budget.md: Estimate context budget usage and compaction proximity
 
 ## Subagent Templates
 - .claude/prompts/agents/code-reviewer.md: Code review dispatch template with severity classification
 - .claude/prompts/agents/spec-reviewer.md: Spec compliance verification with file:line references
 
-## Rules (new in v2.6)
-- .claude/rules/code-slop.md: AI slop detection — banned comment patterns, obvious comment detection, code prose anti-patterns
-- .claude/rules/edit-recovery.md: Edit failure recovery decision tree — re-read before retry, escalating recovery
-
 ## Hooks
-- .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits
+- .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits + automated secrets detection (AWS keys, API tokens, private keys, hardcoded credentials)
 - .claude/hooks/pre-stop-quality.sh: Quality gate before completion + auto-save session state
 - .claude/hooks/pre-tool-safety.sh: Block dangerous operations (git, publishing, DB, process killing)
+- All hooks declare requirements in headers and degrade gracefully with once-per-session missing tool reports
 
 ## Other
 - CHANGELOG.md: Per-optimization changelog with test and revert instructions

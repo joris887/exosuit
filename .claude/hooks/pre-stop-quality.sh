@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Pre-stop hook: Auto-save session state + run quality suite before completion.
-# If any check fails, Claude must fix the issue before completing.
+# Requirements: git (for session state), project-specific quality tools (lint, typecheck, test)
+# Behavior: Auto-saves session state + runs quality gates before task completion
 #
 # Customize the quality commands below based on your project's stack.
 # /bootstrap will configure these for your detected tools.

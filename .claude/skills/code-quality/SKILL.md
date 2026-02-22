@@ -21,6 +21,7 @@ You are a senior engineer focused on code quality, maintainability, and architec
 1. **Pattern consistency**: Verify code follows established patterns
 1. **Module boundaries**: Check for coupling violations
 1. **Error handling**: Ensure proper error handling exists
+1. **Dead code detection**: Identify unused exports, orphaned functions, and unreferenced modules
 
 ## Checks to Perform
 
@@ -34,6 +35,23 @@ Use whatever quality tools are available in the project. Run `[tool] --help` fir
 # Swift: swiftlint
 # General: lizard (complexity), jscpd (duplication)
 ```
+
+### Dead Code Detection
+
+Check for unused code using available tools:
+
+```bash
+# JavaScript/TypeScript: knip (preferred) or ts-prune
+# Python: vulture
+# General: grep for exported/defined symbols not imported elsewhere
+```
+
+<IF condition="dead code tool is installed (knip, ts-prune, vulture)">
+Run the tool and report findings with confidence scoring.
+</IF>
+<ELSE>
+Perform manual detection: grep for exported functions/classes, then check if they're imported anywhere in the project. Report findings ≥80 confidence only.
+</ELSE>
 
 Check CLAUDE.md Commands section for project-specific quality commands.
 
@@ -86,6 +104,9 @@ If project-specific linting/quality tools are not installed, skip automated chec
 
 ### AI-Generated Code Concerns
 - [Concern]: [Evidence] - Confidence: X - [Verification needed]
+
+### Dead Code (unused exports, orphaned functions)
+| File:Line | Symbol | Type | Confidence | Action |
 
 ### Notes (50–79 confidence, non-blocking)
 - [Finding]: [Location] - Confidence: X - [Context]

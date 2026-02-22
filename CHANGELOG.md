@@ -1,5 +1,90 @@
 # Changelog
 
+## [2.9.0] - 2026-02-22
+
+### Resilience & Context Protection (OPT-78, OPT-79)
+
+#### OPT-78: Pre-Compaction State Persistence
+- **Modified:** `.claude/rules/verification.md` (new "Pre-Compaction State Persistence" section)
+- **What:** Added a rule instructing Claude to persist session state to `docs/sessions/.auto-save.md` when context is approaching compaction (15+ turns, multiple large tool outputs, or system compaction trigger). After compaction, Claude verifies critical state survived and reloads from auto-save if needed.
+- **Why:** The existing auto-save in `pre-stop-quality.sh` only triggers at session end. Mid-session compaction can lose HIGH-priority state (branch, phase, decisions) if the compaction directive isn't followed perfectly. Persisting before compaction creates a safety net that survives even aggressive compaction.
+- **To test:** During a long story-cycle session (15+ turns), verify Claude saves state to `.auto-save.md` before compaction triggers. After compaction, verify critical fields (goal, commands, active_plan) are still present.
+- **To revert:** Remove the "## Pre-Compaction State Persistence" section (4 numbered steps + explanation paragraph) from verification.md.
+
+#### OPT-79: Reference File Token Budgets
+- **Modified:** `.claude/rules/documentation.md` (new "Reference File Size Budgets" section), `.claude/skills/SKILL_TEMPLATE.md` (new "Reference File Budgets" subsection)
+- **What:** Added explicit line budgets for on-demand reference files: individual references ≤200 lines, total per skill ≤500 lines, and specific budgets for key project docs (CODING_STANDARDS ≤200, TESTING_STRATEGY ≤250, CONSTITUTION ≤100, ARCHITECTURE ≤200). Added guidance to load only relevant sections via grep hints.
+- **Why:** Progressive disclosure prevents bulk loading, but there's no cap on how large a reference file can grow. As projects mature, CODING_STANDARDS.md or TESTING_STRATEGY.md can expand to 400+ lines, silently consuming context budget every time they're loaded. Budgets prevent this creep.
+- **To test:** Read documentation.md and verify the budget table is present. Read SKILL_TEMPLATE.md and verify the "Reference File Budgets" subsection exists after "Skill Size & Resource Types."
+- **To revert:** Remove the "## Reference File Size Budgets" section from documentation.md. Remove the "### Reference File Budgets" subsection from SKILL_TEMPLATE.md.
+
+### Security (OPT-80)
+
+#### OPT-80: Automated Secrets Detection in Post-Edit Hook
+- **Modified:** `.claude/hooks/post-edit-format.sh` (new secrets detection section after lint)
+- **What:** Added a lightweight secrets scan that runs after every file edit. Checks for: AWS access keys (AKIA...), OpenAI/Stripe-style keys (sk-...), GitHub personal access tokens (ghp_...), private keys (BEGIN PRIVATE KEY), and generic hardcoded credentials. Uses per-file session state to avoid duplicate warnings. Skips non-text files (images, lock files, markdown). Reports findings but does NOT block edits.
+- **Why:** The `security.md` rule and `/security-audit` skill catch secrets during code review, but both are advisory. A hook-based scan catches secrets deterministically — regardless of which skill is running, any file containing a credential pattern gets flagged immediately.
+- **To test:** Create a test file with `AKIA1234567890ABCDEF` in it. Verify the hook outputs a warning. Edit the same file again — verify the warning does NOT repeat (per-session state tracking).
+- **To revert:** Remove everything from the `# Secrets detection` comment to the closing `fi` (before `exit 0`) in post-edit-format.sh.
+
+### Skill Architecture (OPT-81, OPT-82, OPT-83)
+
+#### OPT-81: Skill Prerequisites Declaration
+- **Modified:** `.claude/skills/SKILL_TEMPLATE.md` (new "Skill Prerequisites (requires)" section)
+- **What:** Added a `requires` field to the YAML frontmatter specification with three sub-fields: `binaries` (CLI tools), `commands` (CLAUDE.md Commands entries), and `files` (project files). Skills with `requires` validate prerequisites at startup and HALT with actionable error messages if anything is missing. Skills with documented fallbacks in their Graceful Degradation table can skip prerequisite checks for those items.
+- **Why:** Skills currently fail at runtime when prerequisites aren't met (e.g., `gh` not installed for `/sprint-end`). Some skills handle this with `<IF>` blocks, but many don't. Declaring prerequisites upfront enables: early failure with actionable errors, `/doctor` validation, and `/bootstrap` compatibility checking.
+- **To test:** Read SKILL_TEMPLATE.md and verify the "Skill Prerequisites (requires)" section is present after YAML Frontmatter. Verify it includes the `binaries`, `commands`, `files` field table and the HALT example.
+- **To revert:** Remove the "## Skill Prerequisites (requires)" section from SKILL_TEMPLATE.md.
+
+#### OPT-82: Subagent Context Protocol
+- **Modified:** `.claude/skills/SKILL_TEMPLATE.md` (new "Subagent Context Protocol" section)
+- **What:** Formalized two context modes for forked subagents: Full Mode (full conversation context, used by workflow skills) and Minimal Mode (CLAUDE.md Commands + coding standards only, used by analysis agents like code-quality, test-validator, security-audit). Added a template for specifying context requirements in skill frontmatter or dispatch templates. Subagent templates in `.claude/prompts/agents/` should specify their context requirements.
+- **Why:** Forked subagents currently inherit whatever context is available, which can include irrelevant framework state that wastes tokens and potentially confuses analysis. Formalizing what each subagent receives ensures efficient token usage and accurate analysis.
+- **To test:** Read SKILL_TEMPLATE.md and verify the "Subagent Context Protocol" section is present after Agent Types. Verify it documents Full Mode and Minimal Mode with use-case guidance.
+- **To revert:** Remove the "## Subagent Context Protocol" section from SKILL_TEMPLATE.md.
+
+#### OPT-83: Hook Self-Validation with Requirements Metadata
+- **Modified:** `.claude/hooks/post-edit-format.sh` (requirements header + `report_missing()` helper), `.claude/hooks/pre-tool-safety.sh` (requirements header), `.claude/hooks/pre-stop-quality.sh` (requirements header), `.claude/hooks/README.md` (new "Requirements" section)
+- **What:** Added standardized requirements headers to all three hook scripts declaring what tools they need and their behavior. Added a `report_missing()` helper to `post-edit-format.sh` that reports missing tools once per session using `$TMPDIR` state files. Updated hooks README to document the requirements header convention.
+- **Why:** Hooks currently degrade silently when tools aren't installed. Users don't know their quality gates aren't firing. A hook that reports "post-edit-format: 'prettier' not found — skipping formatting" once per session is more informative than silent fallback.
+- **To test:** Run a Claude Code session in a project without prettier. Verify `post-edit-format.sh` reports the missing tool once (not per edit). Verify hook README documents the requirements convention.
+- **To revert:** Restore the original comment headers in all three hook scripts from git history. Remove `report_missing()` and `HOOK_STATE_DIR` from post-edit-format.sh. Remove the "## Requirements" section from hooks README.md.
+
+### Observability & Diagnostics (OPT-84, OPT-85)
+
+#### OPT-84: Context Budget Visibility
+- **New file:** `.claude/prompts/context-budget.md`
+- **Modified:** `.claude/prompts/README.md` (new row in Micro-Components table)
+- **What:** Created a micro-component that estimates current context window usage and reports: framework base load, loaded references, conversation depth, compaction proximity (LOW/MEDIUM/HIGH/CRITICAL), and recommendations for pruning. References the context relevance scoring categories from verification.md.
+- **Why:** The framework meticulously manages context (progressive disclosure, relevance scoring, compaction directives) but provides no visibility into usage. Users can't tell if they're at 40% or 90% capacity, and can't make informed decisions about when to handoff vs. push through.
+- **To test:** Use the `context-budget` micro-component during a session. Verify it produces a structured breakdown with compaction proximity estimate and actionable recommendations.
+- **To revert:** Delete `.claude/prompts/context-budget.md`. Remove the `context-budget.md` row from the Micro-Components table in `.claude/prompts/README.md`.
+
+#### OPT-85: Framework Health Check Skill (/doctor)
+- **New file:** `.claude/skills/doctor/SKILL.md`
+- **Modified:** `.claude/skills/SKILLS_INVENTORY.md` (new row in Maintenance table)
+- **What:** Created a `/doctor` diagnostic skill that validates: (1) CLAUDE.md commands execute successfully, (2) hook scripts exist and their dependencies are installed, (3) rule path patterns match actual project files, (4) skill dependencies resolve, (5) documentation is current, (6) git state follows conventions. Outputs a structured health report with PASS/WARN/FAIL per check and an overall health score.
+- **Why:** `/bootstrap` handles initial setup and `/weekly-maintenance` handles code health, but nothing checks the framework itself. Hooks silently degrade when formatters aren't installed. Rules with stale path patterns never trigger. A health check surfaces these issues before they silently erode quality.
+- **To test:** Run `/doctor` in a project. Verify it checks all 6 categories and produces a structured report. Verify it correctly identifies missing tools (WARN) and unconfigured commands (NOT CONFIGURED).
+- **To revert:** Delete `.claude/skills/doctor/` directory. Remove the `/doctor` row from SKILLS_INVENTORY.md Maintenance table.
+
+### Quality Tooling (OPT-86)
+
+#### OPT-86: Dead Code Detection in Quality Toolkit
+- **Modified:** `.claude/skills/code-quality/SKILL.md` (new step 6 in Analysis Process, new "Dead Code Detection" subsection, new "Dead Code" output section), `.claude/skills/weekly-maintenance/SKILL.md` (dead code check in step 1)
+- **What:** Added dead code detection as a standard check in code-quality analysis: unused exports, orphaned functions, unreferenced modules. Uses language-specific tools when available (knip/ts-prune for JS/TS, vulture for Python) with manual grep-based fallback. Added to weekly-maintenance as a periodic check. Findings use the existing confidence scoring (≥80 actionable, 50-79 notes).
+- **Why:** AI-assisted development generates more code than manual development — features get refactored, old code isn't always cleaned up. Dead code wastes context when the LLM reads files with unused exports, and represents technical debt. The existing code-quality skill checks complexity, duplication, and patterns, but not dead code.
+- **To test:** Run `/code-quality` on a project with known unused exports. Verify the report includes a "Dead Code" section with file:line references and confidence scores.
+- **To revert:** Remove step 6 ("Dead code detection") from the Analysis Process list. Remove the "### Dead Code Detection" subsection. Remove the "### Dead Code" section from the output format. Remove the dead code bullet from weekly-maintenance step 1.
+
+### Version Updates
+
+- Updated CLAUDE.md version reference to v2.9
+- Updated SKILL_TEMPLATE.md with prerequisites, subagent protocol, and reference budgets
+- Updated SKILLS_INVENTORY.md version to 2.9 and added /doctor skill
+- Created new skill: `.claude/skills/doctor/SKILL.md`
+- Created new micro-component: `.claude/prompts/context-budget.md`
+
 ## [2.8.0] - 2026-02-22
 
 ### Specification Quality & Planning (OPT-71, OPT-72, OPT-73)

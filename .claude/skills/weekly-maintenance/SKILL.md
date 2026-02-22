@@ -26,6 +26,7 @@ Report on:
 - Complexity trends (should be stable or decreasing)
 - Duplication percentage (target: <5%)
 - High-churn files that may need attention
+- Dead code: unused exports, orphaned functions (run monthly or when codebase > 5K LOC)
 
 ## 2. Code Quality Agent Review
 

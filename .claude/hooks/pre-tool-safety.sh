@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Requirements: grep (always available)
+# Behavior: Blocks dangerous Bash commands; warns once per pattern per session
 # Pre-tool safety hook: Block dangerous operations.
 # Intercepts Bash commands before execution and rejects destructive patterns.
 #

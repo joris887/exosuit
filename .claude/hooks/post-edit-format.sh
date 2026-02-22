@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Post-edit hook: Auto-format files after Claude edits them.
-# Configured by /bootstrap to use your project's formatter.
+# Requirements: At least one formatter (prettier|biome|ruff|black|rustfmt|gofmt|swift-format|rubocop)
+# Optional: At least one linter (ruff|eslint|biome|golangci-lint)
+# Behavior: Auto-formats and lints after edits; reports missing tools once per session
 #
 # This script receives the edited file path as $1.
 # Customize the formatter commands below for your stack.
@@ -10,6 +11,18 @@ FILE="$1"
 if [ -z "$FILE" ]; then
     exit 0
 fi
+
+# Report missing tools once per session (not per edit)
+HOOK_STATE_DIR="${TMPDIR:-/tmp}/.claude-hook-state"
+mkdir -p "$HOOK_STATE_DIR" 2>/dev/null
+report_missing() {
+    local tool="$1"
+    local state_file="$HOOK_STATE_DIR/missing-$tool"
+    if [ ! -f "$state_file" ]; then
+        echo "⚠ post-edit-format: '$tool' not found — skipping $tool formatting/linting"
+        touch "$state_file"
+    fi
+}
 
 # Detect file type and run appropriate formatter
 case "$FILE" in
@@ -81,5 +94,56 @@ case "$FILE" in
         ;;
     # Rust clippy and Swift swiftlint require full project context — skip per-file
 esac
+
+# Secrets detection: lightweight pattern scan for accidentally committed credentials
+# Reports once per file per session to avoid noise; does NOT block edits
+SECRETS_STATE_DIR="${TMPDIR:-/tmp}/.claude-hook-state"
+mkdir -p "$SECRETS_STATE_DIR" 2>/dev/null
+SECRETS_STATE="$SECRETS_STATE_DIR/secrets-$(echo "$FILE" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "nomd5")"
+
+secrets_check() {
+    local file="$1"
+    # Skip non-text files and common false-positive paths
+    case "$file" in
+        *.md|*.txt|*.lock|*.sum|*.svg|*.png|*.jpg|*.gif|*.ico) return ;;
+    esac
+
+    local found=0
+    # AWS access key
+    if grep -qE 'AKIA[0-9A-Z]{16}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible AWS access key in $file"
+        found=1
+    fi
+    # OpenAI/Stripe-style keys
+    if grep -qE 'sk-[a-zA-Z0-9]{20,}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible API key (sk-...) in $file"
+        found=1
+    fi
+    # GitHub personal access token
+    if grep -qE 'ghp_[a-zA-Z0-9]{36}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible GitHub token in $file"
+        found=1
+    fi
+    # Private keys
+    if grep -qE 'BEGIN (RSA |DSA |EC |OPENSSH )?PRIVATE KEY' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible private key in $file"
+        found=1
+    fi
+    # Generic high-entropy secrets in assignments
+    if grep -qE '(password|secret|token|api_key|apikey)\s*[:=]\s*["\x27][A-Za-z0-9+/=]{20,}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible hardcoded credential in $file"
+        found=1
+    fi
+
+    if [ "$found" -eq 1 ]; then
+        echo "  Review before committing. See .claude/rules/security.md"
+        touch "$SECRETS_STATE"
+    fi
+}
+
+# Only check if we haven't already flagged this file this session
+if [ ! -f "$SECRETS_STATE" ]; then
+    secrets_check "$FILE"
+fi
 
 exit 0

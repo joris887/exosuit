@@ -62,6 +62,20 @@ Edit the hook scripts directly. They're plain bash scripts.
 - **Add quality checks:** Uncomment or add commands in `pre-stop-quality.sh`
 - **Add safety rules:** Add grep patterns in `pre-tool-safety.sh`
 
+## Requirements
+
+Each hook declares its requirements in a comment header:
+
+```bash
+# Requirements: <required tools>
+# Optional: <optional tools>
+# Behavior: <what the hook does>
+```
+
+Hooks degrade gracefully when optional tools are missing — they report the missing tool once per session and skip that step. Required tools (like `grep` for safety hooks) are always available on standard systems.
+
+Run `/doctor` to check all hook dependencies at once.
+
 ## Disabling Hooks
 
 Remove or comment out the relevant section in `.claude/settings.json`.

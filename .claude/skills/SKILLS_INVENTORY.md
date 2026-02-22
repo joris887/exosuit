@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 2.7
+**Framework Version:** 2.9
 
 ## Core Workflow
 
@@ -67,6 +67,7 @@ For technology skill generation: `/skill-create`
 | `/weekly-maintenance` | Fridays    | Health check + dependency governance |
 | `/retrospective`      | Sprint-end | 4Ls framework with metrics dashboard |
 | `/backlog-review`     | As needed  | Backlog health analysis            |
+| `/doctor`             | As needed  | Framework health check + dependency validation |
 
 ### Parallel Development (Manual-only)
 
@@ -199,13 +200,14 @@ Path-scoped rules loaded automatically when matching files are edited:
 - `security.md` — CWE checklist for sensitive files + fix-immediately pattern
 - `git.md` — Git workflow rules
 - `dependencies.md` — Dependency governance
-- `verification.md` — Evidence required before completion claims + task completion enforcement + context budget awareness + context relevance scoring
+- `verification.md` — Evidence required before completion claims + task completion enforcement + context budget awareness + context relevance scoring + pre-compaction state persistence
 - `code-slop.md` — AI slop detection: banned comment patterns, obvious comment detection, code prose anti-patterns
 - `edit-recovery.md` — Edit failure recovery decision tree with escalating recovery strategy
+- `documentation.md` — Documentation discipline + reference file size budgets
 
 ### Hooks (`.claude/hooks/`)
-Deterministic enforcement via shell scripts:
-- `post-edit-format.sh` — Auto-format after edits
+Deterministic enforcement via shell scripts (all hooks declare requirements in headers and degrade gracefully):
+- `post-edit-format.sh` — Auto-format after edits + secrets detection
 - `pre-stop-quality.sh` — Quality gate before completion + auto-save session state
 - `pre-tool-safety.sh` — Block dangerous operations
 
@@ -221,6 +223,7 @@ Deterministic enforcement via shell scripts:
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 2.9     | 2026-02-22 | Pre-compaction state persistence, secrets detection hook, skill prerequisites, subagent context protocol, reference file budgets, context budget visibility, /doctor health check, hook self-validation, dead code detection |
 | 2.7     | 2026-02-22 | Cognitive reasoning scaffolds, symbolic state encoding, control flow markers (IF/ELSE/LOOP/HALT), phase-specific error recovery tables, context relevance scoring, reusable micro-components |
 | 2.6     | 2026-02-22 | AI slop detection rule, edit recovery protocol, priority-based compaction, intent decomposition, completion verification, parallel research, session auto-save, expanded anti-patterns, graceful degradation expansion, context budget awareness |
 | 2.5     | 2026-02-22 | Script black-boxing, grep navigation hints, resource types, skill scaffolding, I/O examples, DO/DON'T pairs, graceful degradation, pre-execution validation, skills registry |
