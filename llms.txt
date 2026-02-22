@@ -11,7 +11,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.6)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.7)
 
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
@@ -19,11 +19,14 @@
   - references/new-project.md: New project braindump and generation workflow
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with intent decomposition, self-review, completion verification, and process flowchart
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with intent decomposition, reasoning scaffolds, control flow markers, error recovery, and completion verification
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
   - references/self-review.md: Self-review checklist with red flags
-- .claude/skills/sprint-end/SKILL.md: Quality gates with hard gates, graceful degradation, project state adaptation, PR, merge
+  - references/reasoning-tools.md: Named reasoning scaffolds (scope_analysis, test_strategy_selection, failure_diagnosis, architectural_impact, plan_completeness)
+  - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (19 error patterns)
+- .claude/skills/sprint-end/SKILL.md: Quality gates with control flow markers, error recovery, graceful degradation, project state adaptation, PR, merge
   - references/quality-gates.md: Detailed quality gate checks and recovery
+  - references/error-recovery.md: Step-specific error/cause/recovery decision tables (18 error patterns)
   - scripts/test-count-delta.sh: Compare test counts between branch and main
 - .claude/skills/brainstorm/SKILL.md: Design exploration with alternative approaches
 - .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories with doc quality check
@@ -33,16 +36,17 @@
   - scripts/init-skill.sh: Scaffold a new skill directory with SKILL.md template
   - scripts/update-registry.sh: Generate skills-registry.json from YAML frontmatter
 - .claude/skills/skills-registry.json: Machine-readable index of all skills (generated)
-- .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with root cause tracing
+- .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with reasoning scaffolds, error recovery tables, and halt conditions
   - references/root-cause-tracing.md: Backward tracing technique
   - references/condition-based-waiting.md: Replace timeouts with condition polling
+  - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (15 error patterns)
 - .claude/skills/parallel-work/SKILL.md: Git worktree management
   - scripts/worktree-status.sh: Worktree status with merge info
 - .claude/skills/architecture-check/SKILL.md: Architecture validation
 - .claude/skills/skill-eval/SKILL.md: Skill evaluation — test, A/B compare, metrics
 - .claude/skills/refine-loop/SKILL.md: Iterative self-improvement until completion criteria met
 - .claude/skills/SKILLS_INVENTORY.md: Full skill inventory
-- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, resource types, script policy, grep navigation, graceful degradation, pre-execution validation, and TDD methodology
+- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, resource types, control flow markers (IF/ELSE/LOOP/HALT), reasoning tools, error recovery tables, script policy, grep navigation, graceful degradation, pre-execution validation, and TDD methodology
 
 ## Rules
 - .claude/rules/testing.md: Test file protection rules
@@ -50,12 +54,17 @@
 - .claude/rules/security.md: Security-sensitive file rules + fix-immediately pattern
 - .claude/rules/git.md: Git workflow rules
 - .claude/rules/dependencies.md: Dependency management rules
-- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern + task completion enforcement + context budget awareness
+- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern + task completion enforcement + context budget awareness + context relevance scoring (5-level classification)
 
 ## Prompt Snippets
 - .claude/prompts/review-security.md: Security review of a specific file
 - .claude/prompts/explain-pattern.md: Explain a code pattern in this codebase
 - .claude/prompts/suggest-tests.md: Suggest test cases for a file
+
+## Micro-Components (reusable cross-skill operations)
+- .claude/prompts/discover-commands.md: Extract configured commands from CLAUDE.md
+- .claude/prompts/quality-gate-sequence.md: Run lint → typecheck → test sequence
+- .claude/prompts/verify-clean-git-state.md: Verify clean git working tree
 
 ## Subagent Templates
 - .claude/prompts/agents/code-reviewer.md: Code review dispatch template with severity classification

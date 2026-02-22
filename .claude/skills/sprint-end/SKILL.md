@@ -1,10 +1,10 @@
 ---
 name: sprint-end
-version: 2.6.0
+version: 2.7.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
-references: [references/quality-gates.md]
+references: [references/quality-gates.md, references/error-recovery.md]
 ---
 ______________________________________________________________________
 
@@ -52,7 +52,7 @@ Analyze: branch name, all commits since branching, all files changed, stories co
 
 **Mindset:** Assume there are problems. Your job is to find them. Your first assessment is almost never "all clear."
 
-All gates must pass before proceeding. Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents, recovery).
+All gates must pass before proceeding. Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents, recovery). For error recovery during this step, consult `references/error-recovery.md` — search for `## Step 2`.
 
 <HARD-GATE>
 Do NOT proceed to documentation updates, PR creation, or merge if ANY quality gate has failed. All gates must pass. "It's probably fine" is not a pass.
@@ -105,15 +105,15 @@ EOF
 
 ## 5. Wait for CI
 
-**If CI is configured** (detected `.github/workflows/`, `.gitlab-ci.yml`, etc.):
-
+<IF condition="CI is configured (.github/workflows/, .gitlab-ci.yml, etc. detected)">
 ```bash
 gh pr checks --watch
 ```
-
 If CI fails, diagnose and fix. Commit fixes and push.
-
-**If no CI detected:** The local quality gates in step 2 serve as verification. Proceed to merge.
+</IF>
+<ELSE>
+No CI detected — the local quality gates in step 2 serve as verification. Proceed to merge.
+</ELSE>
 
 ## 6. Merge and Clean Up
 
@@ -171,11 +171,21 @@ git log --oneline -3
 
 ## Project State Adaptation
 
-Read CLAUDE.md Commands section before running quality gates:
-- **If test command exists:** Run full test suite as part of quality gates
-- **If NO test command:** Skip test gate, note "No test command configured" in PR body
-- **If build command exists:** Include build verification in quality gates
-- **If NO build command:** Skip build step
+Read CLAUDE.md Commands section before running quality gates (or use the `discover-commands` micro-component from `.claude/prompts/discover-commands.md`):
+
+<IF condition="test command exists in CLAUDE.md Commands">
+Run full test suite as part of quality gates.
+</IF>
+<ELSE>
+Skip test gate, note "No test command configured" in PR body.
+</ELSE>
+
+<IF condition="build command exists in CLAUDE.md Commands">
+Include build verification in quality gates.
+</IF>
+<ELSE>
+Skip build step.
+</ELSE>
 
 ## Rules
 

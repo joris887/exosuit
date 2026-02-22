@@ -132,7 +132,19 @@ The story-cycle skill reads this to determine which quality agents to run.
 
 ## Recovery Guidance
 
-Workflow skills should include a `## Recovery` section for predictable failure handling. Common patterns:
+Workflow skills should include a `## Recovery` section for predictable failure handling. For complex skills (3+ phases), create a `references/error-recovery.md` with phase-specific error/cause/recovery tables:
+
+```markdown
+## Phase N: [Phase Name] Errors
+
+| Error | Cause | Recovery |
+|-------|-------|----------|
+| [Specific error] | [Root cause] | [Exact recovery action] |
+```
+
+The skill's Recovery section then references it: "Consult `references/error-recovery.md` — search for `## Phase N`."
+
+For simpler skills, inline recovery is sufficient:
 
 ```markdown
 ## Recovery
@@ -142,17 +154,11 @@ Workflow skills should include a `## Recovery` section for predictable failure h
 2. Determine if the failure is in new code or pre-existing
 3. If new code: fix and re-run
 4. If pre-existing: inform user, do not mask the failure
-
-### Git Conflict
-1. Show the conflict to the user
-2. Do NOT auto-resolve without approval
-3. Suggest resolution strategy
-
-### Quality Gate Failure
-1. Present findings to user
-2. Offer: fix now vs. defer to technical debt
-3. If critical (security): must fix before proceeding
 ```
+
+## Reasoning Tools
+
+For skills with complex decision points, reference the shared reasoning tools from `story-cycle/references/reasoning-tools.md`. Available tools: `scope_analysis`, `test_strategy_selection`, `failure_diagnosis`, `architectural_impact`, `plan_completeness`.
 
 ## Graceful Degradation
 
@@ -199,9 +205,11 @@ description: Complete a sprint by discovering work from git, running quality gat
 description: Use when the user wants to ship a sprint's work to main via PR.
 ```
 
-## Hard Gate Pattern
+## Control Flow Markers
 
-Use `<HARD-GATE>` blocks at critical decision points to prevent Claude from skipping mandatory steps:
+Use structured markers at critical decision points. These are stronger enforcement than prose instructions.
+
+### Hard Gate (existing)
 
 ```markdown
 <HARD-GATE>
@@ -209,7 +217,43 @@ Do NOT proceed to implementation until the user has approved the plan.
 </HARD-GATE>
 ```
 
-Place gates inline at the decision point, not just as rules at the end. Gates are stronger enforcement than prose instructions.
+### Conditional Execution (new in v2.7)
+
+Replace prose conditionals ("if X, do Y") with structured markers:
+
+```markdown
+<IF condition="test command exists in CLAUDE.md Commands">
+Run the test suite. Verify zero failures.
+</IF>
+<ELSE>
+Skip test verification. Note: "No test command configured."
+</ELSE>
+```
+
+### Bounded Loops (new in v2.7)
+
+For retry/verification loops, always specify a maximum:
+
+```markdown
+<LOOP max="3" until="all acceptance criteria have evidence">
+1. Check each criterion against current state
+2. For any lacking evidence: implement the fix
+3. Re-verify
+</LOOP>
+```
+
+### Explicit Halt (new in v2.7)
+
+When retry budgets are exhausted, halt clearly:
+
+```markdown
+<HALT reason="exceeded retry budget">
+Stop attempting. Report what was tried, what failed, and what remains.
+Ask user for guidance before continuing.
+</HALT>
+```
+
+Place all markers inline at the decision point, not just as rules at the end.
 
 ## Red Flag Tables
 

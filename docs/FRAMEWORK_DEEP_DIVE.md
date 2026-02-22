@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.6 — Deep Dive
+# JD-LLM Development Framework v2.7 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -281,6 +281,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Context budget awareness** (*new in v2.6*): Five heuristics for managing context consumption: summarize after 10+ file reads, discard bulk after exploration phases, prefer targeted grep over full file reads, summarize verbose tool outputs, proactively note findings and move on.
 
+**Context relevance scoring** (*new in v2.7*): A 5-level classification system (ACTIVE, ANCHORED, REFERENCE, STALE, DUPLICATE) for systematically identifying and pruning irrelevant context. Applied at phase transitions, after 5+ file reads, and before compaction. Includes "signs of context rot" detection heuristics to catch performance degradation from accumulated stale context.
+
 #### code-slop.md (*new in v2.6*)
 
 **File:** `.claude/rules/code-slop.md`
@@ -452,6 +454,14 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Directory-level context** (*new in v2.6*): Phase 1c now checks for `.claude-context.md` files in the target directory and parent directories for module-specific patterns and conventions.
 
+**Cognitive reasoning scaffolds** (*new in v2.7*): Skills now reference a shared library of named reasoning tools (`scope_analysis`, `test_strategy_selection`, `failure_diagnosis`, `architectural_impact`, `plan_completeness`) at critical decision points. Phase 0 uses `scope_analysis` for structured intent decomposition; Phase 1e uses `plan_completeness` for verification; Phase 3 uses `test_strategy_selection` before writing tests. These scaffolds improve reasoning reliability by structuring *how to think* at decision points, not just *what to do*.
+
+**Symbolic state encoding** (*new in v2.7*): The Story-Cycle Context header now uses structured key-value format (`workflow:`, `phase:`, `remaining_steps:`) instead of prose. This survives compaction with higher fidelity because each field is atomic and independently preservable.
+
+**Control flow markers** (*new in v2.7*): Phase 4 now uses `<IF>/<ELSE>` markers for conditional test execution. Phase 4.5 uses `<LOOP>/<HALT>` markers for bounded verification loops. These extend the `<HARD-GATE>` vocabulary to make all control flow equally explicit.
+
+**Phase-specific error recovery** (*new in v2.7*): A dedicated `references/error-recovery.md` provides error/cause/recovery tables for every phase (19 error patterns across 7 phases). Skills reference specific phases: "Consult `references/error-recovery.md` — search for `## Phase 3`."
+
 **Optimization opportunity:** The context reset is manual — Claude follows the instruction to "clear and reload." In practice, Claude sometimes carries over more context than intended. Consider whether a more forceful reset mechanism is possible. Also: the 50-line plan limit may be too restrictive for complex stories — monitor and adjust.
 
 ### /sprint-end
@@ -499,6 +509,12 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Expanded graceful degradation** (*new in v2.6*): The skill now includes a degradation table for all optional dependencies: sub-agents, CI pipeline, test runner, linter, type checker, and `gh` CLI. Each entry specifies the fallback behavior (e.g., "Skip lint check, note in PR body"). This prevents sprint-end from stalling when a tool is missing.
 
 **Project state adaptation** (*new in v2.6*): Before running quality gates, sprint-end reads CLAUDE.md Commands section to determine which gates are applicable. If no test command exists, the test gate is skipped (noted in PR body). If no build command exists, the build step is skipped. This prevents failures in projects that haven't configured all tools.
+
+**Control flow markers** (*new in v2.7*): Step 5 (CI) and Project State Adaptation now use `<IF>/<ELSE>` markers instead of prose conditionals, making the conditional logic machine-parseable and less likely to be skipped.
+
+**Phase-specific error recovery** (*new in v2.7*): A dedicated `references/error-recovery.md` provides error/cause/recovery tables for all 6 steps (18 error patterns). Quality gate failures, push rejections, CI failures, and merge conflicts each have specific recovery actions.
+
+**Micro-component references** (*new in v2.7*): Project State Adaptation now references the `discover-commands` micro-component from `.claude/prompts/` for standardized command extraction from CLAUDE.md.
 
 **Optimization opportunity:** The quality agents run as forked contexts — monitor their usefulness and whether confidence scoring effectively reduces false positives.
 
@@ -710,6 +726,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 - New modules not documented in ARCHITECTURE.md
 - Missing modules (documented but don't exist)
 
+**Cognitive reasoning scaffold** (*new in v2.7*): Step 2 now references the `architectural_impact` reasoning tool for structured assessment of module boundaries, dependency direction, and responsibility scope.
+
 **ADR generation:** When architectural drift is detected, suggests creating an Architecture Decision Record documenting the change and its implications.
 
 **Fitness function suggestions:** For each architectural rule, suggests an automatable test (e.g., a script that fails if a circular dependency is introduced).
@@ -821,9 +839,16 @@ Or for formal UAT:
 
 **Stopping points table:** Explicit situations where Claude must stop and reconsider (3+ failed fixes, "just try this", multiple changes at once).
 
+**Cognitive reasoning scaffold** (*new in v2.7*): Phase 1d now references the `failure_diagnosis` reasoning tool — a structured backward trace that scaffolds the thinking process for root cause identification.
+
+**Explicit halt condition** (*new in v2.7*): A `<HALT>` marker in Phase 3 triggers after 3 failed fix attempts, forcing a return to Phase 1 for re-investigation instead of continued guessing.
+
+**Phase-specific error recovery** (*new in v2.7*): A dedicated `references/error-recovery.md` provides error/cause/recovery tables for all 5 phases (15 error patterns). Covers: unreproducible errors, wrong hypotheses, failed fixes, and regression introduction.
+
 **Supporting references** (in `references/` subdirectory):
 - `references/root-cause-tracing.md` — Backward tracing technique through call stacks, multi-component tracing, git bisect
 - `references/condition-based-waiting.md` — Replacing arbitrary timeouts with condition polling for deterministic tests
+- `references/error-recovery.md` — Phase-specific error/cause/recovery decision tables
 
 ### /skill-eval (*new in v2.4*)
 
@@ -916,6 +941,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 **v2.5 context efficiency improvements:** Script black-boxing policy — scripts in `scripts/` are executed directly without reading their source, saving ~500 tokens per script invocation. Reference navigation pattern — skills now include section-level grep hints ("search for `## Section`") so Claude loads one section instead of an entire reference file. New `assets/` resource type for output templates that are copied without being read into context.
 
 **v2.6 context efficiency improvements:** Priority-based compaction directive tags items as CRITICAL (survive all compactions verbatim), HIGH (preserve if space), NORMAL (summarize if needed), LOW (drop first — these are recoverable). Context budget awareness heuristics in verification.md encourage summarizing after 10+ file reads and discarding bulk after exploration phases. Directory-level `.claude-context.md` files provide module-specific context without loading global standards. Auto-save session state in pre-stop hook ensures `/continue` has breadcrumbs even after abrupt termination.
+
+**v2.7 context efficiency improvements:** Symbolic state encoding — compaction format changed from prose paragraphs to structured key-value pairs (`goal:`, `commands:`, `branch:`, `decisions:`) that LLMs preserve with higher fidelity. Context relevance scoring — a 5-level classification system (ACTIVE/ANCHORED/REFERENCE/STALE/DUPLICATE) for systematic context pruning, applied at phase transitions and after extended exploration. Reusable micro-components — 3 commonly duplicated operations (discover-commands, quality-gate-sequence, verify-clean-git-state) extracted into shared snippets in `.claude/prompts/`, reducing cross-skill duplication.
 
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
@@ -1019,6 +1046,16 @@ All skills now include YAML frontmatter with machine-readable metadata: `name`, 
 
 **Design principle:** Lighter than full skills — simple parameterized templates for common prompts. No workflow scaffolding, no plan mode, just the prompt with `$1`/`$2` argument expansion.
 
+### Micro-Components (*new in v2.7*)
+
+| File | Purpose | Used By |
+|---|---|---|
+| .claude/prompts/discover-commands.md | Extract configured commands from CLAUDE.md | sprint-start, sprint-end, story-cycle, continue |
+| .claude/prompts/quality-gate-sequence.md | Run lint → typecheck → test in order | sprint-end, story-cycle Phase 4, pre-stop hook |
+| .claude/prompts/verify-clean-git-state.md | Check working tree cleanliness | sprint-start, sprint-end, continue |
+
+**Design principle:** Reusable operation sequences that multiple skills reference to avoid duplicating the same logic. Each is 5-15 lines — lightweight enough to not burden context, but centralized enough to maintain once. Skills reference them as shared procedures: "Use the `discover-commands` micro-component."
+
 ### Subagent Prompt Templates (*new in v2.2*)
 
 | File | Purpose |
@@ -1055,6 +1092,21 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v2.7
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-65 | Cognitive reasoning scaffolds at critical decision points (5 named reasoning tools) | Implemented |
+| OPT-66 | Symbolic state encoding for compaction (key-value format replaces prose) | Implemented |
+| OPT-67 | Explicit control flow markers — IF/ELSE/LOOP/HALT extending HARD-GATE | Implemented |
+| OPT-68 | Phase-specific error recovery tables for complex skills (52 error patterns) | Implemented |
+| OPT-69 | Formalized context relevance scoring (5-level classification + context rot detection) | Implemented |
+| OPT-70 | Reusable micro-components for cross-skill operations (3 shared snippets) | Implemented |
+
+**Key changes in v2.7:** Reasoning quality improved with structured cognitive scaffolds at critical decision points. Workflow reliability improved with explicit control flow markers and phase-specific error recovery tables. Context efficiency improved with symbolic state encoding, formalized relevance scoring, and reusable micro-components. The control flow markers (IF/ELSE/LOOP/HALT) extend the successful HARD-GATE pattern to cover all conditional logic. Error recovery tables extend the edit-recovery pattern to all major workflow failure modes.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v2.6
 
@@ -1166,6 +1218,8 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 
 6. **Validate v2.6 improvements** — Test slop detection against real AI output to verify pattern coverage. Test edit recovery protocol with deliberate edit failures to verify decision tree works. Test completion verification loop to confirm it catches real gaps without excessive looping. Test priority-based compaction under heavy context pressure. Verify auto-save state is useful for `/continue` recovery.
 
+7. **Validate v2.7 improvements** — Test reasoning scaffolds: run `/story-cycle` with a compound request and verify `scope_analysis` produces numbered deliverables with complexity ratings. Test symbolic compaction: trigger compaction and verify key-value format survives. Test control flow markers: run `/sprint-end` without CI and verify `<IF>/<ELSE>` branching. Test error recovery tables: introduce a deliberate test failure during `/story-cycle` Phase 3 and verify the error-recovery table is consulted. Test context relevance scoring: during a long session, verify STALE context is identified and pruned. Test micro-components: verify sprint-end references `discover-commands` correctly.
+
 ### Remaining Medium Impact
 
 7. **Automate metrics collection** — The retrospective skill's metrics dashboard is mostly manual. A `scripts/metrics.sh` that computes test count, coverage, churn, and LOC from git would make retrospectives much faster.
@@ -1202,6 +1256,10 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Slop detection is pattern-based:** The code-slop rule uses string matching for banned patterns. Novel slop patterns not in the list will pass through. The rule should be expanded as new patterns are observed.
 - **Completion verification adds turns:** Phase 4.5 re-reads acceptance criteria and loops back up to 2 times. For simple stories this may add unnecessary overhead. Monitor whether the verification loop catches real issues or just adds latency.
 - **Priority-based compaction is advisory:** The CRITICAL/HIGH/NORMAL/LOW tags guide Claude's compaction behavior but are not deterministic. Claude may still drop CRITICAL items if context pressure is severe enough.
+- **Reasoning scaffolds depend on Claude following the steps:** The named reasoning tools (scope_analysis, failure_diagnosis, etc.) are structured prompts, not deterministic tools. Claude may abbreviate or skip steps if it "thinks" it already knows the answer. Monitor whether the scaffolds produce consistently structured output.
+- **Control flow markers are still advisory:** The `<IF>/<ELSE>/<LOOP>/<HALT>` markers are stronger than prose but not unbypassable — Claude could still interpret them loosely. If consistently bypassed, consider escalating critical conditionals to hooks.
+- **Error recovery tables may not cover all errors:** The 52 error patterns across 3 skills cover known failure modes. Novel errors not in the tables will still require Claude to improvise. Expand the tables as new patterns are observed.
+- **Micro-components add a level of indirection:** Skills referencing micro-components must read two files instead of one. If this causes issues with Claude not finding the component, consider inlining the most critical operations.
 
 ### Git Workflow Assumptions
 

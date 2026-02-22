@@ -1,10 +1,10 @@
 ---
 name: debug-session
-version: 2.4.0
+version: 2.7.0
 description: Use when the user reports a bug, error, or unexpected behavior that needs investigation.
 trigger: manual
 depends-on: []
-references: [references/root-cause-tracing.md, references/condition-based-waiting.md]
+references: [references/root-cause-tracing.md, references/condition-based-waiting.md, references/error-recovery.md]
 ---
 ______________________________________________________________________
 
@@ -44,17 +44,18 @@ Did a recent change introduce this? Use `git bisect` for non-obvious regressions
 
 ### 1d. Trace Backward from Symptom
 
-Start at the error location and trace BACKWARD through the call stack:
+Apply the `failure_diagnosis` reasoning tool from `.claude/skills/story-cycle/references/reasoning-tools.md`:
 
-1. Where does the error occur? (file:line)
-2. What function called that code? (one level up)
-3. What data was passed to that function? (add logging if needed)
-4. Where does that data originate? (trace to source)
-5. At which point does the data become incorrect?
+1. Read the FULL error output — every line, including stack trace and surrounding context
+2. Identify: what was expected vs. what actually happened
+3. Trace backward: which function produced the wrong result? What were its inputs?
+4. If inputs are correct: the bug is in this function — inspect its logic
+5. If inputs are wrong: trace one level further back — where do those inputs come from?
+6. Repeat until you find the point where correct data becomes incorrect
 
 For multi-component systems, trace across component boundaries — check API calls, database queries, event handlers.
 
-See `references/root-cause-tracing.md` — search for `## Steps` for the backward trace procedure.
+See `references/root-cause-tracing.md` — search for `## Steps` for the detailed backward trace procedure.
 
 <HARD-GATE>
 Do NOT attempt any fix until the root cause is identified with evidence. "I think it might be X" without evidence is NOT identification. Show: where the bug is, why it happens, and what incorrect state or logic causes it.
@@ -97,6 +98,10 @@ Based on evidence from Phases 1-2, state:
 | "It's probably X" without evidence | STOP. Gather evidence. |
 | Fix works but you don't understand why | STOP. Understand before committing. |
 
+<HALT reason="exceeded fix attempts">
+After 3 failed fix attempts: STOP. Return to Phase 1 and re-trace from scratch. The root cause identification was likely wrong. Consult `references/error-recovery.md` — search for `## Phase 3`.
+</HALT>
+
 See `references/condition-based-waiting.md` — search for `## Patterns by Language` and load only your language's section.
 
 ## Phase 4: Fix Implementation (TDD)
@@ -134,6 +139,10 @@ Output: Phase 1 → traced to `fetchUsers()` returning `undefined` when API retu
 ```
 
 ## Recovery
+
+For phase-specific error recovery, consult `references/error-recovery.md` — search for the relevant `## Phase N` section.
+
+General recovery:
 
 - **Cannot reproduce:** Gather more context. Check environment differences. Ask user for exact reproduction steps.
 - **Root cause unclear after investigation:** Document findings so far. Ask user for additional context. Do NOT guess.

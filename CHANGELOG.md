@@ -1,5 +1,64 @@
 # Changelog
 
+## [2.7.0] - 2026-02-22
+
+### Prompt Engineering & Reasoning Quality (OPT-65, OPT-66)
+
+#### OPT-65: Cognitive Reasoning Scaffolds at Critical Decision Points
+- **New file:** `.claude/skills/story-cycle/references/reasoning-tools.md`
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 0, Phase 1e, Phase 3), `.claude/skills/debug-session/SKILL.md` (Phase 1d), `.claude/skills/architecture-check/SKILL.md` (Step 2)
+- **What:** Created a shared library of 5 named reasoning tools (`scope_analysis`, `test_strategy_selection`, `failure_diagnosis`, `architectural_impact`, `plan_completeness`) — compact step-by-step scaffolds for critical decision points. Skills now reference these tools at their key junctures: story-cycle uses `scope_analysis` in Phase 0, `test_strategy_selection` and `plan_completeness` in Phase 1/3; debug-session uses `failure_diagnosis` in Phase 1d; architecture-check uses `architectural_impact` in Step 2.
+- **Why:** Research shows structured reasoning scaffolds improve LLM task performance by 40-60% on complex reasoning (IBM Zurich, June 2025). Skills previously guided *what* to do but not *how to think* at decision points. Named reasoning tools scaffold the thinking process itself, making it more reliable than prose instructions.
+- **To test:** Run `/story-cycle` with a compound request. Verify Phase 0 follows the `scope_analysis` steps (numbered list of deliverables with types and complexity ratings). Run `/debug-session` and verify Phase 1d follows the `failure_diagnosis` backward trace steps.
+- **To revert:** Delete `.claude/skills/story-cycle/references/reasoning-tools.md`. Remove all "Apply the `*` reasoning tool" references from story-cycle (3 locations), debug-session (1 location), architecture-check (1 location). Remove `references/reasoning-tools.md` from story-cycle YAML frontmatter.
+
+#### OPT-66: Symbolic State Encoding for Compaction
+- **Files:** `CLAUDE.md` (Compaction Directive section), `.claude/skills/story-cycle/SKILL.md` (Story-Cycle Context header)
+- **What:** Replaced prose-based compaction format with structured key-value (YAML-like) encoding. CRITICAL section now uses `goal:`, `commands:`, `active_plan:` fields. HIGH section uses `branch:`, `sprint:`, `phase:`, `decisions:` fields. Story-Cycle Context header similarly restructured from prose steps to `workflow:`, `phase:`, `remaining_steps:`, `error_recovery:` fields.
+- **Why:** LLMs process structured symbolic formats (YAML, key-value pairs) more reliably than natural language prose during context preservation. Each field is atomic and unambiguous, surviving compaction with higher fidelity than paragraph-form descriptions.
+- **To test:** Trigger context compaction during a long session. Verify the compacted summary uses key-value format (e.g., `goal: "..."`, `branch: "..."`) rather than prose paragraphs.
+- **To revert:** Replace the Compaction Directive in CLAUDE.md with the original markdown-header format from v2.6. Replace the Story-Cycle Context header in story-cycle/SKILL.md with the original numbered prose steps from v2.6.
+
+### Workflow Reliability (OPT-67, OPT-68)
+
+#### OPT-67: Explicit Control Flow Markers (IF/ELSE/LOOP/HALT)
+- **Files:** `.claude/skills/SKILL_TEMPLATE.md` (new "Control Flow Markers" section replacing "Hard Gate Pattern"), `.claude/skills/story-cycle/SKILL.md` (Phase 4, Phase 4.5), `.claude/skills/sprint-end/SKILL.md` (Step 5, Project State Adaptation), `.claude/skills/debug-session/SKILL.md` (Phase 3)
+- **What:** Extended the `<HARD-GATE>` vocabulary with three new structured control flow markers: `<IF>/<ELSE>` for conditional execution, `<LOOP max="N" until="condition">` for bounded retry loops, and `<HALT reason="...">` for explicit stopping. Added documentation and examples to SKILL_TEMPLATE.md. Replaced prose conditionals in story-cycle (test command check in Phase 4, verification loop in Phase 4.5), sprint-end (CI check in Step 5, command checks in Project State Adaptation), and debug-session (halt after 3 failed fixes).
+- **Why:** The `<HARD-GATE>` pattern is one of the framework's strongest innovations. Extending it to conditions and loops makes *all* control flow equally explicit and machine-parseable, reducing Claude's tendency to skip conditional branches or interpret them loosely.
+- **To test:** Run `/story-cycle` in a project without a test command. Verify Claude follows the `<ELSE>` branch (skips with note) rather than failing. Run `/sprint-end` and verify CI check uses the `<IF>` conditional. Run `/debug-session` with a hard bug — verify the `<HALT>` triggers after 3 failed fixes.
+- **To revert:** In SKILL_TEMPLATE.md, replace the "Control Flow Markers" section with the original "Hard Gate Pattern" section. In story-cycle Phase 4, restore the original numbered list. In story-cycle Phase 4.5, restore the original numbered steps without LOOP/HALT. In sprint-end Step 5, restore the original "If CI is configured... If no CI detected..." prose. In sprint-end Project State Adaptation, restore the original bullet-point format. In debug-session Phase 3, remove the `<HALT>` block.
+
+#### OPT-68: Phase-Specific Error Recovery Tables
+- **New files:** `.claude/skills/story-cycle/references/error-recovery.md`, `.claude/skills/debug-session/references/error-recovery.md`, `.claude/skills/sprint-end/references/error-recovery.md`
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Recovery section, Phase 3 reference), `.claude/skills/debug-session/SKILL.md` (Recovery section), `.claude/skills/sprint-end/SKILL.md` (Step 2 reference), `.claude/skills/SKILL_TEMPLATE.md` (Recovery Guidance section)
+- **What:** Created phase-specific error/cause/recovery decision tables for all three complex skills. Story-cycle covers 7 phases (19 error patterns). Debug-session covers 5 phases (15 error patterns). Sprint-end covers 6 steps (18 error patterns). Each error has a specific cause and exact recovery action. Skills now reference their error-recovery file in Recovery sections and at high-risk phases. SKILL_TEMPLATE.md updated to recommend this pattern for complex skills.
+- **Why:** The `edit-recovery.md` rule demonstrated that structured decision trees improve error handling. This extends the pattern to all major workflow failure modes — preventing Claude from retrying blindly, weakening tests to pass, or making poor recovery choices.
+- **To test:** During `/story-cycle`, introduce a deliberate test failure in Phase 3. Verify Claude consults the error-recovery table (reads the Phase 3 section) before attempting a fix. During `/sprint-end`, verify quality gate failures reference the Step 2 recovery table.
+- **To revert:** Delete the three `references/error-recovery.md` files. Remove "references/error-recovery.md" from YAML frontmatter in story-cycle and sprint-end. Remove all "consult `references/error-recovery.md`" references from story-cycle (2 locations), debug-session (1 location), sprint-end (1 location). Restore original Recovery Guidance in SKILL_TEMPLATE.md.
+
+### Context Efficiency (OPT-69, OPT-70)
+
+#### OPT-69: Formalized Context Relevance Scoring
+- **File:** `.claude/rules/verification.md`
+- **What:** Added "Context Relevance Scoring" section with a 5-level classification system (ACTIVE, ANCHORED, REFERENCE, STALE, DUPLICATE) and specific actions for each level. Includes: application triggers (phase transitions, after 5+ file reads, before compaction), and 4 "signs of context rot" detection heuristics.
+- **Why:** The existing context budget awareness heuristics are threshold-based triggers. A continuous classification system — applied at phase transitions — ensures stale context is identified and pruned before it degrades reasoning quality. The concept of "context rot" (performance degradation from irrelevant accumulated context) is well-documented in LLM research.
+- **To test:** During a long story-cycle session with extensive Phase 1 exploration, verify Claude classifies and prunes context at the Phase 2 transition using the ACTIVE/STALE/DUPLICATE categories. Check that it doesn't re-read files classified as STALE.
+- **To revert:** Remove the "## Context Relevance Scoring" section (classification table + application triggers + context rot signs) from verification.md.
+
+#### OPT-70: Reusable Micro-Components for Cross-Skill Operations
+- **New files:** `.claude/prompts/discover-commands.md`, `.claude/prompts/quality-gate-sequence.md`, `.claude/prompts/verify-clean-git-state.md`
+- **Modified:** `.claude/prompts/README.md` (new "Micro-Components" section), `.claude/skills/sprint-end/SKILL.md` (Project State Adaptation references discover-commands)
+- **What:** Extracted 3 commonly duplicated operations into reusable micro-component snippets: `discover-commands` (extract configured commands from CLAUDE.md), `quality-gate-sequence` (run lint → typecheck → test with graceful skipping), `verify-clean-git-state` (check working tree cleanliness). Updated prompts README with a Micro-Components section documenting each component and which skills use it. Sprint-end now references discover-commands in its Project State Adaptation section.
+- **Why:** Multiple skills independently implement the same operations (discovering commands, running quality gates, checking git state). Each duplicate costs tokens when loaded and creates maintenance burden. Micro-components reduce duplication while staying lightweight (5-15 lines each).
+- **To test:** Read `.claude/prompts/discover-commands.md` and verify it provides clear extraction instructions for CLAUDE.md Commands. Verify `.claude/prompts/README.md` lists all three micro-components in the new section.
+- **To revert:** Delete the three `.claude/prompts/*.md` micro-component files (discover-commands, quality-gate-sequence, verify-clean-git-state). Remove the "Micro-Components" section from `.claude/prompts/README.md`. Remove the discover-commands reference from sprint-end Project State Adaptation.
+
+### Version Updates
+
+- Updated CLAUDE.md version reference to v2.7
+- Updated story-cycle, debug-session, sprint-end, architecture-check skill versions to 2.7.0
+- Added `references/reasoning-tools.md` and `references/error-recovery.md` to skill YAML frontmatter
+
 ## [2.6.0] - 2026-02-22
 
 ### Code Quality Enforcement (OPT-50, OPT-51)

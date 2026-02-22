@@ -1,10 +1,10 @@
 ---
 name: story-cycle
-version: 2.6.0
+version: 2.7.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
-references: [references/story-types.md, references/self-review.md]
+references: [references/story-types.md, references/self-review.md, references/reasoning-tools.md, references/error-recovery.md]
 ---
 ______________________________________________________________________
 
@@ -33,12 +33,13 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables)
 
 ## Phase 0: Intent Decomposition
 
-Before any exploration, decompose the user's request into all distinct deliverables:
+Before any exploration, decompose the user's request. Apply the `scope_analysis` reasoning tool from `references/reasoning-tools.md`:
 
 1. List ALL distinct outcomes the user expects (implementation, tests, docs, PR, etc.)
-2. Identify dependencies between deliverables
-3. If the request contains multiple independent stories, suggest splitting and confirm scope
-4. Confirm the full scope with the user before proceeding to planning
+2. For each: identify type, files likely affected, complexity (1-5), and dependencies
+3. Flag any deliverable rated complexity ≥4 as candidate for splitting
+4. If the request contains multiple independent stories, suggest splitting and confirm scope
+5. Confirm the full scope with the user before proceeding to planning
 
 This prevents missing later parts of compound requests (e.g., "refactor auth AND add rate limiting AND create a PR").
 
@@ -98,11 +99,13 @@ Determine which skills benefit this story. If the story metadata already defines
 
 Keep the plan concise — **under 50 lines**. Save complex plans to `docs/plans/` for persistence across compaction. Reference files by path rather than inlining content.
 
+Before presenting the plan, apply the `plan_completeness` reasoning tool from `references/reasoning-tools.md` to verify all deliverables and acceptance criteria are covered.
+
 Write a plan covering:
 
 - **Story type** and methodology to use
 - **Files to modify/create** (specific paths)
-- **Testing strategy** (what tests, where, what approach)
+- **Testing strategy** (what tests, where, what approach) — apply `test_strategy_selection` reasoning tool
 - **Skills to load** during execution
 - **Acceptance criteria** (how to verify completion)
 - **Non-goals** — what is explicitly out of scope
@@ -111,16 +114,18 @@ Write a plan covering:
 
 After plan approval, context resets and only the plan survives. The plan MUST start with a "Story-Cycle Context" section so Claude Code knows what workflow it's in and what steps remain. Use this exact format at the TOP of the plan:
 
-```markdown
+```yaml
 ## Story-Cycle Context
 
-This plan is part of a `/story-cycle` execution. After implementing the plan below, complete these remaining story-cycle steps:
-
-1. **Run tests:** Use the project's test command (from CLAUDE.md Commands section)
-2. **Update documentation** if the story's AC requires it
-3. **Commit:** Stage relevant files and commit with conventional format: `<type>(<scope>): <description>`
-4. **Do NOT merge or create PR** — that's `/sprint-end`'s job
-5. **Print completion report** with: story description, type, approach, files modified, test count, and commit hash
+workflow: story-cycle
+phase: "plan-approved — proceed to execution"
+remaining_steps:
+  - "Run tests: use project test command from CLAUDE.md Commands"
+  - "Update documentation if AC requires it"
+  - "Commit: conventional format <type>(<scope>): <description>"
+  - "Do NOT merge or create PR — that is sprint-end"
+  - "Print completion report: story, type, approach, files, tests, commit hash"
+error_recovery: "references/error-recovery.md"
 
 ### File Context (accumulates across compactions)
 <files-read>
@@ -174,6 +179,10 @@ The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 
 
 In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 
+Before writing the first test, apply the `test_strategy_selection` reasoning tool from `references/reasoning-tools.md`.
+
+When errors occur during execution, consult `references/error-recovery.md` — search for `## Phase 3` for the recovery table.
+
 ## Phase 3.5: Self-Review Before Wrap-Up
 
 Read `references/self-review.md` and complete the full checklist honestly. Do NOT skip items.
@@ -190,13 +199,19 @@ If any checklist item fails, go back to Phase 3 and fix the issue before proceed
 
 After execution is complete:
 
-1. **Run tests:** Use the project's test command (from CLAUDE.md Commands section)
-1. **Update documentation** if the story's AC requires it (but only what's relevant)
-1. **Commit:** Stage relevant files and commit with conventional format:
+<IF condition="test command exists in CLAUDE.md Commands">
+1. **Run tests:** Execute the project's test command. Verify all tests pass with zero failures.
+</IF>
+<ELSE>
+1. **Tests:** No test command configured — skip test verification, note in completion report.
+</ELSE>
+
+2. **Update documentation** if the story's AC requires it (but only what's relevant)
+3. **Commit:** Stage relevant files and commit with conventional format:
    ```
    <type>(<scope>): <description>
    ```
-1. **Do NOT merge or create PR** — that's `/sprint-end`'s job
+4. **Do NOT merge or create PR** — that's `/sprint-end`'s job
 
 ## Phase 4.5: Completion Verification
 
@@ -204,11 +219,17 @@ Before reporting done, re-check ALL acceptance criteria from the original reques
 
 1. Re-read the original acceptance criteria (from the plan or user request)
 2. For each criterion, provide evidence: test output, code reference (file:line), or command output
-3. If any criterion is NOT met:
-   - List what's missing
-   - Loop back to Phase 3 for that specific gap
-   - Maximum 2 additional passes — then report what's complete and what remains
-4. Only report completion when ALL criteria have evidence
+
+<LOOP max="2" until="all acceptance criteria have evidence">
+3. If any criterion lacks evidence: identify the gap, loop back to Phase 3 for that specific item
+4. Re-verify all criteria after each fix pass
+</LOOP>
+
+<HALT reason="max verification loops exhausted">
+If 2 extra passes are exhausted: report what IS complete with evidence, list remaining gaps, suggest continuing in next session.
+</HALT>
+
+5. Only report completion when ALL criteria have evidence
 
 <HARD-GATE>
 Do NOT print the completion report until every acceptance criterion has been verified with evidence. "I believe it works" is not evidence — show test output or code references.
@@ -232,7 +253,9 @@ Do NOT print the completion report until every acceptance criterion has been ver
 
 ## Recovery
 
-When a step fails during execution:
+For phase-specific error recovery, consult `references/error-recovery.md` — search for the relevant `## Phase N` section.
+
+General recovery:
 
 - **Test failure (new code):** Read the error, fix the implementation, re-run. Do not weaken the test.
 - **Test failure (pre-existing):** Inform user. Do not mask it. Log to `docs/technical-debt.md` if out of scope.

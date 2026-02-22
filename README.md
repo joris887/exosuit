@@ -143,7 +143,7 @@ For structured UAT with tracked test cases:
 | `/commit` | Guided conventional commit |
 | `/fix-issue` | Fix a GitHub issue |
 | `/pr-status` | Check PR status |
-| `/debug-session` | 5-phase structured debugging with root cause tracing |
+| `/debug-session` | 5-phase structured debugging with reasoning scaffolds and error recovery |
 | `/parallel-work` | Manage parallel worktrees for concurrent stories |
 | `/architecture-check` | Validate architecture and module boundaries |
 | `/review-security` | Security review of a specific file (prompt snippet) |
@@ -177,9 +177,9 @@ The `/story-cycle` skill adapts methodology by story type:
       references/       # Detailed docs loaded on demand
       scripts/          # Executable helper scripts (--help supported)
       assets/           # Output templates — copy, don't read
-  prompts/              # Prompt snippets + subagent templates
+  prompts/              # Prompt snippets, micro-components, and subagent templates
     agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer)
-  rules/                # Path-scoped rules for testing, security, git, verification, code-slop, edit-recovery
+  rules/                # Path-scoped rules for testing, security, git, verification, code-slop, edit-recovery, context relevance
   hooks/                # Hook scripts for auto-format, quality gates, safety
   settings.json         # Claude Code configuration with hooks
 docs/
@@ -229,7 +229,8 @@ A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stori
 - **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, code slop, over-engineering)
 - **Verification-driven** — Evidence before claims, fresh output before completion
 - **Progressive disclosure** — Load only what you need, when you need it
-- **Context-efficient** — Skills split into lean entry points + on-demand references; context window is a shared resource
+- **Context-efficient** — Skills split into lean entry points + on-demand references; symbolic state encoding; context relevance scoring
+- **Reasoning-scaffolded** — Named reasoning tools (scope_analysis, failure_diagnosis, etc.) structure thinking at critical decision points
 
 ## Contributing
 

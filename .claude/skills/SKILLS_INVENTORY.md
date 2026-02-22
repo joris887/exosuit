@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 2.6
+**Framework Version:** 2.7
 
 ## Core Workflow
 
@@ -33,8 +33,8 @@ For technology skill generation: `/skill-create`
 | Skill           | Trigger            | Arguments             | Description                               |
 | --------------- | ------------------ | --------------------- | ----------------------------------------- |
 | `/sprint-start` | Starting new work  | `[branch] [--worktree]` | Pre-flight checks + branch (supports worktrees) |
-| `/sprint-end`   | Completing sprint  | -                     | Quality gates, test protection, graceful degradation, docs, PR, merge, worktree cleanup |
-| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (intent decomposition, adapts by type, completion verification) |
+| `/sprint-end`   | Completing sprint  | -                     | Quality gates, test protection, control flow markers, error recovery tables, graceful degradation, docs, PR, merge |
+| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (intent decomposition, reasoning scaffolds, control flow markers, error recovery tables, completion verification) |
 | `/continue`     | Session start      | -                     | Smart continuation from session files + git state |
 | `/handoff`      | Session end        | -                     | Structured session file to docs/sessions/ |
 
@@ -110,7 +110,7 @@ For structured UAT with tracked test cases:
 | `/commit`        | `[type] [scope]` | Conventional commit  |
 | `/fix-issue`     | `<issue-number>` | GitHub issue fixer   |
 | `/pr-status`     | -                | Check PR status      |
-| `/debug-session` | `<error>`        | 5-phase structured debugging with root cause tracing |
+| `/debug-session` | `<error>`        | 5-phase structured debugging with reasoning scaffolds, error recovery tables, halt conditions |
 
 ### Prompt Snippets (`.claude/prompts/`)
 
@@ -180,6 +180,10 @@ All skills include machine-readable YAML frontmatter with: `name`, `version`, `t
 - **`context: fork`** — Analysis agents (keeps main context clean)
 - **Confidence scoring** — Quality agents rate findings 0–100; only ≥80 is actionable
 - **Parallel dispatch** — Sprint-end quality agents run simultaneously, not sequentially
+- **Reasoning scaffolds** — Named reasoning tools (scope_analysis, test_strategy_selection, failure_diagnosis, architectural_impact, plan_completeness) scaffold thinking at critical decision points
+- **Control flow markers** — `<IF>/<ELSE>`, `<LOOP>`, `<HALT>` extend HARD-GATE to cover all conditional logic
+- **Error recovery tables** — Phase-specific error/cause/recovery decision tables for complex skills
+- **Micro-components** — Reusable operation sequences (discover-commands, quality-gate-sequence, verify-clean-git-state) referenced by multiple skills
 
 ### Invocation Control
 
@@ -195,7 +199,7 @@ Path-scoped rules loaded automatically when matching files are edited:
 - `security.md` — CWE checklist for sensitive files + fix-immediately pattern
 - `git.md` — Git workflow rules
 - `dependencies.md` — Dependency governance
-- `verification.md` — Evidence required before completion claims + task completion enforcement + context budget awareness
+- `verification.md` — Evidence required before completion claims + task completion enforcement + context budget awareness + context relevance scoring
 - `code-slop.md` — AI slop detection: banned comment patterns, obvious comment detection, code prose anti-patterns
 - `edit-recovery.md` — Edit failure recovery decision tree with escalating recovery strategy
 
@@ -217,6 +221,7 @@ Deterministic enforcement via shell scripts:
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 2.7     | 2026-02-22 | Cognitive reasoning scaffolds, symbolic state encoding, control flow markers (IF/ELSE/LOOP/HALT), phase-specific error recovery tables, context relevance scoring, reusable micro-components |
 | 2.6     | 2026-02-22 | AI slop detection rule, edit recovery protocol, priority-based compaction, intent decomposition, completion verification, parallel research, session auto-save, expanded anti-patterns, graceful degradation expansion, context budget awareness |
 | 2.5     | 2026-02-22 | Script black-boxing, grep navigation hints, resource types, skill scaffolding, I/O examples, DO/DON'T pairs, graceful degradation, pre-execution validation, skills registry |
 | 2.4     | 2026-02-22 | Confidence scoring, parallel quality gates, multi-perspective review, skill-eval, refine-loop, agent-first file discovery, example block triggers, session hook state, YAML frontmatter |

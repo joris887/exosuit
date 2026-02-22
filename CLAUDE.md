@@ -33,7 +33,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v2.6
+## Skills — JD-LLM Development Framework v2.7
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow
@@ -67,36 +67,30 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 - `docs/testing/UAT_COVERAGE.md` — UAT test cases
 
 ## Compaction Directive
-When compacting context, structure the summary using this exact format. Items are tagged by priority — drop LOW items first, CRITICAL items must survive all compactions verbatim.
+When compacting context, use this structured key-value format. Items are tagged by priority — drop LOW first, CRITICAL must survive all compactions verbatim.
 
-```
+```yaml
 ## Compacted Context
 
 ### [CRITICAL — preserve verbatim across all compactions]
-#### Goal
-[Current objective — what story/task is in progress]
-#### Commands
-[test/lint/build commands from project — copy from Commands section above]
-#### Active Plan
-[Any in-progress plan, verbatim if possible]
+goal: "[Current objective — what story/task is in progress]"
+commands: {test: "[cmd]", lint: "[cmd]", build: "[cmd]", typecheck: "[cmd]"}
+active_plan: |
+  [Any in-progress plan, verbatim if possible]
 
 ### [HIGH — preserve if space allows]
-#### Sprint State
-- Branch: [name]
-- Sprint: [number]
-- Story status: [in progress / blocked / completing]
-#### Key Decisions
-- [Decision]: [rationale]
-#### In-Progress Work
-[Current task and its state]
+branch: "[name]"
+sprint: [number]
+phase: "[current phase or status]"
+decisions:
+  - choice: "[decision]" | reason: "[rationale]"
+in_progress: "[current task and its state]"
 
 ### [NORMAL — summarize if needed]
-#### Progress
-- Done: [completed items this session]
-- Blocked: [any blockers]
+completed: ["[item1]", "[item2]"]
+blocked_by: "[blocker or null]"
 
 ### [LOW — drop first, these are recoverable]
-#### File Context
 <files-read>[paths of all files explored this session, one per line]</files-read>
 <files-modified>[paths of all files changed this session, one per line]</files-modified>
 ```

@@ -30,3 +30,27 @@ paths:
 - Prefer targeted grep with narrow patterns over reading entire files
 - When tool outputs are verbose (>50 lines), summarize the key findings before continuing
 - If the conversation feels heavy with prior tool outputs, proactively note what you've learned and move on rather than re-reading
+
+## Context Relevance Scoring
+
+At phase transitions and every 5+ sequential tool calls, classify context items:
+
+| Classification | Criteria | Action |
+|---------------|----------|--------|
+| **ACTIVE** | Currently needed for the task in progress | Keep in full |
+| **ANCHORED** | Referenced by the active plan or current phase | Keep as pointer (file:line) |
+| **REFERENCE** | Might be needed later this session | Summarize to 1-line description |
+| **STALE** | From completed or abandoned subtasks | Discard |
+| **DUPLICATE** | Already captured in plan, commit, or summary | Discard |
+
+Apply aggressively at:
+- Story-cycle Phase 2 (Context Transition) — mandatory
+- After any exploration that read 5+ files — recommended
+- Before compaction triggers — automatic via priority tags
+- When you notice yourself re-reading files — sign of context rot
+
+Signs of context rot (performance degradation from irrelevant accumulated context):
+- Re-reading files you already read earlier this session
+- Uncertainty about decisions made 10+ turns ago
+- Contradicting earlier analysis without noticing
+- Generating code that doesn't match patterns you already identified

@@ -44,6 +44,16 @@ Report findings with severity (critical/high/medium/low) and suggested fixes.
 | `/explain-pattern` | `<pattern> [file]` | Explain a code pattern found in the codebase |
 | `/suggest-tests` | `<file-path>` | Suggest test cases for a file |
 
+## Micro-Components
+
+Reusable operation sequences referenced by skills to avoid duplication. These are not invoked directly — skills reference them as shared procedures.
+
+| Component | Purpose | Used By |
+|-----------|---------|---------|
+| `discover-commands.md` | Extract configured commands from CLAUDE.md | sprint-start, sprint-end, story-cycle, continue |
+| `quality-gate-sequence.md` | Run lint → typecheck → test in order | sprint-end, story-cycle Phase 4, pre-stop hook |
+| `verify-clean-git-state.md` | Check for clean working tree | sprint-start, sprint-end, continue |
+
 ## Subagent Templates (`agents/`)
 
 Structured prompt templates for dispatching subagents with context and review checklists. These are not invoked directly — they're used by skills (like `/sprint-end`) when dispatching quality agents.

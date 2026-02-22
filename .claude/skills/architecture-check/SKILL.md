@@ -1,6 +1,6 @@
 ---
 name: architecture-check
-version: 2.4.0
+version: 2.7.0
 description: Validate module boundaries, check for architectural drift, and suggest fitness function tests. Compares actual code structure against ARCHITECTURE.md.
 trigger: conditional
 depends-on: []
@@ -23,6 +23,8 @@ Read:
 If ARCHITECTURE.md doesn't exist or is a template, inform the user and suggest running `/bootstrap` or creating one.
 
 ## 2. Validate Module Boundaries
+
+Apply the `architectural_impact` reasoning tool from `.claude/skills/story-cycle/references/reasoning-tools.md` to assess module boundaries systematically.
 
 For each documented module/layer:
 
