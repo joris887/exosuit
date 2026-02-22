@@ -1,3 +1,11 @@
+---
+name: backlog-review
+version: 2.4.0
+description: Execute comprehensive backlog review. Analyzes theme coverage, story quality, dependencies, and generates a backlog health report.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: backlog-review description: Execute comprehensive backlog review. Analyzes theme coverage, story quality, dependencies, and generates a backlog health report. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep

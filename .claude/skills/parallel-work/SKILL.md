@@ -1,3 +1,11 @@
+---
+name: parallel-work
+version: 2.4.0
+description: Manage git worktrees for parallel Claude Code instances working on different stories. List, create, and clean up worktrees.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: parallel-work description: Manage git worktrees for parallel Claude Code instances working on different stories. List, create, and clean up worktrees. argument-hint: \[list|create|cleanup\] disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash

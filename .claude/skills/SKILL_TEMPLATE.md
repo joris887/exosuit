@@ -13,12 +13,37 @@ The context window is shared between: system prompt, conversation history, all l
 - Prefer concise examples over verbose explanations
 - Never duplicate information available in CODING_STANDARDS.md or TESTING_STRATEGY.md
 
+## YAML Frontmatter (Machine-Readable Metadata)
+
+Every SKILL.md starts with a YAML frontmatter block for machine-readable metadata. This enables automated inventory generation, version tracking, and dependency validation via `/skill-eval`.
+
+```yaml
+---
+name: skill-name
+version: 2.4.0
+description: Brief one-line description of the skill
+trigger: manual|auto|conditional
+depends-on: [other-skill-1, other-skill-2]
+references: [references/file1.md, references/file2.md]
+---
+```
+
+| Field | Required | Values | Purpose |
+|-------|----------|--------|---------|
+| `name` | Yes | lowercase, hyphenated | Skill identifier |
+| `version` | Yes | semver | Framework version when last updated |
+| `description` | Yes | one line | Purpose (shown in inventory) |
+| `trigger` | Yes | `manual`, `auto`, `conditional` | How the skill is invoked |
+| `depends-on` | Yes | list of skill names | Skills this may invoke |
+| `references` | Yes | list of file paths | Supporting reference files |
+
+The frontmatter goes BEFORE the `______________________________________________________________________` separator line.
+
 ## Standard Header Format
 
-Every skill file (SKILL.md) starts with a metadata header line:
+Below the frontmatter, every skill file has a metadata header line:
 
 ```
----
 ## name: <skill-name> description: <one-line description> [optional attributes]
 ```
 
@@ -110,6 +135,17 @@ Workflow skills should include a `## Recovery` section for predictable failure h
 
 Descriptions MUST contain only triggering conditions ("Use when..."). NEVER summarize the workflow in the description — Claude will follow the summary as a shortcut instead of reading the full skill content.
 
+## Example Block Triggers
+
+For auto-invoked skills (quality agents, security audit), add `<example>` blocks to the description with literal phrases that should activate the skill. This improves trigger reliability.
+
+```yaml
+# With example blocks for better auto-invocation:
+description: Analyzes code quality. Auto-invoke after code changes. <example>Review code quality for these changes</example> <example>Check complexity in modified files</example>
+```
+
+Include 2–3 examples per auto-invoked skill. Each example should be a realistic user phrase.
+
 ```yaml
 # BAD: Workflow summary in description
 description: Complete a sprint by discovering work from git, running quality gates, updating docs, creating PR, and merging to main.
@@ -153,6 +189,24 @@ Before finalizing a new skill, validate that it actually changes Claude's behavi
 4. **Refine**: If Claude still shortcuts, strengthen the skill (add hard gates, red flags, explicit prohibitions).
 
 This is TDD applied to documentation: write the test (pressure scenario), observe failure, write the skill, observe compliance.
+
+## Evaluation Criteria
+
+Every skill should include an `## Evaluation Criteria` section defining how to verify the skill works correctly. This enables testing via `/skill-eval`.
+
+```markdown
+## Evaluation Criteria
+<!-- How would you verify this skill works correctly? -->
+- [ ] [Expected behavior under normal conditions]
+- [ ] [Hard gate is respected — does not proceed without approval]
+- [ ] [Pressure scenario: Claude does X instead of shortcutting to Y]
+
+### Pressure Scenarios
+<!-- Realistic prompts that would cause Claude to take the wrong action WITHOUT this skill -->
+1. "[User prompt that tempts shortcutting]" → Should trigger [correct behavior]
+```
+
+If evaluation criteria are missing, `/skill-eval metrics` will flag the skill for improvement.
 
 ## Naming Conventions
 

@@ -1,3 +1,11 @@
+---
+name: handoff
+version: 2.4.0
+description: Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: handoff description: Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write

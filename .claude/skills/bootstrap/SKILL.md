@@ -1,3 +1,11 @@
+---
+name: bootstrap
+version: 2.4.0
+description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
+trigger: manual
+depends-on: [skill-create]
+references: [references/stack-detection.md, references/new-project.md]
+---
 ______________________________________________________________________
 
 ## name: bootstrap description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write

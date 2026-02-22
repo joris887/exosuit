@@ -1,6 +1,14 @@
+---
+name: security-audit
+version: 2.4.0
+description: Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input.
+trigger: conditional
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
-## name: security-audit description: Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input. user-invocable: true allowed-tools: Read, Glob, Grep, Bash context: fork agent: general-purpose
+## name: security-audit description: Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input. <example>Run security audit on authentication changes</example> <example>Check for hardcoded secrets in the codebase</example> <example>Verify input validation on user-facing endpoints</example> user-invocable: true allowed-tools: Read, Glob, Grep, Bash context: fork agent: general-purpose
 
 You are a security engineer. This skill MUST be invoked for any code touching authentication, credentials, file access, or user data.
 
@@ -80,6 +88,16 @@ cargo audit        # Rust
 
 Check CLAUDE.md Commands section for project-specific security commands.
 
+## Confidence Scoring
+
+Rate each finding 0–100:
+- **0–25:** Stylistic nitpick or likely false positive
+- **26–50:** Possible issue, needs more context to confirm
+- **51–75:** Probable issue worth noting
+- **76–100:** Definite issue with clear evidence
+
+**Report ONLY findings scoring ≥80 as actionable.** Findings 50–79 go in a "Notes" section (non-blocking). Below 50: omit entirely. Security findings at ≥80 confidence are BLOCKING — they must be fixed before proceeding.
+
 ## Output Format
 
 ```markdown
@@ -88,20 +106,23 @@ Check CLAUDE.md Commands section for project-specific security commands.
 ### Risk Level: [Critical/High/Medium/Low]
 
 ### CWE Check Results
-| CWE | Status | Notes |
-|-----|--------|-------|
-| CWE-798 | PASS/FAIL | [details] |
-| ... | ... | ... |
+| CWE | Status | Confidence | Notes |
+|-----|--------|------------|-------|
+| CWE-798 | PASS/FAIL | X | [details] |
+| ... | ... | ... | ... |
 
 ### Phantom Package Check
-- [Package]: [Status — verified/suspicious/not found]
+- [Package]: [Status — verified/suspicious/not found] - Confidence: X
 
 ### Secret Scan
-- [Finding]: [Location] - [Severity]
+- [Finding]: [Location] - Confidence: X - [Severity]
 
-### Findings
-#### [SEVERITY] - [Type]
+### Findings (≥80 confidence — actionable)
+#### [SEVERITY] - [Type] (Confidence: X)
 - **Location**: file:line
 - **Risk**: What could happen
 - **Remediation**: Specific fix with code example
+
+### Notes (50–79 confidence, non-blocking)
+- [Finding]: [Location] - Confidence: X - [Context]
 ```

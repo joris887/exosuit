@@ -129,9 +129,11 @@ For structured UAT with tracked test cases:
 | `/continue` | Smart session resumption from git state |
 | `/handoff` | End session with structured handoff document |
 | `/skill-create` | Generate technology-specific skills for your stack |
-| `/code-quality` | Complexity, duplication, pattern analysis |
-| `/test-validator` | Coverage, TDD compliance, test quality |
-| `/security-audit` | Vulnerability review for sensitive code |
+| `/skill-eval` | Test, measure, or A/B compare skill effectiveness |
+| `/refine-loop` | Iterative self-improvement until completion criteria met |
+| `/code-quality` | Complexity, duplication, pattern analysis (confidence-scored) |
+| `/test-validator` | Coverage, TDD compliance, test quality (confidence-scored) |
+| `/security-audit` | Vulnerability review for sensitive code (confidence-scored) |
 | `/manual-test` | Generate test plan from recent changes |
 | `/testing-cycle` | Process user testing feedback |
 | `/UAT-cycle` | Execute formal UAT test cases |
@@ -168,7 +170,7 @@ The `/story-cycle` skill adapts methodology by story type:
 
 ```
 .claude/
-  skills/               # Framework skills (25+)
+  skills/               # Framework skills (27+, each with YAML frontmatter)
     <skill>/
       SKILL.md          # Lean entry point (<150 lines)
       references/       # Detailed docs loaded on demand

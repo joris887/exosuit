@@ -1,5 +1,81 @@
 # Changelog
 
+## [2.4.0] - 2026-02-22
+
+### Quality & Review Architecture
+
+#### OPT-31: Confidence-Based Scoring for Quality Agents
+- **Files:** `.claude/skills/code-quality/SKILL.md`, `.claude/skills/test-validator/SKILL.md`, `.claude/skills/security-audit/SKILL.md`
+- **What:** Added 0–100 confidence scoring rubric to all three quality agents. Only findings scoring ≥80 are reported as actionable. Findings 50–79 go in a non-blocking "Notes" section. Below 50: omitted entirely. Output format tables updated with Confidence column.
+- **Why:** Quality agents previously reported all findings with equal weight. This created noise — stylistic nitpicks alongside genuine vulnerabilities. Confidence scoring surfaces only actionable issues, reducing sprint-end friction.
+- **To test:** Run `/code-quality` or `/test-validator`. Verify output includes confidence scores and separates actionable findings (≥80) from notes (50–79).
+- **To revert:** Remove the "## Confidence Scoring" sections and the `Confidence` columns from output format tables in all three quality skill files.
+
+#### OPT-32: Parallel Quality Gate Execution
+- **File:** `.claude/skills/sprint-end/references/quality-gates.md`
+- **What:** Changed quality agent dispatch from sequential to parallel. All applicable agents (code-quality, test-validator, and conditionally security-audit) now run simultaneously as parallel Task agents.
+- **Why:** Sequential execution wasted time and risked one agent's findings biasing another. Parallel dispatch saves ~60% wall-clock time and gives each agent a truly independent perspective.
+- **To test:** Run `/sprint-end`. Verify quality agents are dispatched simultaneously (not waiting for one to finish before starting the next).
+- **To revert:** In `quality-gates.md`, replace "Dispatch ALL applicable quality agents **simultaneously**" section with the original sequential "Run the following quality agents" text. Remove "Parallel Dispatch" from the heading.
+
+#### OPT-33: Multi-Perspective Independent Code Review
+- **Files:** `.claude/prompts/agents/code-reviewer.md`, `.claude/skills/sprint-end/references/quality-gates.md`
+- **What:** Added `$3` lens parameter to the code-reviewer template supporting three focused review perspectives: `correctness`, `conventions`, `security`. Each lens reviewer focuses exclusively on its area. Added optional multi-perspective section to quality gates for significant sprints (10+ files). Issues flagged by 2+ independent reviewers are auto-elevated to Critical.
+- **Why:** A single reviewer tends to focus on its strongest area and miss others. Multiple independent reviewers with distinct mandates produce more comprehensive coverage and reduce single-perspective blindness.
+- **To test:** During sprint-end with significant changes, verify 2–3 code-reviewer agents are dispatched with different `$3` lens values. Verify findings are aggregated with cross-reviewer elevation.
+- **To revert:** In `code-reviewer.md`, remove the "## Review Lens: $3" section and the "## Confidence Scoring" section. In `quality-gates.md`, remove the "### Multi-Perspective Code Review" subsection.
+
+### Skill Lifecycle & Measurement
+
+#### OPT-34: Skill Evaluation Framework
+- **New files:** `.claude/skills/skill-eval/SKILL.md`
+- **Modified:** `.claude/skills/SKILL_TEMPLATE.md`
+- **What:** Created `/skill-eval` skill with three modes: `eval` (test a skill against a scenario and grade against criteria), `compare` (blind A/B test two skill versions), and `metrics` (analyze a skill's evaluation readiness). Added `## Evaluation Criteria` section guidance to SKILL_TEMPLATE.md.
+- **Why:** Previously, skill iterations (v2.0→v2.3) were based on qualitative observation with no systematic way to verify improvements or catch regressions. This enables data-driven skill development.
+- **To test:** Run `/skill-eval metrics story-cycle`. Verify it analyzes the skill's hard gates, red flags, and suggests pressure scenarios. Run `/skill-eval eval story-cycle --scenario "just fix this test quickly"` and verify it grades against evaluation criteria.
+- **To revert:** Delete `.claude/skills/skill-eval/` directory. Remove the "## Evaluation Criteria" section from SKILL_TEMPLATE.md.
+
+#### OPT-35: Iterative Refinement Loop
+- **New file:** `.claude/skills/refine-loop/SKILL.md`
+- **What:** Created `/refine-loop` skill for iterative self-improvement on deliverables. Accepts a task, completion criteria (`--until`), and max iterations (`--max`, default 5). Each iteration must identify SPECIFIC improvements (hard gate prevents vague "make it better"). Produces a completion report with iteration log.
+- **Why:** Some tasks benefit from multiple passes (architecture docs, complex designs, prompt refinement). Previously each iteration required manual prompting. This formalizes the loop with safety controls.
+- **To test:** Run `/refine-loop "write architecture overview" --until "covers all modules, no TODOs" --max 3`. Verify it iterates with specific improvements and stops when criteria are met or max is reached.
+- **To revert:** Delete `.claude/skills/refine-loop/` directory.
+
+### Prompt Engineering & Context Efficiency
+
+#### OPT-36: Agent-First File Discovery Pattern
+- **File:** `.claude/skills/story-cycle/SKILL.md`
+- **What:** Added Step 1b "File Discovery" to Phase 1, before deep code reading. Dispatches a lightweight Explore agent to identify the 5–10 most relevant files for the story, returning only paths (not contents). Main context then reads only those files. Includes fallback for when sub-agents are unavailable.
+- **Why:** During planning, it's common to read 15–20 files. Many turn out irrelevant, wasting context tokens. Agent-first discovery narrows the scope before committing context budget. Subsequent steps renumbered (1c→Research, 1d→Skills, 1e→Plan).
+- **To test:** Run `/story-cycle` and observe whether an Explore agent is dispatched early in Phase 1 to identify relevant files before deep reading begins.
+- **To revert:** Remove the "### 1b. File Discovery" section from story-cycle/SKILL.md. Renumber 1c/1d/1e back to 1b/1c/1d.
+
+#### OPT-37: Structured Trigger Descriptions with Example Blocks
+- **Files:** `.claude/skills/code-quality/SKILL.md`, `.claude/skills/test-validator/SKILL.md`, `.claude/skills/security-audit/SKILL.md`, `.claude/skills/SKILL_TEMPLATE.md`
+- **What:** Added `<example>` blocks to auto-invoked skill descriptions with literal phrases that should trigger the skill (2–3 examples each). Added "Example Block Triggers" guidance section to SKILL_TEMPLATE.md.
+- **Why:** Prose trigger descriptions can be ambiguous. Concrete example phrases make auto-invocation more reliable by giving the model exact patterns to match.
+- **To test:** Verify that typing phrases like "Review code quality for these changes" triggers `/code-quality` auto-invocation.
+- **To revert:** Remove `<example>...</example>` tags from the three quality skill description lines. Remove "## Example Block Triggers" section from SKILL_TEMPLATE.md.
+
+### Hook System & Automation
+
+#### OPT-38: Per-Session Hook State Tracking
+- **File:** `.claude/hooks/pre-tool-safety.sh`
+- **What:** Added session state tracking to the safety hook. Uses a state file in `$TMPDIR/.claude-hook-state/` to remember which patterns have already been blocked. First occurrence shows full block message; repeated occurrences show "(repeated)" suffix. Stale state files (>24h) are auto-cleaned. Refactored all block checks to use a shared `check_and_block` function.
+- **Why:** When a developer legitimately triggers the same blocked pattern multiple times (e.g., during cleanup), the same verbose warning fires every time. Session-aware hooks provide consistent blocking but reduce warning fatigue.
+- **To test:** Trigger a blocked command (e.g., `git push --force`) twice in the same session. First should show full message; second should show "(repeated)". Verify a new session (after 24h or state file deletion) shows full message again.
+- **To revert:** Restore `pre-tool-safety.sh` from git history (v2.3 version). Remove the `STATE_DIR`, `STATE_FILE`, `check_and_block` function, and `find` cleanup. Restore the original inline `echo` + `exit 1` blocks.
+
+### Skill Metadata & Governance
+
+#### OPT-39: YAML Frontmatter for Skill Metadata
+- **Files:** All 26 `.claude/skills/*/SKILL.md` files, `.claude/skills/SKILL_TEMPLATE.md`
+- **What:** Added YAML frontmatter block to every SKILL.md with structured metadata: `name`, `version`, `description`, `trigger` (manual/auto/conditional), `depends-on` (list of skills this may invoke), `references` (list of reference files). Added "## YAML Frontmatter" documentation section to SKILL_TEMPLATE.md.
+- **Why:** Previously, skill metadata was embedded in prose or in the SKILLS_INVENTORY.md table. Structured metadata enables: automated inventory generation, version tracking, dependency validation, and integration with `/skill-eval`.
+- **To test:** Read any SKILL.md and verify the YAML frontmatter is present at the top (before the `______________________________________________________________________` line). Run `/skill-eval metrics <skill-name>` and verify it can parse the frontmatter.
+- **To revert:** Remove the `---` YAML frontmatter blocks from all 26 SKILL.md files. Remove the "## YAML Frontmatter" section from SKILL_TEMPLATE.md.
+
 ## [2.3.0] - 2026-02-22
 
 ### Context Efficiency & Skill Architecture

@@ -1,3 +1,11 @@
+---
+name: fix-issue
+version: 2.4.0
+description: Fix a GitHub issue following project coding standards. Creates branch, implements fix with TDD, and prepares PR.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: fix-issue description: Fix a GitHub issue following project coding standards. Creates branch, implements fix with TDD, and prepares PR. argument-hint: <issue-number> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write

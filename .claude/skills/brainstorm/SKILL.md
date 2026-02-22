@@ -1,3 +1,11 @@
+---
+name: brainstorm
+version: 2.4.0
+description: Use when the user has a complex idea that needs design exploration before story decomposition.
+trigger: manual
+depends-on: [ideate]
+references: []
+---
 ______________________________________________________________________
 
 ## name: brainstorm description: Use when the user has a complex idea that needs design exploration before story decomposition. argument-hint: <idea-or-topic> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash

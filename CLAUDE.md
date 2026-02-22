@@ -33,7 +33,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v2.3
+## Skills — JD-LLM Development Framework v2.4
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow
@@ -57,6 +57,8 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | UAT test case          | `/UAT-cycle <test-case-id>`    |
 | Parallel work          | `/parallel-work`               |
 | Architecture check     | `/architecture-check`          |
+| Evaluate a skill       | `/skill-eval <mode> <skill>`   |
+| Iterative refinement   | `/refine-loop "<task>"`        |
 
 ## Important Files
 - `docs/reference/CODING_STANDARDS.md` — Code conventions

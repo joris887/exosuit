@@ -1,3 +1,11 @@
+---
+name: retrospective
+version: 2.4.0
+description: Run a sprint or weekly retrospective using the 4Ls framework with metrics dashboard. Analyzes what worked, what was learned, what was lacking, and what we wish we had.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: retrospective description: Run a sprint or weekly retrospective using the 4Ls framework with metrics dashboard. Analyzes what worked, what was learned, what was lacking, and what we wish we had. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash

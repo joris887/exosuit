@@ -1,3 +1,11 @@
+---
+name: manual-test
+version: 2.4.0
+description: Prepare for manual testing session with test plan based on known issues, recent changes, and acceptance criteria.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: manual-test description: Prepare for manual testing session with test plan based on known issues, recent changes, and acceptance criteria. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash

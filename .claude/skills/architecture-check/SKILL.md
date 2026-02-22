@@ -1,3 +1,11 @@
+---
+name: architecture-check
+version: 2.4.0
+description: Validate module boundaries, check for architectural drift, and suggest fitness function tests. Compares actual code structure against ARCHITECTURE.md.
+trigger: conditional
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: architecture-check description: Validate module boundaries, check for architectural drift, and suggest fitness function tests. Compares actual code structure against ARCHITECTURE.md. user-invocable: true allowed-tools: Read, Glob, Grep, Bash context: fork agent: Explore

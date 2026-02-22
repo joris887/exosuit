@@ -1,3 +1,11 @@
+---
+name: commit
+version: 2.4.0
+description: Create a well-formatted conventional commit with proper message structure. Use when ready to commit changes.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: commit description: Create a well-formatted conventional commit with proper message structure. Use when ready to commit changes. argument-hint: \[type\] \[scope\] disable-model-invocation: true user-invocable: true allowed-tools: Bash

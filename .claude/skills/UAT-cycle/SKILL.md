@@ -1,3 +1,11 @@
+---
+name: UAT-cycle
+version: 2.4.0
+description: Execute a UAT test case — select, test, process findings, fix or log, and close the cycle.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: UAT-cycle description: Execute a UAT test case — select, test, process findings, fix or log, and close the cycle. argument-hint: <test-case-id-or-description> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write

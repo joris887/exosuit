@@ -1,3 +1,11 @@
+---
+name: testing-cycle
+version: 2.4.0
+description: Process a single user testing feedback item — classify, fix or log, verify, and report.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: testing-cycle description: Process a single user testing feedback item — classify, fix or log, verify, and report. argument-hint: <feedback-description> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write

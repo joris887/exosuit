@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 2.3
+**Framework Version:** 2.4
 
 ## Core Workflow
 
@@ -96,6 +96,13 @@ For structured UAT with tracked test cases:
 
 **UAT Coverage File:** `docs/testing/UAT_COVERAGE.md`
 
+### Skill Lifecycle (Manual-only)
+
+| Skill            | Arguments                                              | Description                                          |
+| ---------------- | ------------------------------------------------------ | ---------------------------------------------------- |
+| `/skill-eval`    | `<mode> [skill-name] [--scenario <desc>]`              | Test, measure, or A/B compare skill effectiveness    |
+| `/refine-loop`   | `"<task>" --until "<criteria>" [--max <N>]`            | Iterative self-improvement until completion criteria met |
+
 ### Utility (Manual-only)
 
 | Skill            | Arguments        | Description          |
@@ -149,6 +156,10 @@ The `/story-cycle` skill adapts its methodology based on story type:
 
 ## Skill Design Patterns
 
+### YAML Frontmatter
+
+All skills include machine-readable YAML frontmatter with: `name`, `version`, `trigger`, `depends-on`, `references`. See `SKILL_TEMPLATE.md` for format.
+
 ### Agent Types
 
 - **`agent: Explore`** — Read-only analysis (code-quality, test-validator, architecture-check)
@@ -159,11 +170,13 @@ The `/story-cycle` skill adapts its methodology based on story type:
 
 - **Inline** (default) — Workflow skills guiding main conversation
 - **`context: fork`** — Analysis agents (keeps main context clean)
+- **Confidence scoring** — Quality agents rate findings 0–100; only ≥80 is actionable
+- **Parallel dispatch** — Sprint-end quality agents run simultaneously, not sequentially
 
 ### Invocation Control
 
 - **`disable-model-invocation: true`** — Workflow skills with side effects
-- **Auto-invocable** — Analysis agents triggered by context keywords
+- **Auto-invocable** — Analysis agents triggered by context keywords and `<example>` blocks
 
 ## Enforcement Layers
 
@@ -194,6 +207,7 @@ Deterministic enforcement via shell scripts:
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 2.4     | 2026-02-22 | Confidence scoring, parallel quality gates, multi-perspective review, skill-eval, refine-loop, agent-first file discovery, example block triggers, session hook state, YAML frontmatter |
 | 2.3     | 2026-02-22 | Skill reference splitting, helper scripts, QA framing, Don'ts lists, CLI discovery pattern, doc quality sub-agents, co-located tech skill references, context budget principle, environment adaptation |
 | 2.2     | 2026-02-22 | Hard gates, trigger-only descriptions, verification rule, red flag tables, inline self-review, deepened debug-session, brainstorm skill, process flowcharts, subagent templates, TDD for skills, fix-immediately pattern |
 | 2.1     | 2026-02-22 | Structured compaction, cumulative file tracking, graduated context reset, enriched handoffs, expanded safety hooks, incremental linting, error recovery, health dashboard, prompt snippets |

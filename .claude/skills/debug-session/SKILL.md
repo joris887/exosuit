@@ -1,3 +1,11 @@
+---
+name: debug-session
+version: 2.4.0
+description: Use when the user reports a bug, error, or unexpected behavior that needs investigation.
+trigger: manual
+depends-on: []
+references: [references/root-cause-tracing.md, references/condition-based-waiting.md]
+---
 ______________________________________________________________________
 
 ## name: debug-session description: Use when the user reports a bug, error, or unexpected behavior that needs investigation. argument-hint: [error-description] disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash

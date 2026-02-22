@@ -1,3 +1,11 @@
+---
+name: weekly-maintenance
+version: 2.4.0
+description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning.
+trigger: manual
+depends-on: [code-quality]
+references: []
+---
 ______________________________________________________________________
 
 ## name: weekly-maintenance description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write

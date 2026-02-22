@@ -28,18 +28,32 @@ bash scripts/test-count-delta.sh -- pytest --collect-only -q
 
 If test count decreased, present the deleted tests and ask user to confirm before proceeding.
 
-## 2c. Quality Agents
+## 2c. Quality Agents (Parallel Dispatch)
 
-Run the following quality agents (forked context to keep main clean):
+Dispatch ALL applicable quality agents **simultaneously** as parallel Task agents (forked context to keep main clean). Do NOT run them sequentially — parallel execution saves time and gives each agent a truly independent perspective.
 
+**Always dispatch:**
 - **Code Quality Agent** (`/code-quality`): Complexity, duplication, patterns
 - **Test Validator Agent** (`/test-validator`): Coverage, quality, TDD compliance
 
-If auth/credentials/data/security files were changed:
-
+**Conditionally dispatch** (if auth/credentials/data/security files were changed):
 - **Security Audit Agent** (`/security-audit`): Vulnerabilities, secrets, SQL injection
 
-Present agent findings to user. If critical issues found, stop and fix first.
+Wait for all agents to complete. Aggregate findings. Apply confidence threshold: only findings scored ≥80 are actionable. Findings 50–79 are logged as notes but don't block. Any actionable finding from ANY agent blocks progression.
+
+### Multi-Perspective Code Review (Optional Enhancement)
+
+For sprints with significant code changes (10+ files or core logic), dispatch 2–3 code-reviewer agents in parallel using the `.claude/prompts/agents/code-reviewer.md` template with different `$3` lens values:
+
+1. **Correctness reviewer** — `$3 = "correctness"`
+2. **Conventions reviewer** — `$3 = "conventions"`
+3. **Security reviewer** — `$3 = "security"` (if not already covered by `/security-audit`)
+
+Issues flagged by 2+ independent reviewers are auto-elevated to **Critical**. This multi-perspective approach reduces single-reviewer blindness.
+
+For smaller sprints, the standard quality agents (code-quality + test-validator) are sufficient.
+
+Present aggregated agent findings to user. If critical issues found, stop and fix first.
 
 ## Red Flags — Stop If You're Thinking:
 

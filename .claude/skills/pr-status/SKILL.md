@@ -1,3 +1,11 @@
+---
+name: pr-status
+version: 2.4.0
+description: Check status of open pull requests and provide options for next steps. Use to review PR status, handle feedback, or merge approved PRs.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: pr-status description: Check status of open pull requests and provide options for next steps. Use to review PR status, handle feedback, or merge approved PRs. disable-model-invocation: true user-invocable: true allowed-tools: Bash

@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.3 — Deep Dive
+# JD-LLM Development Framework v2.4 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -68,7 +68,7 @@ Without this philosophy, AI-assisted development tends toward: long unfocused se
 │  Settings (configuration)                        │
 ├─────────────────────────────────────────────────┤
 │                   WORKFLOW                        │
-│  Skills (25+ skills, lean SKILL.md + references/) │
+│  Skills (27+ skills, lean SKILL.md + references/) │
 │  Bootstrap → Sprint → Story → Quality → Ship     │
 ├─────────────────────────────────────────────────┤
 │                 DOCUMENTATION                     │
@@ -178,6 +178,8 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 - Mass process killing (`kill -9 -1`, `killall`, `pkill -9`) — System destabilization
 
 **Why this matters:** LLMs sometimes take shortcuts. If a merge conflict is complex, an LLM might try `git checkout .` to "start fresh" — losing all the user's work. This hook prevents that.
+
+**Per-session state tracking** (*new in v2.4*): The hook now tracks which patterns have been blocked in the current session using a state file in `$TMPDIR`. First occurrence shows the full block message; repeated occurrences show "(repeated)" suffix. Stale state files (>24h) are auto-cleaned. This reduces warning fatigue without weakening protection.
 
 **Optimization opportunity:** Monitor blocked commands to see if legitimate operations are being caught. The grep patterns are string-based — more sophisticated parsing could reduce false positives.
 
@@ -396,6 +398,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Conditional environment adaptation** (*new in v2.3*): Phase 3.5 includes fallback instructions for when sub-agents are not available — the self-review is performed manually instead.
 
+**Agent-first file discovery** (*new in v2.4*): Phase 1 now includes a Step 1b that dispatches a lightweight Explore agent to identify the 5–10 most relevant files before deep reading. This narrows the scope before committing context budget, reducing unnecessary token consumption during planning.
+
 **Optimization opportunity:** The context reset is manual — Claude follows the instruction to "clear and reload." In practice, Claude sometimes carries over more context than intended. Consider whether a more forceful reset mechanism is possible. Also: the 50-line plan limit may be too restrictive for complex stories — monitor and adjust.
 
 ### /sprint-end
@@ -434,7 +438,13 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **CI fallback** (*new in v2.3*): If no CI is configured, the skill proceeds with local quality gate results instead of stalling.
 
-**Optimization opportunity:** The quality agents (code-quality, test-validator, security-audit) run as forked contexts — monitor their usefulness and whether they catch real issues.
+**Parallel quality gate dispatch** (*new in v2.4*): Quality agents (code-quality, test-validator, security-audit) now run simultaneously instead of sequentially, saving ~60% wall-clock time and ensuring each agent has a truly independent perspective.
+
+**Multi-perspective code review** (*new in v2.4*): For significant sprints (10+ files), 2–3 code-reviewer agents can be dispatched in parallel with different review lenses (correctness, conventions, security). Issues flagged by 2+ independent reviewers are auto-elevated to Critical.
+
+**Confidence-based filtering** (*new in v2.4*): All quality agents now score findings 0–100. Only findings ≥80 are actionable. This reduces noise and focuses sprint-end on genuine issues.
+
+**Optimization opportunity:** The quality agents run as forked contexts — monitor their usefulness and whether confidence scoring effectively reduces false positives.
 
 ### /continue
 
@@ -579,6 +589,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **v2.3 additions:** "Assume problems exist" QA framing, "Common Mistakes — NEVER" table, and `--help` first pattern for CLI tools.
 
+**v2.4 additions:** Confidence-based scoring (0–100) with ≥80 threshold for actionable findings. `<example>` block triggers for better auto-invocation reliability.
+
 ### /test-validator
 
 **File:** `.claude/skills/test-validator/SKILL.md`
@@ -595,6 +607,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Why this matters:** Test count and coverage can remain identical while test quality drops to zero. A test that asserts `expect(true).toBe(true)` contributes to coverage and count but validates nothing. The degradation detection catches these patterns.
 
 **v2.3 additions:** "Assume problems exist" QA framing, "Common Mistakes — NEVER" table, and `--help` first pattern for CLI tools.
+
+**v2.4 additions:** Confidence-based scoring (0–100) with ≥80 threshold for actionable findings. `<example>` block triggers for better auto-invocation reliability.
 
 **Optimization opportunity:** The assertion density ratio of 1.5 is a heuristic. Track across projects — some testing styles (BDD with nested describes) naturally have lower assertion density. Consider making this configurable per project.
 
@@ -613,6 +627,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Why the CWE checklist matters:** AI-generated code has measurably higher rates of CWE-798 (hardcoded credentials), CWE-79 (XSS), and CWE-89 (SQL injection). The checklist creates a systematic check rather than relying on the AI to "remember" security best practices.
 
 **Why phantom package detection matters:** LLMs hallucinate package names. `npm install react-auth-helper` installs... what? If that package was registered as a typosquatting attack, it could contain malware. Verification prevents this.
+
+**v2.4 additions:** Confidence-based scoring (0–100) with ≥80 threshold for actionable security findings. `<example>` block triggers for better auto-invocation reliability.
 
 **Optimization opportunity:** The phantom package check is manual (grep imports, verify against registry). Consider adding a script that automates this. Also: the CWE checklist is generic — consider creating project-type-specific checklists (web app, API, CLI, mobile).
 
@@ -749,6 +765,34 @@ Or for formal UAT:
 - `references/root-cause-tracing.md` — Backward tracing technique through call stacks, multi-component tracing, git bisect
 - `references/condition-based-waiting.md` — Replacing arbitrary timeouts with condition polling for deterministic tests
 
+### /skill-eval (*new in v2.4*)
+
+**File:** `.claude/skills/skill-eval/SKILL.md`
+**Purpose:** Test, measure, and compare skill effectiveness.
+**Added value:** Enables data-driven skill improvement instead of qualitative observation.
+
+**Three modes:**
+- **eval**: Test a skill against a known scenario, grade output against evaluation criteria
+- **compare**: Blind A/B test two versions of a skill against the same scenario, pick the winner
+- **metrics**: Analyze a skill's evaluation readiness — check for evaluation criteria, identify pressure scenarios, assess hard gate testability
+
+**Why this matters:** Previously, skill iterations (v2.0→v2.3) were based on qualitative observation. This enables systematic verification that skill changes actually improve outcomes, and catches regressions.
+
+### /refine-loop (*new in v2.4*)
+
+**File:** `.claude/skills/refine-loop/SKILL.md`
+**Purpose:** Iterative self-improvement on deliverables until completion criteria are met.
+**Added value:** Formalizes the "write → review → improve" loop with safety controls.
+
+**How it works:**
+1. Execute task to produce first draft
+2. Self-review against completion criteria
+3. If not met and iterations remain: identify SPECIFIC improvements, apply, re-evaluate
+4. Hard gate: "make it better" is not a valid improvement — must name the specific gap
+5. Default max 5 iterations; produces completion report with iteration log
+
+**When to use:** Polishing docs, refining prompts, iterating on complex designs. Not for story-cycle execution (use story-cycle's own phases).
+
 ### /commit, /fix-issue, /pr-status
 
 Small, focused utility skills:
@@ -806,6 +850,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 **Total auto-loaded overhead:** ~1300 tokens (CLAUDE.md + progress.md + BACKLOG_INDEX.md)
 
 **v2.3 context efficiency improvements:** Skills now follow a three-level loading pattern: lean SKILL.md (always loaded when invoked, <150 lines) → references/ (loaded on demand when specific detail is needed) → scripts/ (executed as black boxes, never read into context). This means a `/story-cycle` invocation loads ~800 tokens initially, then only loads `references/story-types.md` (~500 tokens) for the specific story type being executed. Previously, all 317 lines loaded every time.
+
+**v2.4 context efficiency improvements:** Agent-first file discovery in story-cycle Phase 1 reduces unnecessary file reading during planning (~5-15 files avoided per story). Confidence-based scoring in quality agents reduces noise in sprint-end reports. YAML frontmatter adds ~50 tokens per skill but enables automated inventory and dependency validation.
 
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
@@ -887,6 +933,10 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 
 **Design principle:** Reference material that changes infrequently. Loaded only when specifically needed.
 
+### Skill Metadata (*new in v2.4*)
+
+All skills now include YAML frontmatter with machine-readable metadata: `name`, `version`, `trigger`, `depends-on`, `references`. This enables automated inventory generation, version tracking, dependency validation, and integration with `/skill-eval`. The frontmatter adds ~50 tokens per skill.
+
 ### Prompt Snippets (*new in v2.1*)
 
 | File | Purpose |
@@ -901,10 +951,12 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 
 | File | Purpose |
 |---|---|
-| .claude/prompts/agents/code-reviewer.md | Code review dispatch with severity classification (Critical/Important/Minor) |
+| .claude/prompts/agents/code-reviewer.md | Code review dispatch with severity classification, confidence scoring, and optional review lens ($3) |
 | .claude/prompts/agents/spec-reviewer.md | Spec compliance verification with file:line references |
 
-**Design principle:** Structured templates for dispatching quality subagents. Each includes: context slots ($1, $2), review checklists, explicit skepticism ("do NOT trust claims — read actual code"), and severity classification requirements. Used by sprint-end when dispatching quality agents.
+**Design principle:** Structured templates for dispatching quality subagents. Each includes: context slots ($1, $2, $3), review checklists, explicit skepticism ("do NOT trust claims — read actual code"), confidence scoring (0–100), and severity classification requirements. Used by sprint-end when dispatching quality agents.
+
+**Multi-perspective review** (*new in v2.4*): The code-reviewer template now supports a `$3` lens parameter (correctness, conventions, security) for focused independent review. Multiple reviewers with different lenses can be dispatched in parallel. Issues flagged by 2+ independent reviewers are auto-elevated to Critical.
 
 ---
 
@@ -931,6 +983,24 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v2.4
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-31 | Confidence-based scoring for quality agents (0–100, ≥80 threshold) | Implemented |
+| OPT-32 | Parallel quality gate execution (simultaneous dispatch) | Implemented |
+| OPT-33 | Multi-perspective independent code review (correctness/conventions/security lenses) | Implemented |
+| OPT-34 | Skill evaluation framework (/skill-eval with eval, compare, metrics modes) | Implemented |
+| OPT-35 | Iterative refinement loop (/refine-loop with completion criteria) | Implemented |
+| OPT-36 | Agent-first file discovery in story-cycle Phase 1 | Implemented |
+| OPT-37 | Example block triggers for auto-invoked skills | Implemented |
+| OPT-38 | Per-session hook state tracking (reduced warning fatigue) | Implemented |
+| OPT-39 | YAML frontmatter for all skill metadata | Implemented |
+
+**Key architectural changes in v2.4:** Quality agents now use confidence scoring to separate signal from noise. Quality gates run in parallel instead of sequentially. Skills have machine-readable YAML frontmatter enabling automated inventory and dependency tracking. Story-cycle uses agent-first file discovery to reduce context consumption during planning.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v2.3
 
@@ -969,15 +1039,15 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 
 ### Remaining High Impact
 
-1. **Measure actual token consumption** — Instrument a few sessions to measure how many tokens each auto-loaded file consumes. Trim the most expensive low-value content.
+1. **Measure actual token consumption** — Instrument a few sessions to measure how many tokens each auto-loaded file consumes. Trim the most expensive low-value content. v2.4 added ~50 tokens/skill for YAML frontmatter — verify this doesn't cause issues.
 
 2. **Test bootstrap against diverse projects** — Run /bootstrap against 5+ different project types and record: detection accuracy, command correctness, generated skill quality. This is the highest-leverage test because bootstrap is every user's first experience.
 
 3. **Validate test protection gates** — Create a test project, deliberately weaken tests, and verify that /sprint-end catches it. This is the core v2.0 value proposition.
 
-4. **Monitor hook behavior** — Enable all three hooks on a real project and track: how often they trigger, false positive rate, whether the self-correction loop resolves issues or creates loops.
+4. **Monitor hook behavior** — Enable all three hooks on a real project and track: how often they trigger, false positive rate, whether the self-correction loop resolves issues or creates loops. v2.4 added session state tracking — verify it reduces warning fatigue without weakening protection.
 
-5. **Validate v2.3 improvements** — Test whether reference splitting actually reduces context usage. Test whether helper scripts improve reliability. Use pressure scenarios for the QA framing and Don'ts lists.
+5. **Validate v2.4 improvements** — Test whether confidence scoring effectively filters false positives in quality agents. Test whether parallel quality gate dispatch produces better results than sequential. Use `/skill-eval` to test key skills against pressure scenarios. Verify agent-first file discovery in story-cycle reduces context consumption.
 
 ### Remaining Medium Impact
 
@@ -1010,6 +1080,8 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Skill compliance varies:** Skills are markdown instructions. Claude follows them well most of the time, but complex multi-step skills sometimes have steps skipped or combined. Mitigations: hard gate markers, red flag tables, trigger-only descriptions, process flowcharts, "assume problems" QA framing. v2.3 further mitigates by splitting large skills into lean entry points + reference files, reducing cognitive load per invocation.
 - **Hard gates are still advisory:** The `<HARD-GATE>` blocks are stronger than prose but are not deterministic enforcement. They rely on Claude respecting the XML-style markers. If a hard gate is consistently bypassed, consider escalating to a hook.
 - **Reference loading depends on Claude:** The v2.3 reference splitting pattern relies on Claude reading `references/*.md` files when directed by SKILL.md. If Claude skips reading the reference, it may miss detailed instructions. Monitor whether this happens and consider inlining critical content if it does.
+- **Confidence scoring is prompt-based:** The v2.4 confidence scoring relies on Claude's self-assessment of finding severity. Scores may not perfectly correlate with actual issue importance. Monitor whether the ≥80 threshold effectively filters false positives without hiding real issues.
+- **YAML frontmatter adds token overhead:** Each skill now has ~50 extra tokens of frontmatter metadata. For 27 skills this is ~1350 tokens if all were loaded simultaneously (they aren't — only invoked skills load). Monitor if the overhead is noticeable.
 
 ### Git Workflow Assumptions
 

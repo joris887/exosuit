@@ -1,3 +1,11 @@
+---
+name: continue
+version: 2.4.0
+description: Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: continue description: Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash

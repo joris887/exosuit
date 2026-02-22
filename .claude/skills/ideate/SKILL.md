@@ -1,3 +1,11 @@
+---
+name: ideate
+version: 2.4.0
+description: Use when the user has an idea or requirement to decompose into backlog stories.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: ideate description: Use when the user has an idea or requirement to decompose into backlog stories. argument-hint: <idea-or-requirement> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write

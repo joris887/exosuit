@@ -1,3 +1,11 @@
+---
+name: sprint-end
+version: 2.4.0
+description: Use when the user wants to ship a sprint's work to main via PR.
+trigger: manual
+depends-on: [code-quality, test-validator, security-audit]
+references: [references/quality-gates.md]
+---
 ______________________________________________________________________
 
 ## name: sprint-end description: Use when the user wants to ship a sprint's work to main via PR. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write

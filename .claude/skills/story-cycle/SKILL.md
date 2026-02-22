@@ -1,3 +1,11 @@
+---
+name: story-cycle
+version: 2.4.0
+description: Use when the user wants to implement a single story or deliver a backlog item.
+trigger: manual
+depends-on: [code-quality, test-validator, security-audit]
+references: [references/story-types.md, references/self-review.md]
+---
 ______________________________________________________________________
 
 ## name: story-cycle description: Use when the user wants to implement a single story or deliver a backlog item. argument-hint: <story-description-or-id> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
@@ -42,13 +50,23 @@ Determine the story type from the description, backlog entry, or user input:
 
 If unclear, ask the user to clarify the story type.
 
-### 1b. Research Codebase
+### 1b. File Discovery (Context Optimization)
 
-- Explore relevant files, patterns, and existing code
+Before deep-reading files, dispatch a lightweight Explore agent to identify the most relevant files:
+
+**Agent task:** "Given this story: [description]. And this project architecture: [read ARCHITECTURE.md]. Identify the 5–10 files most relevant to implementing this story. Return ONLY file paths with a one-line explanation of why each matters. Do NOT return file contents."
+
+Read ONLY the files the agent identified. If during implementation you need additional files, read them then — don't front-load.
+
+**If sub-agents are NOT available:** Explore manually, but be selective — read file listings and imports first to narrow down before reading full files.
+
+### 1c. Research Codebase
+
+- Deep-read the files identified in step 1b
+- Understand patterns, conventions, and existing tests in the area
 - Identify files to modify and files to create
-- Understand existing tests and patterns in the area
 
-### 1c. Define Required Skills
+### 1d. Define Required Skills
 
 Determine which skills benefit this story. If the story metadata already defines skills, use those. Otherwise select from:
 
@@ -58,7 +76,7 @@ Determine which skills benefit this story. If the story metadata already defines
 | `/test-validator`   | Feature, bug fix, testing stories                     |
 | `/security-audit`   | Security stories, code touching auth/credentials/data |
 
-### 1d. Write the Plan
+### 1e. Write the Plan
 
 Keep the plan concise — **under 50 lines**. Save complex plans to `docs/plans/` for persistence across compaction. Reference files by path rather than inlining content.
 

@@ -1,3 +1,11 @@
+---
+name: skill-create
+version: 2.4.0
+description: Analyze the repository's technology stack and generate appropriate skills, rules, and hook configurations.
+trigger: manual
+depends-on: []
+references: []
+---
 ______________________________________________________________________
 
 ## name: skill-create description: Analyze the repository's technology stack and generate appropriate skills, rules, and hook configurations. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
