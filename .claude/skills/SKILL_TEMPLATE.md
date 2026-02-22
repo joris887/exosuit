@@ -71,6 +71,30 @@ When stories define which skills to load, use this format in the story:
 
 The story-cycle skill reads this to determine which quality agents to run.
 
+## Recovery Guidance
+
+Workflow skills should include a `## Recovery` section for predictable failure handling. Common patterns:
+
+```markdown
+## Recovery
+
+### Test Failure
+1. Read the error output carefully
+2. Determine if the failure is in new code or pre-existing
+3. If new code: fix and re-run
+4. If pre-existing: inform user, do not mask the failure
+
+### Git Conflict
+1. Show the conflict to the user
+2. Do NOT auto-resolve without approval
+3. Suggest resolution strategy
+
+### Quality Gate Failure
+1. Present findings to user
+2. Offer: fix now vs. defer to technical debt
+3. If critical (security): must fix before proceeding
+```
+
 ## Naming Conventions
 
 - Skill names: lowercase, hyphenated (`story-cycle`, `skill-create`)

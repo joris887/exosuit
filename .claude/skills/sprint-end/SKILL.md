@@ -68,6 +68,13 @@ If auth/credentials/data/security files were changed:
 
 Present agent findings to user. If critical issues found, stop and fix first.
 
+### Recovery: If Quality Gates Fail
+
+- **Tests fail:** Stop. Show failures. Ask user to fix or run `/debug-session <error>`.
+- **Test count decreased:** Show which tests were removed. Require explicit user approval to proceed.
+- **Quality agents find critical issues:** Show findings. Security issues must be fixed. Others: user decides fix now vs. log to `docs/technical-debt.md`.
+- **CI fails after push:** Diagnose locally, commit fix, push. Never force push.
+
 ## 3. Documentation Updates
 
 Based on what was done in the sprint, update relevant documentation:

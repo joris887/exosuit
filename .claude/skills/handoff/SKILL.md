@@ -44,8 +44,16 @@ Save a structured session file to `docs/sessions/session-YYYY-MM-DD.md`:
 ## Blockers / Issues
 - [Issue]: [Status]
 
-## Files Modified This Session
-- [path/to/file]: [what changed]
+## Files Accessed This Session
+
+### Modified
+- [path/to/file]: [what changed and why]
+
+### Read (context-relevant)
+- [path/to/file]: [why this file was important to understand]
+
+### Investigated (can skip on resume)
+- [path/to/file]: [explored but not relevant to current work]
 
 ## Test Status
 - Passing: [count]

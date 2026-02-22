@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.0 — Deep Dive
+# JD-LLM Development Framework v2.1 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -173,10 +173,13 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 - `git reset --hard` — Discards commits and changes
 - `git clean -f` — Permanently deletes untracked files
 - `rm -rf /`, `rm -rf ..`, `rm -rf ~` — Catastrophic file deletion
+- Package publishing (`npm publish`, `cargo publish`, `twine upload`, `gem push`, `pod trunk push`) — Accidental releases
+- Destructive database operations (`DROP TABLE`, `DROP DATABASE`, `TRUNCATE TABLE`) — Data loss
+- Mass process killing (`kill -9 -1`, `killall`, `pkill -9`) — System destabilization
 
 **Why this matters:** LLMs sometimes take shortcuts. If a merge conflict is complex, an LLM might try `git checkout .` to "start fresh" — losing all the user's work. This hook prevents that.
 
-**Optimization opportunity:** The grep patterns are basic. Could be improved with more sophisticated parsing. Consider adding: `DROP TABLE`, `DELETE FROM` without WHERE, `docker system prune -af`. Monitor blocked commands to see if legitimate operations are being caught.
+**Optimization opportunity:** Monitor blocked commands to see if legitimate operations are being caught. The grep patterns are string-based — more sophisticated parsing could reduce false positives.
 
 #### post-edit-format.sh (PostToolUse)
 
@@ -184,11 +187,13 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 **Trigger:** After Claude edits or writes a file
 **Added value:** Consistent formatting without relying on the AI to remember
 
-**How it works:** Detects file extension, runs the appropriate formatter (prettier, ruff, rustfmt, gofmt, etc.). Falls back gracefully if no formatter is installed.
+**How it works:** Detects file extension, runs the appropriate formatter (prettier, ruff, rustfmt, gofmt, etc.), then runs the linter in auto-fix mode on the same file. Falls back gracefully if no formatter or linter is installed.
 
-**Why this matters:** LLMs produce code with inconsistent formatting — sometimes tabs, sometimes spaces, sometimes wrong indentation. Auto-formatting after every edit means the codebase stays clean regardless of what the AI produces.
+**Supported linters (auto-fix):** ruff (Python), eslint/biome (JS/TS), golangci-lint (Go). Rust clippy and Swift swiftlint are skipped because they require full project context.
 
-**Optimization opportunity:** Currently commented out in settings.json (not configured by default). The /bootstrap skill should detect the project's formatter and enable this hook. Consider whether the formatter should run on the single edited file or the whole project.
+**Why this matters:** LLMs produce code with inconsistent formatting and occasional lint violations. Auto-formatting and auto-linting after every edit means issues are caught immediately rather than accumulating until sprint-end.
+
+**Optimization opportunity:** Currently commented out in settings.json (not configured by default). The /bootstrap skill should detect the project's formatter and enable this hook. Monitor whether incremental linting causes noticeable slowdown on save.
 
 #### pre-stop-quality.sh (Stop)
 
@@ -342,11 +347,13 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Four phases:**
 1. **Plan** (in plan mode) — Research, identify type, write plan with context preservation header
-2. **Context Reset** — Clear exploration context, reload only plan + coding standards + relevant files
+2. **Context Transition** — Selectively prune exploration context, keeping discovery metadata (file paths, edge cases, patterns) while discarding bulk content (full file reads, dead-end searches). Reload coding standards + relevant files fresh.
 3. **Execute** — Follow the methodology for the story type (TDD for features, reproduce-first for bugs, etc.)
 4. **Wrap Up** — Run tests, update docs, commit, print completion report
 
-**The Context Reset is the most important innovation.** After planning, Claude clears its context and reloads only what's needed for execution. This prevents the "loaded too much during research, now I can't code" problem. The plan's "Story-Cycle Context" header ensures Claude knows it's in a story-cycle and what steps remain.
+**The Context Transition is the most important innovation.** After planning, Claude selectively prunes its context — keeping the *insights* from exploration (~200 tokens of file paths and edge cases) while discarding the *bulk* (~20,000 tokens of full file reads). The plan's "Story-Cycle Context" header (including cumulative `<files-read>` and `<files-modified>` tags) ensures Claude knows it's in a story-cycle, what files it has explored, and what steps remain.
+
+**Recovery guidance** (*new in v2.1*): The skill now includes explicit failure recovery instructions for test failures, context exhaustion, git conflicts, and missing skills — making behavior predictable when things go wrong.
 
 **10 story types** with distinct methodologies. This matters because the approach for a Feature (TDD) is fundamentally different from a Refactoring (characterization tests first) or a Spike (explore, no production code required). Using the wrong methodology leads to poor outcomes.
 
@@ -380,6 +387,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Why test protection matters:** Without it, a sprint that "adds 5 features and deletes 3 test files" would pass all other quality gates. The test count gate catches this. The assertion density gate catches the more subtle pattern where tests still exist but have been weakened.
 
+**Recovery guidance** (*new in v2.1*): When quality gates fail, the skill now provides explicit recovery instructions: debug-session for test failures, explicit approval for decreased test count, mandatory fix for security issues, and log-to-technical-debt for deferrable issues.
+
 **Optimization opportunity:** The test count comparison requires checking out main to run tests, then switching back. This is slow and fragile. Consider caching the main test count in progress.md (updated per sprint-end) to avoid the branch switch. Also: the quality agents (code-quality, test-validator, security-audit) run as forked contexts — monitor their usefulness and whether they catch real issues.
 
 ### /continue
@@ -390,14 +399,20 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **How it works:**
 1. Read latest session handoff file from `docs/sessions/` (*new in v2.0*)
+1.5. Reload working context from file access log (*new in v2.1*) — selectively reads modified files, context-relevant reads, and skips investigated-only files
 2. Assess git state (branch, changes, PRs)
 3. Assess project state (progress.md, backlog)
 4. Determine continuation point
 5. Handle pending PRs
+5.5. Health dashboard (*new in v2.1*) — shows test status, last commit time, open changes count, session file age
 6. Quick verification (run tests)
 7. Present options and wait for direction
 
-**Session file reading** (*new in v2.0*): The continue skill now reads structured session files written by /handoff. These contain: completed work, pending items, next steps, files to load, and warnings. This is much more reliable than trying to reconstruct context from git state alone.
+**Session file reading** (*new in v2.0*): The continue skill reads structured session files written by /handoff. These contain: completed work, pending items, next steps, files to load, and warnings.
+
+**Smart context reload** (*new in v2.1*): Using the enriched file access history from /handoff (Modified, Read, Investigated categories), /continue selectively reloads only the files that matter — avoiding redundant exploration of files already investigated last session.
+
+**Health dashboard** (*new in v2.1*): Before presenting options, shows a quick health pulse so developers immediately know whether things are green.
 
 **Optimization opportunity:** The continue skill loads several files (session, progress, backlog). This front-loads context consumption. Consider a "light continue" mode that only reads git state and the session file, skipping the full backlog scan.
 
@@ -407,12 +422,12 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Purpose:** End a session without losing context.
 **Added value:** Creates a structured handoff document that the next session can read.
 
-**What it saves** (*enhanced in v2.0*):
+**What it saves** (*enhanced in v2.0, enriched in v2.1*):
 - Git state (branch, uncommitted changes, PR status)
 - Work completed and in-progress
 - Key decisions with rationale
 - Blockers and issues
-- Files modified
+- Files accessed with three categories (*new in v2.1*): Modified (what changed and why), Read (context-relevant for resume), Investigated (can skip on resume)
 - Test status
 - Next steps (minimal first action — very specific)
 - Files to load on resume
@@ -670,8 +685,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 - Technology skills only loaded when working with that technology
 
 **Context preservation across compaction:**
-- Compaction directive in CLAUDE.md tells Claude what to preserve
-- Story-cycle plans have a "Story-Cycle Context" header that survives compaction
+- Structured compaction template in CLAUDE.md (*enhanced in v2.1*) tells Claude exactly how to format the compacted summary (Goal, Sprint State, Progress, Decisions, Commands, Plan, File Context with `<files-read>`/`<files-modified>` tags)
+- Story-cycle plans have a "Story-Cycle Context" header with cumulative file tracking tags that survive compaction
 - Complex plans saved to `docs/plans/` for file-system persistence
 
 **Context preservation across sessions:**
@@ -772,6 +787,16 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 | docs/technical-debt.md | Technical debt inventory |
 
 **Design principle:** Reference material that changes infrequently. Loaded only when specifically needed.
+
+### Prompt Snippets (*new in v2.1*)
+
+| File | Purpose |
+|---|---|
+| .claude/prompts/review-security.md | Security review of a specific file |
+| .claude/prompts/explain-pattern.md | Explain a code pattern in this codebase |
+| .claude/prompts/suggest-tests.md | Suggest test cases for a file |
+
+**Design principle:** Lighter than full skills — simple parameterized templates for common prompts. No workflow scaffolding, no plan mode, just the prompt with `$1`/`$2` argument expansion.
 
 ---
 

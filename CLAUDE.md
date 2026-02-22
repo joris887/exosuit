@@ -33,7 +33,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v2.0
+## Skills — JD-LLM Development Framework v2.1
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow
@@ -63,4 +63,29 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 - `docs/testing/UAT_COVERAGE.md` — UAT test cases
 
 ## Compaction Directive
-When compacting context, always preserve: current branch name, modified files list, test commands from Commands section, current story status, current sprint number, and any in-progress plan.
+When compacting context, structure the summary using this exact format:
+
+```
+## Compacted Context
+### Goal
+[Current objective — what story/task is in progress]
+### Sprint State
+- Branch: [name]
+- Sprint: [number]
+- Story status: [in progress / blocked / completing]
+### Progress
+- Done: [completed items this session]
+- In progress: [current work]
+- Blocked: [any blockers]
+### Key Decisions
+- [Decision]: [rationale]
+### Commands
+[test/lint/build commands from project — copy from Commands section above]
+### Active Plan
+[Any in-progress plan, verbatim if possible]
+### File Context
+<files-read>[paths of all files explored this session, one per line]</files-read>
+<files-modified>[paths of all files changed this session, one per line]</files-modified>
+```
+
+When multiple compactions occur, MERGE new file paths into the existing `<files-read>` and `<files-modified>` lists — never discard previous entries.

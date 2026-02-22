@@ -142,6 +142,9 @@ For structured UAT with tracked test cases:
 | `/debug-session` | Structured debugging session |
 | `/parallel-work` | Manage parallel worktrees for concurrent stories |
 | `/architecture-check` | Validate architecture and module boundaries |
+| `/review-security` | Security review of a specific file (prompt snippet) |
+| `/explain-pattern` | Explain a code pattern in this codebase (prompt snippet) |
+| `/suggest-tests` | Suggest test cases for a file (prompt snippet) |
 
 ## Story Types
 
@@ -164,6 +167,7 @@ The `/story-cycle` skill adapts methodology by story type:
 ```
 .claude/
   skills/               # Framework skills (20+)
+  prompts/              # Lightweight prompt snippets (review-security, etc.)
   rules/                # Path-scoped rules for testing, security, git, etc.
   hooks/                # Hook scripts for auto-format, quality gates, safety
   settings.json         # Claude Code configuration with hooks

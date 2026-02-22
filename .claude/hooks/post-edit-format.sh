@@ -55,4 +55,31 @@ case "$FILE" in
         ;;
 esac
 
+# After formatting, run linter on the specific file (auto-fix mode, quiet)
+# This catches lint issues immediately rather than accumulating until sprint-end.
+# Customize per project — /bootstrap will configure these.
+case "$FILE" in
+    *.py)
+        if command -v ruff &>/dev/null; then
+            ruff check --fix --quiet "$FILE" 2>/dev/null
+        fi
+        ;;
+    *.ts|*.tsx|*.js|*.jsx)
+        if command -v eslint &>/dev/null; then
+            eslint --fix --quiet "$FILE" 2>/dev/null
+        elif npx biome --help &>/dev/null 2>&1; then
+            npx biome lint --apply "$FILE" 2>/dev/null
+        fi
+        ;;
+    *.rb)
+        # rubocop already runs with -A above (lint + format combined)
+        ;;
+    *.go)
+        if command -v golangci-lint &>/dev/null; then
+            golangci-lint run --fix "$FILE" 2>/dev/null
+        fi
+        ;;
+    # Rust clippy and Swift swiftlint require full project context — skip per-file
+esac
+
 exit 0

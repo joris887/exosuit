@@ -32,7 +32,15 @@
 - .claude/rules/git.md: Git workflow rules
 - .claude/rules/dependencies.md: Dependency management rules
 
+## Prompt Snippets
+- .claude/prompts/review-security.md: Security review of a specific file
+- .claude/prompts/explain-pattern.md: Explain a code pattern in this codebase
+- .claude/prompts/suggest-tests.md: Suggest test cases for a file
+
 ## Hooks
-- .claude/hooks/post-edit-format.sh: Auto-format after edits
+- .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits
 - .claude/hooks/pre-stop-quality.sh: Quality gate before completion
-- .claude/hooks/pre-tool-safety.sh: Block dangerous operations
+- .claude/hooks/pre-tool-safety.sh: Block dangerous operations (git, publishing, DB, process killing)
+
+## Other
+- CHANGELOG.md: Per-optimization changelog with test and revert instructions

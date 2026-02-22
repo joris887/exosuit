@@ -29,6 +29,16 @@ If a session file exists, read it as the primary context source. It contains: co
 - **On main with changes**: Should not happen - create branch first
 - **On main, clean**: Between sprints, ready to start new work
 
+## 1.5. Reload Working Context
+
+If a session file was found, use its "Files Accessed" section to reload context efficiently:
+
+- **Modified files:** Read all — they contain your changes from last session
+- **Read (context-relevant):** Read these only if continuing the same story
+- **Investigated (can skip):** Skip unless the user specifically asks about them
+
+This avoids re-exploring files that were already investigated last session.
+
 ## 2. Assess Project State
 
 - Read @docs/progress.md for last session
@@ -69,6 +79,27 @@ Run the project's test command (from CLAUDE.md Commands section) to verify every
 
 If mid-sprint: Resume from last checkpoint
 If starting new sprint: Execute sprint-start workflow
+
+## 5.5. Health Dashboard
+
+Present a quick status pulse:
+
+```bash
+# Last commit time and branch
+git log -1 --format="%cr on %D"
+# Uncommitted file count
+git status --short | wc -l
+# Session file age
+ls -lt docs/sessions/session-*.md 2>/dev/null | head -1
+```
+
+```markdown
+### Session Health
+- **Tests:** [passing/total] ([green/red])
+- **Last commit:** [time ago] on [branch]
+- **Open changes:** [count] files
+- **Session file:** [age — e.g., "2 days ago" or "none found"]
+```
 
 ## 6. Present Options
 

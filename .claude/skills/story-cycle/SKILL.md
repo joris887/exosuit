@@ -70,22 +70,44 @@ This plan is part of a `/story-cycle` execution. After implementing the plan bel
 3. **Commit:** Stage relevant files and commit with conventional format: `<type>(<scope>): <description>`
 4. **Do NOT merge or create PR** — that's `/sprint-end`'s job
 5. **Print completion report** with: story description, type, approach, files modified, test count, and commit hash
+
+### File Context (accumulates across compactions)
+<files-read>
+[List all files read during planning — one path per line]
+</files-read>
+<files-modified>
+[Update as files are modified during execution — one path per line]
+</files-modified>
+
+When context compacts, MERGE new file paths into these lists — never discard previous entries.
 ```
 
 For complex stories, use `ultrathink` to reason through architectural decisions before writing the plan.
 
 Present the plan for user approval.
 
-## Phase 2: Context Reset
+## Phase 2: Context Transition
 
-After plan approval, clear the context and reload only:
+After plan approval, selectively prune the context — keep discovery metadata, discard bulk content.
 
-1. The approved plan
+**KEEP (low token cost, high value):**
+1. The approved plan (with Story-Cycle Context header and file tracking tags)
+2. File paths discovered during research (as a list, not full file contents)
+3. Edge cases or gotchas noted during exploration
+4. Pattern examples found in existing code (brief snippets only, not full files)
+
+**DISCARD (high token cost, low ongoing value):**
+- Full file contents from exploration reads
+- Dead-end investigation paths
+- Irrelevant code discovered during broad searches
+- Search results that didn't lead anywhere
+
+**THEN RELOAD fresh:**
 1. `docs/reference/CODING_STANDARDS.md` (coding standards)
-1. Files identified in the plan as relevant
-1. Skill-specific context (if skills were defined)
+2. Files identified in the plan as relevant (re-read for fresh content)
+3. Skill-specific context (if skills were defined)
 
-**IMPORTANT:** Do NOT carry over exploration context from Phase 1. Start fresh with only what's needed for execution.
+The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 file paths costs ~200 tokens; the contents of those 20 files costs ~20,000.
 
 ## Phase 3: Execute by Story Type
 
@@ -209,6 +231,16 @@ After execution is complete:
 
 **Ready for next story or sprint-end.**
 ```
+
+## Recovery
+
+When a step fails during execution:
+
+- **Test failure (new code):** Read the error, fix the implementation, re-run. Do not weaken the test.
+- **Test failure (pre-existing):** Inform user. Do not mask it. Log to `docs/technical-debt.md` if out of scope.
+- **Context exhaustion:** Save current progress to `docs/plans/`, commit work-in-progress, inform user to start a new session with `/continue`.
+- **Git conflict:** Show conflict to user. Do NOT auto-resolve without approval.
+- **Skill not found:** If a required skill (e.g., `/code-quality`) is not available, skip it and note in the completion report.
 
 ## Rules
 
