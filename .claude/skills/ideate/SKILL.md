@@ -130,6 +130,16 @@ Present the decomposed stories to the user:
 [Simple ASCII or description of dependencies]
 ```
 
+### Document Quality Check
+
+Before presenting for approval, dispatch a fresh sub-agent to test the story decomposition from a reader's perspective:
+
+- **Agent type:** Explore (read-only, forked context)
+- **Input:** ONLY the story decomposition output — no conversation history
+- **Instructions:** "You are a developer who will implement these stories. For each story: (1) Is the description clear enough to start work? (2) Are acceptance criteria testable and unambiguous? (3) Are file hints specific enough? (4) Are non-goals clear? Flag any story that you'd need to ask questions about before starting."
+
+Review findings. Fix genuine gaps in the stories before presenting to user.
+
 Ask user for approval before writing to backlog files.
 
 <HARD-GATE>

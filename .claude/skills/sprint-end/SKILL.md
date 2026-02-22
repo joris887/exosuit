@@ -38,99 +38,28 @@ git diff --name-only main...HEAD
 
 **If in a worktree:** Detect with `git rev-parse --git-common-dir`. Note the worktree path for cleanup in step 6.
 
-Analyze:
-
-- Branch name
-- All commits since branching from main
-- All files changed (added, modified, deleted)
-- Stories completed (parse from commit messages if using conventional format)
+Analyze: branch name, all commits since branching, all files changed, stories completed (parse from commit messages).
 
 ## 2. Quality Gates
 
-All must pass before proceeding. Run in parallel where possible:
+**Mindset:** Assume there are problems. Your job is to find them. Your first assessment is almost never "all clear."
 
-### 2a. Tests
-
-Run the project's test command (from CLAUDE.md Commands section). If the project has multiple test suites (e.g., backend + frontend), run all of them.
-
-**If tests fail:** Stop. Fix failures first, then re-run `/sprint-end`.
-
-### 2b. Test Protection
-
-Compare test metrics on branch vs main:
-
-```bash
-# Get test count on main
-git stash && git checkout main
-# Run test count command (framework-specific)
-git checkout - && git stash pop
-```
-
-- **Test count gate:** Total tests on branch must be >= total on main. Fail if tests were deleted.
-- **Coverage delta gate:** Coverage for touched files must not decrease. Warn if overall coverage drops.
-- **Assertion density:** Check for weakened assertions (e.g., `toBeTruthy` replacing specific `toBe` checks).
-
-If test count decreased, present the deleted tests and ask user to confirm before proceeding.
-
-### 2c. Quality Agents
-
-Run the following quality agents (forked context to keep main clean):
-
-- **Code Quality Agent** (`/code-quality`): Complexity, duplication, patterns
-- **Test Validator Agent** (`/test-validator`): Coverage, quality, TDD compliance
-
-If auth/credentials/data/security files were changed:
-
-- **Security Audit Agent** (`/security-audit`): Vulnerabilities, secrets, SQL injection
-
-Present agent findings to user. If critical issues found, stop and fix first.
+All gates must pass before proceeding. Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents, recovery).
 
 <HARD-GATE>
 Do NOT proceed to documentation updates, PR creation, or merge if ANY quality gate has failed. All gates must pass. "It's probably fine" is not a pass.
 </HARD-GATE>
 
-### Red Flags — Stop If You're Thinking:
-
-| Rationalization | Why It's Wrong | Correct Action |
-|----------------|----------------|----------------|
-| "Tests mostly pass, good enough" | Mostly is not all | Fix all failures |
-| "The quality agent found minor issues, skip them" | Minor issues compound | Present to user, let them decide |
-| "CI will catch it" | CI is a safety net, not the primary check | Pass local checks first |
-| "I already ran tests during story-cycle" | That was then, this is now | Run fresh test suite |
-
-### Recovery: If Quality Gates Fail
-
-- **Tests fail:** Stop. Show failures. Ask user to fix or run `/debug-session <error>`.
-- **Test count decreased:** Show which tests were removed. Require explicit user approval to proceed.
-- **Quality agents find critical issues:** Show findings. Security issues must be fixed. Others: user decides fix now vs. log to `docs/technical-debt.md`.
-- **CI fails after push:** Diagnose locally, commit fix, push. Never force push.
-
 ## 3. Documentation Updates
 
 Based on what was done in the sprint, update relevant documentation:
 
-### 3a. Epic File (if story IDs are in commits)
+- **Epic file** (`docs/reference/backlog/E##-*.md`): Mark completed stories as `[DONE]`
+- **BACKLOG_INDEX.md**: Update Done/In Progress/TODO counts
+- **progress.md**: Add sprint entry, update metrics
+- **CLAUDE.md**: Update Current Focus if epic status changed
 
-- Find the epic file: `docs/reference/backlog/E##-*.md`
-- Mark completed stories as `[DONE]`
-- Add completion date
-
-### 3b. BACKLOG_INDEX.md
-
-- Update Done/In Progress/TODO counts for affected epics
-
-### 3c. progress.md
-
-- Add sprint entry to recent sprints
-- Update Current Sprint section
-- Update test count metrics
-
-### 3d. CLAUDE.md
-
-- Update Current Focus section if epic status changed (e.g., epic completed)
-- Update completed story counts
-
-### 3e. Commit documentation updates
+Commit documentation updates:
 
 ```bash
 git add docs/ CLAUDE.md
@@ -139,15 +68,11 @@ git commit -m "docs: update progress and backlog for sprint completion"
 
 ## 4. Push and Create PR
 
-### 4a. Push branch
-
 ```bash
 git push -u origin $(git branch --show-current)
 ```
 
-### 4b. Create Pull Request
-
-Use GitHub CLI with a summary derived from the commits and changes:
+Create PR with GitHub CLI:
 
 ```bash
 gh pr create --title "<type>(<scope>): <summary>" --body "$(cat <<'EOF'
@@ -172,15 +97,19 @@ EOF
 
 ## 5. Wait for CI
 
+**If CI is configured** (detected `.github/workflows/`, `.gitlab-ci.yml`, etc.):
+
 ```bash
 gh pr checks --watch
 ```
 
 If CI fails, diagnose and fix. Commit fixes and push.
 
+**If no CI detected:** The local quality gates in step 2 serve as verification. Proceed to merge.
+
 ## 6. Merge and Clean Up
 
-Once CI is green and any required reviews are complete:
+Once CI is green (or local gates passed) and any required reviews are complete:
 
 ```bash
 gh pr merge --squash --delete-branch
@@ -188,12 +117,9 @@ git checkout main
 git pull origin main
 ```
 
-### Worktree Cleanup
-
-If running in a worktree (detected in step 1):
+**Worktree cleanup** (if running in a worktree detected in step 1):
 
 ```bash
-# From the main working tree, remove the worktree
 WORKTREE_PATH=$(pwd)
 cd <main-worktree-path>
 git worktree remove "$WORKTREE_PATH"
@@ -211,8 +137,6 @@ git log --oneline -3
 
 ## 7. Sprint Complete
 
-Output a summary:
-
 ```markdown
 ### Sprint Complete
 
@@ -228,7 +152,7 @@ Output a summary:
 
 ## Rules
 
-- NEVER merge without CI passing
+- NEVER merge without CI passing (or local gates if no CI)
 - NEVER force push or skip hooks
 - NEVER merge without running quality agents
 - NEVER merge if test count decreased (without explicit user approval)

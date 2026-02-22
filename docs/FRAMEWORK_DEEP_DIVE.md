@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.2 — Deep Dive
+# JD-LLM Development Framework v2.3 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -68,7 +68,7 @@ Without this philosophy, AI-assisted development tends toward: long unfocused se
 │  Settings (configuration)                        │
 ├─────────────────────────────────────────────────┤
 │                   WORKFLOW                        │
-│  Skills (20+ markdown files that guide Claude)   │
+│  Skills (25+ skills, lean SKILL.md + references/) │
 │  Bootstrap → Sprint → Story → Quality → Ship     │
 ├─────────────────────────────────────────────────┤
 │                 DOCUMENTATION                     │
@@ -331,7 +331,13 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Why B2.5 matters:** The original flow required the user to use a separate AI tool for braindumping, then save files, then re-run bootstrap. The inline mode lets users describe their idea directly and get started faster.
 
-**Optimization opportunity:** Bootstrap is the first thing users experience. It must be robust. Test it against diverse project types: pure Python, TypeScript monorepo, Rust CLI, Swift iOS app, Go microservice. Each should detect correctly. Also test the inline braindump flow — does it ask the right questions? Are the generated stories well-scoped?
+**Reference splitting** (*new in v2.3*): The skill is split into lean SKILL.md (~140 lines) + `references/stack-detection.md` (detection tables and commands) + `references/new-project.md` (Path B workflow). Path A loads stack-detection.md; Path B loads new-project.md. Never both.
+
+**Helper script** (*new in v2.3*): `scripts/detect-stack.sh` automates basic stack detection. Run with `--help` for usage.
+
+**Document quality check** (*new in v2.3*): After generating ARCHITECTURE.md, a fresh sub-agent reviews it from a reader's perspective to catch context blindness.
+
+**Optimization opportunity:** Bootstrap is the first thing users experience. It must be robust. Test it against diverse project types: pure Python, TypeScript monorepo, Rust CLI, Swift iOS app, Go microservice. Each should detect correctly.
 
 ---
 
@@ -386,6 +392,10 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 - `ultrathink` keyword for complex planning decisions
 - Multi-agent TDD guidance for Feature stories (write tests without implementation knowledge)
 
+**Reference splitting** (*new in v2.3*): The skill is split into a lean SKILL.md (~150 lines) with the flowchart, phase skeleton, and hard gates, plus `references/story-types.md` (per-type execution details) and `references/self-review.md` (checklist and red flags). Claude loads references on demand, so a Feature story only loads the TDD instructions — not all 10 story types.
+
+**Conditional environment adaptation** (*new in v2.3*): Phase 3.5 includes fallback instructions for when sub-agents are not available — the self-review is performed manually instead.
+
 **Optimization opportunity:** The context reset is manual — Claude follows the instruction to "clear and reload." In practice, Claude sometimes carries over more context than intended. Consider whether a more forceful reset mechanism is possible. Also: the 50-line plan limit may be too restrictive for complex stories — monitor and adjust.
 
 ### /sprint-end
@@ -416,7 +426,15 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Process flowchart** (*new in v2.2*): An authoritative flowchart at the top of the skill defines the 7-step process with decision points for quality gates and CI status.
 
-**Optimization opportunity:** The test count comparison requires checking out main to run tests, then switching back. This is slow and fragile. Consider caching the main test count in progress.md (updated per sprint-end) to avoid the branch switch. Also: the quality agents (code-quality, test-validator, security-audit) run as forked contexts — monitor their usefulness and whether they catch real issues.
+**Reference splitting** (*new in v2.3*): Quality gate details (test protection specifics, quality agent dispatch, recovery instructions, red flags) moved to `references/quality-gates.md`. SKILL.md stays lean with the flowchart and step skeleton.
+
+**Helper script** (*new in v2.3*): `scripts/test-count-delta.sh` automates the test count comparison between branch and main. Supports auto-detection and explicit test commands. Run with `--help` for usage.
+
+**"Assume problems" QA framing** (*new in v2.3*): Quality gates step now opens with: "Assume there are problems. Your job is to find them."
+
+**CI fallback** (*new in v2.3*): If no CI is configured, the skill proceeds with local quality gate results instead of stalling.
+
+**Optimization opportunity:** The quality agents (code-quality, test-validator, security-audit) run as forked contexts — monitor their usefulness and whether they catch real issues.
 
 ### /continue
 
@@ -464,6 +482,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Why structured files matter:** The old handoff generated a session summary in the conversation. When the conversation ended, it was gone. The new approach writes to a file that persists and can be read by /continue.
 
+**Document quality check** (*new in v2.3*): After generating the session file, a fresh sub-agent reviews it from a reader's perspective — "Can I understand what was done? Are next steps actionable? Is any critical context missing?"
+
 **Optimization opportunity:** Session files accumulate. Consider auto-archiving sessions older than 2 weeks. Also: should the handoff skill auto-commit the session file? Currently it doesn't — the user might want to review first.
 
 ---
@@ -506,6 +526,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Why non-goals matter:** LLMs are scope-creep machines. If a story says "add login form" without non-goals, Claude might also add: password reset, remember me, OAuth, 2FA. Explicit non-goals prevent this.
 
+**Document quality check** (*new in v2.3*): Before presenting stories for approval, a fresh sub-agent reviews the decomposition from an implementer's perspective — "Is each story clear enough to start work? Are acceptance criteria testable?"
+
 **Optimization opportunity:** The "1-3 hours, 5-8 files" sizing constraint is a heuristic. Track actual story completion rates — are stories consistently finishing within context? If many stories require multiple sessions, the sizing guidance may need tightening. Conversely, if stories are trivially small, loosen it.
 
 ### /skill-create
@@ -529,7 +551,11 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Why this matters:** Generic LLM knowledge about "React" is different from "React 18.2 in this project using server components with Zustand for state management." Project-specific skills bridge that gap.
 
-**Optimization opportunity:** The generated skills can be verbose. Monitor their context cost when auto-invoked. Consider a "skill summary" mode that loads a condensed version by default and the full version only when deep context is needed.
+**Co-located references** (*new in v2.3*): Generated tech skills now store reference docs in `.claude/skills/<tech>/references/` (co-located with the skill) instead of `docs/reference/tech/`. This keeps skills self-contained and allows relative path references. SKILL.md stays under 100 lines with pointers to detailed content.
+
+**"Common Mistakes — NEVER" table** (*new in v2.3*): Prevents common skill creation anti-patterns like generic content Claude already knows, skills >150 lines without references, and examples from training data instead of the actual codebase.
+
+**Optimization opportunity:** Monitor the context cost of generated tech skills when auto-invoked. The reference splitting should keep SKILL.md lean, but verify that Claude actually reads the references when needed.
 
 ---
 
@@ -551,6 +577,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Why forked context matters:** Quality analysis loads a lot of code to compare patterns. Running it in a forked context (separate Claude instance) prevents this from polluting the main conversation's context.
 
+**v2.3 additions:** "Assume problems exist" QA framing, "Common Mistakes — NEVER" table, and `--help` first pattern for CLI tools.
+
 ### /test-validator
 
 **File:** `.claude/skills/test-validator/SKILL.md`
@@ -565,6 +593,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 - **Assertion density:** Each test should have ≥1.5 assertions on average
 
 **Why this matters:** Test count and coverage can remain identical while test quality drops to zero. A test that asserts `expect(true).toBe(true)` contributes to coverage and count but validates nothing. The degradation detection catches these patterns.
+
+**v2.3 additions:** "Assume problems exist" QA framing, "Common Mistakes — NEVER" table, and `--help` first pattern for CLI tools.
 
 **Optimization opportunity:** The assertion density ratio of 1.5 is a heuristic. Track across projects — some testing styles (BDD with nested describes) naturally have lower assertion density. Consider making this configurable per project.
 
@@ -715,9 +745,9 @@ Or for formal UAT:
 
 **Stopping points table:** Explicit situations where Claude must stop and reconsider (3+ failed fixes, "just try this", multiple changes at once).
 
-**Supporting references:**
-- `root-cause-tracing.md` — Backward tracing technique through call stacks, multi-component tracing, git bisect
-- `condition-based-waiting.md` — Replacing arbitrary timeouts with condition polling for deterministic tests
+**Supporting references** (in `references/` subdirectory):
+- `references/root-cause-tracing.md` — Backward tracing technique through call stacks, multi-component tracing, git bisect
+- `references/condition-based-waiting.md` — Replacing arbitrary timeouts with condition polling for deterministic tests
 
 ### /commit, /fix-issue, /pr-status
 
@@ -766,14 +796,18 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 | CLAUDE.md | ~800 | Always |
 | progress.md | ~200 | Always (auto-loaded) |
 | BACKLOG_INDEX.md | ~300 | Always (auto-loaded) |
-| A skill file | 500-1500 | When skill is invoked |
+| A skill SKILL.md | 400-800 | When skill is invoked |
+| A skill reference file | 200-600 | On demand within skill |
+| A helper script (--help) | ~50 | When invoked |
 | A rule file | 200-400 | When matching file is edited |
 | CODING_STANDARDS.md | ~800 | During story-cycle execution |
 | TESTING_STRATEGY.md | ~2500 | When story-cycle loads it |
 
 **Total auto-loaded overhead:** ~1300 tokens (CLAUDE.md + progress.md + BACKLOG_INDEX.md)
 
-**Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand. The BACKLOG_INDEX.md auto-load might be unnecessary for debugging sessions, for example.
+**v2.3 context efficiency improvements:** Skills now follow a three-level loading pattern: lean SKILL.md (always loaded when invoked, <150 lines) → references/ (loaded on demand when specific detail is needed) → scripts/ (executed as black boxes, never read into context). This means a `/story-cycle` invocation loads ~800 tokens initially, then only loads `references/story-types.md` (~500 tokens) for the specific story type being executed. Previously, all 317 lines loaded every time.
+
+**Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
 ---
 
@@ -898,9 +932,23 @@ Lists all key files with descriptions so any LLM tool can understand the project
 
 ## 17. Optimization Opportunities
 
-### Implemented in v2.2
+### Implemented in v2.3
 
-The following optimizations were identified and implemented:
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-22 | Skill reference splitting (story-cycle, sprint-end, bootstrap) | Implemented |
+| OPT-23 | Helper scripts bundled with skills | Implemented |
+| OPT-24 | "Assume problems exist" QA framing | Implemented |
+| OPT-25 | Explicit "Don'ts" lists in quality skills | Implemented |
+| OPT-26 | "Discover before invoking" CLI pattern | Implemented |
+| OPT-27 | Fresh-perspective sub-agent document testing | Implemented |
+| OPT-28 | "Context window is a shared resource" principle | Implemented |
+| OPT-29 | Co-located reference architecture for tech skills | Implemented |
+| OPT-30 | Conditional environment adaptation | Implemented |
+
+**Key architectural change in v2.3:** Skills now follow a three-level structure: lean SKILL.md (<150 lines) + `references/` subdirectory (loaded on demand) + optional `scripts/` (executable helpers). This enforces the context budget principle already defined in SKILL_TEMPLATE.md but not previously followed by the three largest skills.
+
+### Implemented in v2.2
 
 | ID | Optimization | Status |
 |---|---|---|
@@ -921,7 +969,7 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 
 ### Remaining High Impact
 
-1. **Measure actual token consumption** — Instrument a few sessions to measure how many tokens each auto-loaded file consumes. Trim the most expensive low-value content. Note: v2.2 added the verification rule (`**` path) which adds token overhead. Monitor whether this cost is justified by compliance improvement.
+1. **Measure actual token consumption** — Instrument a few sessions to measure how many tokens each auto-loaded file consumes. Trim the most expensive low-value content.
 
 2. **Test bootstrap against diverse projects** — Run /bootstrap against 5+ different project types and record: detection accuracy, command correctness, generated skill quality. This is the highest-leverage test because bootstrap is every user's first experience.
 
@@ -929,7 +977,7 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 
 4. **Monitor hook behavior** — Enable all three hooks on a real project and track: how often they trigger, false positive rate, whether the self-correction loop resolves issues or creates loops.
 
-5. **Validate v2.2 compliance improvements** — Test whether hard gates, red flag tables, and trigger-only descriptions actually improve Claude's process compliance. Use the skill testing methodology (OPT-20) with pressure scenarios.
+5. **Validate v2.3 improvements** — Test whether reference splitting actually reduces context usage. Test whether helper scripts improve reliability. Use pressure scenarios for the QA framing and Don'ts lists.
 
 ### Remaining Medium Impact
 
@@ -937,17 +985,15 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 
 7. **Session file lifecycle** — Define when old session files get archived or deleted. Without this, `docs/sessions/` will grow indefinitely.
 
-8. **Skill size audit** — Story-cycle is now ~300 lines with the self-review addition. When loaded, it consumes significant context. Consider whether Phase 3.5 should be a separate reference file.
-
-9. **Rule path refinement** — The security rule's `**/*key*` pattern matches too broadly. The verification rule uses `**` (all files). Audit token cost of rules loaded per-edit.
+8. **Rule path refinement** — The security rule's `**/*key*` pattern matches too broadly. The verification rule uses `**` (all files). Audit token cost of rules loaded per-edit.
 
 ### Remaining Lower Impact
 
-10. **install.sh optimization** — Currently clones the full repo. Consider using `git archive` or a release tarball for faster, lighter installation.
+9. **install.sh optimization** — Currently clones the full repo. Consider using `git archive` or a release tarball for faster, lighter installation.
 
-11. **Worktree integration depth** — The parallel-work skill is new. Test it with 2-3 concurrent Claude Code instances to verify coordination works.
+10. **Worktree integration depth** — The parallel-work skill is new. Test it with 2-3 concurrent Claude Code instances to verify coordination works.
 
-12. **llms.txt auto-update** — Auto-generate llms.txt content during /bootstrap based on actual project files.
+11. **llms.txt auto-update** — Auto-generate llms.txt content during /bootstrap based on actual project files.
 
 ---
 
@@ -961,8 +1007,9 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 ### Advisory vs Deterministic
 
 - **Rules are advisory:** Claude can technically ignore rules. The testing, security, verification, and documentation rules are strong guidance, but not unbypassable. Critical protections should be hooks (deterministic), not just rules.
-- **Skill compliance varies:** Skills are markdown instructions. Claude follows them well most of the time, but complex multi-step skills sometimes have steps skipped or combined. Mitigations added in v2.2: hard gate markers, red flag tables, trigger-only descriptions, process flowcharts. Monitor whether these improve compliance.
-- **Hard gates are still advisory:** The `<HARD-GATE>` blocks added in v2.2 are stronger than prose but are not deterministic enforcement. They rely on Claude respecting the XML-style markers. If a hard gate is consistently bypassed, consider escalating to a hook.
+- **Skill compliance varies:** Skills are markdown instructions. Claude follows them well most of the time, but complex multi-step skills sometimes have steps skipped or combined. Mitigations: hard gate markers, red flag tables, trigger-only descriptions, process flowcharts, "assume problems" QA framing. v2.3 further mitigates by splitting large skills into lean entry points + reference files, reducing cognitive load per invocation.
+- **Hard gates are still advisory:** The `<HARD-GATE>` blocks are stronger than prose but are not deterministic enforcement. They rely on Claude respecting the XML-style markers. If a hard gate is consistently bypassed, consider escalating to a hook.
+- **Reference loading depends on Claude:** The v2.3 reference splitting pattern relies on Claude reading `references/*.md` files when directed by SKILL.md. If Claude skips reading the reference, it may miss detailed instructions. Monitor whether this happens and consider inlining critical content if it does.
 
 ### Git Workflow Assumptions
 

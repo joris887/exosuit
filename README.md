@@ -168,7 +168,11 @@ The `/story-cycle` skill adapts methodology by story type:
 
 ```
 .claude/
-  skills/               # Framework skills (20+)
+  skills/               # Framework skills (25+)
+    <skill>/
+      SKILL.md          # Lean entry point (<150 lines)
+      references/       # Detailed docs loaded on demand
+      scripts/          # Executable helper scripts (--help supported)
   prompts/              # Prompt snippets + subagent templates
     agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer)
   rules/                # Path-scoped rules for testing, security, git, verification
@@ -221,6 +225,7 @@ A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stori
 - **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, over-engineering)
 - **Verification-driven** — Evidence before claims, fresh output before completion
 - **Progressive disclosure** — Load only what you need, when you need it
+- **Context-efficient** — Skills split into lean entry points + on-demand references; context window is a shared resource
 
 ## Contributing
 

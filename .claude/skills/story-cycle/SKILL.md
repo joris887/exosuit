@@ -130,143 +130,19 @@ The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 
 
 ## Phase 3: Execute by Story Type
 
-### Feature Story (TDD)
-
-For Feature stories, write tests without implementation knowledge when possible. This prevents the "testing the mock" anti-pattern.
-
-**RED:**
-
-1. Write a focused failing test for one behavior
-1. Use descriptive name: `test_[action]_[condition]_[expected]`
-1. Include Given/When/Then structure
-1. Verify test fails for the RIGHT reason
-
-**GREEN:**
-5\. Write MINIMUM code to make the test pass
-6\. No over-engineering, no untested features
-7\. Verify test passes + full suite for regressions
-
-**REFACTOR:**
-8\. Improve code quality while keeping tests green
-9\. Remove duplication, improve naming
-10\. Run tests after each change
-
-Repeat RED-GREEN-REFACTOR for each behavior in the acceptance criteria.
-
-### Bug Fix
-
-1. Write a test that reproduces the bug (must fail)
-1. Verify it fails for the right reason (matches the reported behavior)
-1. Implement the minimal fix
-1. Verify the reproduction test passes
-1. Run full test suite for regressions
-
-### Refactoring
-
-1. Write characterization tests that capture current behavior (if not already covered)
-1. Verify all characterization tests pass
-1. Perform the refactoring in small steps
-1. Run tests after each step — never break them
-1. Verify final behavior matches original (characterization tests green)
-
-### Spike/Research
-
-1. Define the questions to answer (from story or user)
-1. Time-box the exploration (ask user for budget if not defined)
-1. Explore, prototype, experiment — code may be thrown away
-1. Document findings: what was learned, what was decided, what's recommended
-1. Output: decision document, ADR, or backlog stories for follow-up work
-1. No production code required
-
-### Infrastructure
-
-1. Plan the changes (scripts, config, CI)
-1. Implement incrementally
-1. Write smoke tests or verification scripts
-1. Verify with the project's test command
-1. Document any new commands or setup changes
-
-### Testing
-
-1. Design test strategy (what to cover, what patterns to use)
-1. Generate test code following existing patterns in the codebase
-1. Verify tests pass and provide meaningful coverage
-1. Run full suite to ensure no conflicts
-
-### Documentation
-
-1. Gather source material (code, existing docs, architecture)
-1. Generate documentation following existing format/style
-1. Verify accuracy: links work, code references are correct
-1. Keep concise — document what's needed, not everything possible
-
-### Security
-
-1. Define threat model or security requirements
-1. Implement security measures
-1. Run available security scanning tools
-1. Write security-focused tests
-1. Run `/security-audit` skill for review
-
-### Performance
-
-1. Establish baseline measurements (before optimization)
-1. Implement optimizations
-1. Measure after and compare to baseline
-1. Write benchmark tests to prevent regression
-1. Document before/after metrics
-
-### Skill/Tooling
-
-1. Design the skill/tool interface
-1. Build following the skill template (`.claude/skills/SKILL_TEMPLATE.md`)
-1. Test the skill manually
-1. Document usage and examples
-1. Update SKILLS_INVENTORY.md
+Read `references/story-types.md` for detailed execution instructions for each story type. Follow the methodology matching your identified type from Phase 1.
 
 ## Phase 3.5: Self-Review Before Wrap-Up
 
-Before proceeding to Phase 4, complete this checklist honestly. Do NOT skip items.
+Read `references/self-review.md` and complete the full checklist honestly. Do NOT skip items.
 
-### Completeness
-- [ ] Every acceptance criterion has been implemented
-- [ ] Every acceptance criterion has a corresponding test
-- [ ] No "TODO" or "FIXME" left in new code (unless explicitly deferred)
+**If sub-agents are available (Claude Code with Task tool):** Dispatch quality agents (`/code-quality`, `/test-validator`) in forked context for independent review.
 
-### Quality
-- [ ] New code follows patterns found in existing codebase
-- [ ] No unnecessary features added beyond acceptance criteria (YAGNI)
-- [ ] Error handling covers realistic failure modes
+**If sub-agents are NOT available:** Perform the self-review checklist manually — do not skip quality checks just because agents aren't available.
 
-### Testing
-- [ ] All tests pass — run the test command and show output (not from memory)
-- [ ] Tests are meaningful — would fail if implementation was naive
-- [ ] Edge cases from planning phase are covered
-
-### Discipline
-- [ ] Did not weaken or delete any existing tests
-- [ ] Did not add dependencies without noting them
-- [ ] Implementation matches the approved plan
-
-### Spec Compliance (for stories with 4+ acceptance criteria)
-
-For each acceptance criterion:
-1. Re-read the criterion text from the plan
-2. Find the code that implements it (cite file:line)
-3. Find the test that verifies it (cite file:line)
-4. Confirm they match — do NOT rely on memory, re-read the plan and the code
-
-### Red Flags — Stop If You're Thinking:
-
-| Rationalization | Why It's Wrong | Correct Action |
-|----------------|----------------|----------------|
-| "The tests probably pass, I'll commit" | "Probably" is not evidence | Run the test command, show output |
-| "This is a small change, no need for TDD" | Small changes cause big regressions | Write the test first |
-| "I already verified this earlier" | Earlier is not fresh evidence | Re-run verification now |
-| "The user wants this done fast, skip review" | Fast now = rework later | Complete the self-review |
-| "Close enough to the acceptance criteria" | Close is not done | Implement exactly what was specified |
-
+<HARD-GATE>
 If any checklist item fails, go back to Phase 3 and fix the issue before proceeding.
+</HARD-GATE>
 
 ## Phase 4: Wrap Up
 

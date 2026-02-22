@@ -100,6 +100,16 @@ Continue development.
 - [Any issues discovered]
 ```
 
+## 4.5. Document Quality Check
+
+After generating the session file, dispatch a fresh sub-agent to test it from a reader's perspective:
+
+- **Agent type:** Explore (read-only, forked context)
+- **Input:** ONLY the generated session file — no conversation history
+- **Instructions:** "You are a developer starting a new session tomorrow with only this handoff file. (1) Can you understand what was done? (2) Are next steps specific enough to act on immediately? (3) Is any critical context missing? (4) Would you need to re-explore anything that could have been captured here?"
+
+Review findings. Fix genuine gaps before finalizing.
+
 ## 5. Commit and PR Reminder
 
 - If uncommitted changes: suggest commit message and push

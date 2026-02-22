@@ -15,19 +15,29 @@
 
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
+  - references/stack-detection.md: Technology detection tables and commands
+  - references/new-project.md: New project braindump and generation workflow
+  - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
 - .claude/skills/story-cycle/SKILL.md: Universal story delivery with self-review and process flowchart
+  - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
+  - references/self-review.md: Self-review checklist with red flags
 - .claude/skills/sprint-end/SKILL.md: Quality gates with hard gates, PR, merge
+  - references/quality-gates.md: Detailed quality gate checks and recovery
+  - scripts/test-count-delta.sh: Compare test counts between branch and main
 - .claude/skills/brainstorm/SKILL.md: Design exploration with alternative approaches
-- .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories
+- .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories with doc quality check
 - .claude/skills/continue/SKILL.md: Smart session resumption
-- .claude/skills/handoff/SKILL.md: Session end, handoff document
-- .claude/skills/skill-create/SKILL.md: Generate technology-specific skills
+- .claude/skills/handoff/SKILL.md: Session end, handoff document with quality check
+- .claude/skills/skill-create/SKILL.md: Generate technology-specific skills with co-located references
 - .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with root cause tracing
+  - references/root-cause-tracing.md: Backward tracing technique
+  - references/condition-based-waiting.md: Replace timeouts with condition polling
 - .claude/skills/parallel-work/SKILL.md: Git worktree management
+  - scripts/worktree-status.sh: Worktree status with merge info
 - .claude/skills/architecture-check/SKILL.md: Architecture validation
 - .claude/skills/SKILLS_INVENTORY.md: Full skill inventory
-- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with TDD methodology
+- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with context budget principle and TDD methodology
 
 ## Rules
 - .claude/rules/testing.md: Test file protection rules
@@ -35,7 +45,7 @@
 - .claude/rules/security.md: Security-sensitive file rules + fix-immediately pattern
 - .claude/rules/git.md: Git workflow rules
 - .claude/rules/dependencies.md: Dependency management rules
-- .claude/rules/verification.md: Evidence required before completion claims
+- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern
 
 ## Prompt Snippets
 - .claude/prompts/review-security.md: Security review of a specific file
@@ -45,10 +55,6 @@
 ## Subagent Templates
 - .claude/prompts/agents/code-reviewer.md: Code review dispatch template with severity classification
 - .claude/prompts/agents/spec-reviewer.md: Spec compliance verification with file:line references
-
-## Debug Session References
-- .claude/skills/debug-session/root-cause-tracing.md: Backward tracing technique
-- .claude/skills/debug-session/condition-based-waiting.md: Replace timeouts with condition polling
 
 ## Hooks
 - .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits

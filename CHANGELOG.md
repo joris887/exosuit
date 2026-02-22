@@ -1,5 +1,82 @@
 # Changelog
 
+## [2.3.0] - 2026-02-22
+
+### Context Efficiency & Skill Architecture
+
+#### OPT-22: Skill Size Budget Enforcement with Reference Splitting
+- **Files:** `.claude/skills/story-cycle/SKILL.md` (317→152 lines), `.claude/skills/sprint-end/SKILL.md` (239→148 lines), `.claude/skills/bootstrap/SKILL.md` (332→142 lines)
+- **New files:** `story-cycle/references/story-types.md`, `story-cycle/references/self-review.md`, `sprint-end/references/quality-gates.md`, `bootstrap/references/stack-detection.md`, `bootstrap/references/new-project.md`
+- **Also moved:** `debug-session/root-cause-tracing.md` and `debug-session/condition-based-waiting.md` into `debug-session/references/`
+- **What:** Split the three largest skills into lean SKILL.md files + `references/` subdirectories, following the <150-line guideline already defined in SKILL_TEMPLATE.md. Kept flowcharts, phase skeletons, and hard gates in SKILL.md. Moved detailed checklists, story-type execution details, quality gate specifics, stack detection tables, and new-project workflow to on-demand reference files.
+- **Why:** Large skills consumed unnecessary context on every invocation. Most invocations only need a subset (e.g., one story type out of ten). Reference splitting loads detail on demand.
+- **To test:** Invoke `/story-cycle`, `/sprint-end`, `/bootstrap` — verify Claude reads reference files when needed. Check line counts: `wc -l .claude/skills/*/SKILL.md | sort -n`
+- **To revert:** Restore SKILL.md files from git history (commit before v2.3). Delete all `references/` directories. Move `debug-session/references/*.md` back to `debug-session/`.
+
+#### OPT-23: Helper Scripts Bundled with Skills
+- **New files:** `sprint-end/scripts/test-count-delta.sh`, `bootstrap/scripts/detect-stack.sh`, `parallel-work/scripts/worktree-status.sh`
+- **What:** Added executable helper scripts to skills for repetitive multi-step operations. Each script supports `--help`, outputs structured results, and can be invoked as a black box without reading source.
+- **Why:** Skills previously instructed Claude to compose complex bash sequences from prose. Scripts are deterministic, testable, and don't consume context tokens explaining what they do.
+- **To test:** Run `bash .claude/skills/sprint-end/scripts/test-count-delta.sh --help` — should show usage. Run in a project with tests to see delta output.
+- **To revert:** Delete the three `scripts/` directories. Remove the `test-count-delta.sh` reference from `sprint-end/references/quality-gates.md` and restore the inline bash instructions.
+
+#### OPT-28: "Context Window is a Shared Resource" Principle
+- **File:** `.claude/skills/SKILL_TEMPLATE.md`
+- **What:** Added explicit "Core Principle" section framing the context window as a shared resource. States: "Claude is already very smart — only add context it doesn't already know." Reinforces the 150-line budget and reference-splitting pattern.
+- **Why:** Prevents future skill bloat by making the cost model explicit for skill creators.
+- **To test:** Read SKILL_TEMPLATE.md and verify the principle is at the top. Create a new skill and verify it follows the budget.
+- **To revert:** Remove the "Core Principle: Context Window is a Shared Resource" section from SKILL_TEMPLATE.md.
+
+### Quality & Verification
+
+#### OPT-24: "Assume Problems Exist" QA Framing
+- **Files:** `.claude/skills/code-quality/SKILL.md`, `.claude/skills/test-validator/SKILL.md`, `.claude/skills/sprint-end/SKILL.md`
+- **What:** Added skeptical QA opening to quality agents and sprint-end quality gates: "Assume there are problems. Your job is to find them. Your first assessment is almost never 'all clear.'"
+- **Why:** Starting from "verify it works" creates confirmation bias. Starting from "find the problems" creates thoroughness. Quality agents in forked contexts have no investment in the code being correct.
+- **To test:** Run `/code-quality` or `/test-validator` on code. Verify the agent's output is specific and cites file:line, not vague "looks good."
+- **To revert:** Remove the "**Mindset:**" paragraph from code-quality/SKILL.md, test-validator/SKILL.md, and sprint-end/SKILL.md step 2.
+
+#### OPT-25: Explicit "Don'ts" Lists in Quality Skills
+- **Files:** `.claude/skills/code-quality/SKILL.md`, `.claude/skills/test-validator/SKILL.md`, `.claude/skills/skill-create/SKILL.md`
+- **What:** Added "Common Mistakes — NEVER" tables with concrete examples of bad output and what to do instead.
+- **Why:** Claude responds more strongly to "NEVER do this: [example]" than to abstract quality guidelines. Concrete anti-patterns make expectations unambiguous.
+- **To test:** Run `/code-quality`. Verify the report includes file:line references (not vague summaries) and checks complexity before style.
+- **To revert:** Remove the "Common Mistakes — NEVER" tables from the three skill files.
+
+#### OPT-26: "Discover Before Invoking" CLI Pattern
+- **Files:** `.claude/rules/verification.md`, `.claude/skills/code-quality/SKILL.md`, `.claude/skills/test-validator/SKILL.md`, `.claude/skills/bootstrap/references/stack-detection.md`
+- **What:** Added universal rule: "Before invoking any CLI tool with flags you're unsure about, run `[tool] --help` first." Applied to verification rule (global), quality agents, and bootstrap stack detection.
+- **Why:** Claude frequently hallucinates CLI flags — especially for tools that change between versions. Running `--help` first grounds Claude in the actual installed version.
+- **To test:** During bootstrap, observe whether Claude runs `--help` on unfamiliar tools before invoking them with flags.
+- **To revert:** Remove the `--help` line from verification.md. Remove "Run `[tool] --help` first" instructions from code-quality, test-validator, and stack-detection.md.
+
+### Documentation Quality
+
+#### OPT-27: Fresh-Perspective Sub-Agent Document Testing
+- **Files:** `.claude/skills/bootstrap/SKILL.md` (A5.7), `.claude/skills/ideate/SKILL.md`, `.claude/skills/handoff/SKILL.md` (4.5), `.claude/skills/story-cycle/references/story-types.md` (Documentation type)
+- **What:** Added document quality check step that dispatches a fresh sub-agent with ONLY the generated document (no authoring context) to identify gaps, ambiguities, and assumed context.
+- **Why:** Claude suffers from "context blindness" — things obvious during authoring become confusing to a reader without that context. Documents are the primary communication mechanism in this framework (session handoffs, architecture docs, story specs). Testing them from a reader's perspective catches blind spots.
+- **To test:** Run `/handoff` and observe whether a sub-agent reviews the session file. Check if the review catches genuinely missing information.
+- **To revert:** Remove step A5.7 from bootstrap/SKILL.md. Remove "Document Quality Check" sections from ideate/SKILL.md and handoff/SKILL.md. Remove step 5 from the Documentation story type in story-types.md.
+
+### Extensibility
+
+#### OPT-29: Co-Located Reference Architecture for Generated Tech Skills
+- **File:** `.claude/skills/skill-create/SKILL.md`
+- **What:** Changed reference doc location from `docs/reference/tech/<name>.md` to `.claude/skills/<tech-name>/references/` (co-located with the skill). Updated skill file structure template to show lean SKILL.md (<100 lines) + references/ subdirectory. Added "Common Mistakes — NEVER" table.
+- **Why:** Co-locating references with skills keeps everything self-contained. SKILL.md can use relative paths (`references/api.md`). Skills become portable and context-efficient: lean SKILL.md auto-loads, detailed references load on demand.
+- **To test:** Run `/skill-create` on a project. Verify generated skills have `references/` subdirectories with detailed content, and SKILL.md files are under 100 lines with pointers.
+- **To revert:** Restore `docs/reference/tech/` as the reference location. Remove the updated file structure template and restore the old monolithic skill template.
+
+### Workflow Resilience
+
+#### OPT-30: Conditional Environment Adaptation
+- **Files:** `.claude/skills/sprint-end/SKILL.md` (step 5), `.claude/skills/story-cycle/SKILL.md` (Phase 3.5), `.claude/skills/bootstrap/references/stack-detection.md` (A2.6)
+- **What:** Added fallback instructions for environment-dependent steps. Sprint-end: if no CI, local gates serve as verification. Story-cycle: if no sub-agents, perform self-review manually. Bootstrap: if no coverage tool, record "N/A" instead of failing.
+- **Why:** Skills previously assumed capabilities that may not exist in every environment (CI runners, sub-agents, coverage tools). Fallbacks prevent confusion and stalling.
+- **To test:** Run `/sprint-end` in a project without CI. Verify it proceeds with local quality gates instead of stalling on `gh pr checks`.
+- **To revert:** Remove the conditional blocks ("If CI is configured... If no CI detected...", "If sub-agents are available... If not...", "If no coverage tool detected...") from the three files.
+
 ## [2.2.0] - 2026-02-22
 
 ### Process Compliance & Enforcement

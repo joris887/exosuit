@@ -14,3 +14,4 @@ paths:
 - "I already ran this earlier" is NOT fresh evidence — re-run before claiming completion
 - Confidence is NOT proof — show command output
 - "It compiles" is NOT "it works" — run the tests
+- Before invoking any CLI tool with flags you're unsure about, run `[tool] --help` first — do NOT guess flags from memory, tool versions change

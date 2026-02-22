@@ -37,12 +37,14 @@ Categorize each technology by impact and relevance:
 
 ### Decision Criteria for Reference Documents
 
-Create a reference doc (`docs/reference/tech/<name>.md`) when:
+Create reference docs **co-located with the skill** (`.claude/skills/<tech-name>/references/`) when:
 
 - Technology is core (>20% of codebase interaction)
 - API is complex with project-specific patterns
 - Version-specific gotchas exist that an LLM would miss
 - Official documentation is large and we use a specific subset
+
+Co-locating references with skills keeps everything self-contained and allows relative path references from SKILL.md.
 
 Skip reference doc when:
 
@@ -57,22 +59,27 @@ For each technology that warrants a skill, create:
 ### Skill File Structure
 
 ```
-.claude/skills/<tech-name>/SKILL.md
+.claude/skills/<tech-name>/
+├── SKILL.md              # Lean (<100 lines): purpose, version, key patterns, pointers
+└── references/            # Loaded on demand
+    ├── api.md             # API patterns and quick reference
+    ├── gotchas.md         # Version-specific issues and workarounds
+    └── examples.md        # Code snippets from the actual codebase
 ```
 
-### Skill Content Template
+### SKILL.md Content (keep under 100 lines)
 
-Each generated skill should include:
+Each generated skill SKILL.md should include:
 
 1. **Purpose:** What this technology does in the project
 1. **Version:** Specific version in use (pinned)
-1. **Patterns:** Project-specific patterns and conventions
-1. **Common Tasks:** How to accomplish typical tasks with this technology
-1. **Pitfalls:** Known issues, gotchas, anti-patterns
-1. **References:** Links to official documentation
-1. **Examples:** Code snippets from the actual codebase showing correct usage
+1. **Patterns:** Project-specific patterns and conventions (brief)
+1. **Common Tasks:** How to accomplish typical tasks (brief)
+1. **Pointers:** "See `references/api.md` for detailed API patterns" etc.
 
-### Reference Doc Template (when created)
+Move detailed content to references/ to keep SKILL.md lean. The context window is a shared resource — only load detail when needed.
+
+### Reference Doc Template (when created, co-located in references/)
 
 ```markdown
 # <Technology> Reference (v<version>)
@@ -161,6 +168,15 @@ Present a summary:
 - [list of technologies that didn't warrant skills]
 ```
 
+## Common Mistakes — NEVER:
+
+| Bad Output | Why It's Wrong | What To Do Instead |
+|---|---|---|
+| Generic content Claude already knows | Wastes context window on every invocation | Only include project-specific patterns and gotchas |
+| Skill >150 lines without references/ | Exceeds context budget | Split into lean SKILL.md + references/ |
+| Examples from training data, not codebase | Doesn't match project conventions | Use actual code from the repo as examples |
+| Documenting standard API usage | Claude knows standard APIs | Document project-specific patterns and version gotchas |
+
 ## Rules
 
 - NEVER create skills for trivial/standard technologies (basic Python, JSON, HTTP)
@@ -168,5 +184,5 @@ Present a summary:
 - ALWAYS pin versions in reference docs
 - ALWAYS include examples from the actual codebase, not generic examples
 - ALWAYS check for existing skills before creating new ones
-- Reference docs go in `docs/reference/tech/`, skill files in `.claude/skills/<name>/`
+- Reference docs go in `.claude/skills/<name>/references/` (co-located with the skill)
 - Follow the skill template in `.claude/skills/SKILL_TEMPLATE.md`

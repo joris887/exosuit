@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 2.2
+**Framework Version:** 2.3
 
 ## Core Workflow
 
@@ -194,6 +194,7 @@ Deterministic enforcement via shell scripts:
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 2.3     | 2026-02-22 | Skill reference splitting, helper scripts, QA framing, Don'ts lists, CLI discovery pattern, doc quality sub-agents, co-located tech skill references, context budget principle, environment adaptation |
 | 2.2     | 2026-02-22 | Hard gates, trigger-only descriptions, verification rule, red flag tables, inline self-review, deepened debug-session, brainstorm skill, process flowcharts, subagent templates, TDD for skills, fix-immediately pattern |
 | 2.1     | 2026-02-22 | Structured compaction, cumulative file tracking, graduated context reset, enriched handoffs, expanded safety hooks, incremental linting, error recovery, health dashboard, prompt snippets |
 | 2.0     | 2026-02-21 | Hooks, rules, worktrees, test protection, CWE checks, metrics, architecture-check, parallel-work, session persistence, context management |

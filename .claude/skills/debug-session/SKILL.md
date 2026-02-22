@@ -46,7 +46,7 @@ Start at the error location and trace BACKWARD through the call stack:
 
 For multi-component systems, trace across component boundaries — check API calls, database queries, event handlers.
 
-See `.claude/skills/debug-session/root-cause-tracing.md` for detailed backward tracing technique.
+See `references/root-cause-tracing.md` for detailed backward tracing technique.
 
 <HARD-GATE>
 Do NOT attempt any fix until the root cause is identified with evidence. "I think it might be X" without evidence is NOT identification. You must show: where the bug is, why it happens, and what incorrect state or logic causes it.
@@ -83,7 +83,7 @@ Based on evidence from Phases 1-2, state:
 | "It's probably X" without evidence | STOP. Gather evidence. |
 | Fix works but you don't understand why | STOP. Understand before committing. |
 
-See `.claude/skills/debug-session/condition-based-waiting.md` for fixing timing-related bugs.
+See `references/condition-based-waiting.md` for fixing timing-related bugs.
 
 ## Phase 4: Fix Implementation (TDD)
 
@@ -114,7 +114,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - **Cannot reproduce:** Gather more context. Check environment differences. Ask user for exact reproduction steps.
 - **Root cause unclear after investigation:** Document findings so far. Ask user for additional context. Do NOT guess.
 - **Fix introduces new failures:** Revert the fix. The original bug is better than two bugs.
-- **Timing/race condition:** See condition-based-waiting.md reference. Replace arbitrary sleeps with condition polling.
+- **Timing/race condition:** See `references/condition-based-waiting.md`. Replace arbitrary sleeps with condition polling.
 
 ## Rules
 
