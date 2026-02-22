@@ -68,6 +68,16 @@ Report: CURRENT/STALE/MISSING for each
 - Any stale feature branches (merged but not deleted)?
 - Remote configured and accessible?
 
+## 7. Skill Conformance
+
+Execute `scripts/validate-skills.sh` directly — do NOT read source first.
+
+```bash
+bash .claude/skills/doctor/scripts/validate-skills.sh
+```
+
+Reports per-skill conformance: YAML frontmatter, line budget, required sections, reference budgets, registry version match. Include results in the health report under a "Skill Conformance" section.
+
 ## Output
 
 ```markdown
@@ -103,6 +113,11 @@ Report: CURRENT/STALE/MISSING for each
 |------|--------|-------------|
 | CLAUDE.md | CURRENT/STALE | [date] |
 | ... | | |
+
+### Skill Conformance
+| Skill | Frontmatter | Lines | References | Registry |
+|-------|-------------|-------|------------|----------|
+| [name] | PASS/FAIL | [count] | PASS/WARN | PASS/WARN |
 
 ### Overall: X/Y checks passed — [HEALTHY / NEEDS ATTENTION / ACTION REQUIRED]
 ```

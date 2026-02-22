@@ -4,6 +4,16 @@ Hook scripts that enforce quality and safety automatically during Claude Code se
 
 ## Hook Types
 
+### session-start.sh (SessionStart)
+Runs at session start. Advisory-only environment checks (always exits 0, never blocks):
+- **Tool existence:** Checks tools referenced in CLAUDE.md Commands are in PATH
+- **Stale session:** Warns if `docs/sessions/.auto-save.md` is older than 24 hours
+- **Git state:** Warns if on main, detached HEAD, or uncommitted changes
+- **Hook coverage:** Warns if Stop or PostToolUse hooks are not configured
+
+### activity-logger.sh (PostToolUse)
+Runs after Edit, Write, and Bash tool invocations. Logs timestamped JSON lines to `docs/sessions/.activity-log.jsonl` for session activity tracking. Rotates at 200 entries. Used by `/retrospective` for metrics and `/handoff` for activity summaries.
+
 ### post-edit-format.sh (PostToolUse)
 Runs after Claude edits a file. Auto-formats the file using your project's formatter, then runs the linter in auto-fix mode on the same file.
 

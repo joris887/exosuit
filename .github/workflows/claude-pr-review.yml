@@ -1,0 +1,49 @@
+name: Claude PR Review
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine access level
+        id: access
+        run: |
+          if gh api repos/${{ github.repository }}/collaborators/${{ github.event.pull_request.user.login }} --silent 2>/dev/null; then
+            echo "level=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "level=external" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Claude Code Review (Full)
+        if: steps.access.outputs.level == 'full'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          allowed_tools: "Read,Glob,Grep,Bash(git diff:*),Bash(git log:*),Bash(git status:*)"
+          direct_prompt: "/review-pr-ci"
+
+      - name: Claude Code Review (External — Structure Only)
+        if: steps.access.outputs.level == 'external'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          allowed_tools: "Read,Glob,Grep,Bash(git diff:*),Bash(git log:*)"
+          direct_prompt: |
+            Review this PR for structural issues only (no code-level feedback):
+            - Does it follow conventional commit format?
+            - Are there any obvious file structure violations?
+            - Is the PR description complete?
+            Post a concise summary as a PR comment.

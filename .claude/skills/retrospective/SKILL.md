@@ -65,6 +65,19 @@ Run the project's test and quality commands (from CLAUDE.md Commands section):
 
 *Estimate based on commit history — code added then immediately changed indicates low survival rate
 
+### Activity Log Metrics
+
+<IF condition="docs/sessions/.activity-log.jsonl exists">
+Parse `docs/sessions/.activity-log.jsonl` to extract:
+- Total tool invocations (Edit, Write, Bash) per session
+- Most-edited files (hotspots indicating rework)
+- Edit-to-Bash ratio (high Edit ratio = productive, high Bash ratio = debugging)
+- Time distribution across files
+</IF>
+<ELSE>
+Activity log not available — skip activity metrics. Note: enable `activity-logger.sh` hook for richer retrospective data.
+</ELSE>
+
 ## 3. Retrospective Framework
 
 Use the 4Ls format:

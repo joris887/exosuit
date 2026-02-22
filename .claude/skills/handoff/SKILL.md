@@ -84,9 +84,17 @@ Save a structured session file to `docs/sessions/session-YYYY-MM-DD.md`:
 ## Files to Load on Resume
 - @[path] — [why this file is needed]
 
+## Activity Summary
+
+<!-- Populated from activity log if available -->
+
 ## Warnings / Gotchas
 - [Any issues the next session should be aware of]
 ```
+
+<IF condition="docs/sessions/.activity-log.jsonl exists">
+**Activity summary:** Parse the activity log to populate the "Activity Summary" section with: total edits, total commands run, most-edited files (top 5), and edit-to-bash ratio.
+</IF>
 
 ## 4. Create Next Session Prompt
 

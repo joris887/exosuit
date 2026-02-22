@@ -178,11 +178,23 @@ The `/story-cycle` skill adapts methodology by story type:
       references/       # Detailed docs loaded on demand (plan-template, story-template, reasoning-tools)
       scripts/          # Executable helper scripts (--help supported)
       assets/           # Output templates — copy, don't read
+    skills-registry.schema.json  # JSON Schema for registry validation
+  commands/
+    review-pr-ci.md     # Non-interactive CI PR review command
   prompts/              # Prompt snippets, micro-components (incl. context-budget), and subagent templates
     agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer)
   rules/                # Path-scoped rules for testing, security, git, verification, code-slop, edit-recovery, documentation budgets
   hooks/                # Hook scripts for auto-format, quality gates, safety, secrets detection
+    session-start.sh    # Advisory environment checks at session start
+    activity-logger.sh  # Tool invocation logging for retrospective metrics
   settings.json         # Claude Code configuration with hooks
+.github/
+  workflows/
+    claude-pr-review.yml  # CI-based Claude Code PR review
+  ISSUE_TEMPLATE/
+    bug_report.yml      # Structured bug report form
+    feature_request.yml # Structured feature request form
+  pull_request_template.md  # PR template matching quality gates
 docs/
   reference/
     BACKLOG_INDEX.md    # Epic status matrix
@@ -222,6 +234,9 @@ A: Edit the skill files in `.claude/skills/`. They're plain markdown — modify 
 **Q: What about git worktrees for parallel work?**
 A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stories in isolated worktrees.
 
+**Q: What is fast-track mode in story-cycle?**
+A: Trivial changes (single-file, <10 lines, no behavioral change) skip the full planning workflow and go straight to implementation with an abbreviated self-review. The classification happens automatically at Phase 0.
+
 ## Philosophy
 
 - **TDD-first** — Tests communicate intent to the AI
@@ -237,6 +252,7 @@ A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stori
 - **Constitution-governed** — Per-project architectural principles checked at planning and shipping time
 - **Observable** — Context budget visibility, framework health checks (`/doctor`), hook self-validation with requirements metadata
 - **Secrets-aware** — Automated credential detection in post-edit hooks catches leaked secrets deterministically
+- **CI-enforced** — Optional GitHub Actions workflow for automated PR review catches issues even when framework workflow is bypassed
 
 ## Contributing
 

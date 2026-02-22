@@ -30,15 +30,35 @@ bash scripts/test-count-delta.sh -- pytest --collect-only -q
 
 If test count decreased, present the deleted tests and ask user to confirm before proceeding.
 
-## 2c. Quality Agents (Parallel Dispatch)
+## 2c. Quality Agents (Scope-Scaled Dispatch)
 
-Dispatch ALL applicable quality agents **simultaneously** as parallel Task agents (forked context to keep main clean). Do NOT run them sequentially — parallel execution saves time and gives each agent a truly independent perspective.
+Before dispatching agents, classify sprint scope to determine which agents to run:
 
-**Always dispatch:**
+### Scope Classification
+
+```bash
+# Count changed source files (excluding docs, config, tests)
+git diff --name-only main...HEAD
+```
+
+| Scope | Criteria | Agents to Dispatch |
+|-------|----------|--------------------|
+| **Minimal** | 1-3 files, none in src/ | test-validator only |
+| **Small** | 1-5 src files | code-quality + test-validator |
+| **Standard** | 6-15 src files | code-quality + test-validator + security-audit (if applicable) |
+| **Large** | 16+ src files | All three + multi-perspective review |
+
+**Security-audit override:** ALWAYS include security-audit if the diff touches auth, credentials, secrets, user data, network, or database code — regardless of scope classification.
+
+### Dispatch
+
+Dispatch applicable quality agents **simultaneously** as parallel Task agents (forked context to keep main clean). Do NOT run them sequentially — parallel execution saves time and gives each agent a truly independent perspective.
+
+**Standard agents (per scope table above):**
 - **Code Quality Agent** (`/code-quality`): Complexity, duplication, patterns
 - **Test Validator Agent** (`/test-validator`): Coverage, quality, TDD compliance
 
-**Conditionally dispatch** (if auth/credentials/data/security files were changed):
+**Conditionally dispatch** (per scope table OR if security-sensitive paths changed):
 - **Security Audit Agent** (`/security-audit`): Vulnerabilities, secrets, SQL injection
 
 Wait for all agents to complete. Aggregate findings. Apply confidence threshold: only findings scored ≥80 are actionable. Findings 50–79 are logged as notes but don't block. Any actionable finding from ANY agent blocks progression.

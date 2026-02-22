@@ -1,0 +1,76 @@
+name: Bug Report
+description: Report a framework issue or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Framework Version
+      description: Check CLAUDE.md or CHANGELOG.md for version
+      placeholder: "e.g., 3.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: stack
+    attributes:
+      label: Project Stack
+      description: Language/framework of the project using this framework
+      placeholder: "e.g., Python/FastAPI, TypeScript/Next.js"
+    validations:
+      required: true
+
+  - type: input
+    id: skill
+    attributes:
+      label: Skill Name
+      description: Which skill was active when the issue occurred?
+      placeholder: "e.g., /story-cycle, /sprint-end, /doctor"
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: What steps trigger the issue?
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include error messages if any.
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: /doctor Output
+      description: Paste the output of running /doctor (if applicable)
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or log output
+    validations:
+      required: false

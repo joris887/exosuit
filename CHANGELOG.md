@@ -1,5 +1,93 @@
 # Changelog
 
+## [3.0.0] - 2026-02-22
+
+### CI/CD Integration (OPT-83, OPT-84)
+
+#### OPT-83: Claude-as-CI PR Reviewer
+- **New:** `.github/workflows/claude-pr-review.yml`, `.claude/commands/review-pr-ci.md`
+- **Modified:** `.claude/skills/sprint-end/SKILL.md` (Step 5 references CI workflow)
+- **What:** Added a GitHub Actions workflow triggered on `pull_request` that uses `anthropics/claude-code-action@v1` to run automated code review. Tiered access: full review for repo members, structure-only for external contributors. The `/review-pr-ci` command runs code-quality, test-validator, and security-audit analysis patterns and posts a structured review as a PR comment. Tool sandboxing: `Read,Glob,Grep,Bash(git diff:*),Bash(git log:*),Bash(git status:*)`.
+- **Why:** Local quality gates are comprehensive but only run when a developer remembers to invoke `/sprint-end`. CI-based review creates a safety net for PRs that bypass the framework workflow, and gives external contributors automated feedback without requiring framework installation.
+- **To test:** Create a test PR. Verify the workflow triggers and posts a structured review comment. For external contributor simulation, create a PR from a fork — verify it gets structure-only review.
+- **To revert:** Delete `.github/workflows/claude-pr-review.yml` and `.claude/commands/review-pr-ci.md`. Remove CI reference from sprint-end Step 5.
+
+#### OPT-84: PR Template
+- **New:** `.github/pull_request_template.md`
+- **Modified:** `.claude/skills/sprint-end/SKILL.md` (Step 4 references template sections)
+- **What:** Added a GitHub PR template with sections matching the Phase 3.5 self-review: Type of Change, Summary, Changes, Test Evidence, Quality Gates checklist, and Self-Review Checklist. Sprint-end Step 4 now fills in the template sections rather than a raw body.
+- **Why:** Standardizes PR descriptions across the project and ensures quality gate evidence is always documented. Reduces the chance of skipping self-review items.
+- **To test:** Create a PR via `gh pr create`. Verify the template sections appear in the PR body.
+- **To revert:** Delete `.github/pull_request_template.md`. Restore original PR body format in sprint-end Step 4.
+
+### Hook Lifecycle Completion (OPT-85, OPT-86)
+
+#### OPT-85: SessionStart Hook
+- **New:** `.claude/hooks/session-start.sh`
+- **Modified:** `.claude/settings.json` (SessionStart hook entry), `.claude/hooks/README.md`
+- **What:** Added an advisory hook that runs at session start. Checks: (1) project tools from CLAUDE.md Commands exist in PATH, (2) stale auto-save detection (>24h), (3) git state warnings (on main, detached HEAD, uncommitted changes), (4) missing hook coverage (Stop/PostToolUse not configured). Always exits 0 — never blocks.
+- **Why:** Existing hooks enforce quality during and after work, but nothing validates the environment at session start. Common pain points (wrong branch, missing tools, stale state from previous session) are detectable upfront but currently only discovered mid-workflow.
+- **To test:** Run `bash .claude/hooks/session-start.sh` on main with uncommitted changes. Verify it outputs warnings for both conditions. Run on a feature branch with clean state — verify no warnings.
+- **To revert:** Delete `.claude/hooks/session-start.sh`. Remove SessionStart entry from settings.json. Remove session-start section from hooks README.
+
+#### OPT-86: Hook-Based Activity Logging
+- **New:** `.claude/hooks/activity-logger.sh`
+- **Modified:** `.claude/settings.json` (PostToolUse hook entry), `.claude/hooks/README.md`, `.claude/skills/retrospective/SKILL.md` (activity log metrics), `.claude/skills/handoff/SKILL.md` (activity summary section)
+- **What:** Added a PostToolUse hook that logs Edit, Write, and Bash invocations as timestamped JSON lines to `docs/sessions/.activity-log.jsonl`. Rotates at 200 entries. Extracts file path or command from stdin JSON. The retrospective skill consumes the log for metrics (hotspots, edit-to-bash ratio), and the handoff skill includes an activity summary.
+- **Why:** Session metrics in retrospectives rely on estimates ("AI suggestion survival rate: [estimate]"). The activity log provides hard data: which files were edited, how often, and what commands were run — enabling data-driven retrospectives.
+- **To test:** Run `echo '{"tool_name":"Edit","tool_input":{"file_path":"test.md"}}' | bash .claude/hooks/activity-logger.sh`. Verify `docs/sessions/.activity-log.jsonl` contains the entry.
+- **To revert:** Delete `.claude/hooks/activity-logger.sh`. Remove PostToolUse entry from settings.json. Remove activity log sections from retrospective and handoff skills. Remove activity-logger section from hooks README.
+
+### Framework Self-Validation (OPT-87, OPT-88)
+
+#### OPT-87: Skill Conformance Validator
+- **New:** `.claude/skills/doctor/scripts/validate-skills.sh`
+- **Modified:** `.claude/skills/doctor/SKILL.md` (added 7th check: Skill Conformance)
+- **What:** Added a validation script that iterates all `.claude/skills/*/SKILL.md` files and checks: YAML frontmatter exists with required fields (name, version, description, trigger, depends-on, references), line count ≤150, required sections present, reference file budgets (individual ≤200, total ≤500), and version match with skills-registry.json. Outputs per-skill conformance status and overall score.
+- **Why:** Skills can drift from template standards as they evolve — missing frontmatter fields, exceeding line budgets, or version mismatches with the registry. A validator catches this automatically during `/doctor` health checks.
+- **To test:** Run `bash .claude/skills/doctor/scripts/validate-skills.sh`. Verify it reports status for each skill and an overall score.
+- **To revert:** Delete `.claude/skills/doctor/scripts/validate-skills.sh`. Remove "## 7. Skill Conformance" and "### Skill Conformance" sections from doctor SKILL.md.
+
+#### OPT-88: Skills Registry Schema Validation
+- **New:** `.claude/skills/skills-registry.schema.json`
+- **Modified:** `.claude/skills/skill-create/scripts/update-registry.sh` (schema validation after regeneration), `.claude/skills/doctor/scripts/validate-skills.sh` (registry schema check)
+- **What:** Added a JSON Schema enforcing required fields per registry entry (name, version, description, trigger, path), valid trigger enum values, and version/name format patterns. The update-registry.sh script validates its output against the schema. The validate-skills.sh script includes registry validation in its checks.
+- **Why:** The registry is generated by a bash script using string manipulation — subtle format errors (missing fields, invalid JSON) are easy to introduce. Schema validation catches these at generation time rather than at consumption time.
+- **To test:** Run `bash .claude/skills/skill-create/scripts/update-registry.sh`. Verify it reports schema check results. Introduce an intentional error (remove a name field) and verify validation catches it.
+- **To revert:** Delete `.claude/skills/skills-registry.schema.json`. Remove schema validation block from update-registry.sh. Remove registry schema check from validate-skills.sh.
+
+### Workflow Efficiency (OPT-89, OPT-90)
+
+#### OPT-89: Story-Cycle Fast-Track Mode
+- **Modified:** `.claude/skills/story-cycle/SKILL.md`
+- **What:** Added size classification at Phase 0 (after intent decomposition): TRIVIAL (single-file, <10 lines, no behavioral change) skips to Phase 3-lite (make change → run tests → abbreviated self-review → commit). SMALL (single-file, <50 lines, clear AC) uses lightweight Phase 1 (skip 1f-1g). STANDARD (everything else) follows full workflow unchanged. Includes a red flag hard gate: "If editing multiple files or changing behavior, STOP and reclassify as STANDARD."
+- **Why:** The full story-cycle (7 phases with clarification scanning, reasoning scaffolds, and completion verification) is designed for feature stories and complex changes. Trivial changes (typo fixes, config tweaks, comment updates) spend 80%+ of context on process overhead. Fast-track preserves quality gates for substantive work while reducing ceremony for trivial changes.
+- **To test:** Run `/story-cycle "fix typo in README"`. Verify it classifies as TRIVIAL and uses Phase 3-lite (no plan mode, no clarification scan). Run `/story-cycle "add user authentication"`. Verify it classifies as STANDARD and uses full workflow.
+- **To revert:** Remove "## Size Classification" section and "Phase 3-lite" section from story-cycle SKILL.md. Restore original process flow diagram (remove size classification branch).
+
+#### OPT-90: Dynamic Quality Agent Scaling
+- **Modified:** `.claude/skills/sprint-end/references/quality-gates.md`, `.claude/skills/sprint-end/SKILL.md`
+- **What:** Added scope classification before agent dispatch in quality-gates.md Step 2c: Minimal (1-3 files, no src) → test-validator only. Small (1-5 src files) → code-quality + test-validator. Standard (6-15 src files) → all three agents. Large (16+ src files) → all three + multi-perspective review. Security-audit always included if security-sensitive paths in diff.
+- **Why:** Current quality gates dispatch all agents regardless of sprint size. A 2-file documentation change runs the same 3-agent pipeline as a 20-file feature sprint. Scaling agents to scope reduces context consumption and latency for small sprints while maintaining thorough review for large ones.
+- **To test:** Create a sprint that only changes docs files. Run `/sprint-end`. Verify only test-validator is dispatched. Create a sprint with 10+ src files. Verify all three agents are dispatched.
+- **To revert:** Restore original "## 2c. Quality Agents" section in quality-gates.md (remove scope classification table, restore "Always dispatch" / "Conditionally dispatch" format). Remove "scope-based scaling" reference from sprint-end SKILL.md Step 2.
+
+### Extensibility (OPT-91, OPT-92)
+
+#### OPT-91: Tool Restriction per Agent Dispatch
+- **Modified:** `.claude/skills/code-quality/SKILL.md`, `.claude/skills/security-audit/SKILL.md`, `.claude/skills/test-validator/SKILL.md`, `.claude/skills/SKILL_TEMPLATE.md`
+- **What:** Added explicit tool restriction declarations to each quality agent: code-quality (Read, Glob, Grep only), security-audit (Read, Glob, Grep, Bash for scanners), test-validator (Read, Glob, Grep, Bash for test runner). Added a "Tool Restrictions for Subagents" section to SKILL_TEMPLATE.md with a per-agent-type table and guidance.
+- **Why:** Quality agents are dispatched in forked context with `allowed-tools` in the header, but nothing in the skill body reinforces this. Claude can still attempt edits if the analysis suggests a "quick fix." Explicit tool restrictions in the prompt body create defense-in-depth — even if the header restriction fails, the prompt-level instruction prevents writes.
+- **To test:** Dispatch `/code-quality` as a forked agent. Verify it does not attempt Edit or Write operations. Check the SKILL_TEMPLATE.md has the new "Tool Restrictions for Subagents" section.
+- **To revert:** Remove "**Tool restriction:**" paragraphs from code-quality, security-audit, and test-validator SKILL.md files. Remove "### Tool Restrictions for Subagents" section from SKILL_TEMPLATE.md.
+
+#### OPT-92: GitHub Issue Templates
+- **New:** `.github/ISSUE_TEMPLATE/bug_report.yml`, `.github/ISSUE_TEMPLATE/feature_request.yml`
+- **What:** Added YAML-form issue templates. Bug report: framework version, project stack, reproduction steps, expected/actual behavior, /doctor output, skill name. Feature request: use case, current workaround, proposed type (skill/rule/hook), backward compatibility.
+- **Why:** GitHub issues for framework problems lack structured information — reporters don't know to include framework version, active skill, or /doctor output. Templates ensure consistent, actionable reports.
+- **To test:** On GitHub, click "New Issue". Verify both templates appear as options. Fill out each template and verify all fields render correctly.
+- **To revert:** Delete `.github/ISSUE_TEMPLATE/bug_report.yml` and `.github/ISSUE_TEMPLATE/feature_request.yml`.
+
 ## [2.9.0] - 2026-02-22
 
 ### Resilience & Context Protection (OPT-78, OPT-79)

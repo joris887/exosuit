@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 2.9
+**Framework Version:** 3.0
 
 ## Core Workflow
 
@@ -207,6 +207,8 @@ Path-scoped rules loaded automatically when matching files are edited:
 
 ### Hooks (`.claude/hooks/`)
 Deterministic enforcement via shell scripts (all hooks declare requirements in headers and degrade gracefully):
+- `session-start.sh` — Advisory environment checks at session start
+- `activity-logger.sh` — Tool invocation logging for retrospective metrics
 - `post-edit-format.sh` — Auto-format after edits + secrets detection
 - `pre-stop-quality.sh` — Quality gate before completion + auto-save session state
 - `pre-tool-safety.sh` — Block dangerous operations
@@ -223,6 +225,7 @@ Deterministic enforcement via shell scripts (all hooks declare requirements in h
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 3.0     | 2026-02-22 | CI PR review, PR template, session-start hook, activity logging, skill conformance validator, registry schema, story-cycle fast-track, dynamic quality scaling, agent tool restrictions, GitHub issue templates |
 | 2.9     | 2026-02-22 | Pre-compaction state persistence, secrets detection hook, skill prerequisites, subagent context protocol, reference file budgets, context budget visibility, /doctor health check, hook self-validation, dead code detection |
 | 2.7     | 2026-02-22 | Cognitive reasoning scaffolds, symbolic state encoding, control flow markers (IF/ELSE/LOOP/HALT), phase-specific error recovery tables, context relevance scoring, reusable micro-components |
 | 2.6     | 2026-02-22 | AI slop detection rule, edit recovery protocol, priority-based compaction, intent decomposition, completion verification, parallel research, session auto-save, expanded anti-patterns, graceful degradation expansion, context budget awareness |

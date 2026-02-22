@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Skills Registry",
+  "description": "Schema for .claude/skills/skills-registry.json — machine-readable skill index",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["name", "version", "description", "trigger", "path"],
+    "properties": {
+      "name": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$",
+        "description": "Skill identifier (lowercase, hyphenated)"
+      },
+      "version": {
+        "type": "string",
+        "pattern": "^\\d+\\.\\d+\\.\\d+$",
+        "description": "Semantic version (e.g., 3.0.0)"
+      },
+      "description": {
+        "type": "string",
+        "minLength": 10,
+        "description": "One-line skill description"
+      },
+      "trigger": {
+        "type": "string",
+        "enum": ["manual", "auto", "conditional"],
+        "description": "How the skill is invoked"
+      },
+      "depends_on": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Skills this skill may invoke"
+      },
+      "references": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Supporting reference files"
+      },
+      "path": {
+        "type": "string",
+        "pattern": "\\.claude/skills/.+/SKILL\\.md$",
+        "description": "Path to SKILL.md file"
+      }
+    },
+    "additionalProperties": false
+  }
+}

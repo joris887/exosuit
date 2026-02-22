@@ -127,6 +127,21 @@ Receives: CLAUDE.md Commands section + relevant coding standards only
 Excludes: Conversation history, backlog state, sprint context, other skill references
 Use for: code-quality, test-validator, security-audit, architecture-check
 
+### Tool Restrictions for Subagents
+
+Analysis agents (forked context) should declare explicit tool restrictions in their skill body to prevent accidental writes:
+
+```markdown
+**Tool restriction:** This agent MUST only use Read, Glob, and Grep tools. Do NOT use Edit or Write. This is a read-only analysis agent.
+```
+
+| Agent Type | Allowed Tools | Rationale |
+|------------|---------------|-----------|
+| Code quality | Read, Glob, Grep | Read-only analysis |
+| Security audit | Read, Glob, Grep, Bash (scanners) | Needs to run security tools |
+| Test validator | Read, Glob, Grep, Bash (test runner) | Needs to run tests |
+| Code reviewer | Read, Glob, Grep | Read-only review |
+
 ### Specifying Context Mode
 
 In the skill's YAML frontmatter or dispatch template, specify what the subagent needs:

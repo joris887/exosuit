@@ -52,7 +52,7 @@ Analyze: branch name, all commits since branching, all files changed, stories co
 
 **Mindset:** Assume there are problems. Your job is to find them. Your first assessment is almost never "all clear."
 
-All gates must pass before proceeding. Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents, recovery). For error recovery during this step, consult `references/error-recovery.md` — search for `## Step 2`.
+All gates must pass before proceeding. Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents with scope-based scaling, recovery). For error recovery during this step, consult `references/error-recovery.md` — search for `## Step 2`.
 
 <IF condition="docs/reference/CONSTITUTION.md exists and has principles defined">
 **Constitution compliance:** Verify sprint changes don't introduce untracked constitution violations. Check commit diffs against MUST principles. Any violations must have been documented in story plans with justification.
@@ -84,23 +84,38 @@ git commit -m "docs: update progress and backlog for sprint completion"
 git push -u origin $(git branch --show-current)
 ```
 
-Create PR with GitHub CLI:
+Create PR with GitHub CLI. The repository includes a PR template (`.github/pull_request_template.md`) — fill in its sections rather than providing a raw body:
 
 ```bash
 gh pr create --title "<type>(<scope>): <summary>" --body "$(cat <<'EOF'
+## Type of Change
+
+- [x] <matching type from template>
+
 ## Summary
-<1-3 bullet points summarizing what was done>
+<1-3 sentences summarizing what was done and why>
 
 ## Changes
-<list of key changes>
+<list of key changes, grouped by area>
 
-## Testing
-- [ ] All tests pass
-- [ ] Test count did not decrease
-- [ ] Quality agents reviewed
+## Test Evidence
+<paste test output from step 2>
 
-## Acceptance Criteria
-<checklist from story/stories>
+## Quality Gates
+- [x] All tests pass
+- [x] Test count did not decrease
+- [x] Code quality agent reviewed
+- [x] Test validator agent reviewed
+- [x/n/a] Security audit reviewed
+- [x] No hardcoded secrets introduced
+- [x] Coding standards followed
+
+## Self-Review Checklist
+- [x] I read the diff and it matches the intent
+- [x] No debug code or TODOs left behind
+- [x] Error handling is appropriate
+- [x] New code follows existing patterns
+- [x/n/a] Documentation updated where needed
 
 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
@@ -114,6 +129,8 @@ EOF
 gh pr checks --watch
 ```
 If CI fails, diagnose and fix. Commit fixes and push.
+
+**Note:** The framework includes a Claude PR Review workflow (`.github/workflows/claude-pr-review.yml`). If configured with an `ANTHROPIC_API_KEY` secret, it runs automated code review on PRs. Check its status alongside other CI checks.
 </IF>
 <ELSE>
 No CI detected — the local quality gates in step 2 serve as verification. Proceed to merge.

@@ -16,24 +16,30 @@ Delivering story: **$ARGUMENTS**
 
 ```
 START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncertainties)
-  → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
-    → Phase 1f: Clarification Check (ambiguity_scan across 7 categories)
-      → [Clarifications needed?]
-        → YES: Present questions → integrate answers → update plan
-        → NO: Continue
-    → Phase 1g: Plan Completeness (verify spec/implementation sections)
-    → [User approved?]
-      → NO: Revise plan → back to approval
-      → YES: Phase 2: Context Transition (keep insights, discard bulk)
-        → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
-          → Phase 3.5: Self-Review (completeness, quality, testing, discipline)
-            → [Review passes?]
-              → NO: Fix issues → back to Phase 3
-              → YES: Phase 4: Wrap Up (tests, docs, commit)
-                → Phase 4.5: Completion Verification (re-check ALL acceptance criteria)
-                  → [All criteria met with evidence?]
-                    → NO: Loop back to Phase 3 for gaps (max 2 extra passes)
-                    → YES: Report → DONE
+  → Size Classification:
+    → [TRIVIAL: single-file, <10 lines, no behavioral change]
+      → Phase 3-lite: Make change → Run tests → Abbreviated self-review → Commit → DONE
+    → [SMALL: single-file, <50 lines, clear AC]
+      → Lightweight Phase 1 (skip 1f-1g) → Phase 2 → Phase 3 → Phase 4 → DONE
+    → [STANDARD: everything else]
+      → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
+        → Phase 1f: Clarification Check (ambiguity_scan across 7 categories)
+          → [Clarifications needed?]
+            → YES: Present questions → integrate answers → update plan
+            → NO: Continue
+        → Phase 1g: Plan Completeness (verify spec/implementation sections)
+        → [User approved?]
+          → NO: Revise plan → back to approval
+          → YES: Phase 2: Context Transition (keep insights, discard bulk)
+            → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
+              → Phase 3.5: Self-Review (completeness, quality, testing, discipline)
+                → [Review passes?]
+                  → NO: Fix issues → back to Phase 3
+                  → YES: Phase 4: Wrap Up (tests, docs, commit)
+                    → Phase 4.5: Completion Verification (re-check ALL acceptance criteria)
+                      → [All criteria met with evidence?]
+                        → NO: Loop back to Phase 3 for gaps (max 2 extra passes)
+                        → YES: Report → DONE
 ```
 
 ## Phase 0: Intent Decomposition
@@ -47,6 +53,28 @@ Before any exploration, decompose the user's request. Apply the `scope_analysis`
 5. Confirm the full scope with the user before proceeding to planning
 
 This prevents missing later parts of compound requests (e.g., "refactor auth AND add rate limiting AND create a PR").
+
+## Size Classification (Fast-Track Gate)
+
+After Phase 0 decomposition, classify the change size:
+
+| Size | Criteria | Workflow |
+|------|----------|----------|
+| **TRIVIAL** | Single-file, <10 lines changed, no behavioral change (typo, config, comment) | Phase 3-lite (below) |
+| **SMALL** | Single-file, <50 lines changed, clear acceptance criteria | Lightweight Phase 1 (skip 1f, 1g) → Phase 2 → Phase 3 → Phase 4 |
+| **STANDARD** | Everything else | Full workflow (unchanged) |
+
+<HARD-GATE>
+**Red flag:** If editing multiple files or changing observable behavior, STOP and reclassify as STANDARD. Fast-track is for genuinely trivial changes only.
+</HARD-GATE>
+
+### Phase 3-lite (TRIVIAL only)
+
+1. Make the change
+2. Run tests (if test command configured)
+3. Abbreviated self-review: Does the diff match intent? Any unintended side effects?
+4. Commit with conventional format
+5. Print completion report
 
 ## Phase 1: Story Analysis (Plan Mode)
 

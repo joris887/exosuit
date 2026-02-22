@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.9 — Deep Dive
+# JD-LLM Development Framework v3.0 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -134,7 +134,11 @@ This is the most important file in the framework. It's loaded into every Claude 
 **File:** `.claude/settings.json`
 **Added value:** Configures hooks and tool permissions
 
-Currently contains only the pre-tool safety hook. The bootstrap skill adds more hooks based on detected stack (formatter, linter, test runner).
+Currently contains the pre-tool safety hook, session-start hook, activity-logger hook, and project-specific hooks added by bootstrap. The bootstrap skill adds more hooks based on detected stack (formatter, linter, test runner).
+
+**SessionStart hook** (*new in v3.0*): A `SessionStart` event hook that runs `session-start.sh` at the beginning of every Claude Code session. Validates framework integrity, ensures required directories exist, and reports stale session files.
+
+**Activity-logger hook** (*new in v3.0*): A `PostToolUse` event hook that runs `activity-logger.sh` after tool invocations. Logs tool usage patterns (which tools, frequency, timing) to `docs/sessions/.activity-log.jsonl` for retrospective analysis and context budget insights.
 
 **Optimization opportunity:** The hook system is relatively new in Claude Code. As the hook API evolves, this file may need restructuring. Monitor Claude Code release notes.
 
@@ -218,6 +222,34 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 **Why this matters:** Without this, Claude might report "done" with failing tests or lint errors. The stop hook forces self-correction — Claude sees the failures and must fix them before it can complete.
 
 **Optimization opportunity:** Currently all commands are commented out (configured per-project by /bootstrap). The self-correction loop can sometimes lead to infinite loops if the AI can't fix the issue. Consider adding a retry limit or fallback behavior. Monitor how often this hook triggers and whether it leads to productive fixes or loops.
+
+#### session-start.sh (SessionStart) (*new in v3.0*)
+
+**File:** `.claude/hooks/session-start.sh`
+**Trigger:** At the start of every Claude Code session
+**Added value:** Ensures framework integrity before any work begins
+
+**What it does:**
+- Validates that required framework directories exist (`docs/sessions/`, `docs/plans/`, `.claude/hooks/`)
+- Checks that hooks are executable and their declared dependencies are available
+- Reports stale session files (>7 days) that may indicate abandoned work
+- Verifies CLAUDE.md is present and non-empty
+
+**Why this matters:** Without a session-start check, a corrupted or incomplete framework setup is only discovered when a skill or hook fails mid-session. Early validation surfaces configuration issues at the point where they're cheapest to fix.
+
+#### activity-logger.sh (PostToolUse) (*new in v3.0*)
+
+**File:** `.claude/hooks/activity-logger.sh`
+**Trigger:** After every tool invocation (Bash, Edit, Write, etc.)
+**Added value:** Provides observability into tool usage patterns for retrospective analysis
+
+**What it does:**
+- Appends a JSON line to `docs/sessions/.activity-log.jsonl` with timestamp, tool name, and target file (if applicable)
+- Lightweight — adds <5ms per tool invocation
+- Log is rotated per session (previous session's log is archived)
+- Data feeds into `/retrospective` metrics and context budget analysis
+
+**Why this matters:** Understanding which tools are used most frequently, which files are edited repeatedly (churn indicators), and how context budget is consumed across a session enables data-driven framework optimization.
 
 ### 4.2 Rules (Advisory Enforcement)
 
@@ -487,6 +519,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Per-phase context loading manifests** (*new in v2.8*): Phase 2 now includes prescriptive manifests listing exactly which files to load (RELOAD) and skip (SKIP) per phase, replacing the previous generic guidance. This prevents unnecessary file reads.
 
+**Fast-track mode** (*new in v3.0*): Phase 0 now classifies story size as TRIVIAL (rename/typo fix, <3 files), SMALL (single-concern change, 3-5 files), or STANDARD (everything else). TRIVIAL stories skip Phase 1 planning and Phase 3.5 self-review entirely — proceed directly from intent decomposition to execution. SMALL stories use a condensed single-paragraph plan instead of the full plan template. Only STANDARD stories follow the complete phase sequence. This eliminates ceremony overhead for simple changes without weakening quality gates for complex work.
+
 **Optimization opportunity:** The context reset is manual — Claude follows the instruction to "clear and reload." In practice, Claude sometimes carries over more context than intended. Consider whether a more forceful reset mechanism is possible. Also: the 50-line plan limit may be too restrictive for complex stories — monitor and adjust.
 
 ### /sprint-end
@@ -544,6 +578,10 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Constitution compliance gate** (*new in v2.8*): Quality gates now include constitution compliance — verifying sprint changes don't introduce untracked violations of MUST principles.
 
 **Handoff suggestions** (*new in v2.8*): Sprint complete summary now includes contextual next-step suggestions (sprint-start, retrospective, handoff).
+
+**Dynamic quality agent scaling** (*new in v3.0*): Sprint-end now classifies sprint scope before dispatching quality agents: Minimal (1-2 files, config-only changes — skip quality agents entirely), Small (3-5 files — single code-quality agent only), Standard (6-15 files — code-quality + test-validator), Large (16+ files or security-sensitive — all agents including security-audit + multi-perspective review). This prevents over-analysis of trivial sprints while ensuring thorough review of large changes.
+
+**PR template** (*new in v3.0*): Sprint-end now uses `.github/pull_request_template.md` when creating PRs via `gh pr create`. The template includes structured sections for summary, changes, testing, and review checklist — ensuring consistent PR quality without relying on the LLM to remember what to include.
 
 **Optimization opportunity:** The quality agents run as forked contexts — monitor their usefulness and whether confidence scoring effectively reduces false positives.
 
@@ -698,6 +736,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Dead code detection** (*new in v2.9*): The analysis process now includes dead code detection — unused exports, orphaned functions, unreferenced modules. Uses language-specific tools when available (knip/ts-prune for JS/TS, vulture for Python) with manual grep-based fallback. Findings use the existing confidence scoring (≥80 actionable). Also added to `/weekly-maintenance` as a periodic check.
 
+**Tool restrictions** (*new in v3.0*): The code-quality agent is restricted to Read, Glob, and Grep tools only — no Bash, no Edit, no Write. This ensures the agent analyzes without modifying code, preventing accidental changes during quality review.
+
 ### /test-validator
 
 **File:** `.claude/skills/test-validator/SKILL.md`
@@ -716,6 +756,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **v2.3 additions:** "Assume problems exist" QA framing, "Common Mistakes — NEVER" table, and `--help` first pattern for CLI tools.
 
 **v2.4 additions:** Confidence-based scoring (0–100) with ≥80 threshold for actionable findings. `<example>` block triggers for better auto-invocation reliability.
+
+**Tool restrictions** (*new in v3.0*): The test-validator agent is restricted to Read, Glob, Grep, and Bash (for running the test suite) — no Edit or Write. The agent validates test quality but cannot modify test files.
 
 **Optimization opportunity:** The assertion density ratio of 1.5 is a heuristic. Track across projects — some testing styles (BDD with nested describes) naturally have lower assertion density. Consider making this configurable per project.
 
@@ -738,6 +780,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **v2.4 additions:** Confidence-based scoring (0–100) with ≥80 threshold for actionable security findings. `<example>` block triggers for better auto-invocation reliability.
 
 **AI-specific security anti-patterns** (*new in v2.6*): A dedicated table in the security rule for AI-specific vulnerabilities: phantom packages (hallucinated npm/pip packages), typosquatted dependencies (names similar to popular packages), permissive CORS (allowing `*` origin), logging sensitive data (passwords/tokens in logs), and disabled SSL verification (for "development convenience").
+
+**Tool restrictions** (*new in v3.0*): The security-audit agent is restricted to Read, Glob, Grep, and Bash (for running security scanners like `npm audit`, `pip-audit`, `cargo audit`) — no Edit or Write. The agent identifies vulnerabilities but cannot modify code.
 
 **Optimization opportunity:** The phantom package check is manual (grep imports, verify against registry). Consider adding a script that automates this. Also: the CWE checklist is generic — consider creating project-type-specific checklists (web app, API, CLI, mobile).
 
@@ -935,6 +979,18 @@ Or for formal UAT:
 
 **When to use:** Polishing docs, refining prompts, iterating on complex designs. Not for story-cycle execution (use story-cycle's own phases).
 
+### Quality Agent Tool Restrictions (*new in v3.0*)
+
+Quality agents (code-quality, test-validator, security-audit) now have explicit tool restrictions that enforce the principle of least privilege:
+
+| Agent | Allowed Tools | Rationale |
+|---|---|---|
+| code-quality | Read, Glob, Grep | Analysis only — no code modification, no command execution |
+| test-validator | Read, Glob, Grep, Bash | Needs Bash to run the test suite, but cannot modify test files |
+| security-audit | Read, Glob, Grep, Bash | Needs Bash for security scanners (npm audit, pip-audit, etc.), but cannot modify code |
+
+This prevents quality agents from accidentally modifying the codebase during analysis and ensures their output is purely advisory.
+
 ### /commit, /fix-issue, /pr-status
 
 Small, focused utility skills:
@@ -1039,6 +1095,22 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 
 **Optimization opportunity:** Worktree support is new and lightly tested. Key questions: How does /sprint-end handle worktree merge when another worktree has also merged to main? How do multiple instances coordinate? The CLAUDE_CODE_TASK_LIST_ID shared task list is mentioned but not deeply integrated.
 
+### CI/CD Integration (*new in v3.0*)
+
+#### Claude-as-CI PR Reviewer
+
+**File:** `.github/workflows/claude-pr-review.yml`
+**Trigger:** On pull request open and synchronize events
+**Added value:** Automated, consistent PR review using Claude Code as a CI step
+
+**How it works:** When a PR is opened or updated, a GitHub Actions workflow dispatches Claude Code to review the diff. The review checks for: code quality issues, test coverage gaps, security concerns, convention violations, and architectural drift. Findings are posted as PR review comments with severity levels.
+
+**Why this matters:** Human code review is bottlenecked by availability. Claude-as-CI provides immediate, consistent feedback on every PR without waiting for a human reviewer. This is complementary to (not a replacement for) human review — it catches mechanical issues so human reviewers can focus on design and intent.
+
+**Integration with framework:** The CI reviewer respects the project's CODING_STANDARDS.md, CONSTITUTION.md, and TESTING_STRATEGY.md — the same standards enforced by `/sprint-end` quality gates are applied in CI.
+
+**Optimization opportunity:** Monitor false positive rate in CI review comments. If the reviewer generates too much noise, refine the review scope or raise the confidence threshold. Consider whether the CI reviewer should block merge on high-severity findings or remain advisory only.
+
 ---
 
 ## 15. Documentation Architecture
@@ -1081,6 +1153,16 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 | File | Purpose |
 |---|---|
 | docs/reference/tech/*.md | Technology-specific reference docs |
+
+### Layer 4.5: GitHub Templates (*new in v3.0*)
+
+| File | Purpose |
+|---|---|
+| .github/pull_request_template.md | Structured PR template with summary, changes, testing, and review checklist sections |
+| .github/ISSUE_TEMPLATE/bug_report.yml | GitHub issue form for bug reports with structured fields (steps to reproduce, expected/actual behavior, environment) |
+| .github/ISSUE_TEMPLATE/feature_request.yml | GitHub issue form for feature requests with structured fields (problem statement, proposed solution, alternatives) |
+
+**Design principle:** GitHub templates standardize collaboration artifacts. The PR template ensures sprint-end PRs are consistently documented. Issue templates lower the barrier for external contributors and ensure bug reports contain the information needed for `/fix-issue` or `/debug-session`.
 
 ### Layer 5: Skill Assets (Copy, Don't Read)
 
@@ -1155,6 +1237,25 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v3.0
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-83 | Claude-as-CI PR Reviewer (automated PR review workflow via GitHub Actions) | Implemented |
+| OPT-84 | PR Template (structured `.github/pull_request_template.md` for consistent PR documentation) | Implemented |
+| OPT-85 | SessionStart Hook (framework integrity validation at session start) | Implemented |
+| OPT-86 | Hook-Based Activity Logging (PostToolUse activity-logger for tool usage observability) | Implemented |
+| OPT-87 | Skill Conformance Validator (validates skill structure against SKILL_TEMPLATE.md conventions) | Implemented |
+| OPT-88 | Skills Registry Schema Validation (JSON schema validation for skills-registry.json) | Implemented |
+| OPT-89 | Story-Cycle Fast-Track Mode (TRIVIAL/SMALL/STANDARD size classification skips ceremony for simple changes) | Implemented |
+| OPT-90 | Dynamic Quality Agent Scaling (Minimal/Small/Standard/Large scope-based agent dispatch) | Implemented |
+| OPT-91 | Tool Restriction per Agent (least-privilege tool access for quality agents) | Implemented |
+| OPT-92 | GitHub Issue Templates (structured bug report and feature request forms) | Implemented |
+
+**Key changes in v3.0:** CI/CD integration improved with Claude-as-CI PR reviewer and PR template for consistent PR documentation. Session lifecycle improved with SessionStart hook for framework validation and activity-logger hook for tool usage observability. Workflow efficiency improved with story-cycle fast-track mode that eliminates ceremony for trivial/small changes and dynamic quality agent scaling that right-sizes review effort to sprint scope. Security posture improved with per-agent tool restrictions enforcing least privilege. Skill quality improved with conformance validation and registry schema validation. Collaboration improved with GitHub issue templates for structured bug reports and feature requests.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v2.9
 

@@ -33,7 +33,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v2.9
+## Skills — JD-LLM Development Framework v3.0
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow

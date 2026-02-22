@@ -87,3 +87,20 @@ echo "]" >> "$REGISTRY_FILE"
 
 skill_count=$(grep -c '"name"' "$REGISTRY_FILE" || echo 0)
 echo "Registry updated: $REGISTRY_FILE ($skill_count skills)"
+
+# Validate output against schema (if jq is available)
+SCHEMA_FILE="$SKILLS_DIR/skills-registry.schema.json"
+if [[ -f "$SCHEMA_FILE" ]] && command -v jq &>/dev/null; then
+  if jq empty "$REGISTRY_FILE" 2>/dev/null; then
+    echo "Schema check: valid JSON"
+    # Check required fields per entry
+    missing=$(jq -r '.[] | select(.name == null or .version == null or .description == null or .trigger == null or .path == null) | .name // "unknown"' "$REGISTRY_FILE" 2>/dev/null)
+    if [[ -z "$missing" ]]; then
+      echo "Schema check: all entries have required fields"
+    else
+      echo "WARNING: entries missing required fields: $missing"
+    fi
+  else
+    echo "WARNING: generated registry is not valid JSON"
+  fi
+fi
