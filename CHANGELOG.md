@@ -1,5 +1,129 @@
 # Changelog
 
+## [2.6.0] - 2026-02-22
+
+### Code Quality Enforcement (OPT-50, OPT-51)
+
+#### OPT-50: AI Slop Detection Rule
+- **New file:** `.claude/rules/code-slop.md`
+- **What:** Created a path-scoped rule (all source files) that detects and prevents common AI-generated filler patterns in comments and code. Includes: 15 banned comment patterns (with explanations), obvious comment detection with good/bad examples, code prose anti-patterns, and guidance on when comments ARE required.
+- **Why:** AI coding assistants produce predictable slop: obvious comments, filler phrases, and over-explanatory boilerplate. This catches it at the rule level before it accumulates.
+- **To test:** Edit a source file and verify Claude avoids patterns like "This function does..." or "Please note that..." in comments.
+- **To revert:** Delete `.claude/rules/code-slop.md`.
+
+#### OPT-51: Comment Quality Standards in Coding Standards
+- **File:** `docs/reference/CODING_STANDARDS.md`
+- **What:** Added "Comment Quality" section between Security and Documentation sections. Documents when comments are required (edge cases, business logic, workarounds) vs prohibited (restating code, explaining types).
+- **Why:** Coding standards lacked explicit comment quality guidance. Works in conjunction with OPT-50 rule.
+- **To test:** Read CODING_STANDARDS.md and verify the Comment Quality section is present with required/prohibited categories.
+- **To revert:** Remove the "### Comment Quality" section (3 bullet points + reference) from CODING_STANDARDS.md.
+
+### Resilience & Error Recovery (OPT-52, OPT-53)
+
+#### OPT-52: Edit Failure Recovery Protocol
+- **New file:** `.claude/rules/edit-recovery.md`
+- **What:** Created a path-scoped rule (`**`) with a structured recovery decision tree for edit failures. Covers: old_string not found, old_string not unique, file modified externally, and multiple failures on same file. Includes 6 recovery rules.
+- **Why:** Edit failures are common in AI-assisted development. Without guidance, Claude retries blindly with stale content or gives up prematurely. The decision tree provides systematic recovery.
+- **To test:** Trigger an edit failure (e.g., edit a file that was modified by a hook). Verify Claude re-reads the file before retrying.
+- **To revert:** Delete `.claude/rules/edit-recovery.md`.
+
+#### OPT-53: Automated Session State Preservation
+- **File:** `.claude/hooks/pre-stop-quality.sh`
+- **What:** Added auto-save section at the top of the pre-stop hook that writes minimal session state (branch, recent commits, uncommitted/staged changes) to `docs/sessions/.auto-save.md` before running quality checks. Creates the sessions directory if needed.
+- **Why:** `/handoff` is manual. If the user forgets to run it or the session ends unexpectedly, work context is lost. Auto-save is a safety net that `/continue` can fall back to.
+- **To test:** Let Claude complete a task. Verify `docs/sessions/.auto-save.md` exists with current branch and recent commits.
+- **To revert:** Remove the "Auto-save minimal session state" block (from `SESSIONS_DIR=` to the closing `fi`) from pre-stop-quality.sh.
+
+### Context Management (OPT-54, OPT-55, OPT-56)
+
+#### OPT-54: Priority-Based Context Preservation in Compaction
+- **File:** `CLAUDE.md` (Compaction Directive section)
+- **What:** Restructured compaction format with four priority levels: CRITICAL (Goal, Commands, Active Plan — never drop), HIGH (Sprint State, Key Decisions, In-Progress Work — preserve if possible), NORMAL (Progress, Blockers — summarize if needed), LOW (File Context — drop first, recoverable). Added multi-compaction rules for priority-based trimming.
+- **Why:** Previously all context was treated equally during compaction. Critical items (active plan, commands) sometimes got trimmed while verbose low-value data persisted. Priority tags make the system self-documenting.
+- **To test:** Trigger context compaction during a long session. Verify the compacted summary uses the priority-tagged format and that the Active Plan survives.
+- **To revert:** Replace the Compaction Directive section in CLAUDE.md with the original flat format from v2.5.
+
+#### OPT-55: Directory-Level Context Files Convention
+- **Files:** `.claude/skills/story-cycle/SKILL.md` (Phase 1c), `.claude/rules/documentation.md`
+- **What:** Added `.claude-context.md` convention: directories can contain context files with module-specific patterns and conventions. Story-cycle Phase 1c now checks for nearest context file. Documentation rule updated to acknowledge but not proactively create them.
+- **Why:** Module-specific context (API conventions, data model patterns, gotchas) doesn't belong in global CLAUDE.md but is valuable during story work. Directory-level files provide targeted context without global bloat.
+- **To test:** Create a `.claude-context.md` in a project subdirectory. Run `/story-cycle` targeting that directory. Verify Claude reads the context file during Phase 1c.
+- **To revert:** Remove the `.claude-context.md` line from story-cycle Phase 1c and documentation.md.
+
+#### OPT-56: Proactive Context Budget Awareness
+- **File:** `.claude/rules/verification.md`
+- **What:** Added "Context Budget Awareness" section with 5 heuristics: summarize after 10+ file reads, discard bulk after exploration phases, prefer targeted grep, summarize verbose outputs, and proactively move on from heavy context.
+- **Why:** Previously relied on compaction trigger (system-initiated, reactive). Proactive heuristics help the agent self-manage context budget before hitting limits.
+- **To test:** During a story-cycle with extensive exploration, verify Claude summarizes findings rather than re-reading files.
+- **To revert:** Remove the "## Context Budget Awareness" section (5 bullet points) from verification.md.
+
+### Task Completion & Verification (OPT-57, OPT-58)
+
+#### OPT-57: Task Completion Enforcement
+- **File:** `.claude/rules/verification.md`
+- **What:** Added "Task Completion Enforcement" section with 4 rules: check task list before reporting done, resolve all pending items, "almost done" is not done, and every created task must be resolved.
+- **Why:** The agent sometimes claims completion with outstanding task list items. This closes the gap between stated work plan and actual completion.
+- **To test:** During a session where Claude creates a task list, verify it checks all items before claiming done.
+- **To revert:** Remove the "## Task Completion Enforcement" section (4 bullet points) from verification.md.
+
+#### OPT-58: Intent Decomposition Gate in Story Cycle
+- **File:** `.claude/skills/story-cycle/SKILL.md`
+- **What:** Added Phase 0 "Intent Decomposition" before Phase 1. Decomposes the user's request into all distinct deliverables, identifies dependencies, suggests splitting compound requests, and confirms full scope. Updated process flow diagram to include Phase 0.
+- **Why:** Complex requests may contain multiple intents ("refactor auth AND add rate limiting AND create a PR"). Without explicit decomposition, later parts get missed after deep exploration fills context.
+- **To test:** Run `/story-cycle "refactor auth module and add rate limiting"`. Verify Claude lists both deliverables and confirms scope before exploring.
+- **To revert:** Remove the "## Phase 0: Intent Decomposition" section and restore the original process flow diagram without Phase 0.
+
+### Workflow Optimization (OPT-59, OPT-60, OPT-61, OPT-62)
+
+#### OPT-59: Parallel Research Dispatch in Story Planning
+- **File:** `.claude/skills/story-cycle/SKILL.md` (Phase 1b)
+- **What:** Added "Parallel Research Optimization" note after the sub-agent dispatch section. When a story touches multiple modules, dispatch 2-3 explore agents in parallel with independent questions.
+- **Why:** Sequential exploration wastes time when researching different aspects of the codebase. Parallel dispatch saves wall-clock time with no quality trade-off.
+- **To test:** Run `/story-cycle` for a cross-module story. Verify multiple explore agents are dispatched simultaneously.
+- **To revert:** Remove the "Parallel Research Optimization" paragraph from Phase 1b.
+
+#### OPT-60: Self-Referential Completion Verification Loop
+- **File:** `.claude/skills/story-cycle/SKILL.md`
+- **What:** Added Phase 4.5 "Completion Verification" between Phase 4 (Wrap Up) and the completion report. Re-checks ALL acceptance criteria with evidence (test output, code references). If gaps found, loops back to Phase 3 (max 2 extra passes). Includes a HARD-GATE requiring evidence before printing the completion report. Updated process flow diagram.
+- **Why:** Complex stories often need multiple passes. The agent may complete a first iteration but miss edge cases or secondary requirements. Looping back with evidence checking catches gaps.
+- **To test:** Run `/story-cycle` for a story with 3+ acceptance criteria. Verify Claude checks each criterion with evidence before reporting complete.
+- **To revert:** Remove the "## Phase 4.5: Completion Verification" section and its HARD-GATE. Restore original process flow without Phase 4.5.
+
+#### OPT-61: Dynamic Skill Content Based on Project State
+- **Files:** `.claude/skills/sprint-start/SKILL.md` (Step 1d), `.claude/skills/sprint-end/SKILL.md` (new "Project State Adaptation" section)
+- **What:** Sprint-start Step 1d now checks if a test command exists before running tests (skip with note if not configured). Sprint-end adds "Project State Adaptation" section that reads CLAUDE.md Commands before quality gates and adapts based on available tools.
+- **Why:** Static skills gave the same instructions regardless of project maturity. A new project without tests shouldn't fail at "verify tests pass" — it should skip with a note.
+- **To test:** Run `/sprint-start` in a project with no test command configured. Verify it skips the test step with a note. Run `/sprint-end` in same project — verify quality gates adapt.
+- **To revert:** Restore original Step 1d in sprint-start (unconditional test run). Remove "## Project State Adaptation" section from sprint-end.
+
+#### OPT-62: Expanded Graceful Degradation in Sprint-End
+- **File:** `.claude/skills/sprint-end/SKILL.md`
+- **What:** Added three new rows to the Graceful Degradation table: Linter (skip lint, note in PR), Type checker (skip typecheck, note in PR), `gh` CLI (push manually, create PR via web).
+- **Why:** The existing table covered sub-agents, CI, and test runner but missed other common dependencies. Complete coverage prevents stalling on missing tools.
+- **To test:** Run `/sprint-end` in a project without a linter. Verify it proceeds and notes the skip in the PR body.
+- **To revert:** Remove the three new rows (Linter, Type checker, `gh` CLI) from the Graceful Degradation table.
+
+### Anti-Pattern Libraries (OPT-63, OPT-64)
+
+#### OPT-63: AI-Specific Testing Anti-Patterns
+- **File:** `.claude/rules/testing.md`
+- **What:** Added "AI-Specific Anti-Patterns" table with 5 entries: hallucinated test APIs, copy-paste assertion drift, weakened assertions to pass, over-specific snapshot tests, and testing framework internals. Each with detection signal and correct action.
+- **Why:** The existing red flags list covered general testing anti-patterns but missed AI-specific failure modes. These are predictable mistakes that can be pre-emptively blocked.
+- **To test:** Read testing.md and verify the AI-Specific Anti-Patterns table is present after the Red Flags section.
+- **To revert:** Remove the "## AI-Specific Anti-Patterns" section (table with 5 rows) from testing.md.
+
+#### OPT-64: AI-Specific Security Anti-Patterns
+- **File:** `.claude/rules/security.md`
+- **What:** Added "AI-Specific Security Anti-Patterns" table with 5 entries: phantom package imports, typosquatted dependencies, overly permissive CORS, logging sensitive data, and disabled SSL verification.
+- **Why:** Extends the CWE checklist with AI-specific security patterns that the general list doesn't cover.
+- **To test:** Read security.md and verify the AI-Specific Security Anti-Patterns table is present after the Fix Safety Issues section.
+- **To revert:** Remove the "## AI-Specific Security Anti-Patterns" section (table with 5 rows) from security.md.
+
+### Version Updates
+
+- Updated CLAUDE.md version reference to v2.6
+- Updated story-cycle, sprint-start, sprint-end skill versions to 2.6.0
+
 ## [2.5.0] - 2026-02-22
 
 ### Context Efficiency (OPT-40, OPT-41, OPT-42)

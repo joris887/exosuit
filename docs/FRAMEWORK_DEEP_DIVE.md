@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.5 — Deep Dive
+# JD-LLM Development Framework v2.6 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -42,6 +42,8 @@ The framework is built on six principles. Each one addresses a specific failure 
 | **Documentation-lean** | Context budget wasted on stale docs | Only create docs when needed. Keep auto-loaded files (CLAUDE.md, progress.md) minimal. |
 | **AI-aware** | Hallucinated APIs, weakened tests, phantom packages, over-engineering | Guard rails at every layer: rules block bad patterns, hooks enforce quality, skills guide methodology. |
 | **Progressive disclosure** | Loading the entire project context into every conversation | Load only what's needed. Reference files by path. Session files capture state for resumption. |
+| **Verification-driven** | AI claims completion without evidence | Evidence before claims, fresh output before completion, task list enforcement. |
+| **Context-efficient** | Context window exhaustion during long sessions | Priority-based compaction, context budget awareness heuristics, directory-level context files. |
 
 ### Why This Matters
 
@@ -203,7 +205,9 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 **Trigger:** Before Claude reports a task as complete
 **Added value:** Creates a self-correction loop — if quality checks fail, Claude must fix them before finishing
 
-**How it works:** Runs lint, typecheck, and test suite. If any fail, exits with error code 1, which prevents Claude from marking the task as done.
+**How it works:** First auto-saves minimal session state (branch, recent commits, uncommitted/staged changes) to `docs/sessions/.auto-save.md` as a safety net for `/continue`. Then runs lint, typecheck, and test suite. If any fail, exits with error code 1, which prevents Claude from marking the task as done.
+
+**Auto-save session state** (*new in v2.6*): Before running quality checks, the hook writes a lightweight state snapshot. This ensures that even if a session ends abruptly (context exhaustion, crash), the `/continue` skill has breadcrumbs to resume from.
 
 **Why this matters:** Without this, Claude might report "done" with failing tests or lint errors. The stop hook forces self-correction — Claude sees the failures and must fix them before it can complete.
 
@@ -229,6 +233,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Red flags section:** Lists specific anti-patterns (tautological tests, happy-path-only, testing the mock, etc.) so Claude recognizes them.
 
+**AI-specific anti-patterns** (*new in v2.6*): A dedicated table of AI-generated test failures: hallucinated test APIs, copy-paste assertion drift, weakened assertions to make tests pass, over-specific snapshots, and testing framework internals.
+
 **Optimization opportunity:** The rules are advisory — Claude *can* ignore them if it "decides" the situation warrants it. Consider whether the test protection should be escalated to a hook (deterministic) rather than a rule (advisory). Monitor whether Claude actually follows these rules consistently.
 
 #### documentation.md
@@ -240,6 +246,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Key rules:** Only create docs when explicitly requested. Update existing over creating new. Keep auto-loaded files lean.
 
 **Why this matters:** LLMs love generating documentation. Without this rule, Claude will happily create README files, add JSDoc to every function, and generate architectural diagrams nobody asked for. This wastes context and creates maintenance burden.
+
+**Directory-level context** (*new in v2.6*): `.claude-context.md` files in directories provide module-specific context (patterns, conventions, quirks). Story-cycle reads the nearest one when working in a directory. These are never created proactively — only when a user explicitly requests module-specific documentation.
 
 #### security.md
 
@@ -268,6 +276,38 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 - Partial verification is not proof
 
 **Why this matters:** Claude frequently reports tasks as complete with "tests pass" or "should work" without actually running the commands. This rule enforces a "show, don't tell" discipline — every completion claim must have supporting command output from the current turn.
+
+**Task completion enforcement** (*new in v2.6*): Before reporting "done", check the task list — ALL tasks must be completed or explicitly deferred with reason. "Almost done" is not done.
+
+**Context budget awareness** (*new in v2.6*): Five heuristics for managing context consumption: summarize after 10+ file reads, discard bulk after exploration phases, prefer targeted grep over full file reads, summarize verbose tool outputs, proactively note findings and move on.
+
+#### code-slop.md (*new in v2.6*)
+
+**File:** `.claude/rules/code-slop.md`
+**Paths:** All source files (`**/*.ts`, `**/*.py`, `**/*.go`, etc. — 15 extensions)
+**Added value:** Eliminates low-quality AI-generated comments and code prose
+
+**Key rules:**
+- 15 banned comment patterns (e.g., "Initialize the X", "Set up the Y", "Handle the error")
+- Obvious comment detection — comments that restate the code
+- Code prose anti-patterns — unnecessary docstrings, parameter descriptions that restate types, file-level descriptions, section separators
+- When comments ARE required — edge cases, business logic rationale, workarounds with ticket references, non-obvious algorithm choices
+
+**Why this matters:** AI-generated code is plagued by "slop" — comments that add no information ("Initialize the database connection" above `db.connect()`). These waste tokens when re-read and signal low quality. This rule creates a systematic filter.
+
+#### edit-recovery.md (*new in v2.6*)
+
+**File:** `.claude/rules/edit-recovery.md`
+**Paths:** `**` (applies everywhere)
+**Added value:** Prevents wasted retries when edits fail
+
+**Key rules:**
+- Decision tree: "old_string not found" → re-read file; "not unique" → add context; "file modified" → re-read and verify
+- ALWAYS re-read before retrying a failed edit
+- NEVER retry the exact same edit call
+- After 3 failures, pause and reconsider approach
+
+**Why this matters:** Claude sometimes retries failed edits verbatim, wasting turns and context. The decision tree provides a structured recovery path that diagnoses the root cause before retrying.
 
 #### git.md
 
@@ -361,6 +401,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Why pre-flight checks matter:** Without them, developers start work on stale branches, forget about open PRs, or begin with failing tests. Each of these leads to wasted effort or merge conflicts later.
 
+**Conditional test verification** (*new in v2.6*): Step 1d now reads CLAUDE.md Commands section first. If a test command is configured, it runs. If not, it skips with a note: "No test command configured — consider running /bootstrap to set up." This prevents sprint-start from failing in projects without tests.
+
 **Optimization opportunity:** The pre-flight checks are sequential. They could be parallelized (check PRs and verify clean tree simultaneously). Also consider: should sprint-start auto-load the next story from the backlog? Currently it doesn't (intentionally — separation of concerns), but some users might prefer it.
 
 ### /story-cycle
@@ -369,12 +411,14 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Purpose:** Universal story delivery. The core development skill.
 **Added value:** Ensures every story follows the right methodology with proper quality gates.
 
-**Five phases** (*updated in v2.2 — added Phase 3.5*):
+**Seven phases** (*updated in v2.6 — added Phase 0 and Phase 4.5*):
+0. **Intent Decomposition** (*new in v2.6*) — Before any exploration, decompose the user's request into ALL distinct deliverables, identify dependencies, suggest splitting compound requests
 1. **Plan** (in plan mode) — Research, identify type, write plan with context preservation header
 2. **Context Transition** — Selectively prune exploration context, keeping discovery metadata (file paths, edge cases, patterns) while discarding bulk content (full file reads, dead-end searches). Reload coding standards + relevant files fresh.
 3. **Execute** — Follow the methodology for the story type (TDD for features, reproduce-first for bugs, etc.)
 3.5. **Self-Review** (*new in v2.2*) — Completeness, quality, testing, discipline checklists + spec compliance verification for complex stories
 4. **Wrap Up** — Run tests, update docs, commit, print completion report
+4.5. **Completion Verification** (*new in v2.6*) — Re-check ALL acceptance criteria with evidence (test output, code references). Loop back to Phase 3 for gaps (max 2 extra passes). Hard gate: do NOT report done until every criterion has evidence.
 
 **Process flowchart** (*new in v2.2*): A flowchart at the top of the skill defines the authoritative process, with decision diamonds for plan approval and self-review pass/fail. Prose sections below provide supporting detail.
 
@@ -399,6 +443,14 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Conditional environment adaptation** (*new in v2.3*): Phase 3.5 includes fallback instructions for when sub-agents are not available — the self-review is performed manually instead.
 
 **Agent-first file discovery** (*new in v2.4*): Phase 1 now includes a Step 1b that dispatches a lightweight Explore agent to identify the 5–10 most relevant files before deep reading. This narrows the scope before committing context budget, reducing unnecessary token consumption during planning.
+
+**Intent decomposition** (*new in v2.6*): Phase 0 now decomposes compound requests ("refactor auth AND add rate limiting AND create a PR") into distinct deliverables before planning begins. This prevents missing later parts of multi-part requests.
+
+**Parallel research optimization** (*new in v2.6*): When a story touches multiple modules, 2-3 explore agents can be dispatched in parallel with independent questions (API patterns, test conventions, data models), then findings are synthesized before writing the plan.
+
+**Completion verification** (*new in v2.6*): Phase 4.5 adds a self-referential verification loop — re-read every acceptance criterion and provide evidence (test output, file:line reference). If any criterion lacks evidence, loop back to Phase 3 (max 2 extra passes). A hard gate prevents reporting completion without evidence for every criterion.
+
+**Directory-level context** (*new in v2.6*): Phase 1c now checks for `.claude-context.md` files in the target directory and parent directories for module-specific patterns and conventions.
 
 **Optimization opportunity:** The context reset is manual — Claude follows the instruction to "clear and reload." In practice, Claude sometimes carries over more context than intended. Consider whether a more forceful reset mechanism is possible. Also: the 50-line plan limit may be too restrictive for complex stories — monitor and adjust.
 
@@ -443,6 +495,10 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Multi-perspective code review** (*new in v2.4*): For significant sprints (10+ files), 2–3 code-reviewer agents can be dispatched in parallel with different review lenses (correctness, conventions, security). Issues flagged by 2+ independent reviewers are auto-elevated to Critical.
 
 **Confidence-based filtering** (*new in v2.4*): All quality agents now score findings 0–100. Only findings ≥80 are actionable. This reduces noise and focuses sprint-end on genuine issues.
+
+**Expanded graceful degradation** (*new in v2.6*): The skill now includes a degradation table for all optional dependencies: sub-agents, CI pipeline, test runner, linter, type checker, and `gh` CLI. Each entry specifies the fallback behavior (e.g., "Skip lint check, note in PR body"). This prevents sprint-end from stalling when a tool is missing.
+
+**Project state adaptation** (*new in v2.6*): Before running quality gates, sprint-end reads CLAUDE.md Commands section to determine which gates are applicable. If no test command exists, the test gate is skipped (noted in PR body). If no build command exists, the build step is skipped. This prevents failures in projects that haven't configured all tools.
 
 **Optimization opportunity:** The quality agents run as forked contexts — monitor their usefulness and whether confidence scoring effectively reduces false positives.
 
@@ -631,6 +687,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Why phantom package detection matters:** LLMs hallucinate package names. `npm install react-auth-helper` installs... what? If that package was registered as a typosquatting attack, it could contain malware. Verification prevents this.
 
 **v2.4 additions:** Confidence-based scoring (0–100) with ≥80 threshold for actionable security findings. `<example>` block triggers for better auto-invocation reliability.
+
+**AI-specific security anti-patterns** (*new in v2.6*): A dedicated table in the security rule for AI-specific vulnerabilities: phantom packages (hallucinated npm/pip packages), typosquatted dependencies (names similar to popular packages), permissive CORS (allowing `*` origin), logging sensitive data (passwords/tokens in logs), and disabled SSL verification (for "development convenience").
 
 **Optimization opportunity:** The phantom package check is manual (grep imports, verify against registry). Consider adding a script that automates this. Also: the CWE checklist is generic — consider creating project-type-specific checklists (web app, API, CLI, mobile).
 
@@ -857,6 +915,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 
 **v2.5 context efficiency improvements:** Script black-boxing policy — scripts in `scripts/` are executed directly without reading their source, saving ~500 tokens per script invocation. Reference navigation pattern — skills now include section-level grep hints ("search for `## Section`") so Claude loads one section instead of an entire reference file. New `assets/` resource type for output templates that are copied without being read into context.
 
+**v2.6 context efficiency improvements:** Priority-based compaction directive tags items as CRITICAL (survive all compactions verbatim), HIGH (preserve if space), NORMAL (summarize if needed), LOW (drop first — these are recoverable). Context budget awareness heuristics in verification.md encourage summarizing after 10+ file reads and discarding bulk after exploration phases. Directory-level `.claude-context.md` files provide module-specific context without loading global standards. Auto-save session state in pre-stop hook ensures `/continue` has breadcrumbs even after abrupt termination.
+
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
 ---
@@ -996,6 +1056,30 @@ Lists all key files with descriptions so any LLM tool can understand the project
 
 ## 17. Optimization Opportunities
 
+### Implemented in v2.6
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-50 | AI slop detection rule (banned comment patterns, obvious comment detection) | Implemented |
+| OPT-51 | Comment quality standards in CODING_STANDARDS.md | Implemented |
+| OPT-52 | Edit failure recovery protocol (decision tree, escalating retry) | Implemented |
+| OPT-53 | Automated session state preservation (pre-stop hook auto-save) | Implemented |
+| OPT-54 | Priority-based context compaction (CRITICAL/HIGH/NORMAL/LOW) | Implemented |
+| OPT-55 | Directory-level context files (.claude-context.md convention) | Implemented |
+| OPT-56 | Task completion enforcement (check task list before reporting done) | Implemented |
+| OPT-57 | Proactive context budget awareness (5 heuristics) | Implemented |
+| OPT-58 | Intent decomposition gate (Phase 0 in story-cycle) | Implemented |
+| OPT-59 | Parallel research dispatch (2-3 explore agents for multi-module stories) | Implemented |
+| OPT-60 | Self-referential completion verification (Phase 4.5 with evidence loop) | Implemented |
+| OPT-61 | Dynamic skill content (conditional test/build gates in sprint-start/sprint-end) | Implemented |
+| OPT-62 | Expanded graceful degradation (linter, type checker, gh CLI fallbacks) | Implemented |
+| OPT-63 | AI-specific testing anti-patterns (hallucinated APIs, weakened assertions, etc.) | Implemented |
+| OPT-64 | AI-specific security anti-patterns (phantom packages, typosquatted deps, etc.) | Implemented |
+
+**Key changes in v2.6:** Code quality improved with AI slop detection and comment quality standards. Developer experience improved with edit recovery protocol and session auto-save. Context efficiency improved with priority-based compaction and budget awareness heuristics. Story delivery improved with intent decomposition, parallel research, and completion verification. Resilience improved with expanded graceful degradation and dynamic skill content.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
+
 ### Implemented in v2.5
 
 | ID | Optimization | Status |
@@ -1080,21 +1164,23 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 
 5. **Validate v2.4 improvements** — Test whether confidence scoring effectively filters false positives in quality agents. Test whether parallel quality gate dispatch produces better results than sequential. Use `/skill-eval` to test key skills against pressure scenarios. Verify agent-first file discovery in story-cycle reduces context consumption.
 
+6. **Validate v2.6 improvements** — Test slop detection against real AI output to verify pattern coverage. Test edit recovery protocol with deliberate edit failures to verify decision tree works. Test completion verification loop to confirm it catches real gaps without excessive looping. Test priority-based compaction under heavy context pressure. Verify auto-save state is useful for `/continue` recovery.
+
 ### Remaining Medium Impact
 
-6. **Automate metrics collection** — The retrospective skill's metrics dashboard is mostly manual. A `scripts/metrics.sh` that computes test count, coverage, churn, and LOC from git would make retrospectives much faster.
+7. **Automate metrics collection** — The retrospective skill's metrics dashboard is mostly manual. A `scripts/metrics.sh` that computes test count, coverage, churn, and LOC from git would make retrospectives much faster.
 
-7. **Session file lifecycle** — Define when old session files get archived or deleted. Without this, `docs/sessions/` will grow indefinitely.
+8. **Session file lifecycle** — Define when old session files get archived or deleted. Without this, `docs/sessions/` will grow indefinitely.
 
-8. **Rule path refinement** — The security rule's `**/*key*` pattern matches too broadly. The verification rule uses `**` (all files). Audit token cost of rules loaded per-edit.
+9. **Rule path refinement** — The security rule's `**/*key*` pattern matches too broadly. The verification rule uses `**` (all files). Audit token cost of rules loaded per-edit.
 
 ### Remaining Lower Impact
 
-9. **install.sh optimization** — Currently clones the full repo. Consider using `git archive` or a release tarball for faster, lighter installation.
+10. **install.sh optimization** — Currently clones the full repo. Consider using `git archive` or a release tarball for faster, lighter installation.
 
-10. **Worktree integration depth** — The parallel-work skill is new. Test it with 2-3 concurrent Claude Code instances to verify coordination works.
+11. **Worktree integration depth** — The parallel-work skill is new. Test it with 2-3 concurrent Claude Code instances to verify coordination works.
 
-11. **llms.txt auto-update** — Auto-generate llms.txt content during /bootstrap based on actual project files.
+12. **llms.txt auto-update** — Auto-generate llms.txt content during /bootstrap based on actual project files.
 
 ---
 
@@ -1113,6 +1199,9 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Reference loading depends on Claude:** The v2.3 reference splitting pattern relies on Claude reading `references/*.md` files when directed by SKILL.md. If Claude skips reading the reference, it may miss detailed instructions. Monitor whether this happens and consider inlining critical content if it does.
 - **Confidence scoring is prompt-based:** The v2.4 confidence scoring relies on Claude's self-assessment of finding severity. Scores may not perfectly correlate with actual issue importance. Monitor whether the ≥80 threshold effectively filters false positives without hiding real issues.
 - **YAML frontmatter adds token overhead:** Each skill now has ~50 extra tokens of frontmatter metadata. For 27 skills this is ~1350 tokens if all were loaded simultaneously (they aren't — only invoked skills load). Monitor if the overhead is noticeable.
+- **Slop detection is pattern-based:** The code-slop rule uses string matching for banned patterns. Novel slop patterns not in the list will pass through. The rule should be expanded as new patterns are observed.
+- **Completion verification adds turns:** Phase 4.5 re-reads acceptance criteria and loops back up to 2 times. For simple stories this may add unnecessary overhead. Monitor whether the verification loop catches real issues or just adds latency.
+- **Priority-based compaction is advisory:** The CRITICAL/HIGH/NORMAL/LOW tags guide Claude's compaction behavior but are not deterministic. Claude may still drop CRITICAL items if context pressure is severe enough.
 
 ### Git Workflow Assumptions
 

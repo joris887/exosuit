@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 2.4.0
+version: 2.6.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -15,17 +15,32 @@ Delivering story: **$ARGUMENTS**
 ## Process Flow (authoritative — prose below is supporting detail)
 
 ```
-START → Phase 1: Plan Mode (research, identify type, write plan)
-  → [User approved?]
-    → NO: Revise plan → back to approval
-    → YES: Phase 2: Context Transition (keep insights, discard bulk)
-      → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
-        → Phase 3.5: Self-Review (completeness, quality, testing, discipline)
-          → [Review passes?]
-            → NO: Fix issues → back to Phase 3
-            → YES: Phase 4: Wrap Up (tests, docs, commit, report)
-              → DONE
+START → Phase 0: Intent Decomposition (identify ALL deliverables)
+  → Phase 1: Plan Mode (research, identify type, write plan)
+    → [User approved?]
+      → NO: Revise plan → back to approval
+      → YES: Phase 2: Context Transition (keep insights, discard bulk)
+        → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
+          → Phase 3.5: Self-Review (completeness, quality, testing, discipline)
+            → [Review passes?]
+              → NO: Fix issues → back to Phase 3
+              → YES: Phase 4: Wrap Up (tests, docs, commit)
+                → Phase 4.5: Completion Verification (re-check ALL acceptance criteria)
+                  → [All criteria met with evidence?]
+                    → NO: Loop back to Phase 3 for gaps (max 2 extra passes)
+                    → YES: Report → DONE
 ```
+
+## Phase 0: Intent Decomposition
+
+Before any exploration, decompose the user's request into all distinct deliverables:
+
+1. List ALL distinct outcomes the user expects (implementation, tests, docs, PR, etc.)
+2. Identify dependencies between deliverables
+3. If the request contains multiple independent stories, suggest splitting and confirm scope
+4. Confirm the full scope with the user before proceeding to planning
+
+This prevents missing later parts of compound requests (e.g., "refactor auth AND add rate limiting AND create a PR").
 
 ## Phase 1: Story Analysis (Plan Mode)
 
@@ -60,11 +75,14 @@ Read ONLY the files the agent identified. If during implementation you need addi
 
 **If sub-agents are NOT available:** Explore manually, but be selective — read file listings and imports first to narrow down before reading full files.
 
+**Parallel Research Optimization:** If the story touches multiple modules or subsystems, dispatch 2-3 explore agents in parallel with independent questions (e.g., one for API patterns, one for test conventions, one for data models). Synthesize findings before writing the plan.
+
 ### 1c. Research Codebase
 
 - Deep-read the files identified in step 1b
 - Understand patterns, conventions, and existing tests in the area
 - Identify files to modify and files to create
+- Check for `.claude-context.md` files in the target directory and parent directories — these contain module-specific patterns and conventions that supplement global CLAUDE.md
 
 ### 1d. Define Required Skills
 
@@ -180,6 +198,22 @@ After execution is complete:
    ```
 1. **Do NOT merge or create PR** — that's `/sprint-end`'s job
 
+## Phase 4.5: Completion Verification
+
+Before reporting done, re-check ALL acceptance criteria from the original request and Phase 0 decomposition:
+
+1. Re-read the original acceptance criteria (from the plan or user request)
+2. For each criterion, provide evidence: test output, code reference (file:line), or command output
+3. If any criterion is NOT met:
+   - List what's missing
+   - Loop back to Phase 3 for that specific gap
+   - Maximum 2 additional passes — then report what's complete and what remains
+4. Only report completion when ALL criteria have evidence
+
+<HARD-GATE>
+Do NOT print the completion report until every acceptance criterion has been verified with evidence. "I believe it works" is not evidence — show test output or code references.
+</HARD-GATE>
+
 ### Completion Report
 
 ```markdown
@@ -191,6 +225,7 @@ After execution is complete:
 **Files modified:** [list]
 **Tests:** [count] passing, [new tests added]
 **Commit:** [hash and message]
+**Verification:** [All N acceptance criteria verified — see evidence above]
 
 **Ready for next story or sprint-end.**
 ```

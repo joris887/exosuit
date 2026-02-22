@@ -1,6 +1,6 @@
 ---
 name: sprint-end
-version: 2.4.0
+version: 2.6.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -165,6 +165,17 @@ git log --oneline -3
 | Sub-agents   | Run quality checks manually in the main context     |
 | CI pipeline  | Local quality gates (step 2) serve as verification  |
 | Test runner  | Warn user, skip test count delta, note in PR body   |
+| Linter       | Skip lint check, note in PR body                    |
+| Type checker | Skip typecheck, note in PR body                     |
+| `gh` CLI     | Push manually, create PR via web UI                 |
+
+## Project State Adaptation
+
+Read CLAUDE.md Commands section before running quality gates:
+- **If test command exists:** Run full test suite as part of quality gates
+- **If NO test command:** Skip test gate, note "No test command configured" in PR body
+- **If build command exists:** Include build verification in quality gates
+- **If NO build command:** Skip build step
 
 ## Rules
 

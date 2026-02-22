@@ -165,6 +165,7 @@ The `/story-cycle` skill adapts methodology by story type:
 | Documentation | Gather → Generate → Review |
 | Security | Threat model → Implement → Audit |
 | Performance | Baseline → Optimize → Benchmark |
+| Skill/Tooling | Design → Build → Document |
 
 ## File Structure
 
@@ -178,7 +179,7 @@ The `/story-cycle` skill adapts methodology by story type:
       assets/           # Output templates — copy, don't read
   prompts/              # Prompt snippets + subagent templates
     agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer)
-  rules/                # Path-scoped rules for testing, security, git, verification
+  rules/                # Path-scoped rules for testing, security, git, verification, code-slop, edit-recovery
   hooks/                # Hook scripts for auto-format, quality gates, safety
   settings.json         # Claude Code configuration with hooks
 docs/
@@ -225,7 +226,7 @@ A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stori
 - **Sprint-based** — Small, focused increments with quality gates
 - **Git-disciplined** — Feature branches, conventional commits, squash merges
 - **Documentation-lean** — Only create docs when explicitly needed
-- **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, over-engineering)
+- **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, code slop, over-engineering)
 - **Verification-driven** — Evidence before claims, fresh output before completion
 - **Progressive disclosure** — Load only what you need, when you need it
 - **Context-efficient** — Skills split into lean entry points + on-demand references; context window is a shared resource

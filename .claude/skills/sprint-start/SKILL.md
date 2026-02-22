@@ -1,6 +1,6 @@
 ---
 name: sprint-start
-version: 2.4.0
+version: 2.6.0
 description: Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development.
 trigger: manual
 depends-on: []
@@ -47,14 +47,10 @@ git pull origin main
 
 ### 1d. Verify tests pass on main
 
-Run the project's test command (detected by `/bootstrap`, found in CLAUDE.md Commands section):
+Read CLAUDE.md Commands section to find the project's test command.
 
-```bash
-# Use the project's test command from CLAUDE.md
-# Examples: just ci, npm test, pytest, cargo test, swift test, go test
-```
-
-If tests fail on main, stop and alert user — main should always be green.
+- **If test command exists:** Run it. If tests fail on main, stop and alert user — main should always be green.
+- **If NO test command configured:** Skip this check. Note in output: "No test command configured — consider running /bootstrap to set up."
 
 ## 2. Create Feature Branch
 

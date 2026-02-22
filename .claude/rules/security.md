@@ -46,3 +46,13 @@ When you discover a safety issue during normal work — do NOT ask, do NOT defer
 - Dependency with known critical vulnerability → Flag to user immediately
 
 Fix, commit with `fix(security): <description>`, then continue your original task.
+
+## AI-Specific Security Anti-Patterns
+
+| Pattern | Detection Signal | Correct Action |
+|---------|-----------------|----------------|
+| Phantom package imports | Package not in lockfile or registry | Verify package exists before importing — check registry |
+| Typosquatted dependencies | Name similar to popular package (e.g., `requets` vs `requests`) | Double-check exact package name against official docs |
+| Overly permissive CORS | `Access-Control-Allow-Origin: *` in production code | Restrict to specific allowed origins |
+| Logging sensitive data | `console.log(user)` or `logger.info(request.body)` where body contains credentials | Sanitize before logging — redact passwords, tokens, PII |
+| Disabled SSL verification | `verify=False`, `rejectUnauthorized: false` | Never disable SSL in production — fix the certificate issue |

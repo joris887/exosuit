@@ -51,6 +51,14 @@ Key rules:
 - **Pre-commit:** ruff, mypy, eslint, etc.
 -->
 
+### Comment Quality
+
+Comments explain WHY, not WHAT. Detailed patterns in `.claude/rules/code-slop.md`.
+
+- **Required:** Edge cases, business logic rationale, workarounds with ticket links, non-obvious algorithm choices
+- **Prohibited:** Restating the code, explaining standard library functions, parameter descriptions that repeat the type, file-level "this file contains..." comments
+- **Rule of thumb:** If deleting the comment loses zero information, delete it
+
 ### Documentation
 
 - **When to create:** Only when explicitly required or when a story's AC demands it

@@ -11,7 +11,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.5)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.6)
 
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
@@ -19,10 +19,10 @@
   - references/new-project.md: New project braindump and generation workflow
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with self-review and process flowchart
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with intent decomposition, self-review, completion verification, and process flowchart
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
   - references/self-review.md: Self-review checklist with red flags
-- .claude/skills/sprint-end/SKILL.md: Quality gates with hard gates, PR, merge
+- .claude/skills/sprint-end/SKILL.md: Quality gates with hard gates, graceful degradation, project state adaptation, PR, merge
   - references/quality-gates.md: Detailed quality gate checks and recovery
   - scripts/test-count-delta.sh: Compare test counts between branch and main
 - .claude/skills/brainstorm/SKILL.md: Design exploration with alternative approaches
@@ -50,7 +50,7 @@
 - .claude/rules/security.md: Security-sensitive file rules + fix-immediately pattern
 - .claude/rules/git.md: Git workflow rules
 - .claude/rules/dependencies.md: Dependency management rules
-- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern
+- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern + task completion enforcement + context budget awareness
 
 ## Prompt Snippets
 - .claude/prompts/review-security.md: Security review of a specific file
@@ -61,9 +61,13 @@
 - .claude/prompts/agents/code-reviewer.md: Code review dispatch template with severity classification
 - .claude/prompts/agents/spec-reviewer.md: Spec compliance verification with file:line references
 
+## Rules (new in v2.6)
+- .claude/rules/code-slop.md: AI slop detection — banned comment patterns, obvious comment detection, code prose anti-patterns
+- .claude/rules/edit-recovery.md: Edit failure recovery decision tree — re-read before retry, escalating recovery
+
 ## Hooks
 - .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits
-- .claude/hooks/pre-stop-quality.sh: Quality gate before completion
+- .claude/hooks/pre-stop-quality.sh: Quality gate before completion + auto-save session state
 - .claude/hooks/pre-tool-safety.sh: Block dangerous operations (git, publishing, DB, process killing)
 
 ## Other

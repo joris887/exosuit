@@ -13,3 +13,4 @@ paths:
 - Archive or remove stale content rather than letting it accumulate
 - Documentation in CLAUDE.md, progress.md, and BACKLOG_INDEX.md is loaded every session — keep these files lean
 - Reference other docs by path rather than inlining their content
+- `.claude-context.md` files in directories provide module-specific context — read the nearest one when working in a directory, but never create them proactively

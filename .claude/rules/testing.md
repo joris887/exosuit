@@ -27,3 +27,13 @@ paths:
 - Over-mocking (mocking so much that the test verifies nothing real)
 - Testing the mock (assertions on mock return values, not real behavior)
 - Catch-all exception handlers in tests that swallow real failures
+
+## AI-Specific Anti-Patterns
+
+| Pattern | Detection Signal | Correct Action |
+|---------|-----------------|----------------|
+| Hallucinated test APIs | Test calls methods that don't exist on the object | Run the test immediately after writing — don't batch |
+| Copy-paste assertion drift | Multiple similar tests with subtly wrong expected values | Review each test's expected value against the actual domain |
+| Weakened assertions to pass | Changed `toBe(42)` to `toBeTruthy()` to make a test pass | Fix the implementation, not the test |
+| Over-specific snapshot tests | Snapshot includes timestamps, random IDs, or formatting | Use targeted assertions instead of snapshots for dynamic content |
+| Testing framework internals | Assertions on framework lifecycle methods or hooks | Test observable behavior from the caller's perspective |

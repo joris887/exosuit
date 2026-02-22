@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 2.5
+**Framework Version:** 2.6
 
 ## Core Workflow
 
@@ -33,8 +33,8 @@ For technology skill generation: `/skill-create`
 | Skill           | Trigger            | Arguments             | Description                               |
 | --------------- | ------------------ | --------------------- | ----------------------------------------- |
 | `/sprint-start` | Starting new work  | `[branch] [--worktree]` | Pre-flight checks + branch (supports worktrees) |
-| `/sprint-end`   | Completing sprint  | -                     | Quality gates, test protection, docs, PR, merge, worktree cleanup |
-| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (adapts by type, context-budget aware) |
+| `/sprint-end`   | Completing sprint  | -                     | Quality gates, test protection, graceful degradation, docs, PR, merge, worktree cleanup |
+| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (intent decomposition, adapts by type, completion verification) |
 | `/continue`     | Session start      | -                     | Smart continuation from session files + git state |
 | `/handoff`      | Session end        | -                     | Structured session file to docs/sessions/ |
 
@@ -195,12 +195,14 @@ Path-scoped rules loaded automatically when matching files are edited:
 - `security.md` — CWE checklist for sensitive files + fix-immediately pattern
 - `git.md` — Git workflow rules
 - `dependencies.md` — Dependency governance
-- `verification.md` — Evidence required before completion claims
+- `verification.md` — Evidence required before completion claims + task completion enforcement + context budget awareness
+- `code-slop.md` — AI slop detection: banned comment patterns, obvious comment detection, code prose anti-patterns
+- `edit-recovery.md` — Edit failure recovery decision tree with escalating recovery strategy
 
 ### Hooks (`.claude/hooks/`)
 Deterministic enforcement via shell scripts:
 - `post-edit-format.sh` — Auto-format after edits
-- `pre-stop-quality.sh` — Quality gate before completion
+- `pre-stop-quality.sh` — Quality gate before completion + auto-save session state
 - `pre-tool-safety.sh` — Block dangerous operations
 
 ## References
@@ -215,6 +217,7 @@ Deterministic enforcement via shell scripts:
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 2.6     | 2026-02-22 | AI slop detection rule, edit recovery protocol, priority-based compaction, intent decomposition, completion verification, parallel research, session auto-save, expanded anti-patterns, graceful degradation expansion, context budget awareness |
 | 2.5     | 2026-02-22 | Script black-boxing, grep navigation hints, resource types, skill scaffolding, I/O examples, DO/DON'T pairs, graceful degradation, pre-execution validation, skills registry |
 | 2.4     | 2026-02-22 | Confidence scoring, parallel quality gates, multi-perspective review, skill-eval, refine-loop, agent-first file discovery, example block triggers, session hook state, YAML frontmatter |
 | 2.3     | 2026-02-22 | Skill reference splitting, helper scripts, QA framing, Don'ts lists, CLI discovery pattern, doc quality sub-agents, co-located tech skill references, context budget principle, environment adaptation |

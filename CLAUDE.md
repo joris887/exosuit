@@ -33,7 +33,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v2.5
+## Skills — JD-LLM Development Framework v2.6
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow
@@ -67,29 +67,41 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 - `docs/testing/UAT_COVERAGE.md` — UAT test cases
 
 ## Compaction Directive
-When compacting context, structure the summary using this exact format:
+When compacting context, structure the summary using this exact format. Items are tagged by priority — drop LOW items first, CRITICAL items must survive all compactions verbatim.
 
 ```
 ## Compacted Context
-### Goal
+
+### [CRITICAL — preserve verbatim across all compactions]
+#### Goal
 [Current objective — what story/task is in progress]
-### Sprint State
+#### Commands
+[test/lint/build commands from project — copy from Commands section above]
+#### Active Plan
+[Any in-progress plan, verbatim if possible]
+
+### [HIGH — preserve if space allows]
+#### Sprint State
 - Branch: [name]
 - Sprint: [number]
 - Story status: [in progress / blocked / completing]
-### Progress
-- Done: [completed items this session]
-- In progress: [current work]
-- Blocked: [any blockers]
-### Key Decisions
+#### Key Decisions
 - [Decision]: [rationale]
-### Commands
-[test/lint/build commands from project — copy from Commands section above]
-### Active Plan
-[Any in-progress plan, verbatim if possible]
-### File Context
+#### In-Progress Work
+[Current task and its state]
+
+### [NORMAL — summarize if needed]
+#### Progress
+- Done: [completed items this session]
+- Blocked: [any blockers]
+
+### [LOW — drop first, these are recoverable]
+#### File Context
 <files-read>[paths of all files explored this session, one per line]</files-read>
 <files-modified>[paths of all files changed this session, one per line]</files-modified>
 ```
 
-When multiple compactions occur, MERGE new file paths into the existing `<files-read>` and `<files-modified>` lists — never discard previous entries.
+When multiple compactions occur:
+- MERGE new file paths into existing `<files-read>` and `<files-modified>` lists — never discard previous entries
+- Drop LOW items first if space is tight (files can be re-read)
+- CRITICAL items must survive every compaction — never summarize or drop them
