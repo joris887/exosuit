@@ -1,5 +1,89 @@
 # Changelog
 
+## [2.5.0] - 2026-02-22
+
+### Context Efficiency (OPT-40, OPT-41, OPT-42)
+
+#### OPT-40: Script Execution Policy (Black-Box Directives)
+- **Files:** `.claude/skills/SKILL_TEMPLATE.md`, `.claude/skills/bootstrap/SKILL.md`, `.claude/skills/sprint-end/references/quality-gates.md`, `.claude/skills/parallel-work/SKILL.md`
+- **What:** Added "Script Execution Policy" section to SKILL_TEMPLATE.md and inline black-box directives ("execute directly, do NOT read source first") to skills that reference scripts. Scripts in `scripts/` are treated as black boxes — run them, don't read their source code.
+- **Why:** A 50-line script produces 5-10 lines of output. Reading the source before running wastes ~500 tokens of context with zero benefit during normal execution.
+- **To test:** Invoke `/sprint-end` and verify Claude runs `test-count-delta.sh` without reading its source first. Invoke `/bootstrap` and verify the same for `detect-stack.sh`.
+- **To revert:** Remove the "Script Execution Policy" section from SKILL_TEMPLATE.md. Remove the "execute directly, do NOT read source first" lines from the three skill files.
+
+#### OPT-41: Reference Navigation Pattern (Grep Hints)
+- **Files:** `.claude/skills/SKILL_TEMPLATE.md`, `.claude/skills/story-cycle/SKILL.md`, `.claude/skills/debug-session/SKILL.md`
+- **What:** Added "Reference Navigation Pattern" to SKILL_TEMPLATE.md. Changed reference pointers in story-cycle and debug-session from "Read file X" to "In file X, search for `## Section` — load only that section." This applies grep-level navigation to reference files.
+- **Why:** Reference files can be 100+ lines. Loading the whole file when only one section is needed wastes context. Section-level hints let Claude load just the relevant portion.
+- **To test:** Run `/story-cycle` for a Feature story. Verify Claude searches for the Feature section in story-types.md rather than loading the entire file.
+- **To revert:** Restore the original "Read `references/story-types.md`" line in story-cycle. Restore the two original "See `references/...`" lines in debug-session. Remove the "Reference Navigation Pattern" section from SKILL_TEMPLATE.md.
+
+#### OPT-42: Resource Types Table (Skill Size & Resource Types)
+- **File:** `.claude/skills/SKILL_TEMPLATE.md`
+- **What:** Replaced the "Skill Size Guidelines" section with an expanded "Skill Size & Resource Types" section. Includes a table documenting three resource types (`scripts/`, `references/`, `assets/`) with their purpose and context impact. Added `assets/` as a new resource type for output templates (copy, don't read).
+- **Why:** Skill authors needed guidance on where to put supporting files and what context impact each location has. The resource types table makes the cost model explicit.
+- **To test:** Read SKILL_TEMPLATE.md and verify the resource types table is present with scripts/, references/, and assets/ entries.
+- **To revert:** Replace the "Skill Size & Resource Types" section with the original "Skill Size Guidelines" three-line section.
+
+### Skill Development Experience (OPT-43, OPT-44)
+
+#### OPT-43: Skill Scaffolding Script (init-skill.sh)
+- **New file:** `.claude/skills/skill-create/scripts/init-skill.sh`
+- **Modified:** `.claude/skills/skill-create/SKILL.md`
+- **What:** Created a bash script that scaffolds a new skill directory with SKILL.md template (including YAML frontmatter), `references/`, `scripts/`, and `assets/` subdirectories. Updated skill-create Step 3 to reference the script.
+- **Why:** Manual skill scaffolding is error-prone — forgetting frontmatter fields, wrong directory structure, missing subdirectories. The script ensures consistent scaffolding.
+- **To test:** Run `bash .claude/skills/skill-create/scripts/init-skill.sh test-skill`. Verify it creates `.claude/skills/test-skill/` with SKILL.md, references/, scripts/, assets/. Clean up after: `rm -rf .claude/skills/test-skill`.
+- **To revert:** Delete `.claude/skills/skill-create/scripts/init-skill.sh`. Remove the `scripts/init-skill.sh` reference from skill-create/SKILL.md.
+
+#### OPT-44: Input/Output Examples in Skills
+- **Files:** `.claude/skills/debug-session/SKILL.md`, `.claude/skills/brainstorm/SKILL.md`, `.claude/skills/ideate/SKILL.md`
+- **What:** Added concise Example sections showing a realistic input and the expected output structure for each skill.
+- **Why:** Examples are the most context-efficient way to communicate expected behavior. A 6-line example communicates what 20 lines of prose cannot.
+- **To test:** Read each skill file and verify the Example section is present with realistic input/output.
+- **To revert:** Remove the `## Example` sections from the three skill files.
+
+### Prompt Engineering (OPT-45, OPT-46)
+
+#### OPT-45: Imperative Language Cleanup
+- **File:** `.claude/skills/debug-session/SKILL.md`
+- **What:** Changed "You must show" to "Show" inside the HARD-GATE block. Minor wording fix for consistency with imperative style used throughout the framework.
+- **Why:** Imperative instructions ("Show X") are more direct and context-efficient than second-person ("You must show X"). The framework is 99% compliant; this fixes the last instance.
+- **To test:** Read the HARD-GATE in debug-session Phase 1 and verify it uses imperative form.
+- **To revert:** Change "Show:" back to "You must show:" in the HARD-GATE block.
+
+#### OPT-46: DO/DON'T Anti-Pattern Pairs
+- **Files:** `.claude/skills/story-cycle/SKILL.md`, `.claude/skills/debug-session/SKILL.md`, `.claude/skills/sprint-end/references/quality-gates.md`
+- **What:** Added DO/DON'T pairs at critical transition points: story-cycle Phase 2 (context transition), debug-session Phase 1 (investigation before fix), quality-gates (gate completion).
+- **Why:** DO/DON'T pairs are high-signal, low-token behavioral anchors. They address the exact moment where Claude is most likely to shortcut (e.g., carrying over stale context, jumping to a fix, skipping agents).
+- **To test:** Read each file and verify DO/DON'T pairs are present at the specified locations.
+- **To revert:** Remove the "DO / DON'T" blocks from the three files.
+
+### Resilience & Error Handling (OPT-47, OPT-48)
+
+#### OPT-47: Graceful Degradation Pattern
+- **Files:** `.claude/skills/SKILL_TEMPLATE.md`, `.claude/skills/sprint-end/SKILL.md`, `.claude/skills/bootstrap/SKILL.md`, `.claude/skills/code-quality/SKILL.md`
+- **What:** Added "Graceful Degradation" pattern to SKILL_TEMPLATE.md with a dependency/fallback table. Added skill-specific degradation tables to sprint-end (sub-agents, CI, test runner), bootstrap (package manager, formatter, test runner), and code-quality (linting tools).
+- **Why:** Skills previously assumed all dependencies existed. Missing tools (no CI, no linter, no test runner) caused confusion or stalling. Explicit fallbacks make behavior predictable.
+- **To test:** Run `/sprint-end` in a project without CI configured. Verify it proceeds with local quality gates instead of stalling.
+- **To revert:** Remove the "Graceful Degradation" sections from SKILL_TEMPLATE.md and the three skill files.
+
+#### OPT-48: Pre-Execution Validation Pattern
+- **Files:** `.claude/skills/SKILL_TEMPLATE.md`, `.claude/skills/ideate/SKILL.md`, `.claude/skills/handoff/SKILL.md`
+- **What:** Added "Pre-Execution Validation" pattern to SKILL_TEMPLATE.md. Added Phase 0 validation to ideate (checks backlog dir and BACKLOG_INDEX.md exist) and handoff (checks docs/sessions/ dir exists).
+- **Why:** Skills that produce structured output files can fail halfway through if directories don't exist or input files are missing. Validating prerequisites first prevents wasting context on doomed operations.
+- **To test:** Run `/ideate` in a project without `docs/reference/backlog/` directory. Verify it creates the directory or reports the issue before starting decomposition.
+- **To revert:** Remove the "Pre-Execution Validation" section from SKILL_TEMPLATE.md. Remove the "Phase 0" sections from ideate/SKILL.md and handoff/SKILL.md.
+
+### Tooling & Automation (OPT-49)
+
+#### OPT-49: Skills Registry Generator (update-registry.sh)
+- **New files:** `.claude/skills/skill-create/scripts/update-registry.sh`, `.claude/skills/skills-registry.json`
+- **Modified:** `.claude/skills/skill-create/SKILL.md`
+- **What:** Created a bash script that walks all `.claude/skills/*/SKILL.md` files, extracts YAML frontmatter, and generates a JSON registry at `.claude/skills/skills-registry.json`. Updated skill-create Step 7 to run the script after creating skills.
+- **Why:** The YAML frontmatter added in v2.4 is machine-readable but there's no machine-readable index. The registry enables tooling: automated inventory, dependency graph generation, version checking.
+- **To test:** Run `bash .claude/skills/skill-create/scripts/update-registry.sh`. Verify `skills-registry.json` is created with entries for all skills.
+- **To revert:** Delete `scripts/update-registry.sh` and `skills-registry.json`. Remove the registry reference from skill-create/SKILL.md Step 7.
+
 ## [2.4.0] - 2026-02-22
 
 ### Quality & Review Architecture

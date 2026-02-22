@@ -87,6 +87,16 @@ After user approves the design:
 - **For complex designs:** Save the design to `docs/plans/` for reference during implementation
 - **For unknowns:** Create spike stories to resolve open questions first
 
+## Example
+
+```
+Input:  /brainstorm "real-time notifications"
+Output: 3 approaches explored (WebSockets, SSE, polling)
+        Recommended: SSE — simpler, sufficient for one-way notifications
+        Risks: browser support for SSE reconnection, scaling beyond 1000 connections
+        Next: /ideate with SSE approach after user approval
+```
+
 ## Rules
 
 - NEVER jump to a solution without exploring alternatives

@@ -58,6 +58,8 @@ find . -type f \
 
 ### A1-A3. Detect Stack, Commands, and Measure Codebase
 
+Run `scripts/detect-stack.sh` — execute directly, do NOT read source first.
+
 Read `references/stack-detection.md` for detailed detection tables and commands. This covers:
 - Technology stack detection (A1)
 - Command detection (A2)
@@ -157,6 +159,14 @@ Review findings. Fix genuine gaps before presenting the summary to the user.
 - Run `/ideate` to plan your next feature
 - Run `/sprint-start` to begin a sprint
 ```
+
+## Graceful Degradation
+
+| Dependency       | If Missing                                              |
+|------------------|---------------------------------------------------------|
+| Package manager  | Skip dependency analysis, note "manual setup required"  |
+| Formatter        | Skip hook configuration, note in summary                |
+| Test runner      | Record "N/A" for test baseline, skip coverage analysis  |
 
 ## Rules
 

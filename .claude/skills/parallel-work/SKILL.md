@@ -20,6 +20,8 @@ Git worktrees allow multiple Claude Code instances to work on different stories 
 
 ### List Active Worktrees
 
+Run `scripts/worktree-status.sh` — execute directly, do NOT read source first.
+
 ```bash
 git worktree list
 ```

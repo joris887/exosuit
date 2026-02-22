@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v2.4 — Deep Dive
+# JD-LLM Development Framework v2.5 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -565,6 +565,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **"Common Mistakes — NEVER" table** (*new in v2.3*): Prevents common skill creation anti-patterns like generic content Claude already knows, skills >150 lines without references, and examples from training data instead of the actual codebase.
 
+**Scaffolding and registry scripts** (*new in v2.5*): `scripts/init-skill.sh` scaffolds a new skill directory with SKILL.md template (including YAML frontmatter), references/, scripts/, and assets/ subdirectories. `scripts/update-registry.sh` walks all skills and generates `skills-registry.json` from YAML frontmatter — a machine-readable index of all skills.
+
 **Optimization opportunity:** Monitor the context cost of generated tech skills when auto-invoked. The reference splitting should keep SKILL.md lean, but verify that Claude actually reads the references when needed.
 
 ---
@@ -853,6 +855,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 
 **v2.4 context efficiency improvements:** Agent-first file discovery in story-cycle Phase 1 reduces unnecessary file reading during planning (~5-15 files avoided per story). Confidence-based scoring in quality agents reduces noise in sprint-end reports. YAML frontmatter adds ~50 tokens per skill but enables automated inventory and dependency validation.
 
+**v2.5 context efficiency improvements:** Script black-boxing policy — scripts in `scripts/` are executed directly without reading their source, saving ~500 tokens per script invocation. Reference navigation pattern — skills now include section-level grep hints ("search for `## Section`") so Claude loads one section instead of an entire reference file. New `assets/` resource type for output templates that are copied without being read into context.
+
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
 ---
@@ -928,6 +932,14 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 | File | Purpose |
 |---|---|
 | docs/reference/tech/*.md | Technology-specific reference docs |
+
+### Layer 5: Skill Assets (Copy, Don't Read)
+
+| Directory | Purpose |
+|---|---|
+| .claude/skills/*/assets/ | Output templates — copied to target location and edited, never read into context |
+
+**Design principle:** Assets are boilerplate templates used in skill output. Copy an asset to the target location and Edit it — never Read the asset into context first. This keeps context cost at zero.
 | docs/adr/*.md | Architecture Decision Records |
 | docs/technical-debt.md | Technical debt inventory |
 
@@ -983,6 +995,25 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v2.5
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-40 | Script execution policy — black-box directives for scripts/ | Implemented |
+| OPT-41 | Reference navigation pattern — section-level grep hints | Implemented |
+| OPT-42 | Resource types table (scripts/, references/, assets/) | Implemented |
+| OPT-43 | Skill scaffolding script (init-skill.sh) | Implemented |
+| OPT-44 | Input/output examples in skills (debug-session, brainstorm, ideate) | Implemented |
+| OPT-45 | Imperative language cleanup (minor) | Implemented |
+| OPT-46 | DO/DON'T anti-pattern pairs at critical transition points | Implemented |
+| OPT-47 | Graceful degradation pattern for missing dependencies | Implemented |
+| OPT-48 | Pre-execution validation for file-producing skills | Implemented |
+| OPT-49 | Skills registry generator (update-registry.sh → skills-registry.json) | Implemented |
+
+**Key changes in v2.5:** Context efficiency improvements through script black-boxing and reference navigation. Skill development experience improved with scaffolding tools and I/O examples. Resilience improved with graceful degradation and pre-execution validation patterns. Tooling improved with automated skills registry generation.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v2.4
 

@@ -62,7 +62,13 @@ Skip reference doc when:
 
 ## 3. Generate Skills
 
-For each technology that warrants a skill, create:
+For each technology that warrants a skill, scaffold using:
+
+```bash
+bash scripts/init-skill.sh <tech-name>
+```
+
+Execute directly — do NOT read script source first.
 
 ### Skill File Structure
 
@@ -144,6 +150,7 @@ For each technology with a reference doc:
 
 After creating all skills:
 
+- Run `bash scripts/update-registry.sh` to regenerate `skills-registry.json`
 - Update `.claude/skills/SKILLS_INVENTORY.md` with new technology skills
 - Add entries to the Technology Skills category
 - List each skill with its technology, version, and whether it has a reference doc

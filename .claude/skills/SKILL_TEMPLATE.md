@@ -91,11 +91,34 @@ Follow coding standards in `docs/reference/CODING_STANDARDS.md`.
 Follow architecture constraints in `docs/architecture/ARCHITECTURE.md`.
 ```
 
-## Skill Size Guidelines
+## Skill Size & Resource Types
 
-- **Target:** < 150 lines for the main SKILL.md
-- **If larger:** Split into SKILL.md (main flow) + supporting files in skill directory
-- **Supporting files:** `references/`, `examples/`, `templates/`
+- **Target:** < 150 lines for SKILL.md
+- **If larger:** Split into SKILL.md + supporting files
+
+| Directory      | Purpose                             | Context Impact             |
+|----------------|-------------------------------------|----------------------------|
+| `scripts/`     | Executable code — run, don't read   | Zero (black-box execution) |
+| `references/`  | Documentation — load on demand      | Medium (grep for sections) |
+| `assets/`      | Output templates — copy, don't read | Zero (copy and edit)       |
+
+**assets/** contains templates and boilerplate used in output. Copy an asset to the
+target location and Edit it — never Read the asset into context first.
+
+## Script Execution Policy
+
+Scripts in `scripts/` are black boxes — execute them directly, do NOT read their
+source code before running. Only read script source when debugging a failure.
+
+This saves significant context: a 50-line script produces 5-10 lines of output.
+
+## Reference Navigation Pattern
+
+When referencing supporting docs, include section-level grep hints:
+- BAD: "See `references/api.md` for details"
+- GOOD: "In `references/api.md`, search for `## Authentication` — load only that section"
+
+This lets Claude load one section instead of the full file.
 
 ## Story Skill Metadata
 
@@ -130,6 +153,28 @@ Workflow skills should include a `## Recovery` section for predictable failure h
 2. Offer: fix now vs. defer to technical debt
 3. If critical (security): must fix before proceeding
 ```
+
+## Graceful Degradation
+
+Workflow skills should document fallback behavior when dependencies are missing:
+
+| Dependency      | If Missing                           |
+|-----------------|--------------------------------------|
+| Sub-agents      | Perform analysis manually in context |
+| Formatter/linter| Skip auto-format, note in output     |
+| Test runner     | Warn user, skip test verification    |
+| CLI tool        | Run `[tool] --help` first; if not installed, skip and note |
+
+## Pre-Execution Validation
+
+Skills that produce structured files (stories, session files, docs) should validate
+prerequisites before doing work:
+
+- Target directory exists
+- Required input files are readable
+- No conflicting work-in-progress
+
+Fail early with a clear message — don't consume context on doomed operations.
 
 ## Description Trap Warning
 

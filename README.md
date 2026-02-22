@@ -175,6 +175,7 @@ The `/story-cycle` skill adapts methodology by story type:
       SKILL.md          # Lean entry point (<150 lines)
       references/       # Detailed docs loaded on demand
       scripts/          # Executable helper scripts (--help supported)
+      assets/           # Output templates — copy, don't read
   prompts/              # Prompt snippets + subagent templates
     agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer)
   rules/                # Path-scoped rules for testing, security, git, verification

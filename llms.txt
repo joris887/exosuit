@@ -11,7 +11,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.4)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v2.5)
 
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
@@ -30,6 +30,9 @@
 - .claude/skills/continue/SKILL.md: Smart session resumption
 - .claude/skills/handoff/SKILL.md: Session end, handoff document with quality check
 - .claude/skills/skill-create/SKILL.md: Generate technology-specific skills with co-located references
+  - scripts/init-skill.sh: Scaffold a new skill directory with SKILL.md template
+  - scripts/update-registry.sh: Generate skills-registry.json from YAML frontmatter
+- .claude/skills/skills-registry.json: Machine-readable index of all skills (generated)
 - .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with root cause tracing
   - references/root-cause-tracing.md: Backward tracing technique
   - references/condition-based-waiting.md: Replace timeouts with condition polling
@@ -39,7 +42,7 @@
 - .claude/skills/skill-eval/SKILL.md: Skill evaluation — test, A/B compare, metrics
 - .claude/skills/refine-loop/SKILL.md: Iterative self-improvement until completion criteria met
 - .claude/skills/SKILLS_INVENTORY.md: Full skill inventory
-- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, context budget principle, evaluation criteria, and TDD methodology
+- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, resource types, script policy, grep navigation, graceful degradation, pre-execution validation, and TDD methodology
 
 ## Rules
 - .claude/rules/testing.md: Test file protection rules

@@ -12,6 +12,14 @@ ______________________________________________________________________
 
 Generate a comprehensive handoff for ending a development session:
 
+## Phase 0: Validate Prerequisites
+
+Before starting, verify:
+- `docs/sessions/` directory exists (create if missing)
+- No conflicting session file for today's date
+
+If the directory is missing, create it silently and proceed.
+
 ## 1. Capture Current State
 
 Analyze:

@@ -54,11 +54,17 @@ Start at the error location and trace BACKWARD through the call stack:
 
 For multi-component systems, trace across component boundaries — check API calls, database queries, event handlers.
 
-See `references/root-cause-tracing.md` for detailed backward tracing technique.
+See `references/root-cause-tracing.md` — search for `## Steps` for the backward trace procedure.
 
 <HARD-GATE>
-Do NOT attempt any fix until the root cause is identified with evidence. "I think it might be X" without evidence is NOT identification. You must show: where the bug is, why it happens, and what incorrect state or logic causes it.
+Do NOT attempt any fix until the root cause is identified with evidence. "I think it might be X" without evidence is NOT identification. Show: where the bug is, why it happens, and what incorrect state or logic causes it.
 </HARD-GATE>
+
+**DO / DON'T:**
+- DO trace backward from the symptom to the source before forming a hypothesis.
+- DON'T jump to a fix based on the error message alone — the message describes the symptom, not the cause.
+- DO add temporary logging to confirm data flow before changing logic.
+- DON'T change multiple things at once hoping one will fix it.
 
 ## Phase 2: Pattern Analysis
 
@@ -91,7 +97,7 @@ Based on evidence from Phases 1-2, state:
 | "It's probably X" without evidence | STOP. Gather evidence. |
 | Fix works but you don't understand why | STOP. Understand before committing. |
 
-See `references/condition-based-waiting.md` for fixing timing-related bugs.
+See `references/condition-based-waiting.md` — search for `## Patterns by Language` and load only your language's section.
 
 ## Phase 4: Fix Implementation (TDD)
 
@@ -115,6 +121,16 @@ git commit -m "fix(<scope>): <what was fixed>
 Root cause: <explanation>
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+## Example
+
+```
+Input:  /debug-session "TypeError: Cannot read properties of undefined (reading 'map')"
+Output: Phase 1 → traced to `fetchUsers()` returning `undefined` when API returns 404
+        Phase 3 → hypothesis: missing error handling for non-200 responses
+        Phase 4 → added guard clause + regression test
+        Phase 5 → commit: "fix(api): handle non-200 response in fetchUsers"
 ```
 
 ## Recovery

@@ -12,6 +12,15 @@ ______________________________________________________________________
 
 Transforming idea into backlog stories: **$ARGUMENTS**
 
+## Phase 0: Validate Prerequisites
+
+Before starting, verify:
+- `docs/reference/backlog/` directory exists (create if missing)
+- `docs/reference/BACKLOG_INDEX.md` is readable
+- No conflicting ideation in progress (check for uncommitted backlog changes)
+
+If prerequisites fail, inform the user and stop — don't consume context on doomed work.
+
 ## 1. Gather Input
 
 Understand the idea or requirement from `$ARGUMENTS` and any additional context the user provides.
@@ -162,6 +171,19 @@ After user approval:
 - Or create a new epic file if this is a new epic
 - Update `docs/reference/BACKLOG_INDEX.md` with new story counts
 - Update CLAUDE.md if the current focus changes
+
+## Example
+
+```
+Input:  /ideate "user authentication with email/password"
+Output: 5 stories decomposed:
+        S01: Testing infrastructure (fixtures, test helpers) [Testing]
+        S02: User model + migration [Feature]
+        S03: Registration endpoint with validation [Feature]
+        S04: Login endpoint with JWT tokens [Feature]
+        S05: Auth middleware for protected routes [Feature]
+        Dependency graph: S01 → S02 → S03/S04 → S05
+```
 
 ## Rules
 

@@ -10,6 +10,8 @@ Run the project's test command (from CLAUDE.md Commands section). If the project
 
 ## 2b. Test Protection
 
+Execute `scripts/test-count-delta.sh` directly — do NOT read source first.
+
 Compare test metrics on branch vs main. Run `bash scripts/test-count-delta.sh --help` first, then invoke:
 
 ```bash
@@ -54,6 +56,12 @@ Issues flagged by 2+ independent reviewers are auto-elevated to **Critical**. Th
 For smaller sprints, the standard quality agents (code-quality + test-validator) are sufficient.
 
 Present aggregated agent findings to user. If critical issues found, stop and fix first.
+
+**DO / DON'T:**
+- DO run ALL quality agents before declaring gates passed — skipping one agent is not "mostly passed."
+- DON'T use a previous session's quality results — run fresh agents against the current branch state.
+- DO present all findings ≥80 confidence to the user, even if they seem minor.
+- DON'T silently dismiss findings below the threshold — log them in the Notes section.
 
 ## Red Flags — Stop If You're Thinking:
 

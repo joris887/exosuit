@@ -158,6 +158,14 @@ git log --oneline -3
 **Main is clean and up to date.**
 ```
 
+## Graceful Degradation
+
+| Dependency   | If Missing                                          |
+|--------------|-----------------------------------------------------|
+| Sub-agents   | Run quality checks manually in the main context     |
+| CI pipeline  | Local quality gates (step 2) serve as verification  |
+| Test runner  | Warn user, skip test count delta, note in PR body   |
+
 ## Rules
 
 - NEVER merge without CI passing (or local gates if no CI)

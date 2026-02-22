@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 2.4
+**Framework Version:** 2.5
 
 ## Core Workflow
 
@@ -166,6 +166,14 @@ All skills include machine-readable YAML frontmatter with: `name`, `version`, `t
 - **`agent: general-purpose`** — Full capabilities (security-audit needs Bash)
 - **`agent: Plan`** — Planning without execution
 
+### Resource Types
+
+| Directory      | Purpose                             | Context Impact             |
+|----------------|-------------------------------------|----------------------------|
+| `scripts/`     | Executable code — run, don't read   | Zero (black-box execution) |
+| `references/`  | Documentation — load on demand      | Medium (grep for sections) |
+| `assets/`      | Output templates — copy, don't read | Zero (copy and edit)       |
+
 ### Context Management
 
 - **Inline** (default) — Workflow skills guiding main conversation
@@ -207,6 +215,7 @@ Deterministic enforcement via shell scripts:
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 2.5     | 2026-02-22 | Script black-boxing, grep navigation hints, resource types, skill scaffolding, I/O examples, DO/DON'T pairs, graceful degradation, pre-execution validation, skills registry |
 | 2.4     | 2026-02-22 | Confidence scoring, parallel quality gates, multi-perspective review, skill-eval, refine-loop, agent-first file discovery, example block triggers, session hook state, YAML frontmatter |
 | 2.3     | 2026-02-22 | Skill reference splitting, helper scripts, QA framing, Don'ts lists, CLI discovery pattern, doc quality sub-agents, co-located tech skill references, context budget principle, environment adaptation |
 | 2.2     | 2026-02-22 | Hard gates, trigger-only descriptions, verification rule, red flag tables, inline self-review, deepened debug-session, brainstorm skill, process flowcharts, subagent templates, TDD for skills, fix-immediately pattern |

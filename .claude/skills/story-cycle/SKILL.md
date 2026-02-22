@@ -146,9 +146,15 @@ After plan approval, selectively prune the context — keep discovery metadata, 
 
 The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 file paths costs ~200 tokens; the contents of those 20 files costs ~20,000.
 
+**DO / DON'T:**
+- DO reload coding standards and relevant files fresh after context transition.
+- DON'T carry over full file contents from Phase 1 — keep only paths, edge cases, and patterns.
+- DO re-read files from the plan's file list before editing them.
+- DON'T assume you remember file contents from Phase 1 — context may have changed.
+
 ## Phase 3: Execute by Story Type
 
-Read `references/story-types.md` for detailed execution instructions for each story type. Follow the methodology matching your identified type from Phase 1.
+In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 
 ## Phase 3.5: Self-Review Before Wrap-Up
 

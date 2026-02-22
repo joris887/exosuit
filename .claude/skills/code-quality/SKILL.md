@@ -64,6 +64,10 @@ Rate each finding 0–100:
 
 **Report ONLY findings scoring ≥80 as actionable.** Findings 50–79 go in a "Notes" section (non-blocking). Below 50: omit entirely.
 
+## Graceful Degradation
+
+If project-specific linting/quality tools are not installed, skip automated checks and perform manual code review. Note which tools were unavailable in the report output so the user can install them.
+
 ## Output Format
 
 ```markdown
