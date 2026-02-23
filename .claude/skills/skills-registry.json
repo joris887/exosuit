@@ -181,7 +181,7 @@
 ,
   {
     "name": "security-audit",
-    "version": "2.4.0",
+    "version": "3.0.1",
     "description": "Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input.",
     "trigger": "conditional",
     "depends_on": [],
@@ -257,6 +257,16 @@
     "depends_on": [],
     "references": [],
     "path": ".claude/skills/testing-cycle/SKILL.md"
+  }
+,
+  {
+    "name": "undo-work",
+    "version": "3.0.1",
+    "description": "Safely discard or revert failed implementation attempts and restore a clean working state.",
+    "trigger": "manual",
+    "depends_on": [],
+    "references": [],
+    "path": ".claude/skills/undo-work/SKILL.md"
   }
 ,
   {

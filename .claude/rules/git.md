@@ -13,4 +13,5 @@ paths:
 - Delete feature branches after merge
 - Never skip pre-commit hooks (`--no-verify`)
 - Never amend published commits without explicit user approval
+- When a pre-commit hook fails, the commit did NOT happen — always create a NEW commit after fixing the issue, never `--amend` (amending would modify the PREVIOUS commit, risking lost work)
 - Commit footer: `Co-Authored-By: Claude <noreply@anthropic.com>`

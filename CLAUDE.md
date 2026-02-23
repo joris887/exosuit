@@ -59,6 +59,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | Architecture check     | `/architecture-check`          |
 | Framework health check | `/doctor`                      |
 | Evaluate a skill       | `/skill-eval <mode> <skill>`   |
+| Undo failed work       | `/undo-work`                   |
 | Iterative refinement   | `/refine-loop "<task>"`        |
 
 ## Important Files

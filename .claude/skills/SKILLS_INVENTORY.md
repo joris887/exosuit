@@ -52,7 +52,7 @@ For technology skill generation: `/skill-create`
 | ----------------- | --------------------- | ------------------- |
 | `/code-quality`   | After code changes    | Explore (forked)    |
 | `/test-validator` | After implementation  | Explore (forked)    |
-| `/security-audit` | Auth/credentials code | general-purpose (forked) |
+| `/security-audit` | Auth/credentials code | Explore (forked)    |
 
 ### Architecture (Manual + Auto)
 
@@ -89,10 +89,12 @@ For structured UAT with tracked test cases:
 /sprint-start → /UAT-cycle (repeat per test case) → /sprint-end
 ```
 
+**When to use which:** Use `/testing-cycle` for ad-hoc exploratory findings during manual testing. Use `/UAT-cycle` for pre-defined acceptance test cases from `UAT_COVERAGE.md`.
+
 | Skill            | Arguments                       | Description                                      |
 | ---------------- | ------------------------------- | ------------------------------------------------ |
 | `/manual-test`   | -                               | Generate test plan from recent changes/issues    |
-| `/testing-cycle` | `<feedback-description>`        | Process one user feedback item (classify → fix)  |
+| `/testing-cycle` | `<feedback-description>`        | Process one ad-hoc feedback item (classify → fix)  |
 | `/UAT-cycle`     | `<test-case-id-or-description>` | Execute a formal UAT test case, process findings |
 
 **UAT Coverage File:** `docs/testing/UAT_COVERAGE.md`
@@ -111,6 +113,7 @@ For structured UAT with tracked test cases:
 | `/commit`        | `[type] [scope]` | Conventional commit  |
 | `/fix-issue`     | `<issue-number>` | GitHub issue fixer   |
 | `/pr-status`     | -                | Check PR status      |
+| `/undo-work`     | `[--soft\|--hard\|--story]` | Safely revert failed implementation attempts |
 | `/debug-session` | `<error>`        | 5-phase structured debugging with reasoning scaffolds, error recovery tables, halt conditions |
 
 ### Prompt Snippets (`.claude/prompts/`)
@@ -163,8 +166,8 @@ All skills include machine-readable YAML frontmatter with: `name`, `version`, `t
 
 ### Agent Types
 
-- **`agent: Explore`** — Read-only analysis (code-quality, test-validator, architecture-check)
-- **`agent: general-purpose`** — Full capabilities (security-audit needs Bash)
+- **`agent: Explore`** — Read-only analysis (code-quality, test-validator, security-audit, architecture-check)
+- **`agent: general-purpose`** — Full capabilities (Edit, Write, Bash)
 - **`agent: Plan`** — Planning without execution
 
 ### Resource Types

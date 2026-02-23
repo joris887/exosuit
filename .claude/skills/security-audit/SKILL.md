@@ -8,7 +8,7 @@ references: []
 ---
 ______________________________________________________________________
 
-## name: security-audit description: Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input. <example>Run security audit on authentication changes</example> <example>Check for hardcoded secrets in the codebase</example> <example>Verify input validation on user-facing endpoints</example> user-invocable: true allowed-tools: Read, Glob, Grep, Bash context: fork agent: general-purpose
+## name: security-audit description: Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input. <example>Run security audit on authentication changes</example> <example>Check for hardcoded secrets in the codebase</example> <example>Verify input validation on user-facing endpoints</example> user-invocable: true allowed-tools: Read, Glob, Grep, Bash context: fork agent: Explore
 
 You are a security engineer. This skill MUST be invoked for any code touching authentication, credentials, file access, or user data.
 
