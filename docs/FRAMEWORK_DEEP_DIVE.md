@@ -72,7 +72,7 @@ Without this philosophy, AI-assisted development tends toward: long unfocused se
 │  Settings (configuration)                        │
 ├─────────────────────────────────────────────────┤
 │                   WORKFLOW                        │
-│  Skills (27+ skills, lean SKILL.md + references/) │
+│  Skills (29 skills, lean SKILL.md + references/)  │
 │  Bootstrap → Sprint → Story → Quality → Ship     │
 ├─────────────────────────────────────────────────┤
 │                 DOCUMENTATION                     │
@@ -103,7 +103,7 @@ Without this philosophy, AI-assisted development tends toward: long unfocused se
 
 ### CLAUDE.md — The Hub
 
-**File:** `CLAUDE.md` (66 lines)
+**File:** `CLAUDE.md` (~104 lines)
 **Auto-loaded:** Yes, every conversation
 **Added value:** Single source of truth for project-specific configuration
 
@@ -127,7 +127,7 @@ This is the most important file in the framework. It's loaded into every Claude 
 - Architecture details (in `docs/architecture/ARCHITECTURE.md`)
 - Placeholder comments (removed in v2.0 — they waste tokens)
 
-**Optimization opportunity:** Monitor actual CLAUDE.md content after /bootstrap runs on real projects. If it exceeds 80 lines, trim further. The compaction directive at the bottom is critical — it tells Claude what to preserve when context is compressed.
+**Optimization opportunity:** The template CLAUDE.md is ~104 lines before /bootstrap fills it. Monitor actual CLAUDE.md content after /bootstrap runs on real projects — the template placeholders should be replaced with concise content, not expanded. The compaction directive at the bottom is critical — it tells Claude what to preserve when context is compressed.
 
 ### .claude/settings.json — Claude Code Configuration
 
@@ -227,15 +227,15 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 
 **File:** `.claude/hooks/session-start.sh`
 **Trigger:** At the start of every Claude Code session
-**Added value:** Ensures framework integrity before any work begins
+**Added value:** Surfaces configuration issues before they cause mid-session failures
 
-**What it does:**
-- Validates that required framework directories exist (`docs/sessions/`, `docs/plans/`, `.claude/hooks/`)
-- Checks that hooks are executable and their declared dependencies are available
-- Reports stale session files (>7 days) that may indicate abandoned work
-- Verifies CLAUDE.md is present and non-empty
+**What it does (all advisory — never blocks):**
+1. **Tool existence check:** Verifies tools referenced in CLAUDE.md Commands (test, lint, build, etc.) are available in PATH
+2. **Stale session detection:** Warns if `.auto-save.md` is older than 24 hours (suggests using `/continue` instead of starting fresh)
+3. **Git state warnings:** Reports if on main/master, detached HEAD, or with uncommitted changes
+4. **Hook coverage check:** Warns if Stop or PostToolUse hooks are not configured
 
-**Why this matters:** Without a session-start check, a corrupted or incomplete framework setup is only discovered when a skill or hook fails mid-session. Early validation surfaces configuration issues at the point where they're cheapest to fix.
+**Why this matters:** Without session-start checks, a misconfigured environment is only discovered when a skill or hook fails mid-session. Early advisory warnings surface issues at the point where they're cheapest to fix.
 
 #### activity-logger.sh (PostToolUse) (*new in v3.0*)
 
@@ -244,9 +244,11 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 **Added value:** Provides observability into tool usage patterns for retrospective analysis
 
 **What it does:**
-- Appends a JSON line to `docs/sessions/.activity-log.jsonl` with timestamp, tool name, and target file (if applicable)
-- Lightweight — adds <5ms per tool invocation
-- Log is rotated per session (previous session's log is archived)
+- Appends a JSON line to `docs/sessions/.activity-log.jsonl` with timestamp, tool name, and target file/command
+- Only logs Edit, Write, and Bash invocations (skips other tools)
+- Truncates long commands to 120 characters
+- Rotates at 200 entries (keeps the most recent; cycles out oldest)
+- Falls back to sed-based extraction if jq is unavailable
 - Data feeds into `/retrospective` metrics and context budget analysis
 
 **Why this matters:** Understanding which tools are used most frequently, which files are edited repeatedly (churn indicators), and how context budget is consumed across a session enables data-driven framework optimization.
@@ -765,7 +767,7 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **File:** `.claude/skills/security-audit/SKILL.md`
 **Purpose:** Security review for sensitive code.
-**Agent type:** general-purpose (forked context, needs Bash for security tools)
+**Agent type:** Explore (forked context, with Bash access for security scanning tools)
 **Added value:** Catches vulnerabilities that functional tests miss.
 
 **New in v2.0:**
@@ -892,22 +894,61 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 ## 11. Skills — Testing Workflow (User-Facing)
 
+These skills handle the human-driven testing side of development — generating test plans, processing manual test feedback, and executing formal UAT test cases. They complement the automated quality agents (code-quality, test-validator, security-audit) which focus on code-level analysis.
+
 ### /manual-test
 
-**Purpose:** Generate a test plan for manual user testing.
+**File:** `.claude/skills/manual-test/SKILL.md`
+**Purpose:** Generate a structured test plan for manual user testing.
 **Added value:** Bridges the gap between automated tests and user experience validation.
+
+**How it works:**
+1. **Gather context** — Reads recent changes (git log), known issues (backlog), acceptance criteria (current stories), and existing UAT coverage
+2. **Pre-flight** — Runs automated test suite to establish baseline
+3. **Generate test plan** with three sections:
+   - **Regression tests** — Verify existing functionality still works after recent changes
+   - **Known issue checks** — Test known issues from the backlog
+   - **Exploratory testing** — Unscripted testing areas based on recent change patterns
+4. **Present plan** with instructions to report findings via `/testing-cycle`
+
+**Why this matters:** Automated tests can verify logic but can't test user experience — is the UI intuitive? Does the flow feel right? Are error messages helpful? Manual testing fills this gap, and this skill provides the structure so testers know what to focus on.
 
 ### /testing-cycle
 
+**File:** `.claude/skills/testing-cycle/SKILL.md`
 **Purpose:** Process one item of user testing feedback.
-**Added value:** Structured response to user-reported issues (classify, reproduce, fix, verify).
+**Added value:** Structured response to user-reported issues — prevents ad-hoc bug-fixing that skips classification.
+
+**Four steps:**
+1. **Classify feedback** into one of four types:
+   - **Bug (Critical)** — Blocks functionality, fix immediately
+   - **Bug (Minor)** — Incorrect but non-blocking, fix or log
+   - **Gap** — Missing functionality, log to backlog
+   - **Test Correction** — Test expectation was wrong, update test
+   - **Enhancement** — Not a bug, log as future improvement
+2. **Act by type** — Investigate, write test, fix, or log to backlog
+3. **Verify** — Run tests, confirm fix with user if applicable
+4. **Report** — Summarize findings and actions taken
+
+**When to use:** After manual testing when a user reports an issue. Each `/testing-cycle` invocation handles one feedback item — invoke multiple times for multiple items.
 
 ### /UAT-cycle
 
+**File:** `.claude/skills/UAT-cycle/SKILL.md`
 **Purpose:** Execute a formal UAT test case with tracked results.
-**Added value:** Formal acceptance testing with audit trail.
+**Added value:** Formal acceptance testing with audit trail in `docs/testing/UAT_COVERAGE.md`.
 
-**How they work together:**
+**Five steps:**
+1. **Select test case** from `docs/testing/UAT_COVERAGE.md` (by ID or description)
+2. **Execute test** — User performs the test steps, reports pass/fail
+3. **Process findings** — Classify and act on failures (same classification as testing-cycle)
+4. **Update UAT coverage** — Mark test case status in UAT_COVERAGE.md
+5. **Close cycle** — Completion report with pass/fail summary
+
+**When to use:** For pre-defined acceptance test cases that need tracked results. Typically used before major releases or at sprint boundaries.
+
+**How the three skills work together:**
+
 ```
 /manual-test → generates test plan → user tests manually → /testing-cycle (per issue) → /sprint-end
 ```
@@ -916,6 +957,11 @@ Or for formal UAT:
 ```
 /UAT-cycle TC-001 → /UAT-cycle TC-002 → ... → results in docs/testing/UAT_COVERAGE.md
 ```
+
+**When to use which:**
+- `/manual-test` — Generate a test plan when you need to decide *what* to test
+- `/testing-cycle` — Process ad-hoc findings from exploratory or manual testing
+- `/UAT-cycle` — Execute pre-defined test cases with formal tracking
 
 **Optimization opportunity:** The testing workflow skills are less mature than the development workflow skills. Monitor usage patterns — are users using all three skills or just one? Are the test plans useful? Do users prefer /testing-cycle or /UAT-cycle?
 
@@ -991,6 +1037,29 @@ Quality agents (code-quality, test-validator, security-audit) now have explicit 
 
 This prevents quality agents from accidentally modifying the codebase during analysis and ensures their output is purely advisory.
 
+### /undo-work (*new in v3.0*)
+
+**File:** `.claude/skills/undo-work/SKILL.md`
+**Purpose:** Safely revert failed implementation attempts and restore a clean working state.
+**Added value:** Prevents manual git archaeology when an approach fails.
+
+**Three rollback levels:**
+
+| Level | Flag | What It Does | Recoverable? |
+|---|---|---|---|
+| **Soft** | `--soft` | Stash uncommitted changes | Yes — `git stash pop` |
+| **Hard** | `--hard` | Discard uncommitted changes | No |
+| **Story** | `--story` | Reset branch to before story commits | No |
+
+**Five steps:**
+1. **Assess current state** — Branch, uncommitted changes, commits since branch point
+2. **Confirm scope with user** — Show exactly what will be lost (hard gate — never proceeds without approval)
+3. **Execute rollback** — Apply the chosen level
+4. **Verify clean state** — Confirm the working tree is clean
+5. **Document learnings** (optional) — Note what went wrong for future reference
+
+**Why this matters:** When an implementation approach fails, developers often waste time manually reverting changes across multiple files. This skill provides a structured, safe way to "undo and try again" without losing unrelated work. The confirmation gate prevents accidental data loss.
+
 ### /commit, /fix-issue, /pr-status
 
 Small, focused utility skills:
@@ -998,7 +1067,7 @@ Small, focused utility skills:
 | Skill | What It Does | Added Value |
 |---|---|---|
 | `/commit` | Generates conventional commit message | Consistent commit history |
-| `/fix-issue` | Reads GitHub issue, creates fix | Structured bug-fixing workflow |
+| `/fix-issue` | Reads GitHub issue, creates fix with TDD | Structured bug-fixing workflow |
 | `/pr-status` | Checks PR status and CI | Quick status check without leaving the terminal |
 
 ---
@@ -1012,7 +1081,7 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 ### Framework's Approach
 
 **Minimize auto-loaded content:**
-- CLAUDE.md: 66 lines (was 173 in v1.0)
+- CLAUDE.md: ~104 lines (was 173 in v1.0)
 - progress.md: Minimal template, filled per sprint
 - BACKLOG_INDEX.md: Index only, epic files loaded on demand
 
@@ -1035,7 +1104,7 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 
 | Item | Estimated Tokens | Loaded When |
 |---|---|---|
-| CLAUDE.md | ~800 | Always |
+| CLAUDE.md | ~1200 | Always |
 | progress.md | ~200 | Always (auto-loaded) |
 | BACKLOG_INDEX.md | ~300 | Always (auto-loaded) |
 | A skill SKILL.md | 400-800 | When skill is invoked |
@@ -1045,7 +1114,7 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 | CODING_STANDARDS.md | ~800 | During story-cycle execution |
 | TESTING_STRATEGY.md | ~2500 | When story-cycle loads it |
 
-**Total auto-loaded overhead:** ~1300 tokens (CLAUDE.md + progress.md + BACKLOG_INDEX.md)
+**Total auto-loaded overhead:** ~1700 tokens (CLAUDE.md + progress.md + BACKLOG_INDEX.md)
 
 **v2.3 context efficiency improvements:** Skills now follow a three-level loading pattern: lean SKILL.md (always loaded when invoked, <150 lines) → references/ (loaded on demand when specific detail is needed) → scripts/ (executed as black boxes, never read into context). This means a `/story-cycle` invocation loads ~800 tokens initially, then only loads `references/story-types.md` (~500 tokens) for the specific story type being executed. Previously, all 317 lines loaded every time.
 
@@ -1103,7 +1172,7 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 **Trigger:** On pull request open and synchronize events
 **Added value:** Automated, consistent PR review using Claude Code as a CI step
 
-**How it works:** When a PR is opened or updated, a GitHub Actions workflow dispatches Claude Code to review the diff. The review checks for: code quality issues, test coverage gaps, security concerns, convention violations, and architectural drift. Findings are posted as PR review comments with severity levels.
+**How it works:** When a PR is opened or updated, a GitHub Actions workflow dispatches Claude Code to review the diff using `.claude/commands/review-pr-ci.md` — a non-interactive PR review command. The review checks for: code quality issues (complexity >10, duplication >10 lines), test coverage gaps (missing test files, weakened assertions, assertion density <1.5), security concerns (hardcoded secrets, CWE patterns, input validation), and convention violations. Findings are posted as structured PR review comments with severity levels and confidence scoring (only ≥80 findings are actionable). Tiered access ensures external contributors receive structure-only review (no code-level analysis).
 
 **Why this matters:** Human code review is bottlenecked by availability. Claude-as-CI provides immediate, consistent feedback on every PR without waiting for a human reviewer. This is complementary to (not a replacement for) human review — it catches mechanical issues so human reviewers can focus on design and intent.
 
@@ -1242,18 +1311,19 @@ Lists all key files with descriptions so any LLM tool can understand the project
 
 | ID | Optimization | Status |
 |---|---|---|
-| OPT-83 | Claude-as-CI PR Reviewer (automated PR review workflow via GitHub Actions) | Implemented |
-| OPT-84 | PR Template (structured `.github/pull_request_template.md` for consistent PR documentation) | Implemented |
-| OPT-85 | SessionStart Hook (framework integrity validation at session start) | Implemented |
-| OPT-86 | Hook-Based Activity Logging (PostToolUse activity-logger for tool usage observability) | Implemented |
-| OPT-87 | Skill Conformance Validator (validates skill structure against SKILL_TEMPLATE.md conventions) | Implemented |
-| OPT-88 | Skills Registry Schema Validation (JSON schema validation for skills-registry.json) | Implemented |
-| OPT-89 | Story-Cycle Fast-Track Mode (TRIVIAL/SMALL/STANDARD size classification skips ceremony for simple changes) | Implemented |
-| OPT-90 | Dynamic Quality Agent Scaling (Minimal/Small/Standard/Large scope-based agent dispatch) | Implemented |
-| OPT-91 | Tool Restriction per Agent (least-privilege tool access for quality agents) | Implemented |
-| OPT-92 | GitHub Issue Templates (structured bug report and feature request forms) | Implemented |
+| OPT-87 | Claude-as-CI PR Reviewer (automated PR review workflow via GitHub Actions) | Implemented |
+| OPT-88 | PR Template (structured `.github/pull_request_template.md` for consistent PR documentation) | Implemented |
+| OPT-89 | SessionStart Hook (framework integrity validation at session start) | Implemented |
+| OPT-90 | Hook-Based Activity Logging (PostToolUse activity-logger for tool usage observability) | Implemented |
+| OPT-91 | Skill Conformance Validator (validates skill structure against SKILL_TEMPLATE.md conventions) | Implemented |
+| OPT-92 | Skills Registry Schema Validation (JSON schema validation for skills-registry.json) | Implemented |
+| OPT-93 | Story-Cycle Fast-Track Mode (TRIVIAL/SMALL/STANDARD size classification skips ceremony for simple changes) | Implemented |
+| OPT-94 | Dynamic Quality Agent Scaling (Minimal/Small/Standard/Large scope-based agent dispatch) | Implemented |
+| OPT-95 | Tool Restriction per Agent (least-privilege tool access for quality agents) | Implemented |
+| OPT-96 | GitHub Issue Templates (structured bug report and feature request forms) | Implemented |
+| OPT-97 | Undo-work skill (safe rollback with soft/hard/story levels and confirmation gate) | Implemented |
 
-**Key changes in v3.0:** CI/CD integration improved with Claude-as-CI PR reviewer and PR template for consistent PR documentation. Session lifecycle improved with SessionStart hook for framework validation and activity-logger hook for tool usage observability. Workflow efficiency improved with story-cycle fast-track mode that eliminates ceremony for trivial/small changes and dynamic quality agent scaling that right-sizes review effort to sprint scope. Security posture improved with per-agent tool restrictions enforcing least privilege. Skill quality improved with conformance validation and registry schema validation. Collaboration improved with GitHub issue templates for structured bug reports and feature requests.
+**Key changes in v3.0:** CI/CD integration improved with Claude-as-CI PR reviewer and PR template for consistent PR documentation. Session lifecycle improved with SessionStart hook for framework validation and activity-logger hook for tool usage observability. Workflow efficiency improved with story-cycle fast-track mode that eliminates ceremony for trivial/small changes and dynamic quality agent scaling that right-sizes review effort to sprint scope. Security posture improved with per-agent tool restrictions enforcing least privilege. Skill quality improved with conformance validation and registry schema validation. Collaboration improved with GitHub issue templates for structured bug reports and feature requests. Recovery improved with `/undo-work` skill for safe rollback of failed implementation attempts.
 
 See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
@@ -1450,7 +1520,7 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Hard gates are still advisory:** The `<HARD-GATE>` blocks are stronger than prose but are not deterministic enforcement. They rely on Claude respecting the XML-style markers. If a hard gate is consistently bypassed, consider escalating to a hook.
 - **Reference loading depends on Claude:** The v2.3 reference splitting pattern relies on Claude reading `references/*.md` files when directed by SKILL.md. If Claude skips reading the reference, it may miss detailed instructions. Monitor whether this happens and consider inlining critical content if it does.
 - **Confidence scoring is prompt-based:** The v2.4 confidence scoring relies on Claude's self-assessment of finding severity. Scores may not perfectly correlate with actual issue importance. Monitor whether the ≥80 threshold effectively filters false positives without hiding real issues.
-- **YAML frontmatter adds token overhead:** Each skill now has ~50 extra tokens of frontmatter metadata. For 27 skills this is ~1350 tokens if all were loaded simultaneously (they aren't — only invoked skills load). Monitor if the overhead is noticeable.
+- **YAML frontmatter adds token overhead:** Each skill now has ~50 extra tokens of frontmatter metadata. For 29 skills this is ~1450 tokens if all were loaded simultaneously (they aren't — only invoked skills load). Monitor if the overhead is noticeable.
 - **Slop detection is pattern-based:** The code-slop rule uses string matching for banned patterns. Novel slop patterns not in the list will pass through. The rule should be expanded as new patterns are observed.
 - **Completion verification adds turns:** Phase 4.5 re-reads acceptance criteria and loops back up to 2 times. For simple stories this may add unnecessary overhead. Monitor whether the verification loop catches real issues or just adds latency.
 - **Priority-based compaction is advisory:** The CRITICAL/HIGH/NORMAL/LOW tags guide Claude's compaction behavior but are not deterministic. Claude may still drop CRITICAL items if context pressure is severe enough.
@@ -1472,6 +1542,10 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 
 - **GitHub-centric:** The framework assumes GitHub (gh CLI, GitHub PRs, GitHub CI). GitLab or Bitbucket users would need to adapt sprint-end and pr-status skills.
 - **Single-developer optimized:** The sprint workflow works best for solo developers or small teams. Large teams with multiple concurrent PRs may need adapted branch naming and merge strategies.
+
+### Recovery Limitations
+
+- **Undo-work scope:** The `/undo-work` skill operates on git state (stash, discard, reset). Changes that were committed and pushed cannot be undone locally — they require remote operations (revert commits, force push). The `--story` level resets to the branch point, which may undo more commits than intended if the branch was reused.
 
 ### Detection Limitations
 

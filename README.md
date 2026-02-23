@@ -2,18 +2,29 @@
 
 A drop-in development framework for [Claude Code](https://claude.com/claude-code). Provides structured sprint workflows, TDD practices, quality gates, and backlog management — all encoded as Claude Code skills. Drop it into any repo, run `/bootstrap`, and start building.
 
+## What It Does
+
+This framework turns Claude Code into a structured development partner. Instead of ad-hoc conversations, you get:
+
+- **Sprint-based workflow** — Plan, build, test, ship in focused increments
+- **TDD-first methodology** — Tests define the contract before implementation
+- **Quality gates** — Automated checks for code quality, test integrity, security, and architecture
+- **Backlog management** — Decompose ideas into properly scoped stories with acceptance criteria
+- **Session continuity** — Hand off between sessions without losing context
+- **Guard rails** — Prevent common AI pitfalls: hallucinated APIs, weakened tests, code slop, phantom packages
+
 ## Prerequisites
 
 - [Claude Code](https://claude.com/claude-code) installed and working
 - [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated
 - Git configured with your identity
 
-## Installation
+## Quick Start
 
-### Path A: Drop into an Existing Project
+### Drop into an Existing Project
 
 ```bash
-# Option 1: Use the install script (recommended)
+# Option 1: Install script (recommended)
 curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
 
 # Option 2: Manual install
@@ -32,9 +43,9 @@ Then open Claude Code and run:
 /bootstrap
 ```
 
-Bootstrap will detect your languages, package manager, test framework, linter, and CI/CD. It auto-configures `CLAUDE.md`, generates coding standards, establishes project ground rules (architectural principles), and creates technology-specific skills for your stack.
+Bootstrap detects your languages, package manager, test framework, linter, and CI/CD. It configures `CLAUDE.md`, generates coding standards, establishes architectural ground rules, and creates technology-specific skills for your stack.
 
-### Path B: Start a New Project from Scratch
+### Start a New Project from Scratch
 
 ```bash
 git clone https://github.com/joris887/JD-LLM-Development_framework.git my-project
@@ -45,13 +56,13 @@ rm -rf .git && git init
 Then open Claude Code and either:
 
 1. **Quick start:** Run `/bootstrap` and describe your idea when prompted
-2. **Deep research first:** Open `vision/BRAINDUMP_PROMPT.md`, copy the prompt into a Claude Project (or any AI research tool), braindump your idea, save the structured output back to `vision/`, then run `/bootstrap`
+2. **Deep research first:** Copy the prompt from `vision/BRAINDUMP_PROMPT.md` into a Claude Project (or any AI research tool), braindump your idea, save the structured output to `vision/`, then run `/bootstrap`
 
-Bootstrap reads the vision files and generates: PRD, architecture, epic structure, typed stories, and project configuration.
+Bootstrap reads the vision files and generates: PRD, architecture, epic structure, typed stories, and full project configuration.
 
-## First Run: /bootstrap
+## What /bootstrap Does
 
-| Your situation | What `/bootstrap` does |
+| Your situation | What happens |
 |---|---|
 | Existing repo with code | Detects stack, configures CLAUDE.md, establishes ground rules, generates coding standards and tech skills |
 | Empty repo with vision files | Generates PRD, architecture, epics, stories from your research output |
@@ -70,7 +81,7 @@ Bootstrap reads the vision files and generates: PRD, architecture, epic structur
 |---|---|
 | First time with this project | `/bootstrap` |
 | Resuming work | `/continue` |
-| Starting new sprint | `/sprint-start` |
+| Starting a new sprint | `/sprint-start` |
 
 ### During Development
 
@@ -81,6 +92,8 @@ Bootstrap reads the vision files and generates: PRD, architecture, epic structur
 | Plan new work | `/ideate "payment processing"` |
 | Debug an issue | `/debug-session "TypeError in checkout"` |
 | Quick commit | `/commit` |
+| Fix a GitHub issue | `/fix-issue 42` |
+| Undo failed work | `/undo-work` |
 
 ### Session Management
 
@@ -106,50 +119,29 @@ For structured UAT with tracked test cases:
 | Generate a test plan | `/manual-test` |
 | Process test feedback | `/testing-cycle "login button unresponsive"` |
 | Run a UAT test case | `/UAT-cycle UAT-001` |
-| Browse UAT test cases | `/UAT-cycle` |
 
 ### Completing Work
 
 | I want to... | Command |
 |---|---|
 | Finish a sprint | `/sprint-end` |
+| Check PR status | `/pr-status` |
 | Weekly health check | `/weekly-maintenance` |
 | Sprint retrospective | `/retrospective` |
+| Review backlog health | `/backlog-review` |
 
-## Skill Reference
+## How Story Delivery Works
 
-| Skill | Purpose |
-|---|---|
-| `/bootstrap` | First-run setup — detect stack or generate from vision |
-| `/sprint-start` | Pre-flight checks + create sprint branch |
-| `/story-cycle` | Deliver a story with clarification scanning, ground rules checks, WHAT/HOW plan separation, and dead code detection |
-| `/sprint-end` | Quality gates, documentation, PR, merge, cleanup |
-| `/brainstorm` | Design exploration with alternative approaches |
-| `/ideate` | Transform ideas into typed backlog stories |
-| `/continue` | Smart session resumption from git state |
-| `/handoff` | End session with structured handoff document |
-| `/skill-create` | Generate technology-specific skills for your stack |
-| `/skill-eval` | Test, measure, or A/B compare skill effectiveness |
-| `/refine-loop` | Iterative self-improvement until completion criteria met |
-| `/code-quality` | Complexity, duplication, pattern analysis (confidence-scored) |
-| `/test-validator` | Coverage, TDD compliance, test quality (confidence-scored) |
-| `/security-audit` | Vulnerability review for sensitive code (confidence-scored) |
-| `/manual-test` | Generate test plan from recent changes |
-| `/testing-cycle` | Process user testing feedback |
-| `/UAT-cycle` | Execute formal UAT test cases |
-| `/weekly-maintenance` | Comprehensive weekly health check |
-| `/retrospective` | 4Ls framework retrospective |
-| `/backlog-review` | Backlog health analysis |
-| `/commit` | Guided conventional commit |
-| `/fix-issue` | Fix a GitHub issue |
-| `/pr-status` | Check PR status |
-| `/debug-session` | 5-phase structured debugging with reasoning scaffolds, error recovery, and handoff suggestions |
-| `/parallel-work` | Manage parallel worktrees for concurrent stories |
-| `/architecture-check` | Validate architecture and module boundaries |
-| `/doctor` | Framework health check — validate config, hooks, dependencies |
-| `/review-security` | Security review of a specific file (prompt snippet) |
-| `/explain-pattern` | Explain a code pattern in this codebase (prompt snippet) |
-| `/suggest-tests` | Suggest test cases for a file (prompt snippet) |
+When you run `/story-cycle "add login form"`, the framework:
+
+1. **Decomposes intent** — Identifies all deliverables, classifies size (trivial/small/standard)
+2. **Plans in plan mode** — Researches codebase, identifies story type, scans for ambiguity, checks architectural ground rules, writes a specification + implementation plan
+3. **Waits for your approval** — You review the plan before any code is written
+4. **Executes by story type** — TDD for features, reproduce-first for bugs, characterization tests for refactoring
+5. **Self-reviews** — Runs quality checklists, verifies acceptance criteria with evidence
+6. **Wraps up** — Runs test suite, creates conventional commit
+
+Trivial changes (rename, typo) skip the full planning workflow and go straight to implementation.
 
 ## Story Types
 
@@ -168,51 +160,139 @@ The `/story-cycle` skill adapts methodology by story type:
 | Performance | Baseline → Optimize → Benchmark |
 | Skill/Tooling | Design → Build → Document |
 
+## What Gets Enforced Automatically
+
+The framework includes hooks that run automatically — you don't need to invoke them:
+
+| What | How | When |
+|---|---|---|
+| Code formatting | Auto-formats files after every edit (prettier, ruff, rustfmt, etc.) | After each edit |
+| Secrets detection | Scans for leaked credentials (AWS keys, API tokens, private keys) | After each edit |
+| Dangerous command blocking | Prevents force push, `rm -rf`, accidental publishing, destructive DB ops | Before bash commands |
+| Quality gates | Runs lint, typecheck, and test suite before allowing completion | Before task completion |
+| Session state auto-save | Saves branch, commits, and changes for `/continue` recovery | Before task completion |
+| Activity logging | Logs tool usage for retrospective metrics | After each tool use |
+| Environment checks | Validates framework setup, warns about stale sessions | At session start |
+
+## Full Skill Reference
+
+### Core Workflow
+
+| Skill | Purpose |
+|---|---|
+| `/bootstrap` | First-run setup — detect stack or generate from vision |
+| `/sprint-start` | Pre-flight checks + create sprint branch (supports `--worktree`) |
+| `/story-cycle` | Universal story delivery with planning, TDD, quality gates, and verification |
+| `/sprint-end` | Quality gates, documentation updates, PR creation, squash merge to main |
+| `/continue` | Smart session resumption from git state and handoff files |
+| `/handoff` | End session with structured handoff document |
+
+### Planning & Design
+
+| Skill | Purpose |
+|---|---|
+| `/brainstorm` | Design exploration with 2-3 alternative approaches and tradeoffs |
+| `/ideate` | Decompose ideas into properly typed, scoped backlog stories |
+| `/skill-create` | Generate technology-specific skills, rules, and hook configs for your stack |
+
+### Quality Agents (auto-invoked during `/sprint-end`)
+
+| Skill | Purpose | Trigger |
+|---|---|---|
+| `/code-quality` | Complexity, duplication, pattern analysis (confidence-scored) | After code changes |
+| `/test-validator` | Coverage, TDD compliance, test quality (confidence-scored) | After implementation |
+| `/security-audit` | Vulnerability review for sensitive code (confidence-scored) | On auth/credential code |
+| `/architecture-check` | Validate module boundaries and architectural drift | On major changes |
+
+### Testing
+
+| Skill | Purpose |
+|---|---|
+| `/manual-test` | Generate test plan from recent changes |
+| `/testing-cycle` | Process one user testing feedback item (classify → fix or log) |
+| `/UAT-cycle` | Execute a formal UAT test case with tracked results |
+
+### Debugging & Recovery
+
+| Skill | Purpose |
+|---|---|
+| `/debug-session` | 5-phase structured debugging with root cause tracing |
+| `/fix-issue` | Fix a GitHub issue with TDD, branch, and PR |
+| `/undo-work` | Safely revert failed implementation attempts (stash, discard, or reset) |
+
+### Maintenance & Review
+
+| Skill | Purpose |
+|---|---|
+| `/weekly-maintenance` | Comprehensive weekly health check (1-2 hours, Friday recommended) |
+| `/retrospective` | Sprint retrospective using 4Ls framework with metrics dashboard |
+| `/backlog-review` | Backlog health analysis — coverage, quality, dependencies |
+| `/doctor` | Framework health check — validate config, hooks, dependencies |
+| `/pr-status` | Check open PR status and available actions |
+
+### Utility
+
+| Skill | Purpose |
+|---|---|
+| `/commit` | Guided conventional commit |
+| `/parallel-work` | Manage git worktrees for concurrent Claude Code instances |
+| `/skill-eval` | Test, measure, or A/B compare skill effectiveness |
+| `/refine-loop` | Iterative self-improvement until completion criteria met |
+
+### Prompt Snippets (lightweight, no workflow)
+
+| Snippet | Purpose |
+|---|---|
+| `/review-security` | Security review of a specific file |
+| `/explain-pattern` | Explain a code pattern as used in this codebase |
+| `/suggest-tests` | Suggest test cases for a file |
+
 ## File Structure
 
 ```
 .claude/
-  skills/               # Framework skills (27+, each with YAML frontmatter)
+  skills/               # 29 skills, each with YAML frontmatter
     <skill>/
       SKILL.md          # Lean entry point (<150 lines)
-      references/       # Detailed docs loaded on demand (plan-template, story-template, reasoning-tools)
+      references/       # Detailed docs loaded on demand
       scripts/          # Executable helper scripts (--help supported)
       assets/           # Output templates — copy, don't read
-    skills-registry.schema.json  # JSON Schema for registry validation
+    skills-registry.json          # Machine-readable skill index
+    skills-registry.schema.json   # JSON Schema for registry validation
+    SKILLS_INVENTORY.md           # Full skill inventory
+    SKILL_TEMPLATE.md             # Skill creation guidelines
   commands/
     review-pr-ci.md     # Non-interactive CI PR review command
-  prompts/              # Prompt snippets, micro-components (incl. context-budget), and subagent templates
+  prompts/              # Prompt snippets and micro-components
     agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer)
-  rules/                # Path-scoped rules for testing, security, git, verification, code-slop, edit-recovery, documentation budgets
-  hooks/                # Hook scripts for auto-format, quality gates, safety, secrets detection
-    session-start.sh    # Advisory environment checks at session start
-    activity-logger.sh  # Tool invocation logging for retrospective metrics
-  settings.json         # Claude Code configuration with hooks
+  rules/                # Path-scoped enforcement rules (8 rules)
+  hooks/                # Hook scripts (5 hooks) — format, safety, quality, logging
+  settings.json         # Claude Code hook configuration
 .github/
   workflows/
     claude-pr-review.yml  # CI-based Claude Code PR review
-  ISSUE_TEMPLATE/
-    bug_report.yml      # Structured bug report form
-    feature_request.yml # Structured feature request form
-  pull_request_template.md  # PR template matching quality gates
+  ISSUE_TEMPLATE/         # Bug report and feature request forms
+  pull_request_template.md
+  CODEOWNERS              # Require human review on tests, security, deps
 docs/
   reference/
-    BACKLOG_INDEX.md    # Epic status matrix
-    CODING_STANDARDS.md # Code conventions (filled by /bootstrap)
+    BACKLOG_INDEX.md    # Epic status overview
+    CODING_STANDARDS.md # Code conventions (generated by /bootstrap)
     TESTING_STRATEGY.md # TDD workflow + quality criteria
-    GROUND_RULES.md     # Architectural principles (filled by /bootstrap)
+    GROUND_RULES.md     # Architectural principles (generated by /bootstrap)
     backlog/            # Epic files with stories
   architecture/
     ARCHITECTURE.md     # System architecture
   adr/                  # Architecture Decision Records
   sprints/              # Sprint spec files
-  sessions/             # Session handoff files
-  plans/                # Saved plan files
-  testing/              # Test coverage docs
+  sessions/             # Session handoff files + activity logs
+  plans/                # Saved plan files for context persistence
+  testing/              # UAT coverage docs
   progress.md           # Sprint history + metrics
+  technical-debt.md     # Technical debt inventory
 vision/                 # New project braindump flow
-CLAUDE.md               # Framework entry point (auto-loaded, <100 lines)
-AGENTS.md               # Cross-tool compatibility (symlink to CLAUDE.md)
+CLAUDE.md               # Framework entry point (auto-loaded every session)
+AGENTS.md               # Cross-tool compatibility (symlink → CLAUDE.md)
 llms.txt                # LLM-friendly project index
 install.sh              # Drop-in installer script
 ```
@@ -220,39 +300,43 @@ install.sh              # Drop-in installer script
 ## FAQ
 
 **Q: Can I use this with other AI coding tools (Cursor, Aider, Windsurf)?**
-A: The skills are Claude Code-specific, but `AGENTS.md` provides cross-tool compatibility for the project context. Other tools will pick up the project overview, commands, and conventions.
+A: The skills are Claude Code-specific, but `AGENTS.md` (symlinked to `CLAUDE.md`) provides cross-tool compatibility for project context. Other tools pick up the project overview, commands, and conventions — just not the slash command workflows.
 
 **Q: Does this work with monorepos?**
 A: Yes. Run `/bootstrap` at the monorepo root. It detects multiple languages and generates skills for each.
 
 **Q: What if `/bootstrap` gets something wrong?**
-A: Edit `CLAUDE.md` directly. It's the source of truth. Re-run `/bootstrap` anytime to re-detect.
+A: Edit `CLAUDE.md` directly — it's the source of truth. You can re-run `/bootstrap` anytime to re-detect.
 
 **Q: How do I customize the workflow?**
-A: Edit the skill files in `.claude/skills/`. They're plain markdown — modify any step, add rules, change the flow.
+A: Edit the skill files in `.claude/skills/`. They're plain markdown — modify any step, add rules, change the flow. Use `CLAUDE.local.md` for personal overrides (gitignored).
 
-**Q: What about git worktrees for parallel work?**
-A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stories in isolated worktrees.
+**Q: What about parallel work on multiple stories?**
+A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stories in isolated git worktrees with separate Claude Code instances.
 
 **Q: What is fast-track mode in story-cycle?**
-A: Trivial changes (single-file, <10 lines, no behavioral change) skip the full planning workflow and go straight to implementation with an abbreviated self-review. The classification happens automatically at Phase 0.
+A: Trivial changes (single-file, <10 lines, no behavioral change) skip the full planning workflow and go straight to implementation. Small changes get a condensed plan. The classification happens automatically.
+
+**Q: Does this integrate with CI/CD?**
+A: Yes. The framework includes a GitHub Actions workflow (`.github/workflows/claude-pr-review.yml`) that uses Claude Code to review PRs in CI. It runs code quality, test validation, and security checks, then posts a structured review comment. External contributors get structure-only review (no code-level access).
+
+**Q: How do I check if the framework is set up correctly?**
+A: Run `/doctor`. It validates configuration, hooks, dependencies, rules, documentation freshness, and skill conformance.
 
 ## Philosophy
 
-- **TDD-first** — Tests communicate intent to the AI
-- **Sprint-based** — Small, focused increments with quality gates
-- **Git-disciplined** — Feature branches, conventional commits, squash merges
-- **Documentation-lean** — Only create docs when explicitly needed
-- **AI-aware** — Guard rails against LLM pitfalls (hallucinated APIs, weakened tests, code slop, over-engineering)
-- **Verification-driven** — Evidence before claims, fresh output before completion
-- **Progressive disclosure** — Load only what you need, when you need it
-- **Context-efficient** — Skills split into lean entry points + on-demand references; symbolic state encoding; per-phase context manifests; reference file budgets
-- **Reasoning-scaffolded** — Named reasoning tools (scope_analysis, ambiguity_scan, failure_diagnosis, etc.) structure thinking at critical decision points
-- **Clarification-first** — Forced `[NEEDS CLARIFICATION]` markers and structured ambiguity scanning prevent LLM assumptions
+- **TDD-first** — Tests communicate intent to the AI; tests are the specification
+- **Sprint-based** — Small, focused increments with quality gates prevent context exhaustion
+- **Git-disciplined** — Feature branches, conventional commits, squash merges, never push to main
+- **Documentation-lean** — Only create docs when explicitly needed; auto-loaded files are minimal
+- **AI-aware** — Guard rails against LLM pitfalls: hallucinated APIs, weakened tests, code slop, phantom packages, over-engineering
+- **Verification-driven** — Evidence before claims; fresh command output before completion
+- **Context-efficient** — Lean entry points + on-demand references; priority-based compaction; per-phase context manifests
+- **Clarification-first** — Structured ambiguity scanning and forced clarification markers prevent LLM assumptions
 - **Ground-rules-governed** — Per-project architectural principles checked at planning and shipping time
-- **Observable** — Context budget visibility, framework health checks (`/doctor`), hook self-validation with requirements metadata
-- **Secrets-aware** — Automated credential detection in post-edit hooks catches leaked secrets deterministically
-- **CI-enforced** — Optional GitHub Actions workflow for automated PR review catches issues even when framework workflow is bypassed
+- **Observable** — Framework health checks (`/doctor`), activity logging, context budget visibility
+- **Secrets-aware** — Automated credential detection in post-edit hooks, CODEOWNERS protection on sensitive files
+- **CI-enforced** — GitHub Actions workflow for automated PR review catches issues even when local workflow is bypassed
 
 ## Contributing
 
