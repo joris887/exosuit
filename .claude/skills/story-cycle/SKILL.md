@@ -4,7 +4,7 @@ version: 2.8.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
-references: [references/story-types.md, references/self-review.md, references/reasoning-tools.md, references/error-recovery.md, references/plan-template.md]
+references: [references/story-types.md, references/self-review.md, references/disaster-prevention.md, references/reasoning-tools.md, references/elicitation-techniques.md, references/error-recovery.md, references/plan-template.md]
 ---
 ______________________________________________________________________
 
@@ -54,15 +54,27 @@ Before any exploration, decompose the user's request. Apply the `scope_analysis`
 
 This prevents missing later parts of compound requests (e.g., "refactor auth AND add rate limiting AND create a PR").
 
-## Size Classification (Fast-Track Gate)
+## Size & Risk Classification (Fast-Track Gate)
 
-After Phase 0 decomposition, classify the change size:
+After Phase 0 decomposition, classify by **size** then **risk**:
 
-| Size | Criteria | Workflow |
+**Size classification:**
+
+| Size | Criteria | Default Workflow |
 |------|----------|----------|
 | **TRIVIAL** | Single-file, <10 lines changed, no behavioral change (typo, config, comment) | Phase 3-lite (below) |
 | **SMALL** | Single-file, <50 lines changed, clear acceptance criteria | Lightweight Phase 1 (skip 1f, 1g) → Phase 2 → Phase 3 → Phase 4 |
 | **STANDARD** | Everything else | Full workflow (unchanged) |
+
+**Risk classification** (apply `risk_classification` reasoning tool from `references/reasoning-tools.md`):
+
+Score domain risk, integration surface, and reversibility (1-3 each). Sum determines risk level:
+
+| | Low risk (3-4) | Medium risk (5-6) | High risk (7-9) |
+|---|---|---|---|
+| **TRIVIAL** | Phase 3-lite | Phase 3-lite + full test suite | Reclassify as SMALL |
+| **SMALL** | Lightweight Phase 1 | Standard workflow | Standard + mandatory security-audit |
+| **STANDARD** | Standard workflow | Standard + all quality agents | Standard + all agents + architecture-check |
 
 <HARD-GATE>
 **Red flag:** If editing multiple files or changing observable behavior, STOP and reclassify as STANDARD. Fast-track is for genuinely trivial changes only.
@@ -128,6 +140,15 @@ Determine which skills benefit this story. If the story metadata already defines
 | `/test-validator`   | Feature, bug fix, testing stories                     |
 | `/security-audit`   | Security stories, code touching auth/credentials/data |
 
+### 1d.5. Discovery Gate (Facilitator Check)
+
+Before writing the plan, check: do you have enough information to write a plan without assumptions?
+
+- If YES: proceed to 1e
+- If NO: present the 3 most critical unknowns to the user as focused questions with 2-4 answer options each. Integrate answers, then proceed to 1e.
+
+**Red flag:** If you're about to write "Assuming X..." in the plan, STOP — ask the user about X instead. Facilitate discovery; don't generate assumptions.
+
 ### 1e. Write the Plan
 
 Keep the plan concise — **under 50 lines**. Save complex plans to `docs/plans/` for persistence across compaction. Reference files by path rather than inlining content.
@@ -163,13 +184,16 @@ Apply the `plan_completeness` reasoning tool from `references/reasoning-tools.md
 
 **CRITICAL — Story-Cycle Context Preservation:**
 
-After plan approval, context resets and only the plan survives. The plan MUST start with a "Story-Cycle Context" section so Claude Code knows what workflow it's in and what steps remain. Use this exact format at the TOP of the plan:
+After plan approval, context resets and only the plan survives. The plan MUST start with a "Story-Cycle Context" section so Claude Code knows what workflow it's in and what steps remain. **Update the `phase` and `stepsCompleted` fields at each phase transition** — this enables true mid-workflow resume if the session is interrupted or context compacts.
+
+Use this exact format at the TOP of the plan:
 
 ```yaml
 ## Story-Cycle Context
 
 workflow: story-cycle
 phase: "plan-approved — proceed to execution"
+stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1d-skills, 1e-plan, 1f-clarification, 1g-completeness, 2-transition]
 remaining_steps:
   - "Run tests: use project test command from CLAUDE.md Commands"
   - "Update documentation if AC requires it"
@@ -190,6 +214,16 @@ When context compacts, MERGE new file paths into these lists — never discard p
 ```
 
 For complex stories, use `ultrathink` to reason through architectural decisions before writing the plan.
+
+### 1h. Depth Check (Optional)
+
+Before presenting for approval, offer the user a depth option if the plan contains areas with complexity ≥4 or unresolved uncertainties:
+
+- **[D] Deep dive** — Explore design alternatives for uncertain areas using the `depth_exploration` reasoning tool and elicitation techniques from `references/elicitation-techniques.md`
+- **[C] Continue** — Plan is ready for approval as-is
+
+If [D]: apply the most relevant elicitation technique, integrate findings into the plan, then present for approval.
+If [C] or no uncertainties exist: proceed directly to approval.
 
 Present the plan for user approval.
 
@@ -230,6 +264,8 @@ The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 
 - DON'T assume you remember file contents from Phase 1 — context may have changed.
 
 ## Phase 3: Execute by Story Type
+
+**State update:** If the plan is saved to `docs/plans/`, update the Story-Cycle Context: `phase: "3-executing"`, append `3-started` to `stepsCompleted`.
 
 In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 

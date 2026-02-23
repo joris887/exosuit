@@ -1,5 +1,102 @@
 # Changelog
 
+## [3.1.0] - 2026-02-23
+
+### Quality & Validation (OPT-93, OPT-94)
+
+#### OPT-93: Adversarial Disaster Prevention in Self-Review
+- **New:** `.claude/skills/story-cycle/references/disaster-prevention.md`
+- **Modified:** `.claude/skills/story-cycle/references/self-review.md` (new "Disaster Prevention" reference at end), `.claude/skills/story-cycle/SKILL.md` (added `disaster-prevention.md` to frontmatter references)
+- **What:** Added a structured adversarial checklist targeting specific LLM-typical implementation failures: wheel reinvention (duplicating existing utilities), specification drift (implementation diverging from AC), integration wiring gaps (routes/exports not registered), file structure violations, and regression surface analysis. Loaded during Phase 3.5 after the standard self-review.
+- **Why:** The general self-review checklist catches broad issues but doesn't target known LLM failure modes. These specific patterns (reinventing utilities, missing integration wiring, specification drift) are predictable and detectable with active searching rather than passive checking.
+- **To test:** Run `/story-cycle` on a feature story. During Phase 3.5, verify that the disaster prevention checklist is loaded and executed after the standard self-review. Verify each category involves an active search (grep, file listing) rather than just a checkbox.
+- **To revert:** Delete `.claude/skills/story-cycle/references/disaster-prevention.md`. Remove the "Disaster Prevention" paragraph from the end of `self-review.md`. Remove `references/disaster-prevention.md` from story-cycle SKILL.md frontmatter references.
+
+#### OPT-94: Token-Efficiency Guidelines for Cross-Skill Output
+- **Modified:** `.claude/rules/documentation.md` (new "Cross-Skill Output Optimization" section)
+- **What:** Added guidelines for structuring skill outputs that will be consumed by downstream skills or future sessions: bullet points over prose, file:line references, imperative instructions, front-loaded critical information, YAML frontmatter for metadata, section budgets, and output template usage.
+- **Why:** When skill output is consumed by another skill (plans by Phase 3, session files by `/continue`), format directly impacts context efficiency. Prose-heavy outputs waste tokens; structured outputs maximize value per token.
+- **To test:** Read `documentation.md` and verify the "Cross-Skill Output Optimization" section exists with 7 guideline bullets.
+- **To revert:** Remove the "## Cross-Skill Output Optimization" section (including all bullets) from `.claude/rules/documentation.md`.
+
+### Workflow Architecture (OPT-95, OPT-96, OPT-97)
+
+#### OPT-95: Per-Workflow State Persistence in Output Artifacts
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 1g context preservation — added `stepsCompleted` field and state update instruction; Phase 3 — added state update instruction), `.claude/skills/story-cycle/references/plan-template.md` (new "Workflow State Frontmatter" section)
+- **What:** Added YAML frontmatter-based state tracking to plan files. The Story-Cycle Context header now includes `stepsCompleted` and `phase` fields that are updated at each phase transition. Plan template documents the state schema. When story-cycle is re-invoked, it can detect an existing plan with state frontmatter and offer to resume from the last completed step.
+- **Why:** Currently, workflow recovery depends on session handoff files. If those are stale or missing, there's no artifact-level record of which phase completed. Embedding state in the plan file itself makes workflows self-resumable.
+- **To test:** Run `/story-cycle` through Phase 1. Save the plan to `docs/plans/`. Verify the Story-Cycle Context includes `stepsCompleted` and `phase` fields. Simulate an interruption and re-invoke — verify the plan's state is detectable.
+- **To revert:** Remove the `stepsCompleted` line and the "Update the `phase` and `stepsCompleted` fields at each phase transition" instruction from story-cycle SKILL.md Phase 1g. Remove the "State update:" line from Phase 3. Remove the "## Workflow State Frontmatter" section from `plan-template.md`.
+
+#### OPT-96: Integrated Depth Exploration at Decision Points
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (new Phase 1h "Depth Check" after 1g), `.claude/skills/story-cycle/references/reasoning-tools.md` (new `depth_exploration` reasoning tool)
+- **What:** Added an optional [D]/[C] menu after Phase 1g for stories with complexity ≥4 or unresolved uncertainties. If [D] is selected, the `depth_exploration` reasoning tool applies the most relevant elicitation technique from `references/elicitation-techniques.md`, integrates findings, then presents for approval. If [C], proceeds directly to approval.
+- **Why:** Going deeper on requirements currently requires leaving the workflow (invoking `/brainstorm` separately). Inline depth options keep the user in flow while enabling richer exploration when the problem warrants it.
+- **To test:** Run `/story-cycle` with a complex story (complexity ≥4). Verify the [D]/[C] menu appears after Phase 1g. Select [D] and verify an elicitation technique is applied. Select [C] and verify it proceeds to approval.
+- **To revert:** Remove the "### 1h. Depth Check" section from story-cycle SKILL.md. Remove the `## Tool: depth_exploration` section from reasoning-tools.md.
+
+#### OPT-97: Complexity-Calibrated Workflow Depth
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (expanded "Size Classification" to "Size & Risk Classification" with risk matrix), `.claude/skills/story-cycle/references/reasoning-tools.md` (new `risk_classification` reasoning tool)
+- **What:** Extended the fast-track classification with a risk dimension. After size classification (trivial/small/standard), the `risk_classification` tool scores domain risk, integration surface, and reversibility (1-3 each). The size × risk matrix adjusts workflow depth: high-risk trivial changes get reclassified as SMALL, high-risk standard changes get all quality agents + architecture-check.
+- **Why:** Size alone doesn't capture risk. A 30-line auth change is higher risk than a 200-line documentation page. Risk calibration automatically adjusts planning depth and quality gate intensity.
+- **To test:** Run `/story-cycle` for a change to auth code. Verify `risk_classification` is applied and adjusts the workflow depth upward. Run for a documentation change and verify it stays at the size-based default.
+- **To revert:** Restore the "## Size Classification" heading (remove "& Risk"). Remove the risk classification table and text from story-cycle SKILL.md. Remove the `## Tool: risk_classification` section from reasoning-tools.md.
+
+### Developer Experience (OPT-98, OPT-99)
+
+#### OPT-98: Artifact-Aware Project Navigator in /continue
+- **Modified:** `.claude/skills/continue/SKILL.md` (new Step 0 "Project Health Scan" before session recovery)
+- **What:** Added a project health scan step that checks for key artifacts (ARCHITECTURE.md, GROUND_RULES.md, CODING_STANDARDS.md, backlog stories, feature branches, test command) and presents a health dashboard with actionable recommendations for missing or incomplete items.
+- **Why:** `/continue` reads session handoff files and git state, but when session files are stale or missing (new session after days away, first-time contributor), it can't assess overall project maturity. The health scan provides project-level context alongside session-level state.
+- **To test:** Run `/continue` in a project missing GROUND_RULES.md. Verify the health dashboard shows ❌ for ground rules and suggests `/bootstrap`. Run in a fully configured project and verify the dashboard shows mostly ✅.
+- **To revert:** Remove the "## 0. Project Health Scan" section from continue/SKILL.md. Rename "## 0.5. Read Latest Session Handoff" back to "## 0. Read Latest Session Handoff".
+
+#### OPT-99: Output Templates for Document-Producing Skills
+- **New:** `.claude/skills/debug-session/assets/debug-report.md`, `.claude/skills/brainstorm/assets/brainstorm-output.md`, `.claude/skills/manual-test/assets/test-plan.md`, `.claude/skills/ideate/assets/story-template.md`
+- **What:** Added structured output templates for four document-producing skills. Each template includes YAML frontmatter (skill, date, status) and standardized section headers matching the skill's output structure. Skills copy the template to the output location and fill sections, rather than generating format from scratch.
+- **Why:** Skills produce output documents with varying format between invocations. Templates ensure consistency, reduce per-invocation token cost (copy structure vs. generate it), and enable downstream skills to parse outputs reliably.
+- **To test:** Run `/debug-session`. Verify output structure matches the `debug-report.md` template sections. Run `/brainstorm` and verify output matches `brainstorm-output.md`.
+- **To revert:** Delete the four template files from their respective `assets/` directories.
+
+### Prompt Engineering (OPT-100, OPT-101)
+
+#### OPT-100: Elicitation Techniques Library
+- **New:** `.claude/skills/story-cycle/references/elicitation-techniques.md`
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added `references/elicitation-techniques.md` to frontmatter references)
+- **What:** Created a shared reference file with 5 named elicitation techniques: Assumption Surfacing, Constraint Mapping, Failure Mode Exploration, Stakeholder Perspective Shift, and Boundary Probing. Each has a when/method/output structure. Referenced by the `depth_exploration` reasoning tool and available to brainstorm, ideate, and bootstrap.
+- **Why:** Multiple skills involve requirements discovery (brainstorm, ideate, story-cycle Phase 1f, bootstrap A3.6). Each uses ad-hoc questioning. A shared library of structured techniques improves quality and consistency, similar to how `reasoning-tools.md` provides named thinking scaffolds.
+- **To test:** Read `elicitation-techniques.md` and verify it contains 5 named techniques with structured when/method/output. During a `/story-cycle` depth check, verify a relevant technique is applied.
+- **To revert:** Delete `.claude/skills/story-cycle/references/elicitation-techniques.md`. Remove `references/elicitation-techniques.md` from story-cycle SKILL.md frontmatter references.
+
+#### OPT-101: Facilitator Reinforcement in Discovery Phases
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (new Phase 1d.5 "Discovery Gate" between 1d and 1e)
+- **What:** Added a lightweight facilitator check before plan writing. If there isn't enough information to write a plan without assumptions, present the top 3 unknowns as focused questions with answer options before proceeding. Includes a red flag: "If you're about to write 'Assuming X...' in the plan, STOP — ask the user about X instead."
+- **Why:** The `ambiguity_scan` and `[NEEDS CLARIFICATION]` markers activate after the plan is written (Phase 1f). By then, assumptions are already baked into the plan structure. Moving discovery earlier — before plan writing — catches assumptions before they solidify.
+- **To test:** Run `/story-cycle` with a vague request. Verify Phase 1d.5 triggers focused questions before plan writing begins. Verify the plan doesn't contain "Assuming..." language.
+- **To revert:** Remove the "### 1d.5. Discovery Gate" section from story-cycle SKILL.md.
+
+### Extensibility (OPT-102)
+
+#### OPT-102: Skill-Specific Persistent Sidecar Memory
+- **Modified:** `.claude/skills/SKILL_TEMPLATE.md` (new "Skill-Specific Persistent Memory (Sidecars)" section before Naming Conventions)
+- **What:** Added a convention for skills to maintain persistent sidecar files in the auto memory directory (`{memory_dir}/{skill-name}.md`). Skills with `persistent-context: true` in YAML frontmatter check for their sidecar at startup and update it at completion. Sidecars are limited to ≤30 lines.
+- **Why:** The auto memory directory is global. Some skills benefit from skill-specific memory across sessions — detected stack, commonly flagged patterns, successful debugging strategies. Sidecars provide this without polluting global memory.
+- **To test:** Read SKILL_TEMPLATE.md and verify the "Skill-Specific Persistent Memory" section exists with convention, limits, and examples.
+- **To revert:** Remove the "## Skill-Specific Persistent Memory (Sidecars)" section from SKILL_TEMPLATE.md.
+
+### Version Updates
+
+- Updated story-cycle SKILL.md with: risk classification, discovery gate, depth check, workflow state persistence, disaster prevention reference, elicitation techniques reference
+- Updated continue SKILL.md with project health scan
+- Updated reasoning-tools.md with `risk_classification` and `depth_exploration` tools
+- Updated plan-template.md with workflow state frontmatter schema
+- Updated self-review.md with disaster prevention reference
+- Updated documentation.md with cross-skill output optimization
+- Updated SKILL_TEMPLATE.md with sidecar memory convention
+- Created 4 output templates for debug-session, brainstorm, manual-test, ideate
+- Created elicitation-techniques.md shared reference
+- Created disaster-prevention.md checklist reference
+
 ## [3.0.0] - 2026-02-22
 
 ### CI/CD Integration (OPT-83, OPT-84)

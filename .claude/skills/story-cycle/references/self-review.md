@@ -41,3 +41,7 @@ For each acceptance criterion:
 | "Close enough to the acceptance criteria" | Close is not done | Implement exactly what was specified |
 
 If any checklist item fails, go back to Phase 3 and fix the issue before proceeding.
+
+## Disaster Prevention (LLM-Specific Failure Modes)
+
+After completing the checklists above, load `references/disaster-prevention.md` and complete its targeted checks. These catch failure modes specific to LLM-assisted development that general checklists miss: wheel reinvention, specification drift, missing integration wiring, file structure violations, and regression surface gaps.

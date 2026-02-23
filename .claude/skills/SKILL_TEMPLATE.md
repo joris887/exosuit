@@ -376,6 +376,28 @@ Every skill should include an `## Evaluation Criteria` section defining how to v
 
 If evaluation criteria are missing, `/skill-eval metrics` will flag the skill for improvement.
 
+## Skill-Specific Persistent Memory (Sidecars)
+
+Skills can optionally maintain a persistent sidecar file that accumulates learned patterns across sessions. Declare in frontmatter:
+
+```yaml
+---
+persistent-context: true  # Skill reads/writes {memory_dir}/{skill-name}.md
+---
+```
+
+**Convention:**
+- Sidecar files live in the project's auto memory directory: `{memory_dir}/{skill-name}.md`
+- Check for the sidecar at skill startup — load if exists
+- Update at skill completion with learned patterns (detected stack, common findings, resolved preferences)
+- Keep sidecars small: ≤30 lines, structured YAML or bullet points
+- Skills without `persistent-context: true` should NOT create sidecar files
+
+**Example use cases:**
+- `/bootstrap` remembers detected stack and last run date
+- `/code-quality` remembers commonly flagged-and-accepted patterns
+- `/debug-session` remembers debugging strategies that worked for this codebase
+
 ## Naming Conventions
 
 - Skill names: lowercase, hyphenated (`story-cycle`, `skill-create`)

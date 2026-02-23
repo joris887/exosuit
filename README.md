@@ -134,14 +134,15 @@ For structured UAT with tracked test cases:
 
 When you run `/story-cycle "add login form"`, the framework:
 
-1. **Decomposes intent** — Identifies all deliverables, classifies size (trivial/small/standard)
-2. **Plans in plan mode** — Researches codebase, identifies story type, scans for ambiguity, checks architectural ground rules, writes a specification + implementation plan
-3. **Waits for your approval** — You review the plan before any code is written
-4. **Executes by story type** — TDD for features, reproduce-first for bugs, characterization tests for refactoring
-5. **Self-reviews** — Runs quality checklists, verifies acceptance criteria with evidence
-6. **Wraps up** — Runs test suite, creates conventional commit
+1. **Decomposes intent** — Identifies all deliverables, classifies size (trivial/small/standard) and risk (domain, integration, reversibility)
+2. **Facilitates discovery** — Asks clarifying questions before making assumptions, offers depth exploration for complex areas
+3. **Plans in plan mode** — Researches codebase, identifies story type, scans for ambiguity, checks architectural ground rules, writes a specification + implementation plan with workflow state tracking
+4. **Waits for your approval** — You review the plan before any code is written
+5. **Executes by story type** — TDD for features, reproduce-first for bugs, characterization tests for refactoring
+6. **Self-reviews** — Runs quality checklists, adversarial disaster prevention analysis, and verifies acceptance criteria with evidence
+7. **Wraps up** — Runs test suite, creates conventional commit
 
-Trivial changes (rename, typo) skip the full planning workflow and go straight to implementation.
+Trivial changes (rename, typo) skip the full planning workflow and go straight to implementation. Risk-calibrated depth ensures high-risk changes get extra scrutiny regardless of size.
 
 ## Story Types
 
@@ -182,9 +183,9 @@ The framework includes hooks that run automatically — you don't need to invoke
 |---|---|
 | `/bootstrap` | First-run setup — detect stack or generate from vision |
 | `/sprint-start` | Pre-flight checks + create sprint branch (supports `--worktree`) |
-| `/story-cycle` | Universal story delivery with planning, TDD, quality gates, and verification |
+| `/story-cycle` | Universal story delivery with risk-calibrated planning, depth exploration, TDD, disaster prevention, and verification |
 | `/sprint-end` | Quality gates, documentation updates, PR creation, squash merge to main |
-| `/continue` | Smart session resumption from git state and handoff files |
+| `/continue` | Smart session resumption with project health scan, git state, and handoff files |
 | `/handoff` | End session with structured handoff document |
 
 ### Planning & Design
@@ -254,9 +255,9 @@ The framework includes hooks that run automatically — you don't need to invoke
   skills/               # 29 skills, each with YAML frontmatter
     <skill>/
       SKILL.md          # Lean entry point (<150 lines)
-      references/       # Detailed docs loaded on demand
+      references/       # Detailed docs loaded on demand (elicitation techniques, disaster prevention, etc.)
       scripts/          # Executable helper scripts (--help supported)
-      assets/           # Output templates — copy, don't read
+      assets/           # Output templates — copy, don't read (debug reports, test plans, etc.)
     skills-registry.json          # Machine-readable skill index
     skills-registry.schema.json   # JSON Schema for registry validation
     SKILLS_INVENTORY.md           # Full skill inventory
@@ -315,7 +316,10 @@ A: Edit the skill files in `.claude/skills/`. They're plain markdown — modify 
 A: Use `/sprint-start --worktree` or `/parallel-work` to manage concurrent stories in isolated git worktrees with separate Claude Code instances.
 
 **Q: What is fast-track mode in story-cycle?**
-A: Trivial changes (single-file, <10 lines, no behavioral change) skip the full planning workflow and go straight to implementation. Small changes get a condensed plan. The classification happens automatically.
+A: Changes are classified by both size (trivial/small/standard) and risk (domain, integration surface, reversibility). Trivial low-risk changes skip the full planning workflow. High-risk changes get extra quality gates regardless of size. The classification happens automatically.
+
+**Q: What is the depth exploration feature?**
+A: During story planning, if areas have high complexity or unresolved uncertainties, you're offered a [D] deep dive option. This applies structured elicitation techniques (assumption surfacing, boundary probing, etc.) to explore alternatives without leaving the workflow.
 
 **Q: Does this integrate with CI/CD?**
 A: Yes. The framework includes a GitHub Actions workflow (`.github/workflows/claude-pr-review.yml`) that uses Claude Code to review PRs in CI. It runs code quality, test validation, and security checks, then posts a structured review comment. External contributors get structure-only review (no code-level access).
@@ -332,8 +336,10 @@ A: Run `/doctor`. It validates configuration, hooks, dependencies, rules, docume
 - **AI-aware** — Guard rails against LLM pitfalls: hallucinated APIs, weakened tests, code slop, phantom packages, over-engineering
 - **Verification-driven** — Evidence before claims; fresh command output before completion
 - **Context-efficient** — Lean entry points + on-demand references; priority-based compaction; per-phase context manifests
-- **Clarification-first** — Structured ambiguity scanning and forced clarification markers prevent LLM assumptions
+- **Clarification-first** — Discovery gates, structured ambiguity scanning, and forced clarification markers prevent LLM assumptions
+- **Facilitator-driven** — Asks questions before generating; structured elicitation techniques for deep requirements discovery
 - **Ground-rules-governed** — Per-project architectural principles checked at planning and shipping time
+- **Risk-calibrated** — Workflow depth adapts to both size and risk; high-risk changes get extra scrutiny regardless of size
 - **Observable** — Framework health checks (`/doctor`), activity logging, context budget visibility
 - **Secrets-aware** — Automated credential detection in post-edit hooks, CODEOWNERS protection on sensitive files
 - **CI-enforced** — GitHub Actions workflow for automated PR review catches issues even when local workflow is bypassed

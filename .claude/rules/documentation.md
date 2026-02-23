@@ -30,3 +30,15 @@ On-demand reference files are loaded into context when skills request them. With
 | ARCHITECTURE.md | ≤200 lines | Overview only; module details in .claude-context.md files |
 
 When loading a reference file, load only the section relevant to the current task — use grep hints (search for `## Section Name`) rather than reading the entire file.
+
+## Cross-Skill Output Optimization
+
+When a skill's output will be consumed by another skill or a future session (plans, session files, debug reports):
+
+- **Bullet points over prose** — scannable beats readable for LLM consumption
+- **file:line references over descriptions** — `src/auth/login.ts:42` over "the login function in the auth module"
+- **Imperative instructions over explanations** — "Add rate limiter middleware to /api/auth" over "We should consider adding..."
+- **Front-load critical information** — put key facts in the first 5 lines
+- **YAML frontmatter for machine-parseable metadata** — dates, status, phase, story type
+- **Section budgets** — No plan section should exceed 20 lines; split into sub-sections if needed
+- **Use output templates** — Skills with `assets/` templates should copy and fill them rather than generating structure from scratch

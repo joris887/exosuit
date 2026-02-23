@@ -12,7 +12,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.0)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.1)
 
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
@@ -20,20 +20,24 @@
   - references/new-project.md: New project braindump and generation workflow
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, control flow markers, error recovery, completion verification, and handoff suggestions
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with risk-calibrated depth, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, control flow markers, error recovery, disaster prevention, completion verification, and handoff suggestions
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
-  - references/self-review.md: Self-review checklist with red flags
-  - references/reasoning-tools.md: Named reasoning scaffolds (scope_analysis, ambiguity_scan, test_strategy_selection, failure_diagnosis, architectural_impact, plan_completeness)
-  - references/plan-template.md: Plan output template with Specification (WHAT/WHY) and Implementation (HOW) sections, anti-patterns
+  - references/self-review.md: Self-review checklist with red flags + disaster prevention reference
+  - references/disaster-prevention.md: Adversarial LLM failure mode checklist (wheel reinvention, spec drift, integration wiring, file structure, regression surface)
+  - references/reasoning-tools.md: Named reasoning scaffolds (scope_analysis, ambiguity_scan, test_strategy_selection, failure_diagnosis, architectural_impact, plan_completeness, risk_classification, depth_exploration)
+  - references/elicitation-techniques.md: Structured questioning methods (assumption surfacing, constraint mapping, failure mode exploration, stakeholder perspective shift, boundary probing)
+  - references/plan-template.md: Plan output template with workflow state frontmatter, Specification (WHAT/WHY) and Implementation (HOW) sections, anti-patterns
   - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (19 error patterns)
 - .claude/skills/sprint-end/SKILL.md: Quality gates with control flow markers, error recovery, graceful degradation, project state adaptation, PR, merge
   - references/quality-gates.md: Detailed quality gate checks and recovery
   - references/error-recovery.md: Step-specific error/cause/recovery decision tables (18 error patterns)
   - scripts/test-count-delta.sh: Compare test counts between branch and main
 - .claude/skills/brainstorm/SKILL.md: Design exploration with alternative approaches and handoff suggestions
+  - assets/brainstorm-output.md: Structured brainstorm output template
 - .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories with story template, doc quality check, and handoff suggestions
   - references/story-template.md: Story output template with user-centric framing (As a/I want/So that), Given/When/Then criteria, independent testability, and priority justification
-- .claude/skills/continue/SKILL.md: Smart session resumption
+  - assets/story-template.md: Structured story output template for /ideate
+- .claude/skills/continue/SKILL.md: Smart session resumption with project health scan
 - .claude/skills/handoff/SKILL.md: Session end, handoff document with quality check
 - .claude/skills/skill-create/SKILL.md: Generate technology-specific skills with co-located references
   - scripts/init-skill.sh: Scaffold a new skill directory with SKILL.md template
@@ -44,6 +48,7 @@
   - references/root-cause-tracing.md: Backward tracing technique
   - references/condition-based-waiting.md: Replace timeouts with condition polling
   - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (15 error patterns)
+  - assets/debug-report.md: Structured debug report output template
 - .claude/skills/parallel-work/SKILL.md: Git worktree management
   - scripts/worktree-status.sh: Worktree status with merge info
 - .claude/skills/architecture-check/SKILL.md: Architecture validation
@@ -52,12 +57,12 @@
 - .claude/skills/skill-eval/SKILL.md: Skill evaluation — test, A/B compare, metrics
 - .claude/skills/refine-loop/SKILL.md: Iterative self-improvement until completion criteria met
 - .claude/skills/SKILLS_INVENTORY.md: Full skill inventory
-- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, skill prerequisites (requires), subagent context protocol, tool restrictions per agent, resource types, reference file budgets, control flow markers (IF/ELSE/LOOP/HALT), reasoning tools, error recovery tables, script policy, grep navigation, graceful degradation, pre-execution validation, and TDD methodology
+- .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, skill prerequisites (requires), subagent context protocol, tool restrictions per agent, resource types, reference file budgets, control flow markers (IF/ELSE/LOOP/HALT), reasoning tools, error recovery tables, script policy, grep navigation, graceful degradation, pre-execution validation, TDD methodology, and skill-specific persistent sidecar memory
 - .claude/commands/review-pr-ci.md: Non-interactive CI PR review command
 
 ## Rules
 - .claude/rules/testing.md: Test file protection rules
-- .claude/rules/documentation.md: Documentation rules + reference file size budgets
+- .claude/rules/documentation.md: Documentation rules + reference file size budgets + cross-skill output optimization
 - .claude/rules/security.md: Security-sensitive file rules + fix-immediately pattern
 - .claude/rules/git.md: Git workflow rules
 - .claude/rules/dependencies.md: Dependency management rules

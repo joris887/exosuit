@@ -18,7 +18,32 @@ Resume development. Execute this smart continuation workflow:
 - **Status**: !`git status --short`
 - **Open PRs**: !`gh pr list --author @me --state open --limit 5 2>/dev/null || echo "No PRs or gh not configured"`
 
-## 0. Read Latest Session Handoff
+## 0. Project Health Scan
+
+Before session recovery, assess project maturity by checking key artifacts:
+
+| Artifact | Check | If Missing/Incomplete |
+|----------|-------|----------------------|
+| `docs/architecture/ARCHITECTURE.md` | Exists and non-template | Suggest `/bootstrap` |
+| `docs/reference/GROUND_RULES.md` | Exists and has ≥3 rules | Suggest `/bootstrap` (A3.6 step) |
+| `docs/reference/CODING_STANDARDS.md` | Exists and non-template | Suggest `/bootstrap` |
+| `docs/reference/BACKLOG_INDEX.md` | Has ≥1 TODO story | Suggest `/ideate` |
+| Feature branch | `git branch --list 'feature/*' 'sprint-*'` | Suggest `/sprint-start` |
+| Test command | CLAUDE.md Commands has test entry | Suggest configuring tests |
+
+Present as a health dashboard before the session state:
+
+```markdown
+### Project Health
+- ✅ Architecture documented
+- ✅ Ground rules established (5 rules)
+- ⚠️ No backlog stories — consider `/ideate`
+- ❌ Test command not configured
+```
+
+Only flag items that are missing or incomplete — don't clutter with all-green checks unless it's the first session.
+
+## 0.5. Read Latest Session Handoff
 
 Check for the most recent session file:
 

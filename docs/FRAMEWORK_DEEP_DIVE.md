@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v3.0 — Deep Dive
+# JD-LLM Development Framework v3.1 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -291,6 +291,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Directory-level context** (*new in v2.6*): `.claude-context.md` files in directories provide module-specific context (patterns, conventions, quirks). Story-cycle reads the nearest one when working in a directory. These are never created proactively — only when a user explicitly requests module-specific documentation.
 
+**Cross-skill output optimization** (*new in v3.1*): Guidelines for structuring skill outputs consumed by downstream skills: bullet points over prose, file:line references, imperative instructions, front-loaded critical info, YAML frontmatter for metadata, section budgets, and output template usage. This ensures plans, session files, and debug reports are LLM-efficient when consumed by other skills.
+
 #### security.md
 
 **File:** `.claude/rules/security.md`
@@ -460,14 +462,14 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Purpose:** Universal story delivery. The core development skill.
 **Added value:** Ensures every story follows the right methodology with proper quality gates.
 
-**Seven phases** (*updated in v2.6 — added Phase 0 and Phase 4.5*):
-0. **Intent Decomposition** (*new in v2.6*) — Before any exploration, decompose the user's request into ALL distinct deliverables, identify dependencies, suggest splitting compound requests
-1. **Plan** (in plan mode) — Research, identify type, write plan with context preservation header
-2. **Context Transition** — Selectively prune exploration context, keeping discovery metadata (file paths, edge cases, patterns) while discarding bulk content (full file reads, dead-end searches). Reload coding standards + relevant files fresh.
+**Phases** (*updated in v3.1 — added risk classification, discovery gate, depth exploration, disaster prevention*):
+0. **Intent Decomposition** (*new in v2.6*) — Decompose request into deliverables, classify by size AND risk (*risk classification new in v3.1*)
+1. **Plan** (in plan mode) — Research, identify type, discovery gate (*1d.5, new in v3.1*), write plan, depth exploration (*1h, new in v3.1*), with workflow state tracking (*new in v3.1*)
+2. **Context Transition** — Selectively prune exploration context, keeping discovery metadata while discarding bulk content. Reload coding standards + relevant files fresh.
 3. **Execute** — Follow the methodology for the story type (TDD for features, reproduce-first for bugs, etc.)
-3.5. **Self-Review** (*new in v2.2*) — Completeness, quality, testing, discipline checklists + spec compliance verification for complex stories
+3.5. **Self-Review** (*new in v2.2*) — Completeness, quality, testing, discipline checklists + adversarial disaster prevention (*new in v3.1*) + spec compliance verification
 4. **Wrap Up** — Run tests, update docs, commit, print completion report
-4.5. **Completion Verification** (*new in v2.6*) — Re-check ALL acceptance criteria with evidence (test output, code references). Loop back to Phase 3 for gaps (max 2 extra passes). Hard gate: do NOT report done until every criterion has evidence.
+4.5. **Completion Verification** (*new in v2.6*) — Re-check ALL acceptance criteria with evidence. Loop back to Phase 3 for gaps (max 2 extra passes). Hard gate: do NOT report done until every criterion has evidence.
 
 **Process flowchart** (*new in v2.2*): A flowchart at the top of the skill defines the authoritative process, with decision diamonds for plan approval and self-review pass/fail. Prose sections below provide supporting detail.
 
@@ -514,6 +516,16 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Structured clarification sub-phase** (*new in v2.8*): A new Phase 1f between plan draft and approval gate applies the `ambiguity_scan` reasoning tool to scan for assumptions across seven categories (scope, data model, UX, non-functional, integration, edge cases, constraints). Top 3-5 questions ranked by impact are presented to the user. Answers integrate into the plan before approval.
 
 **WHAT/WHY vs HOW plan separation** (*new in v2.8*): Plans now require two distinct sections: Specification (WHAT/WHY — user-visible behavior, Given/When/Then acceptance criteria, no technical terms) and Implementation Approach (HOW — files, patterns, technical strategy). A `plan-template.md` reference file enforces this structure. The `plan_completeness` reasoning tool (now Phase 1g) verifies the spec section contains zero implementation details and the implementation section traces to every acceptance criterion.
+
+**Risk-calibrated workflow depth** (*new in v3.1*): The fast-track classification (trivial/small/standard) is now extended with a risk dimension. The `risk_classification` reasoning tool scores domain risk (auth/payments = high, UI/docs = low), integration surface, and reversibility. The size × risk matrix adjusts workflow depth — high-risk trivial changes get reclassified as SMALL, high-risk standard changes get all quality agents + architecture-check.
+
+**Discovery gate** (*new in v3.1*): Phase 1d.5 adds a facilitator check before plan writing. If there isn't enough information to write a plan without assumptions, Claude presents critical unknowns as focused questions with answer options — shifting discovery earlier, before assumptions solidify.
+
+**Depth exploration** (*new in v3.1*): Phase 1h offers an optional [D]/[C] menu for stories with high complexity or unresolved uncertainties. Selecting [D] applies the `depth_exploration` reasoning tool with structured elicitation techniques (assumption surfacing, constraint mapping, failure mode exploration, stakeholder perspective shift, boundary probing) from a shared `elicitation-techniques.md` reference.
+
+**Workflow state persistence** (*new in v3.1*): The Story-Cycle Context header now includes `stepsCompleted` tracking that updates at each phase transition. Plans saved to `docs/plans/` include YAML frontmatter with workflow state, enabling true mid-workflow resume when `/continue` or story-cycle is re-invoked.
+
+**Adversarial disaster prevention** (*new in v3.1*): Phase 3.5 self-review now includes a `disaster-prevention.md` reference with targeted checks for LLM-typical failures: wheel reinvention, specification drift, missing integration wiring, file structure violations, and regression surface analysis. Each check involves active searching (grep, file listing) rather than passive checking.
 
 **Ground rules compliance checking** (*new in v2.8*): Phase 1e checks the plan against `docs/reference/GROUND_RULES.md` if it exists. MUST violations trigger HALT. SHOULD violations require documented justification in an Architectural Violations table.
 
@@ -594,21 +606,24 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Added value:** Prevents the "where was I?" problem that wastes the first 15 minutes of every session.
 
 **How it works:**
-1. Read latest session handoff file from `docs/sessions/` (*new in v2.0*)
+0. Project health scan (*new in v3.1*) — checks for key artifacts (ARCHITECTURE.md, GROUND_RULES.md, CODING_STANDARDS.md, backlog, feature branches, test command) and presents a health dashboard with actionable recommendations
+0.5. Read latest session handoff file from `docs/sessions/` (*new in v2.0*)
+1. Assess git state (branch, changes, PRs)
 1.5. Reload working context from file access log (*new in v2.1*) — selectively reads modified files, context-relevant reads, and skips investigated-only files
-2. Assess git state (branch, changes, PRs)
-3. Assess project state (progress.md, backlog)
-4. Determine continuation point
-5. Handle pending PRs
+2. Assess project state (progress.md, backlog)
+3. Determine continuation point
+4. Handle pending PRs
+5. Quick verification (run tests)
 5.5. Health dashboard (*new in v2.1*) — shows test status, last commit time, open changes count, session file age
-6. Quick verification (run tests)
-7. Present options and wait for direction
+6. Present options and wait for direction
 
 **Session file reading** (*new in v2.0*): The continue skill reads structured session files written by /handoff. These contain: completed work, pending items, next steps, files to load, and warnings.
 
 **Smart context reload** (*new in v2.1*): Using the enriched file access history from /handoff (Modified, Read, Investigated categories), /continue selectively reloads only the files that matter — avoiding redundant exploration of files already investigated last session.
 
 **Health dashboard** (*new in v2.1*): Before presenting options, shows a quick health pulse so developers immediately know whether things are green.
+
+**Project health scan** (*new in v3.1*): Before session recovery, `/continue` now scans for key project artifacts and presents a health dashboard. Missing ARCHITECTURE.md suggests `/bootstrap`, empty backlog suggests `/ideate`, missing test command suggests configuring tests. This provides project-level context alongside session-level state — especially valuable for first-time sessions or after long breaks.
 
 **Optimization opportunity:** The continue skill loads several files (session, progress, backlog). This front-loads context consumption. Consider a "light continue" mode that only reads git state and the session file, skipping the full backlog scan.
 
@@ -1128,6 +1143,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 
 **v2.8 context efficiency improvements:** Per-phase context loading manifests in story-cycle prescribe exactly which files to load and skip at each phase transition, preventing unnecessary reads. Plan template enforces structured output that separates specification from implementation, reducing plan revision cycles. Clarification scanning surfaces ambiguity before execution, avoiding costly mid-implementation rework and context consumption.
 
+**v3.1 context efficiency improvements:** Cross-skill output optimization guidelines ensure skill outputs consumed by downstream skills (plans, session files, debug reports) use LLM-efficient format — bullet points over prose, file:line references, front-loaded critical info, YAML frontmatter for metadata. Output templates (`assets/`) for debug-session, brainstorm, manual-test, and ideate ensure consistent output structure without generating format from scratch. Workflow state persistence in plan frontmatter enables mid-workflow resume without re-exploring. Discovery gate (Phase 1d.5) catches missing information before plan writing, reducing revision cycles. Skill-specific sidecar memory allows skills to accumulate project-specific patterns across sessions without polluting global context.
+
 **v2.9 context efficiency improvements:** Reference file token budgets — explicit line limits for on-demand references (individual ≤200, per-skill total ≤500) and project docs (CODING_STANDARDS ≤200, TESTING_STRATEGY ≤250, GROUND_RULES ≤100, ARCHITECTURE ≤200) prevent context creep as projects grow. Context budget visibility — a new `context-budget` micro-component lets users estimate context usage and compaction proximity. Pre-compaction state persistence saves session state before compaction events, not just at session end. Subagent context protocol formalizes what context forked agents receive (Full vs Minimal mode), preventing token waste from irrelevant framework state in analysis agents.
 
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
@@ -1306,6 +1323,25 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v3.1
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-93 | Adversarial disaster prevention in self-review (wheel reinvention, spec drift, integration wiring, file structure, regression surface) | Implemented |
+| OPT-94 | Token-efficiency guidelines for cross-skill output (bullet points, file:line refs, front-loaded info, YAML frontmatter) | Implemented |
+| OPT-95 | Per-workflow state persistence in output artifacts (YAML frontmatter state tracking in plan files) | Implemented |
+| OPT-96 | Integrated depth exploration at decision points ([D]/[C] menu with elicitation techniques) | Implemented |
+| OPT-97 | Complexity-calibrated workflow depth (risk_classification: domain × integration × reversibility) | Implemented |
+| OPT-98 | Artifact-aware project navigator in /continue (project health scan for maturity assessment) | Implemented |
+| OPT-99 | Output templates for document-producing skills (debug-report, brainstorm, test-plan, story-template) | Implemented |
+| OPT-100 | Elicitation techniques library (assumption surfacing, constraint mapping, failure mode exploration, etc.) | Implemented |
+| OPT-101 | Facilitator reinforcement in discovery phases (Phase 1d.5 discovery gate) | Implemented |
+| OPT-102 | Skill-specific persistent sidecar memory (persistent-context convention in SKILL_TEMPLATE) | Implemented |
+
+**Key changes in v3.1:** Quality validation strengthened with adversarial disaster prevention targeting LLM-specific failure modes. Workflow intelligence improved with risk-calibrated depth (size × risk matrix), discovery gates that catch missing information early, and depth exploration for in-workflow requirements refinement. Session continuity improved with artifact-aware project health scans in `/continue` and workflow state persistence in plan files. Context efficiency improved with cross-skill output optimization guidelines, output templates for 4 document-producing skills, and structured elicitation techniques library. Extensibility improved with skill-specific sidecar memory convention.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v3.0
 
@@ -1535,6 +1571,11 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Secrets detection is regex-based:** The post-edit hook scans for known patterns (AWS keys, API tokens, private keys). Novel credential formats or obfuscated secrets will not be caught. This is a safety net, not a replacement for proper secrets management (`.gitignore`, vault tools).
 - **Skill prerequisites are not enforced deterministically:** The `requires` field in YAML frontmatter tells Claude what to check, but Claude may skip the check if it's confident the tools exist. Missing prerequisites will surface as errors mid-execution rather than upfront.
 - **Reference file budgets are advisory:** The ≤200 lines per reference file guideline in documentation.md is a rule, not a hook. Files can exceed the budget without triggering a block. Monitor via `/doctor` or periodic manual review.
+- **Risk classification is heuristic:** The domain/integration/reversibility scoring is a guideline. Claude must exercise judgment about what constitutes "high risk" for a specific project. The matrix provides structure but not deterministic classification.
+- **Disaster prevention requires active searching:** The disaster prevention checklist asks Claude to grep for duplicates, check import sites, and verify integration wiring. If Claude abbreviates these checks to "looks fine," the value is lost. Monitor whether the active search instructions are followed.
+- **Depth exploration adds turns for complex stories:** Phase 1h's [D]/[C] menu and elicitation techniques add user interaction. For stories where the plan is already clear, this is unnecessary overhead. The menu is optional — [C] skips it — but Claude may still present it when it's not needed.
+- **Sidecar memory files are opt-in per skill:** Skills without `persistent-context: true` won't create or read sidecar files. The convention must be added to each skill individually, and existing skills don't have it enabled by default.
+- **Workflow state persistence requires plan file saving:** State tracking only works when plans are saved to `docs/plans/`. For stories small enough that the plan stays in conversation context, state persistence doesn't apply.
 - **Hook self-validation degrades gracefully but silently:** When a hook dependency is missing, it reports once per session and continues. This means the hook's intended protection (formatting, linting) is quietly absent. Check `/doctor` output if quality seems to drift.
 - **Dead code detection depends on language tooling:** The code-quality skill's dead code detection relies on language-specific tools (ts-prune, vulture, etc.). If no tool is available for the project's language, the check is skipped silently.
 

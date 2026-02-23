@@ -106,3 +106,40 @@ Steps:
 8. Verify the Implementation Approach section traces back to every acceptance criterion in the Specification section
 
 **Output:** Completeness checklist (all items checked) or list of gaps to address.
+
+---
+
+## Tool: risk_classification
+
+**Apply when:** story-cycle Phase 0, after size classification (trivial/small/standard). Adds a risk dimension to calibrate workflow depth.
+
+Steps:
+1. Score each risk factor (1=Low, 2=Medium, 3=High):
+   - **Domain risk:** UI/docs/config (1) | Business logic/data processing (2) | Auth/payments/security/data migration (3)
+   - **Integration surface:** Isolated single file (1) | Same module, 2-3 files (2) | Cross-module, shared interfaces (3)
+   - **Reversibility:** Easily reverted (1) | Requires data migration or API versioning (2) | Irreversible (schema change, published API) (3)
+2. Sum the scores (range 3-9)
+3. Classify: Low (3-4), Medium (5-6), High (7-9)
+4. Adjust workflow depth based on size × risk matrix:
+   - TRIVIAL + High risk → reclassify as SMALL
+   - SMALL + High risk → use standard workflow + mandatory security-audit
+   - STANDARD + High risk → standard + all quality agents + architecture-check
+   - Any size + Low risk → use the size-based workflow as-is
+
+**Output:** Risk score with factor breakdown and any workflow depth adjustments.
+
+---
+
+## Tool: depth_exploration
+
+**Apply when:** story-cycle Phase 1 when user selects [D] at the depth check, or when `ambiguity_scan` produces ≥3 questions.
+
+Steps:
+1. Identify areas in the plan with complexity ≥4 or `[NEEDS CLARIFICATION]` markers
+2. For each uncertain area: generate 2-3 alternative approaches with tradeoff analysis
+3. Select the most relevant elicitation technique from `references/elicitation-techniques.md` for the type of uncertainty
+4. Apply the technique — ask focused questions, gather user input
+5. Integrate selected approach and answers into the plan
+6. Remove resolved `[NEEDS CLARIFICATION]` markers
+
+**Output:** Updated plan sections with selected approaches, rationale, and resolved uncertainties.

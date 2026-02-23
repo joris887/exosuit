@@ -2,6 +2,23 @@
 
 Use this structure for story-cycle Phase 1e plans. The two-section split (Specification vs Implementation) prevents premature technical decisions and improves plan review quality.
 
+## Workflow State Frontmatter
+
+When saving plans to `docs/plans/`, include YAML frontmatter for workflow state persistence. Update `phase` and `stepsCompleted` at each phase transition to enable mid-workflow resume:
+
+```yaml
+---
+workflow: story-cycle
+storyType: feature
+phase: plan-approved
+stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1d-skills, 1e-plan]
+planApproved: false
+lastUpdated: 2026-02-23
+---
+```
+
+When `/continue` or story-cycle is re-invoked, check `docs/plans/` for an existing plan with this frontmatter. If found with `planApproved: true`, offer to resume from the last completed step.
+
 ## Plan Structure
 
 ```markdown
