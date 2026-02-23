@@ -26,6 +26,24 @@ This data feeds into `/retrospective` and `/weekly-maintenance` for rule health 
 - "It compiles" is NOT "it works" — run the tests
 - Before invoking any CLI tool with flags you're unsure about, run `[tool] --help` first — do NOT guess flags from memory, tool versions change
 
+## Completion Evidence Protocol
+
+Before reporting ANY task as complete, explicitly answer ALL four questions:
+
+1. **Are all tests passing?** — Paste the actual command output from THIS turn
+2. **Are all acceptance criteria met?** — List each criterion with `[PASS file:line]` or `[FAIL reason]`
+3. **Were any assumptions made without verification?** — List each assumption and its evidence source
+4. **Is there concrete evidence for every claim?** — Reference specific test results, command outputs, or file:line locations
+
+If ANY answer is incomplete or uncertain, the task is NOT complete.
+
+### Red Flags (self-check before claiming done)
+- Using "should work" or "looks correct" language
+- Implementation complete but test output not shown in current turn
+- Skipping warnings or non-zero exit codes in command output
+- Referencing "earlier" output instead of fresh output
+- Saying "I believe" or "I think" instead of showing evidence
+
 ## Task Completion Enforcement
 
 - Before reporting "done" or "complete", check your task list (if you created one). ALL tasks must be completed or explicitly noted as deferred with a reason.

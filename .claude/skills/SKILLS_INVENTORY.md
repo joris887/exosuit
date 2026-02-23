@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 3.2
+**Framework Version:** 3.4
 
 ## Core Workflow
 
@@ -34,7 +34,7 @@ For technology skill generation: `/skill-create`
 | --------------- | ------------------ | --------------------- | ----------------------------------------- |
 | `/sprint-start` | Starting new work  | `[branch] [--worktree]` | Pre-flight checks + branch (supports worktrees) |
 | `/sprint-end`   | Completing sprint  | -                     | Quality gates, test protection, control flow markers, error recovery tables, graceful degradation, docs, PR, merge |
-| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (intent decomposition, reasoning scaffolds, control flow markers, error recovery tables, completion verification, parallel stream decomposition) |
+| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (intent decomposition, confidence gate, reasoning scaffolds, control flow markers, error recovery tables, error learning, completion verification, parallel stream decomposition, wave execution) |
 | `/continue`     | Session start      | -                     | Smart continuation from session files + git state |
 | `/handoff`      | Session end        | -                     | Structured session file to docs/sessions/ |
 
@@ -114,7 +114,7 @@ For structured UAT with tracked test cases:
 | `/fix-issue`     | `<issue-number>` | GitHub issue fixer   |
 | `/pr-status`     | -                | Check PR status      |
 | `/undo-work`     | `[--soft\|--hard\|--story]` | Safely revert failed implementation attempts |
-| `/debug-session` | `<error>`        | 5-phase structured debugging with reasoning scaffolds, error recovery tables, halt conditions |
+| `/debug-session` | `<error>`        | 5-phase structured debugging with reasoning scaffolds, error recovery tables, error learning, halt conditions |
 
 ### Prompt Snippets (`.claude/prompts/`)
 
@@ -130,10 +130,13 @@ Lightweight, reusable prompt templates — simpler than full skills. See `.claud
 
 Structured templates for dispatching subagents with context and review checklists:
 
-| Template          | Purpose                                          |
-| ----------------- | ------------------------------------------------ |
-| `code-reviewer`   | Code review with severity classification         |
-| `spec-reviewer`   | Spec compliance verification with file:line refs |
+| Template               | Purpose                                              |
+| ---------------------- | ---------------------------------------------------- |
+| `code-reviewer`        | Code review with severity classification             |
+| `spec-reviewer`        | Spec compliance verification with file:line refs     |
+| `security-analyst`     | Security-focused analysis with attacker mindset      |
+| `performance-engineer` | Performance analysis with bottleneck identification  |
+| `architecture-reviewer`| Architecture validation with boundary enforcement    |
 
 ### Technology Skills (Auto-invocable)
 
@@ -187,7 +190,7 @@ All skills include machine-readable YAML frontmatter with: `name`, `version`, `t
 - **Reasoning scaffolds** — Named reasoning tools (scope_analysis, test_strategy_selection, failure_diagnosis, architectural_impact, plan_completeness) scaffold thinking at critical decision points
 - **Control flow markers** — `<IF>/<ELSE>`, `<LOOP>`, `<HALT>` extend HARD-GATE to cover all conditional logic
 - **Error recovery tables** — Phase-specific error/cause/recovery decision tables for complex skills
-- **Micro-components** — Reusable operation sequences (discover-commands, quality-gate-sequence, verify-clean-git-state) referenced by multiple skills
+- **Micro-components** — Reusable operation sequences (discover-commands, quality-gate-sequence, verify-clean-git-state, confidence-gate, record-failure, wave-execution, select-tool) referenced by multiple skills
 
 ### Invocation Control
 
@@ -229,6 +232,7 @@ Deterministic enforcement via shell scripts (all hooks declare requirements in h
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 3.4     | 2026-02-23 | Confidence gate, four-question evidence protocol, cross-session error learning, wave execution pattern, MCP integration guide, domain-specific agent personas, completion evidence protocol |
 | 3.2     | 2026-02-23 | Worktree-aware bash hook, parallel stream decomposition, project context knowledge base, script delegation (status/standup/next-story), documentation accuracy safeguards, template repo safety check |
 | 3.0     | 2026-02-22 | CI PR review, PR template, session-start hook, activity logging, skill conformance validator, registry schema, story-cycle fast-track, dynamic quality scaling, agent tool restrictions, GitHub issue templates |
 | 2.9     | 2026-02-22 | Pre-compaction state persistence, secrets detection hook, skill prerequisites, subagent context protocol, reference file budgets, context budget visibility, /doctor health check, hook self-validation, dead code detection |

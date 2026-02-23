@@ -1,10 +1,12 @@
 ---
 name: debug-session
-version: 2.7.0
+version: 2.8.0
 description: Use when the user reports a bug, error, or unexpected behavior that needs investigation.
 trigger: manual
 depends-on: []
 references: [references/root-cause-tracing.md, references/condition-based-waiting.md, references/error-recovery.md]
+micro-components:
+  phase-4: [record-failure]
 ---
 ______________________________________________________________________
 
@@ -129,6 +131,10 @@ See `references/condition-based-waiting.md` — search for `## Patterns by Langu
 3. Implement the MINIMAL fix — change as little as possible
 4. Verify the reproduction test passes
 5. Run the FULL test suite for regressions
+
+## Phase 4.5: Error Learning
+
+If the root cause was initially misdiagnosed or the fix required changing approach, invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md` to record the pattern in `docs/context/error-patterns.md`. This helps future sessions avoid the same diagnostic mistakes.
 
 ## Phase 5: Verify and Document
 

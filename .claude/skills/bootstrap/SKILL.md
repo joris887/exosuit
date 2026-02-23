@@ -106,6 +106,12 @@ Update these files with detected information:
 2. **`docs/reference/CODING_STANDARDS.md`** — Fill in language-specific sections
 3. **`docs/progress.md`** — Initialize with baseline metrics
 
+### A4.5. Detect MCP Servers (Optional)
+
+Check if any MCP servers are available in the Claude Code environment. If detected, note them in `CLAUDE.md` under a `## MCP Servers` section so skills can conditionally leverage them. See `docs/reference/MCP_INTEGRATION.md` for server categories and integration guidance.
+
+If no MCP servers are detected, skip this step — all skills function without them.
+
 ### A5. Run /skill-create
 
 Generate technology-specific skills for the detected stack.

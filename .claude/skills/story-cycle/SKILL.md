@@ -1,13 +1,15 @@
 ---
 name: story-cycle
-version: 3.0.0
+version: 3.1.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
 references: [references/story-types.md, references/self-review.md, references/disaster-prevention.md, references/reasoning-tools.md, references/elicitation-techniques.md, references/error-recovery.md, references/plan-template.md, references/parallel-streams.md]
 micro-components:
   phase-0: [context-prime]
-  phase-1: [discover-commands, verify-clean-git-state]
+  phase-1: [discover-commands, verify-clean-git-state, wave-execution]
+  phase-2.5: [confidence-gate]
+  phase-3.5: [record-failure]
   phase-4: [quality-gate-sequence]
 ---
 ______________________________________________________________________
@@ -40,6 +42,7 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
         → [User approved?]
           → NO: Revise plan → back to approval
           → YES: Phase 2: Context Transition (keep insights, discard bulk)
+            → Phase 2.5: Confidence Gate (score 5 dimensions, ≥85 proceed, 70-84 clarify, <70 stop)
             → Phase 3a: Parallel Stream Analysis (optional, STANDARD + low/medium risk only)
               → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
               → Phase 3.5: Self-Review (completeness, quality, testing, discipline)
@@ -280,6 +283,18 @@ The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 
 - DO re-read files from the plan's file list before editing them.
 - DON'T assume you remember file contents from Phase 1 — context may have changed.
 
+## Phase 2.5: Confidence Gate
+
+Before writing any implementation code, run the `confidence-gate` micro-component from `.claude/prompts/confidence-gate.md`. Score 5 dimensions (ambiguity, architecture, patterns, test strategy, dependencies) on a 0–20 scale each.
+
+| Total Score | Action |
+|-------------|--------|
+| **85–100** | Proceed to Phase 3 |
+| **70–84** | Flag low-scoring dimensions, ask user for clarification before proceeding |
+| **< 70** | Return to Phase 1 for additional research on the weakest dimensions |
+
+This gate prevents wrong-direction implementations that waste the entire Phase 3 execution budget. A few tokens spent on confidence assessment saves thousands on rework.
+
 ## Phase 3a: Parallel Stream Analysis (Optional)
 
 <IF condition="story is STANDARD size AND risk is Low or Medium (3-6) AND plan identifies ≥2 independent work units">
@@ -334,6 +349,8 @@ Read `references/self-review.md` and complete the full checklist honestly. Do NO
 <HARD-GATE>
 If any checklist item fails, go back to Phase 3 and fix the issue before proceeding.
 </HARD-GATE>
+
+**Error learning:** If self-review caught a wrong approach that required significant rework (not routine TDD cycles), invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md` to record the pattern in `docs/context/error-patterns.md`. This builds a cross-session knowledge base of mistakes to avoid.
 
 ## Phase 4: Wrap Up
 

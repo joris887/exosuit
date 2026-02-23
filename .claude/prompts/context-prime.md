@@ -23,3 +23,4 @@ All files live in `docs/context/`:
 - `system-patterns.md` — design patterns and conventions
 - `project-structure.md` — directory layout and module responsibilities
 - `product-context.md` — domain terminology and user personas
+- `error-patterns.md` — cross-session error learning (always load last, low priority but valuable for avoiding known mistakes)

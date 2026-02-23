@@ -1,5 +1,70 @@
 # Changelog
 
+## [3.4.0] - 2026-02-23
+
+### Pre-Implementation Quality Gates (OPT-119, OPT-120)
+
+#### OPT-119: Confidence-Gated Implementation Start
+- **New:** `.claude/prompts/confidence-gate.md` (micro-component for pre-implementation confidence assessment)
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added Phase 2.5 between context transition and execution, added `confidence-gate` to micro-components frontmatter, version bumped to 3.1.0)
+- **What:** A new Phase 2.5 in story-cycle scores confidence across 5 dimensions (ambiguity, architecture, patterns, test strategy, dependencies) before any implementation code is written. Score ≥85 proceeds, 70-84 flags gaps for clarification, <70 returns to Phase 1 for more research.
+- **Why:** The framework verified extensively after implementation (Phase 3.5 self-review, Phase 4.5 completion verification) but had no structured gate asking "Am I confident enough to start?" A wrong-direction implementation caught in Phase 3.5 wastes the entire Phase 3 execution budget.
+- **To test:** Run `/story-cycle` on a story. After plan approval and context transition, verify the confidence gate runs and produces a scored assessment before Phase 3 execution begins. Test with an ambiguous story — verify it flags low-scoring dimensions.
+- **To revert:** Delete `.claude/prompts/confidence-gate.md`. Remove the "Phase 2.5: Confidence Gate" section from story-cycle SKILL.md. Remove `phase-2.5: [confidence-gate]` from frontmatter micro-components. Remove `→ Phase 2.5: Confidence Gate` line from the process flow. Revert story-cycle version to 3.0.0.
+
+#### OPT-120: Four-Question Completion Evidence Protocol
+- **Modified:** `.claude/rules/verification.md` (added "Completion Evidence Protocol" section with 4 mandatory questions and red flags checklist)
+- **What:** Before reporting any task as complete, the agent must explicitly answer 4 questions: (1) Are tests passing? (paste output), (2) Are all AC met? (list each with PASS/FAIL), (3) Any unverified assumptions? (list with evidence), (4) Concrete evidence for every claim? (cite outputs/locations). Includes 5 red flag patterns for self-checking.
+- **Why:** Existing verification rules used prohibitive language ("NEVER claim...") but the agent could still feel compliant while being vague. A structured checklist forces explicit answers, making it harder to skip verification steps.
+- **To test:** Complete a story and verify the completion report addresses all 4 questions with concrete evidence. Check that the red flags are self-checked.
+- **To revert:** Remove the "Completion Evidence Protocol" section (from `## Completion Evidence Protocol` through the red flags list) from `.claude/rules/verification.md`.
+
+### Error Learning & Prevention (OPT-121)
+
+#### OPT-121: Cross-Session Error Learning Pattern
+- **New:** `.claude/prompts/record-failure.md` (micro-component for recording failure patterns)
+- **New:** `docs/context/error-patterns.md` (persistent cross-session error knowledge base)
+- **Modified:** `.claude/prompts/context-prime.md` (added `error-patterns.md` to context file loading list)
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added error learning paragraph to Phase 3.5, added `record-failure` to micro-components frontmatter)
+- **Modified:** `.claude/skills/debug-session/SKILL.md` (added Phase 4.5 Error Learning section, added `record-failure` to micro-components frontmatter, version bumped to 2.8.0)
+- **What:** A reflexion mechanism that records implementation failures, root causes, and prevention strategies in `docs/context/error-patterns.md`. Invoked when self-review catches wrong approaches (story-cycle Phase 3.5) or when debug-session identifies misdiagnosed root causes (new Phase 4.5). The context-prime component loads error-patterns.md during session start so future sessions can check for known pitfalls.
+- **Why:** The framework had failure state persistence (tracking where interruption happened) but not failure knowledge persistence (what went wrong and how to prevent it). Sessions could repeat the same architectural mistakes because lessons were lost.
+- **To test:** During `/story-cycle`, deliberately make an approach that gets caught in self-review. Verify an entry is appended to `docs/context/error-patterns.md`. Start a new session with `/continue` — verify error-patterns.md is loaded by context-prime. During `/debug-session`, verify Phase 4.5 appears after root cause identification.
+- **To revert:** Delete `.claude/prompts/record-failure.md` and `docs/context/error-patterns.md`. Remove `error-patterns.md` line from `.claude/prompts/context-prime.md`. Remove the "Error learning" paragraph from story-cycle Phase 3.5. Remove `phase-3.5: [record-failure]` from story-cycle frontmatter. Remove Phase 4.5 from debug-session SKILL.md. Remove `phase-4: [record-failure]` from debug-session frontmatter. Revert debug-session version to 2.7.0.
+
+### Parallelization Patterns (OPT-122)
+
+#### OPT-122: Formalized Wave Execution Pattern
+- **New:** `.claude/prompts/wave-execution.md` (micro-component for Wave → Checkpoint → Wave parallel execution)
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added `wave-execution` to phase-1 micro-components frontmatter)
+- **What:** A standardized parallel execution pattern: Wave 1 (independent reads in parallel) → Checkpoint (sequential analysis of combined results) → Wave 2 (independent actions in parallel). Includes anti-patterns and a decision table for when to apply. Referenced by story-cycle Phase 1 for parallel file discovery and codebase research.
+- **Why:** The framework used parallelism in specific places (quality gates, parallel streams, explore subagent) but each skill implemented its own version. A standardized pattern makes it easier to add parallelism to new skills and ensures consistent checkpoint behavior.
+- **To test:** Run `/story-cycle` on a multi-module story. Verify Phase 1b-1c file discovery and research uses wave-style parallel reads when touching multiple independent areas.
+- **To revert:** Delete `.claude/prompts/wave-execution.md`. Remove `wave-execution` from the phase-1 micro-components list in story-cycle frontmatter.
+
+### Tool Integration Strategy (OPT-123)
+
+#### OPT-123: MCP Server Integration Guide
+- **New:** `docs/reference/MCP_INTEGRATION.md` (MCP server selection guide with categories, decision tree, and integration patterns)
+- **New:** `.claude/prompts/select-tool.md` (prompt snippet for MCP vs built-in tool selection)
+- **Modified:** `.claude/skills/bootstrap/SKILL.md` (added step A4.5 for MCP server detection)
+- **Modified:** `CLAUDE.md` (added MCP_INTEGRATION.md to Important Files)
+- **What:** A reference document documenting 5 MCP server categories (documentation, memory, search, browser automation, code intelligence) with integration points for each framework skill. Includes a decision tree for server selection and graceful degradation guidance. Bootstrap now optionally detects installed MCP servers. A select-tool prompt snippet guides MCP vs built-in tool choices.
+- **Why:** Skills were tool-agnostic with no guidance on leveraging MCP servers. Users with servers installed got no framework-level optimization. The guide enables conditional enhancement while maintaining full functionality without MCP.
+- **To test:** Read `docs/reference/MCP_INTEGRATION.md` and verify the server categories and decision tree are clear. Run `/bootstrap` on a project — verify step A4.5 appears (and is skipped gracefully if no MCP servers detected). Check CLAUDE.md for the new Important Files entry.
+- **To revert:** Delete `docs/reference/MCP_INTEGRATION.md` and `.claude/prompts/select-tool.md`. Remove step A4.5 from bootstrap SKILL.md. Remove the MCP_INTEGRATION.md line from CLAUDE.md Important Files.
+
+### Agent Specialization (OPT-124)
+
+#### OPT-124: Domain-Specific Subagent Personas
+- **New:** `.claude/prompts/agents/security-analyst.md` (attacker-mindset security analysis persona)
+- **New:** `.claude/prompts/agents/performance-engineer.md` (systems profiling performance analysis persona)
+- **New:** `.claude/prompts/agents/architecture-reviewer.md` (boundary-enforcement architecture review persona)
+- **What:** Three domain-specific agent personas that carry specialized knowledge, behavioral frameworks, analysis patterns, key questions, and red flags. Each follows a structured template: Mindset, Focus Areas, Key Questions, Red Flags, Analysis Framework, Output Format.
+- **Why:** Existing subagent templates (code-reviewer, spec-reviewer) defined what to review but not how to think about it. A security review benefits from an attacker mindset; a performance review benefits from a systems profiling perspective. Domain personas prime the agent with relevant mental models.
+- **To test:** During `/security-audit`, verify the security-analyst persona is available for dispatch. Check that each persona file contains: Mindset, Focus Areas (ranked), Key Questions (5-7), Red Flags, Analysis Framework, and Output Format sections.
+- **To revert:** Delete `.claude/prompts/agents/security-analyst.md`, `.claude/prompts/agents/performance-engineer.md`, and `.claude/prompts/agents/architecture-reviewer.md`.
+
 ## [3.3.0] - 2026-02-23
 
 ### Context Intelligence (OPT-109, OPT-110)

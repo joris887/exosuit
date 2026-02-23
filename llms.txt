@@ -12,17 +12,18 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.3)
-- docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.4)
+- docs/reference/MCP_INTEGRATION.md: MCP server selection guide with categories, decision tree, and integration patterns
+- docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
 
 ## Skills (invoked via /skill-name in Claude Code)
-- .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack, generate project context knowledge base
+- .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack, generate project context knowledge base, optional MCP server detection
   - references/stack-detection.md: Technology detection tables and commands
   - references/new-project.md: New project braindump and generation workflow
   - references/accuracy-safeguards.md: Anti-hallucination protocol for documentation creation
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with risk-calibrated depth, intent-based security activation, adaptive depth calibration, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, failure state persistence, control flow markers, error recovery, disaster prevention, parallel stream decomposition, skill lifecycle metrics, cross-skill status, completion verification, micro-component composition, and handoff suggestions
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with confidence gate, risk-calibrated depth, intent-based security activation, adaptive depth calibration, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, failure state persistence, control flow markers, error recovery, error learning, disaster prevention, parallel stream decomposition, wave execution, skill lifecycle metrics, cross-skill status, completion verification, micro-component composition, and handoff suggestions
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
   - references/self-review.md: Self-review checklist with red flags + disaster prevention reference
   - references/disaster-prevention.md: Adversarial LLM failure mode checklist (wheel reinvention, spec drift, integration wiring, file structure, regression surface)
@@ -46,7 +47,7 @@
   - scripts/update-registry.sh: Generate skills-registry.json from YAML frontmatter
 - .claude/skills/skills-registry.json: Machine-readable index of all skills (generated)
 - .claude/skills/skills-registry.schema.json: JSON Schema for registry validation
-- .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with reasoning scaffolds, error recovery tables, halt conditions, and handoff suggestions
+- .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with reasoning scaffolds, error recovery tables, error learning, halt conditions, and handoff suggestions
   - references/root-cause-tracing.md: Backward tracing technique
   - references/condition-based-waiting.md: Replace timeouts with condition polling
   - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (15 error patterns)
@@ -69,7 +70,7 @@
 - .claude/rules/security.md: Security-sensitive file rules + fix-immediately pattern + expanded path scope (API, routes, middleware, DB, models, uploads, sessions)
 - .claude/rules/git.md: Git workflow rules
 - .claude/rules/dependencies.md: Dependency management rules
-- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern + task completion enforcement + context budget awareness + context relevance scoring (5-level classification) + pre-compaction state persistence + rule effectiveness tracking protocol
+- .claude/rules/verification.md: Evidence required before completion claims + four-question completion evidence protocol + CLI discovery pattern + task completion enforcement + context budget awareness + context relevance scoring (5-level classification) + pre-compaction state persistence + rule effectiveness tracking protocol
 - .claude/rules/code-slop.md: AI slop detection — banned comment patterns, obvious comment detection, code prose anti-patterns
 - .claude/rules/edit-recovery.md: Edit failure recovery decision tree — re-read before retry, escalating recovery
 
@@ -83,11 +84,18 @@
 - .claude/prompts/quality-gate-sequence.md: Run lint → typecheck → test sequence
 - .claude/prompts/verify-clean-git-state.md: Verify clean git working tree
 - .claude/prompts/context-budget.md: Estimate context budget usage and compaction proximity
-- .claude/prompts/context-prime.md: Intent-aware context loading with task classification (security, UI, data/API, refactoring, new feature)
+- .claude/prompts/context-prime.md: Intent-aware context loading with task classification (security, UI, data/API, refactoring, new feature) + error patterns
+- .claude/prompts/confidence-gate.md: Pre-implementation confidence assessment (5 dimensions, 0-100 scoring, threshold-gated)
+- .claude/prompts/record-failure.md: Cross-session error learning — records failure patterns, root causes, and prevention strategies
+- .claude/prompts/wave-execution.md: Wave → Checkpoint → Wave parallel execution pattern for independent operations
+- .claude/prompts/select-tool.md: MCP server vs built-in tool selection guide with decision matrix
 
 ## Subagent Templates
 - .claude/prompts/agents/code-reviewer.md: Code review dispatch template with severity classification
 - .claude/prompts/agents/spec-reviewer.md: Spec compliance verification with file:line references
+- .claude/prompts/agents/security-analyst.md: Security-focused analysis with attacker mindset, STRIDE/CWE frameworks, and threat modeling
+- .claude/prompts/agents/performance-engineer.md: Performance analysis with bottleneck identification, N+1 detection, and scaling assessment
+- .claude/prompts/agents/architecture-reviewer.md: Architecture validation with boundary enforcement, dependency direction, and coupling analysis
 
 ## Hooks
 - .claude/hooks/session-start.sh: Advisory environment checks at session start (tool existence, stale state, git health, hook coverage)

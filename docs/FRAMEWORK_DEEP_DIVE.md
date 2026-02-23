@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v3.3 — Deep Dive
+# JD-LLM Development Framework v3.4 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -72,7 +72,7 @@ Without this philosophy, AI-assisted development tends toward: long unfocused se
 │  Settings (configuration)                        │
 ├─────────────────────────────────────────────────┤
 │                   WORKFLOW                        │
-│  Skills (29 skills, lean SKILL.md + references/)  │
+│  Skills (29 skills, lean SKILL.md + references/)   │
 │  Bootstrap → Sprint → Story → Quality → Ship     │
 ├─────────────────────────────────────────────────┤
 │                 DOCUMENTATION                     │
@@ -353,6 +353,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Pre-compaction state persistence** (*new in v2.9*): When context is approaching compaction (15+ turns, large tool outputs), Claude persists session state to `docs/sessions/.auto-save.md` before compaction occurs. After compaction, critical state is verified against the auto-save. This complements the pre-stop hook auto-save (session end) by protecting against mid-session compaction loss.
 
+**Four-question completion evidence protocol** (*new in v3.4*): Before reporting any task as complete, Claude must explicitly answer 4 questions: (1) Are all tests passing? (paste output), (2) Are all AC met? (list each with PASS/FAIL and file:line), (3) Any unverified assumptions? (list with evidence), (4) Concrete evidence for every claim? (cite specific outputs/locations). Includes 5 red flag patterns for self-checking. This strengthens the existing prohibitive rules with a structured checklist that makes vague compliance impossible.
+
 #### code-slop.md (*new in v2.6*)
 
 **File:** `.claude/rules/code-slop.md`
@@ -458,6 +460,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Documentation accuracy safeguards** (*new in v3.2*): Bootstrap now loads `references/accuracy-safeguards.md` during documentation generation (Steps A3.5 and A3.55). This reference provides anti-hallucination protocols: self-verification questions ("Can I point to the exact file?"), evidence level classification (Confirmed from code/config, Inferred from patterns, Assumed from conventions), qualifying language rules ("appears to" vs "uses"), post-creation validation steps, and a common hallucination patterns table (wrong package versions, phantom config files, invented API endpoints). This prevents bootstrap from confidently documenting incorrect project details.
 
+**MCP server detection** (*new in v3.4*): Step A4.5 optionally detects installed MCP servers and records them in CLAUDE.md so skills can conditionally leverage them. See `docs/reference/MCP_INTEGRATION.md` for the server selection guide covering 5 categories (documentation, memory, search, browser automation, code intelligence) with integration patterns and a decision tree. All skills function without MCP servers; when available, they enhance specific workflows.
+
 **Optimization opportunity:** Bootstrap is the first thing users experience. It must be robust. Test it against diverse project types: pure Python, TypeScript monorepo, Rust CLI, Swift iOS app, Go microservice. Each should detect correctly.
 
 ---
@@ -490,13 +494,14 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Purpose:** Universal story delivery. The core development skill.
 **Added value:** Ensures every story follows the right methodology with proper quality gates.
 
-**Phases** (*updated in v3.2 — added parallel stream decomposition*):
+**Phases** (*updated in v3.4 — added confidence gate, error learning, wave execution*):
 0. **Intent Decomposition** (*new in v2.6*) — Decompose request into deliverables, classify by size AND risk (*risk classification new in v3.1*)
-1. **Plan** (in plan mode) — Research, identify type, discovery gate (*1d.5, new in v3.1*), write plan, depth exploration (*1h, new in v3.1*), with workflow state tracking (*new in v3.1*)
+1. **Plan** (in plan mode) — Research, identify type, discovery gate (*1d.5, new in v3.1*), write plan, depth exploration (*1h, new in v3.1*), with workflow state tracking (*new in v3.1*). Wave execution pattern (*new in v3.4*) for parallel file discovery and research.
 2. **Context Transition** — Selectively prune exploration context, keeping discovery metadata while discarding bulk content. Reload coding standards + relevant files fresh.
+2.5. **Confidence Gate** (*new in v3.4*) — Score confidence across 5 dimensions (ambiguity, architecture, patterns, test strategy, dependencies). ≥85 proceeds; 70-84 flags gaps for clarification; <70 returns to Phase 1 for more research.
 3. **Execute** — Follow the methodology for the story type (TDD for features, reproduce-first for bugs, etc.)
 3a. **Parallel Stream Decomposition** (*new in v3.2*, optional) — For STANDARD stories with non-overlapping file scopes, decompose into parallel work streams executed in separate worktrees
-3.5. **Self-Review** (*new in v2.2*) — Completeness, quality, testing, discipline checklists + adversarial disaster prevention (*new in v3.1*) + spec compliance verification
+3.5. **Self-Review** (*new in v2.2*) — Completeness, quality, testing, discipline checklists + adversarial disaster prevention (*new in v3.1*) + spec compliance verification + error learning (*new in v3.4*)
 4. **Wrap Up** — Run tests, update docs, commit, print completion report
 4.5. **Completion Verification** (*new in v2.6*) — Re-check ALL acceptance criteria with evidence. Loop back to Phase 3 for gaps (max 2 extra passes). Hard gate: do NOT report done until every criterion has evidence.
 
@@ -565,6 +570,12 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Per-phase context loading manifests** (*new in v2.8*): Phase 2 now includes prescriptive manifests listing exactly which files to load (RELOAD) and skip (SKIP) per phase, replacing the previous generic guidance. This prevents unnecessary file reads.
 
 **Fast-track mode** (*new in v3.0*): Phase 0 now classifies story size as TRIVIAL (rename/typo fix, <3 files), SMALL (single-concern change, 3-5 files), or STANDARD (everything else). TRIVIAL stories skip Phase 1 planning and Phase 3.5 self-review entirely — proceed directly from intent decomposition to execution. SMALL stories use a condensed single-paragraph plan instead of the full plan template. Only STANDARD stories follow the complete phase sequence. This eliminates ceremony overhead for simple changes without weakening quality gates for complex work.
+
+**Confidence gate** (*new in v3.4*): Phase 2.5 adds a pre-implementation confidence assessment via the `confidence-gate` micro-component. Scores 5 dimensions (ambiguity remaining, architecture compliance, existing pattern match, test strategy clarity, dependencies verified) on a 0–20 scale each. Total ≥85 proceeds to execution; 70-84 flags specific gaps for user clarification; <70 returns to Phase 1. This prevents wrong-direction implementations that waste the entire Phase 3 execution budget.
+
+**Cross-session error learning** (*new in v3.4*): Phase 3.5 self-review now invokes the `record-failure` micro-component when a wrong approach required significant rework. Failure patterns (wrong approach, root cause, correct approach, prevention) are recorded in `docs/context/error-patterns.md` and loaded by `context-prime` in future sessions — creating a cross-session learning loop that compounds over time.
+
+**Wave execution pattern** (*new in v3.4*): Phase 1 file discovery and codebase research now references the `wave-execution` micro-component for structuring parallel operations: Wave 1 (independent reads) → Checkpoint (sequential analysis) → Wave 2 (independent actions). This standardizes the parallelization pattern already used ad-hoc in quality gates and parallel streams.
 
 **Optimization opportunity:** The context reset is manual — Claude follows the instruction to "clear and reload." In practice, Claude sometimes carries over more context than intended. Consider whether a more forceful reset mechanism is possible. Also: the 50-line plan limit may be too restrictive for complex stories — monitor and adjust.
 
@@ -1042,6 +1053,8 @@ Or for formal UAT:
 
 **Phase-specific error recovery** (*new in v2.7*): A dedicated `references/error-recovery.md` provides error/cause/recovery tables for all 5 phases (15 error patterns). Covers: unreproducible errors, wrong hypotheses, failed fixes, and regression introduction.
 
+**Error learning** (*new in v3.4*): A new Phase 4.5 invokes the `record-failure` micro-component when the root cause was initially misdiagnosed or the fix required changing approach. Failure patterns are recorded in `docs/context/error-patterns.md` for future session use, helping avoid repeated diagnostic mistakes.
+
 **Supporting references** (in `references/` subdirectory):
 - `references/root-cause-tracing.md` — Backward tracing technique through call stacks, multi-component tracing, git bisect
 - `references/condition-based-waiting.md` — Replacing arbitrary timeouts with condition polling for deterministic tests
@@ -1184,6 +1197,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 
 **v3.2 context efficiency improvements:** Project context knowledge base — five structured files in `docs/context/` capture deep project knowledge (overview, tech stack, patterns, structure, product domain) that persists across sessions. Unlike session handoffs (which capture what happened), context files capture what the project IS. Priority-ordered loading via the `context-prime` micro-component ensures most valuable context loads first. Script delegation — three read-only query scripts (`scripts/pm/status.sh`, `next-story.sh`, `standup.sh`) execute as black boxes with zero context token cost, replacing multi-file reads for common status queries. Documentation accuracy safeguards ensure generated docs are reliable, reducing correction cycles that waste context.
 
+**v3.4 context efficiency improvements:** Confidence gate micro-component (~40 lines, loaded only at Phase 2.5) prevents wrong-direction implementations that waste the entire Phase 3 context budget — catching low-confidence situations early saves thousands of tokens on rework. Wave execution pattern enables parallel file reads and edits, reducing sequential API calls. Error patterns file adds ~50 tokens when loaded but prevents repeating known mistakes (which can cost 5,000+ tokens in rework). MCP integration is zero-cost when no servers are present; when available, documentation servers reduce hallucination-correction cycles.
+
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
 ---
@@ -1259,6 +1274,7 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 | docs/architecture/ARCHITECTURE.md | /architecture-check, /story-cycle | Module boundaries and structure |
 | docs/reference/backlog/E##-*.md | /sprint-start, /ideate | Individual epic with story details |
 | docs/reference/GROUND_RULES.md | /story-cycle Phase 1e, /sprint-end | Architectural principles |
+| docs/reference/MCP_INTEGRATION.md | /bootstrap A4.5, on-demand | MCP server selection guide (*new in v3.4*) |
 
 **Design principle:** Loaded only when needed. Not every story needs the full testing strategy. Not every conversation needs architecture details.
 
@@ -1271,8 +1287,9 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 | docs/context/system-patterns.md | /bootstrap | /continue, /story-cycle | Design patterns, conventions, error handling |
 | docs/context/project-structure.md | /bootstrap | /continue, /story-cycle | Directory layout, module responsibilities |
 | docs/context/product-context.md | /bootstrap | /continue, /story-cycle | Domain terminology, personas, business rules |
+| docs/context/error-patterns.md | /story-cycle, /debug-session | /continue, /story-cycle | Cross-session failure knowledge (*new in v3.4*) |
 
-**Design principle:** Unlike session handoffs (which capture what happened), context files capture what the project IS. Generated by `/bootstrap`, incrementally updated by `/sprint-end`, and loaded by `/continue` via the `context-prime` micro-component. Each file has YAML frontmatter with created/updated timestamps. Knowledge compounds across sessions — each sprint adds patterns, decisions, and structural understanding.
+**Design principle:** Unlike session handoffs (which capture what happened), context files capture what the project IS. Generated by `/bootstrap`, incrementally updated by `/sprint-end`, and loaded by `/continue` via the `context-prime` micro-component. Each file has YAML frontmatter with created/updated timestamps. Knowledge compounds across sessions — each sprint adds patterns, decisions, and structural understanding. The error-patterns file (*new in v3.4*) specifically captures implementation failures and prevention strategies, creating a learning loop that prevents repeating known mistakes.
 
 ### Layer 3: Persistent State (Written by Skills)
 
@@ -1355,10 +1372,15 @@ All skills now include YAML frontmatter with machine-readable metadata: `name`, 
 |---|---|
 | .claude/prompts/agents/code-reviewer.md | Code review dispatch with severity classification, confidence scoring, and optional review lens ($3) |
 | .claude/prompts/agents/spec-reviewer.md | Spec compliance verification with file:line references |
+| .claude/prompts/agents/security-analyst.md | Security-focused analysis with attacker mindset, STRIDE/CWE frameworks (*new in v3.4*) |
+| .claude/prompts/agents/performance-engineer.md | Performance analysis with bottleneck identification, N+1 detection (*new in v3.4*) |
+| .claude/prompts/agents/architecture-reviewer.md | Architecture validation with boundary enforcement, coupling analysis (*new in v3.4*) |
 
 **Design principle:** Structured templates for dispatching quality subagents. Each includes: context slots ($1, $2, $3), review checklists, explicit skepticism ("do NOT trust claims — read actual code"), confidence scoring (0–100), and severity classification requirements. Used by sprint-end when dispatching quality agents.
 
 **Multi-perspective review** (*new in v2.4*): The code-reviewer template now supports a `$3` lens parameter (correctness, conventions, security) for focused independent review. Multiple reviewers with different lenses can be dispatched in parallel. Issues flagged by 2+ independent reviewers are auto-elevated to Critical.
+
+**Domain-specific personas** (*new in v3.4*): Three new subagent templates carry specialized knowledge and behavioral frameworks: security-analyst (attacker mindset, STRIDE framework, CWE checklist, threat modeling), performance-engineer (systems profiling, N+1 detection, scaling analysis, resource lifecycle), architecture-reviewer (boundary enforcement, dependency direction, coupling metrics, SOLID principles). Each template follows a standard structure: Mindset, Focus Areas (ranked), Key Questions (5-7), Red Flags, Analysis Framework, and Output Format. Personas are loaded only when the relevant skill dispatches a subagent of that type.
 
 ---
 
@@ -1385,6 +1407,21 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v3.4
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-119 | Confidence-gated implementation start — 5-dimension scoring before Phase 3 execution | Implemented |
+| OPT-120 | Four-question completion evidence protocol — structured checklist for completion claims | Implemented |
+| OPT-121 | Cross-session error learning — reflexion mechanism recording failures and prevention strategies | Implemented |
+| OPT-122 | Wave execution pattern — standardized Wave → Checkpoint → Wave parallel execution | Implemented |
+| OPT-123 | MCP server integration guide — server categories, decision tree, graceful degradation | Implemented |
+| OPT-124 | Domain-specific subagent personas — security analyst, performance engineer, architecture reviewer | Implemented |
+
+**Key changes in v3.4:** Pre-implementation quality improved with confidence-gated implementation start (5-dimension scoring prevents wrong-direction work before Phase 3) and four-question completion evidence protocol (structured verification checklist). Error resilience improved with cross-session error learning (reflexion pattern records failure knowledge in docs/context/error-patterns.md for future session use). Parallelization standardized with wave execution pattern (Wave → Checkpoint → Wave) as a reusable micro-component. Tool integration expanded with MCP server integration guide (5 server categories, decision tree, graceful degradation) and optional MCP detection in bootstrap. Agent quality improved with domain-specific subagent personas carrying specialized mindsets, frameworks, and analysis patterns for security, performance, and architecture reviews.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v3.3
 
@@ -1689,6 +1726,14 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Baseline regression detection is mental execution:** Like all skill-eval modes, baseline and regression modes rely on mental simulation, not actual skill execution. The comparison catches structural regressions but may miss subtle behavioral changes.
 - **Cross-skill status in progress.md is overwritten per story:** Only the most recent story's phase status is tracked. If multiple stories are in progress (e.g., via worktrees), only one status line exists. This works for single-story sprints but not parallel story execution.
 - **Compliance ledger is only as accurate as the compliance check:** If sprint-end's ground rule check misses a violation, the ledger records a false "clean" result. The ledger tracks what was found, not what exists.
+
+- **Confidence gate scoring is subjective:** The 5-dimension assessment relies on Claude's self-evaluation. It may score high on "patterns matched" even when patterns are misidentified. The gate catches obvious gaps but subtle misunderstandings may still pass. Monitor whether the ≥85 threshold effectively filters wrong-direction implementations.
+- **Error patterns file grows unboundedly:** The `docs/context/error-patterns.md` file accumulates entries over time. Without periodic pruning (suggested during `/weekly-maintenance`), it may consume meaningful context tokens. Projects with many failure patterns should prune entries older than 6 months.
+- **Record-failure invocation is discretionary:** The record-failure micro-component is invoked when "self-review caught a wrong approach that required significant rework." Claude judges what constitutes "significant" — minor corrections may be over-recorded, while subtle persistent mistakes may be under-recorded.
+- **Wave execution adds checkpoint overhead:** For operations that could simply run in sequence, the mandatory checkpoint step between Wave 1 and Wave 2 adds a sequential analysis turn. Best used only when 3+ independent operations exist; for 2 operations, direct parallel tool calls are simpler.
+- **MCP integration guide is descriptive, not enforced:** The guide describes when to use MCP servers but doesn't enforce it. Skills don't automatically detect or use MCP servers — they rely on Claude choosing the right tool. The select-tool prompt snippet is advisory.
+- **Domain personas are templates, not constraints:** Agent personas (security-analyst, performance-engineer, architecture-reviewer) prime the agent's thinking but don't constrain it. The agent may deviate from the persona's analysis framework if it judges another approach better.
+- **Four-question evidence protocol adds output length:** Requiring explicit answers to all 4 questions before completion increases the completion report size. For trivial tasks, this may feel disproportionate. The protocol applies to all completion claims regardless of task size.
 
 ### Git Workflow Assumptions
 
