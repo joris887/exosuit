@@ -58,7 +58,7 @@ Check key framework files:
 - CLAUDE.md: Is "Current Focus" section filled (not placeholder)?
 - docs/progress.md: Has it been updated this sprint?
 - docs/reference/BACKLOG_INDEX.md: Are status counts current?
-- docs/reference/CONSTITUTION.md: Does it exist and have principles?
+- docs/reference/GROUND_RULES.md: Does it exist and have principles?
 
 Report: CURRENT/STALE/MISSING for each
 

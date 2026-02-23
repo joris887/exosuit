@@ -8,7 +8,7 @@
 ## Key Documentation
 - docs/reference/CODING_STANDARDS.md: Language-specific coding standards
 - docs/reference/TESTING_STRATEGY.md: TDD workflow, test quality criteria, guard rails
-- docs/reference/CONSTITUTION.md: Per-project architectural principles (MUST/SHOULD), checked at planning and shipping time
+- docs/reference/GROUND_RULES.md: Per-project architectural principles (MUST/SHOULD), checked at planning and shipping time
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
@@ -20,7 +20,7 @@
   - references/new-project.md: New project braindump and generation workflow
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with clarification scanning, WHAT/HOW plan separation, constitution checks, intent decomposition, reasoning scaffolds, control flow markers, error recovery, completion verification, and handoff suggestions
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, control flow markers, error recovery, completion verification, and handoff suggestions
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
   - references/self-review.md: Self-review checklist with red flags
   - references/reasoning-tools.md: Named reasoning scaffolds (scope_analysis, ambiguity_scan, test_strategy_selection, failure_diagnosis, architectural_impact, plan_completeness)

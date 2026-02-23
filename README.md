@@ -32,7 +32,7 @@ Then open Claude Code and run:
 /bootstrap
 ```
 
-Bootstrap will detect your languages, package manager, test framework, linter, and CI/CD. It auto-configures `CLAUDE.md`, generates coding standards, establishes a project constitution (architectural principles), and creates technology-specific skills for your stack.
+Bootstrap will detect your languages, package manager, test framework, linter, and CI/CD. It auto-configures `CLAUDE.md`, generates coding standards, establishes project ground rules (architectural principles), and creates technology-specific skills for your stack.
 
 ### Path B: Start a New Project from Scratch
 
@@ -53,7 +53,7 @@ Bootstrap reads the vision files and generates: PRD, architecture, epic structur
 
 | Your situation | What `/bootstrap` does |
 |---|---|
-| Existing repo with code | Detects stack, configures CLAUDE.md, establishes constitution, generates coding standards and tech skills |
+| Existing repo with code | Detects stack, configures CLAUDE.md, establishes ground rules, generates coding standards and tech skills |
 | Empty repo with vision files | Generates PRD, architecture, epics, stories from your research output |
 | Empty repo, no vision | Guides you through the braindump flow or accepts your idea inline |
 
@@ -122,7 +122,7 @@ For structured UAT with tracked test cases:
 |---|---|
 | `/bootstrap` | First-run setup — detect stack or generate from vision |
 | `/sprint-start` | Pre-flight checks + create sprint branch |
-| `/story-cycle` | Deliver a story with clarification scanning, constitution checks, WHAT/HOW plan separation, and dead code detection |
+| `/story-cycle` | Deliver a story with clarification scanning, ground rules checks, WHAT/HOW plan separation, and dead code detection |
 | `/sprint-end` | Quality gates, documentation, PR, merge, cleanup |
 | `/brainstorm` | Design exploration with alternative approaches |
 | `/ideate` | Transform ideas into typed backlog stories |
@@ -200,7 +200,7 @@ docs/
     BACKLOG_INDEX.md    # Epic status matrix
     CODING_STANDARDS.md # Code conventions (filled by /bootstrap)
     TESTING_STRATEGY.md # TDD workflow + quality criteria
-    CONSTITUTION.md     # Architectural principles (filled by /bootstrap)
+    GROUND_RULES.md     # Architectural principles (filled by /bootstrap)
     backlog/            # Epic files with stories
   architecture/
     ARCHITECTURE.md     # System architecture
@@ -249,7 +249,7 @@ A: Trivial changes (single-file, <10 lines, no behavioral change) skip the full 
 - **Context-efficient** — Skills split into lean entry points + on-demand references; symbolic state encoding; per-phase context manifests; reference file budgets
 - **Reasoning-scaffolded** — Named reasoning tools (scope_analysis, ambiguity_scan, failure_diagnosis, etc.) structure thinking at critical decision points
 - **Clarification-first** — Forced `[NEEDS CLARIFICATION]` markers and structured ambiguity scanning prevent LLM assumptions
-- **Constitution-governed** — Per-project architectural principles checked at planning and shipping time
+- **Ground-rules-governed** — Per-project architectural principles checked at planning and shipping time
 - **Observable** — Context budget visibility, framework health checks (`/doctor`), hook self-validation with requirements metadata
 - **Secrets-aware** — Automated credential detection in post-edit hooks catches leaked secrets deterministically
 - **CI-enforced** — Optional GitHub Actions workflow for automated PR review catches issues even when framework workflow is bypassed

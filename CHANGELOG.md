@@ -101,7 +101,7 @@
 
 #### OPT-79: Reference File Token Budgets
 - **Modified:** `.claude/rules/documentation.md` (new "Reference File Size Budgets" section), `.claude/skills/SKILL_TEMPLATE.md` (new "Reference File Budgets" subsection)
-- **What:** Added explicit line budgets for on-demand reference files: individual references ≤200 lines, total per skill ≤500 lines, and specific budgets for key project docs (CODING_STANDARDS ≤200, TESTING_STRATEGY ≤250, CONSTITUTION ≤100, ARCHITECTURE ≤200). Added guidance to load only relevant sections via grep hints.
+- **What:** Added explicit line budgets for on-demand reference files: individual references ≤200 lines, total per skill ≤500 lines, and specific budgets for key project docs (CODING_STANDARDS ≤200, TESTING_STRATEGY ≤250, GROUND_RULES ≤100, ARCHITECTURE ≤200). Added guidance to load only relevant sections via grep hints.
 - **Why:** Progressive disclosure prevents bulk loading, but there's no cap on how large a reference file can grow. As projects mature, CODING_STANDARDS.md or TESTING_STRATEGY.md can expand to 400+ lines, silently consuming context budget every time they're loaded. Budgets prevent this creep.
 - **To test:** Read documentation.md and verify the budget table is present. Read SKILL_TEMPLATE.md and verify the "Reference File Budgets" subsection exists after "Skill Size & Resource Types."
 - **To revert:** Remove the "## Reference File Size Budgets" section from documentation.md. Remove the "### Reference File Budgets" subsection from SKILL_TEMPLATE.md.
@@ -202,20 +202,20 @@
 
 ### Architectural Governance (OPT-74, OPT-75)
 
-#### OPT-74: Project Constitution Pattern
-- **New file:** `docs/reference/CONSTITUTION.md`
-- **Modified:** `.claude/skills/bootstrap/SKILL.md` (new step A3.6, process flow updated, version bumped), `.claude/skills/story-cycle/SKILL.md` (Phase 1e constitution check, Rules section), `.claude/skills/sprint-end/SKILL.md` (Step 2 constitution compliance gate)
-- **What:** Added a "project constitution" concept — a set of non-negotiable architectural principles per project (MUST/SHOULD classification). Created during `/bootstrap` (step A3.6) by prompting user for 3-7 principles. Checked during `/story-cycle` Phase 1e (MUST violation = HALT, SHOULD violation = document justification). Checked during `/sprint-end` quality gates (verify no untracked violations). The constitution template includes sections for principles, amendment history, and tracked violations.
-- **Why:** Architectural decisions made in sprint 1 erode by sprint 5 because they exist only in ARCHITECTURE.md prose. A constitution creates checkable constraints validated at planning time and shipping time, catching architectural drift before code is written.
-- **To test:** Run `/bootstrap` on a project and verify it prompts for architectural principles and populates CONSTITUTION.md. Run `/story-cycle` with a plan that violates a MUST principle and verify HALT. Run `/sprint-end` and verify constitution compliance is checked.
-- **To revert:** Delete `docs/reference/CONSTITUTION.md`. Remove step A3.6 and its process flow line from bootstrap SKILL.md. Remove the `<IF condition="docs/reference/CONSTITUTION.md exists">` block from story-cycle Phase 1e. Remove the constitution compliance `<IF>` block from sprint-end Step 2. Remove the constitution reference from story-cycle Rules section.
+#### OPT-74: Project Ground Rules Pattern
+- **New file:** `docs/reference/GROUND_RULES.md`
+- **Modified:** `.claude/skills/bootstrap/SKILL.md` (new step A3.6, process flow updated, version bumped), `.claude/skills/story-cycle/SKILL.md` (Phase 1e ground rules check, Rules section), `.claude/skills/sprint-end/SKILL.md` (Step 2 ground rules compliance gate)
+- **What:** Added a "project ground rules" concept — a set of non-negotiable architectural principles per project (MUST/SHOULD classification). Created during `/bootstrap` (step A3.6) by prompting user for 3-7 principles. Checked during `/story-cycle` Phase 1e (MUST violation = HALT, SHOULD violation = document justification). Checked during `/sprint-end` quality gates (verify no untracked violations). The ground rules template includes sections for principles, amendment history, and tracked violations.
+- **Why:** Architectural decisions made in sprint 1 erode by sprint 5 because they exist only in ARCHITECTURE.md prose. Ground rules create checkable constraints validated at planning time and shipping time, catching architectural drift before code is written.
+- **To test:** Run `/bootstrap` on a project and verify it prompts for architectural principles and populates GROUND_RULES.md. Run `/story-cycle` with a plan that violates a MUST principle and verify HALT. Run `/sprint-end` and verify ground rules compliance is checked.
+- **To revert:** Delete `docs/reference/GROUND_RULES.md`. Remove step A3.6 and its process flow line from bootstrap SKILL.md. Remove the `<IF condition="docs/reference/GROUND_RULES.md exists">` block from story-cycle Phase 1e. Remove the ground rules compliance `<IF>` block from sprint-end Step 2. Remove the ground rules reference from story-cycle Rules section.
 
 #### OPT-75: Violation Tracking with Justification
 - **Modified:** `.claude/skills/story-cycle/references/plan-template.md` (Architectural Violations table section)
-- **What:** When a story plan violates a constitutional principle, the plan template now requires an explicit table: Principle Violated | Why Needed | Rejected Alternative. These violations are tracked in the constitution's Tracked Violations section and cross-referenced with `docs/technical-debt.md`.
+- **What:** When a story plan violates a ground rules principle, the plan template now requires an explicit table: Principle Violated | Why Needed | Rejected Alternative. These violations are tracked in the ground rules' Tracked Violations section and cross-referenced with `docs/technical-debt.md`.
 - **Why:** Creates accountability for technical debt at creation time, not retroactively. Forces justification and documentation of what simpler alternative was rejected.
 - **To test:** Run `/story-cycle` with a plan that violates a SHOULD principle. Verify the Architectural Violations table appears in the plan with justification.
-- **To revert:** Remove the "## Architectural Violations (if any)" section from plan-template.md. Remove the Tracked Violations section from CONSTITUTION.md.
+- **To revert:** Remove the "## Architectural Violations (if any)" section from plan-template.md. Remove the Tracked Violations section from GROUND_RULES.md.
 
 ### Workflow Polish (OPT-76, OPT-77)
 
@@ -228,7 +228,7 @@
 
 #### OPT-77: Per-Phase Context Loading Manifests
 - **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 2 Context Transition)
-- **What:** Phase 2 now includes a prescriptive "RELOAD for Phase 3" manifest listing exactly which files to load (CODING_STANDARDS.md, TESTING_STRATEGY.md, plan target files, skill-specific context) and a "SKIP until Phase 4" list (progress.md, ARCHITECTURE.md, backlog files, CONSTITUTION.md). This replaces the previous generic "reload coding standards and relevant files."
+- **What:** Phase 2 now includes a prescriptive "RELOAD for Phase 3" manifest listing exactly which files to load (CODING_STANDARDS.md, TESTING_STRATEGY.md, plan target files, skill-specific context) and a "SKIP until Phase 4" list (progress.md, ARCHITECTURE.md, backlog files, GROUND_RULES.md). This replaces the previous generic "reload coding standards and relevant files."
 - **Why:** The framework's progressive disclosure and context relevance scoring are reactive (classify after loading). Per-phase manifests are prescriptive (define before loading), preventing unnecessary file reads in the first place.
 - **To test:** Run `/story-cycle` through Phase 2. Verify Claude loads only the files listed in the RELOAD manifest and does not load files in the SKIP list.
 - **To revert:** Restore the original Phase 2 "THEN RELOAD fresh" section (3 generic items) and remove the "RELOAD for Phase 3" and "SKIP until Phase 4" sections.

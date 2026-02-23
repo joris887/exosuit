@@ -54,8 +54,8 @@ Analyze: branch name, all commits since branching, all files changed, stories co
 
 All gates must pass before proceeding. Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents with scope-based scaling, recovery). For error recovery during this step, consult `references/error-recovery.md` — search for `## Step 2`.
 
-<IF condition="docs/reference/CONSTITUTION.md exists and has principles defined">
-**Constitution compliance:** Verify sprint changes don't introduce untracked constitution violations. Check commit diffs against MUST principles. Any violations must have been documented in story plans with justification.
+<IF condition="docs/reference/GROUND_RULES.md exists and has principles defined">
+**Ground rules compliance:** Verify sprint changes don't introduce untracked ground rules violations. Check commit diffs against MUST principles. Any violations must have been documented in story plans with justification.
 </IF>
 
 <HARD-GATE>

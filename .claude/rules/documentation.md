@@ -26,7 +26,7 @@ On-demand reference files are loaded into context when skills request them. With
 | Total references per skill | ≤500 lines | Extract rarely-used content to separate files |
 | CODING_STANDARDS.md | ≤200 lines | Split by language if multi-language project |
 | TESTING_STRATEGY.md | ≤250 lines | Keep core workflow; move examples to reference |
-| CONSTITUTION.md | ≤100 lines | Principles only; tracked violations in separate section |
+| GROUND_RULES.md | ≤100 lines | Principles only; tracked violations in separate section |
 | ARCHITECTURE.md | ≤200 lines | Overview only; module details in .claude-context.md files |
 
 When loading a reference file, load only the section relevant to the current task — use grep hints (search for `## Section Name`) rather than reading the entire file.

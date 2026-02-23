@@ -19,7 +19,7 @@ START → 1. Detect Project State
   → [Source files exist?]
     → YES: Path A (Existing Repository)
       → A1-A3: Detect stack, commands, assess docs/coverage/architecture, measure codebase
-        → A3.5: Generate architecture → A3.6: Establish constitution
+        → A3.5: Generate architecture → A3.6: Establish ground rules
           → A4: Generate config → A5: Run /skill-create → A5.5-A5.6: Configure hooks and rules
             → A6: Clean up → A7: Present summary → DONE
     → NO: Path B (New Project)
@@ -77,14 +77,14 @@ Auto-populate `docs/architecture/ARCHITECTURE.md` from code structure:
 - Note entry points and data flow direction
 - Keep it brief — a starting point for the developer to refine
 
-### A3.6. Establish Project Constitution
+### A3.6. Establish Project Ground Rules
 
-Prompt the user for 3-7 non-negotiable architectural principles. Populate `docs/reference/CONSTITUTION.md`:
+Prompt the user for 3-7 non-negotiable architectural principles. Populate `docs/reference/GROUND_RULES.md`:
 
 - Ask: "What architectural rules should NEVER be broken in this project?" Give examples (library-first, no ORM, max N services, composition over inheritance, etc.)
 - For each principle, classify as **MUST** (non-negotiable) or **SHOULD** (strong preference, exceptions require justification)
 - If the user has no strong preferences, suggest 3-5 principles based on detected stack and architecture
-- The constitution is checked during `/story-cycle` planning (Phase 1e) and `/sprint-end` quality gates
+- The ground rules are checked during `/story-cycle` planning (Phase 1e) and `/sprint-end` quality gates
 
 ### A4. Generate Configuration
 

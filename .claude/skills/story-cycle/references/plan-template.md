@@ -36,7 +36,7 @@ Use this structure for story-cycle Phase 1e plans. The two-section split (Specif
 
 | Principle Violated | Why Needed | Rejected Alternative |
 |-------------------|------------|---------------------|
-| [from CONSTITUTION.md] | [justification] | [what was considered and rejected] |
+| [from GROUND_RULES.md] | [justification] | [what was considered and rejected] |
 ```
 
 ## Anti-Patterns

@@ -65,7 +65,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 - `docs/reference/CODING_STANDARDS.md` — Code conventions
 - `docs/reference/TESTING_STRATEGY.md` — Testing practices
 - `docs/architecture/ARCHITECTURE.md` — System architecture
-- `docs/reference/CONSTITUTION.md` — Architectural principles
+- `docs/reference/GROUND_RULES.md` — Architectural principles
 - `docs/testing/UAT_COVERAGE.md` — UAT test cases
 
 ## Compaction Directive

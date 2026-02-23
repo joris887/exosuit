@@ -1,4 +1,4 @@
-# Project Constitution
+# Project Ground Rules
 
 Non-negotiable architectural principles for this project. Created during `/bootstrap`, checked during `/story-cycle` planning and `/sprint-end` quality gates.
 

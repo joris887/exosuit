@@ -141,8 +141,8 @@ For any requirement where the user's intent is ambiguous or multiple valid inter
 
 Apply the `test_strategy_selection` reasoning tool for the testing section.
 
-<IF condition="docs/reference/CONSTITUTION.md exists">
-Check the plan against `docs/reference/CONSTITUTION.md`. Any MUST violation → HALT. Any SHOULD violation → document justification in an Architectural Violations table (see `references/plan-template.md`).
+<IF condition="docs/reference/GROUND_RULES.md exists">
+Check the plan against `docs/reference/GROUND_RULES.md`. Any MUST violation → HALT. Any SHOULD violation → document justification in an Architectural Violations table (see `references/plan-template.md`).
 </IF>
 
 ### 1f. Clarification Check
@@ -219,7 +219,7 @@ After plan approval, selectively prune the context — keep discovery metadata, 
 3. Files identified in the plan's Implementation Approach as targets (re-read for fresh content)
 4. Skill-specific context (if skills were defined in Phase 1d)
 
-**SKIP until Phase 4:** `docs/progress.md`, `docs/architecture/ARCHITECTURE.md` (decisions already captured in plan), backlog files, `docs/reference/CONSTITUTION.md` (already checked in Phase 1e)
+**SKIP until Phase 4:** `docs/progress.md`, `docs/architecture/ARCHITECTURE.md` (decisions already captured in plan), backlog files, `docs/reference/GROUND_RULES.md` (already checked in Phase 1e)
 
 The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 file paths costs ~200 tokens; the contents of those 20 files costs ~20,000.
 
@@ -330,4 +330,4 @@ General recovery:
 - Follow coding standards in `docs/reference/CODING_STANDARDS.md`
 - Follow testing strategy in `docs/reference/TESTING_STRATEGY.md`
 - Follow architecture constraints in `docs/architecture/ARCHITECTURE.md`
-- Follow project constitution in `docs/reference/CONSTITUTION.md` (if exists)
+- Follow project ground rules in `docs/reference/GROUND_RULES.md` (if exists)
