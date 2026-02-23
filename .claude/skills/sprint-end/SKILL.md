@@ -70,6 +70,7 @@ Based on what was done in the sprint, update relevant documentation:
 - **BACKLOG_INDEX.md**: Update Done/In Progress/TODO counts
 - **progress.md**: Add sprint entry, update metrics
 - **CLAUDE.md**: Update Current Focus if epic status changed
+- **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff main...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
 
 Commit documentation updates:
 

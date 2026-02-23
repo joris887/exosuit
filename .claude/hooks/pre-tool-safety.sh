@@ -76,4 +76,14 @@ if echo "$CMD" | grep -qE '(kill\s+-9\s+-1|killall\s|pkill\s+-9)'; then
     check_and_block "mass-kill" "Mass process killing is not allowed."
 fi
 
+# Block operations against the framework template repository
+# Prevents accidental issue/PR creation or pushes to the framework repo instead of the user's project
+FRAMEWORK_REPO="${JD_FRAMEWORK_REPO:-joris887/JD-LLM-Development_framework}"
+if echo "$CMD" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+push)'; then
+    REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+    if [ -n "$REMOTE_URL" ] && echo "$REMOTE_URL" | grep -qF "$FRAMEWORK_REPO"; then
+        check_and_block "framework-repo" "Remote points to the framework template repository ($FRAMEWORK_REPO). Run: git remote set-url origin <your-project-repo-url>"
+    fi
+fi
+
 exit 0

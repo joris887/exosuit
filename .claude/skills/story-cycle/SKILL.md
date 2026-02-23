@@ -1,10 +1,10 @@
 ---
 name: story-cycle
-version: 2.8.0
+version: 2.9.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
-references: [references/story-types.md, references/self-review.md, references/disaster-prevention.md, references/reasoning-tools.md, references/elicitation-techniques.md, references/error-recovery.md, references/plan-template.md]
+references: [references/story-types.md, references/self-review.md, references/disaster-prevention.md, references/reasoning-tools.md, references/elicitation-techniques.md, references/error-recovery.md, references/plan-template.md, references/parallel-streams.md]
 ---
 ______________________________________________________________________
 
@@ -31,7 +31,8 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
         → [User approved?]
           → NO: Revise plan → back to approval
           → YES: Phase 2: Context Transition (keep insights, discard bulk)
-            → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
+            → Phase 3a: Parallel Stream Analysis (optional, STANDARD + low/medium risk only)
+              → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
               → Phase 3.5: Self-Review (completeness, quality, testing, discipline)
                 → [Review passes?]
                   → NO: Fix issues → back to Phase 3
@@ -262,6 +263,21 @@ The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 
 - DON'T carry over full file contents from Phase 1 — keep only paths, edge cases, and patterns.
 - DO re-read files from the plan's file list before editing them.
 - DON'T assume you remember file contents from Phase 1 — context may have changed.
+
+## Phase 3a: Parallel Stream Analysis (Optional)
+
+<IF condition="story is STANDARD size AND risk is Low or Medium (3-6) AND plan identifies ≥2 independent work units">
+Analyze the approved plan for parallel execution opportunities. Read `references/parallel-streams.md` for the full protocol.
+
+1. Map each work unit to its file scope (which files it creates/modifies)
+2. Check for file overlaps — if ANY file appears in multiple streams, merge those streams
+3. If ≥2 non-overlapping streams exist, present the stream analysis to the user
+4. If user approves: create worktrees per stream, dispatch agents, coordinate merges
+5. If user declines or streams overlap: proceed to serial Phase 3
+</IF>
+<ELSE>
+Skip — proceed directly to Phase 3.
+</ELSE>
 
 ## Phase 3: Execute by Story Type
 

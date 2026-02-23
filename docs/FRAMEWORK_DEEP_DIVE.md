@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v3.1 — Deep Dive
+# JD-LLM Development Framework v3.2 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -134,7 +134,7 @@ This is the most important file in the framework. It's loaded into every Claude 
 **File:** `.claude/settings.json`
 **Added value:** Configures hooks and tool permissions
 
-Currently contains the pre-tool safety hook, session-start hook, activity-logger hook, and project-specific hooks added by bootstrap. The bootstrap skill adds more hooks based on detected stack (formatter, linter, test runner).
+Currently contains the pre-tool safety hook, session-start hook, activity-logger hook, worktree-bash-fix hook, and project-specific hooks added by bootstrap. The bootstrap skill adds more hooks based on detected stack (formatter, linter, test runner).
 
 **SessionStart hook** (*new in v3.0*): A `SessionStart` event hook that runs `session-start.sh` at the beginning of every Claude Code session. Validates framework integrity, ensures required directories exist, and reports stale session files.
 
@@ -188,6 +188,8 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 **Why this matters:** LLMs sometimes take shortcuts. If a merge conflict is complex, an LLM might try `git checkout .` to "start fresh" — losing all the user's work. This hook prevents that.
 
 **Per-session state tracking** (*new in v2.4*): The hook now tracks which patterns have been blocked in the current session using a state file in `$TMPDIR`. First occurrence shows the full block message; repeated occurrences show "(repeated)" suffix. Stale state files (>24h) are auto-cleaned. This reduces warning fatigue without weakening protection.
+
+**Template repository safety check** (*new in v3.2*): Before `gh pr create`, `gh issue create`, or `git push`, the hook checks whether the current git remote matches the framework's template repository (configurable via `JD_FRAMEWORK_REPO` env var, defaults to `joris887/JD-LLM-Development_framework`). If the remote matches the template, the operation is blocked with a warning — preventing accidental PRs, issues, or pushes to the framework repo instead of the user's project repository.
 
 **Optimization opportunity:** Monitor blocked commands to see if legitimate operations are being caught. The grep patterns are string-based — more sophisticated parsing could reduce false positives.
 
@@ -253,6 +255,26 @@ Hooks are the strongest enforcement mechanism. They execute shell scripts at spe
 
 **Why this matters:** Understanding which tools are used most frequently, which files are edited repeatedly (churn indicators), and how context budget is consumed across a session enables data-driven framework optimization.
 
+#### worktree-bash-fix.sh (PreToolUse) (*new in v3.2*)
+
+**File:** `.claude/hooks/worktree-bash-fix.sh`
+**Trigger:** Before any Bash command executes (applied to subagents via `apply_to_subagents: true`)
+**Added value:** Transparently ensures Bash commands execute in the correct worktree directory
+
+**The problem:** When Claude Code spawns subagents (e.g., explore agents in `/story-cycle` Phase 1 or quality agents in `/sprint-end`), the subagent's Bash tool resets to the repository root — not the worktree the user is working in. This causes commands to run against the wrong directory (main worktree instead of the feature worktree), leading to incorrect test results, wrong file reads, and confusing behavior.
+
+**How it works:**
+1. Reads the Bash tool's input JSON from stdin
+2. Checks if `.git` is a file (not a directory) — this is the defining characteristic of a worktree
+3. Parses the `gitdir:` path from the `.git` file and validates it contains `/worktrees/`
+4. Injects `cd '/path/to/worktree' &&` before the command
+5. Handles edge cases: skips builtins (`cd`, `echo`, `pwd`), skips commands that already start with `cd`, handles background processes and variable assignments
+6. Outputs modified JSON via `jq` (with `sed`-based fallback if `jq` is unavailable)
+
+**Why `apply_to_subagents: true` matters:** The bug only manifests in subagents, not the main conversation. Without this flag, the hook would only apply to the parent process where the worktree path is already correct. The flag propagates the hook to all spawned agents.
+
+**Why this matters:** Without this hook, parallel development via worktrees (`/parallel-work`, `/sprint-start --worktree`) is unreliable — subagents silently operate on the wrong codebase. This is a class of bug that's invisible to the user (no error message, just wrong results).
+
 ### 4.2 Rules (Advisory Enforcement)
 
 Rules are markdown files with YAML frontmatter specifying which file paths they apply to. When Claude edits a matching file, the rules are loaded into context. They're strong guidance but not technically unbypassable.
@@ -292,6 +314,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Directory-level context** (*new in v2.6*): `.claude-context.md` files in directories provide module-specific context (patterns, conventions, quirks). Story-cycle reads the nearest one when working in a directory. These are never created proactively — only when a user explicitly requests module-specific documentation.
 
 **Cross-skill output optimization** (*new in v3.1*): Guidelines for structuring skill outputs consumed by downstream skills: bullet points over prose, file:line references, imperative instructions, front-loaded critical info, YAML frontmatter for metadata, section budgets, and output template usage. This ensures plans, session files, and debug reports are LLM-efficient when consumed by other skills.
+
+**Documentation accuracy safeguards** (*new in v3.2*): A new "Documentation Accuracy" section with 5 rules and a reference to `bootstrap/references/accuracy-safeguards.md`. Mandates evidence levels (Confirmed/Inferred/Assumed) for generated documentation, self-verification questions before writing docs, qualifying language for uncertain content, post-creation validation steps, and a common hallucination patterns table. Prevents `/bootstrap` and other doc-generating skills from hallucinating project details.
 
 #### security.md
 
@@ -430,6 +454,10 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Ground rules establishment** (*new in v2.8*): Step A3.6 prompts the user for 3-7 non-negotiable architectural principles, classified as MUST or SHOULD. These are stored in `docs/reference/GROUND_RULES.md` and checked during `/story-cycle` planning (Phase 1e) and `/sprint-end` quality gates. If users have no strong preferences, bootstrap suggests principles based on detected stack.
 
+**Project context knowledge base generation** (*new in v3.2*): Step A3.55 generates five context files in `docs/context/`: `project-overview.md` (goals, stakeholders, constraints), `tech-context.md` (stack, libraries, API contracts), `system-patterns.md` (design patterns, conventions, error handling), `project-structure.md` (directory layout, module responsibilities), and `product-context.md` (domain terminology, personas, business rules). Each file has YAML frontmatter with created/updated timestamps. These are loaded by `/continue` via the `context-prime` micro-component and incrementally updated by `/sprint-end`. Unlike session handoffs (which capture what happened), context files capture what the project IS — knowledge that compounds across sessions.
+
+**Documentation accuracy safeguards** (*new in v3.2*): Bootstrap now loads `references/accuracy-safeguards.md` during documentation generation (Steps A3.5 and A3.55). This reference provides anti-hallucination protocols: self-verification questions ("Can I point to the exact file?"), evidence level classification (Confirmed from code/config, Inferred from patterns, Assumed from conventions), qualifying language rules ("appears to" vs "uses"), post-creation validation steps, and a common hallucination patterns table (wrong package versions, phantom config files, invented API endpoints). This prevents bootstrap from confidently documenting incorrect project details.
+
 **Optimization opportunity:** Bootstrap is the first thing users experience. It must be robust. Test it against diverse project types: pure Python, TypeScript monorepo, Rust CLI, Swift iOS app, Go microservice. Each should detect correctly.
 
 ---
@@ -462,11 +490,12 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Purpose:** Universal story delivery. The core development skill.
 **Added value:** Ensures every story follows the right methodology with proper quality gates.
 
-**Phases** (*updated in v3.1 — added risk classification, discovery gate, depth exploration, disaster prevention*):
+**Phases** (*updated in v3.2 — added parallel stream decomposition*):
 0. **Intent Decomposition** (*new in v2.6*) — Decompose request into deliverables, classify by size AND risk (*risk classification new in v3.1*)
 1. **Plan** (in plan mode) — Research, identify type, discovery gate (*1d.5, new in v3.1*), write plan, depth exploration (*1h, new in v3.1*), with workflow state tracking (*new in v3.1*)
 2. **Context Transition** — Selectively prune exploration context, keeping discovery metadata while discarding bulk content. Reload coding standards + relevant files fresh.
 3. **Execute** — Follow the methodology for the story type (TDD for features, reproduce-first for bugs, etc.)
+3a. **Parallel Stream Decomposition** (*new in v3.2*, optional) — For STANDARD stories with non-overlapping file scopes, decompose into parallel work streams executed in separate worktrees
 3.5. **Self-Review** (*new in v2.2*) — Completeness, quality, testing, discipline checklists + adversarial disaster prevention (*new in v3.1*) + spec compliance verification
 4. **Wrap Up** — Run tests, update docs, commit, print completion report
 4.5. **Completion Verification** (*new in v2.6*) — Re-check ALL acceptance criteria with evidence. Loop back to Phase 3 for gaps (max 2 extra passes). Hard gate: do NOT report done until every criterion has evidence.
@@ -526,6 +555,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 **Workflow state persistence** (*new in v3.1*): The Story-Cycle Context header now includes `stepsCompleted` tracking that updates at each phase transition. Plans saved to `docs/plans/` include YAML frontmatter with workflow state, enabling true mid-workflow resume when `/continue` or story-cycle is re-invoked.
 
 **Adversarial disaster prevention** (*new in v3.1*): Phase 3.5 self-review now includes a `disaster-prevention.md` reference with targeted checks for LLM-typical failures: wheel reinvention, specification drift, missing integration wiring, file structure violations, and regression surface analysis. Each check involves active searching (grep, file listing) rather than passive checking.
+
+**Parallel stream decomposition** (*new in v3.2*): Phase 3a offers optional parallel execution for STANDARD-size stories with non-overlapping file scopes. A new `references/parallel-streams.md` reference defines the protocol: stream eligibility criteria (≥2 independent file scopes, no shared state mutations, each stream independently testable), stream definition YAML format (name, files, depends_on, test_scope), execution via git worktrees with independent Claude Code instances, and a merge protocol with conflict resolution. The feature uses `<IF>` conditions — only offered when the plan identifies independent file scopes. This enables database layer, API layer, and test authoring to proceed simultaneously for well-decomposed stories.
 
 **Ground rules compliance checking** (*new in v2.8*): Phase 1e checks the plan against `docs/reference/GROUND_RULES.md` if it exists. MUST violations trigger HALT. SHOULD violations require documented justification in an Architectural Violations table.
 
@@ -597,6 +628,8 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **PR template** (*new in v3.0*): Sprint-end now uses `.github/pull_request_template.md` when creating PRs via `gh pr create`. The template includes structured sections for summary, changes, testing, and review checklist — ensuring consistent PR quality without relying on the LLM to remember what to include.
 
+**Project context updates** (*new in v3.2*): Step 3 documentation updates now include incremental updates to the project context knowledge base (`docs/context/`). After each sprint, context files are updated with new patterns discovered, architecture changes, and technology additions — ensuring the knowledge base stays current as the project evolves.
+
 **Optimization opportunity:** The quality agents run as forked contexts — monitor their usefulness and whether confidence scoring effectively reduces false positives.
 
 ### /continue
@@ -625,7 +658,9 @@ Rules are markdown files with YAML frontmatter specifying which file paths they 
 
 **Project health scan** (*new in v3.1*): Before session recovery, `/continue` now scans for key project artifacts and presents a health dashboard. Missing ARCHITECTURE.md suggests `/bootstrap`, empty backlog suggests `/ideate`, missing test command suggests configuring tests. This provides project-level context alongside session-level state — especially valuable for first-time sessions or after long breaks.
 
-**Optimization opportunity:** The continue skill loads several files (session, progress, backlog). This front-loads context consumption. Consider a "light continue" mode that only reads git state and the session file, skipping the full backlog scan.
+**Project context loading** (*new in v3.2*): Step 1.5 now loads the project context knowledge base from `docs/context/` using the `context-prime` micro-component. Context files are loaded in priority order: Priority 1 (project-overview + tech-context), Priority 2 (system-patterns + project-structure), Priority 3 (product-context). Only files that exist are loaded. This provides deep project knowledge before session-specific recovery, giving Claude structural understanding of the codebase architecture, technology choices, and domain conventions from the first interaction.
+
+**Optimization opportunity:** The continue skill loads several files (session, progress, backlog, context). This front-loads context consumption. Consider a "light continue" mode that only reads git state and the session file, skipping the full backlog scan and context loading.
 
 ### /handoff
 
@@ -1147,6 +1182,8 @@ Claude Code has a finite context window. Everything loaded into it — CLAUDE.md
 
 **v2.9 context efficiency improvements:** Reference file token budgets — explicit line limits for on-demand references (individual ≤200, per-skill total ≤500) and project docs (CODING_STANDARDS ≤200, TESTING_STRATEGY ≤250, GROUND_RULES ≤100, ARCHITECTURE ≤200) prevent context creep as projects grow. Context budget visibility — a new `context-budget` micro-component lets users estimate context usage and compaction proximity. Pre-compaction state persistence saves session state before compaction events, not just at session end. Subagent context protocol formalizes what context forked agents receive (Full vs Minimal mode), preventing token waste from irrelevant framework state in analysis agents.
 
+**v3.2 context efficiency improvements:** Project context knowledge base — five structured files in `docs/context/` capture deep project knowledge (overview, tech stack, patterns, structure, product domain) that persists across sessions. Unlike session handoffs (which capture what happened), context files capture what the project IS. Priority-ordered loading via the `context-prime` micro-component ensures most valuable context loads first. Script delegation — three read-only query scripts (`scripts/pm/status.sh`, `next-story.sh`, `standup.sh`) execute as black boxes with zero context token cost, replacing multi-file reads for common status queries. Documentation accuracy safeguards ensure generated docs are reliable, reducing correction cycles that waste context.
+
 **Optimization opportunity:** Measure actual token consumption. If certain auto-loaded files aren't being used in most conversations, consider making them on-demand.
 
 ---
@@ -1179,7 +1216,9 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 
 **Why worktrees matter for AI-assisted development:** Claude Code instances don't share context. If you want two stories developed in parallel, you need two separate working directories. Git worktrees provide this without duplicating the entire repository.
 
-**Optimization opportunity:** Worktree support is new and lightly tested. Key questions: How does /sprint-end handle worktree merge when another worktree has also merged to main? How do multiple instances coordinate? The CLAUDE_CODE_TASK_LIST_ID shared task list is mentioned but not deeply integrated.
+**Worktree-aware Bash hook** (*new in v3.2*): A `PreToolUse` hook (`worktree-bash-fix.sh`) transparently fixes the working directory for Bash commands in subagents. When Claude Code spawns agents (explore, quality, etc.) in a worktree context, the agent's Bash tool defaults to the repository root instead of the worktree. The hook detects worktree context (`.git` is a file, not a directory), extracts the worktree path, and injects `cd '/path/to/worktree' &&` before the command. Applied with `apply_to_subagents: true` to ensure it reaches spawned agents where the bug manifests.
+
+**Optimization opportunity:** Worktree support is now more robust with the bash hook fix but still requires real-world testing with concurrent Claude Code instances. Key questions: How does /sprint-end handle worktree merge when another worktree has also merged to main? How do multiple instances coordinate?
 
 ### CI/CD Integration (*new in v3.0*)
 
@@ -1223,6 +1262,18 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 
 **Design principle:** Loaded only when needed. Not every story needs the full testing strategy. Not every conversation needs architecture details.
 
+### Layer 2.5: Project Context Knowledge Base (*new in v3.2*)
+
+| File | Written By | Read By | Purpose |
+|---|---|---|---|
+| docs/context/project-overview.md | /bootstrap | /continue, /story-cycle | Goals, stakeholders, constraints |
+| docs/context/tech-context.md | /bootstrap | /continue, /story-cycle | Stack, libraries, API contracts |
+| docs/context/system-patterns.md | /bootstrap | /continue, /story-cycle | Design patterns, conventions, error handling |
+| docs/context/project-structure.md | /bootstrap | /continue, /story-cycle | Directory layout, module responsibilities |
+| docs/context/product-context.md | /bootstrap | /continue, /story-cycle | Domain terminology, personas, business rules |
+
+**Design principle:** Unlike session handoffs (which capture what happened), context files capture what the project IS. Generated by `/bootstrap`, incrementally updated by `/sprint-end`, and loaded by `/continue` via the `context-prime` micro-component. Each file has YAML frontmatter with created/updated timestamps. Knowledge compounds across sessions — each sprint adds patterns, decisions, and structural understanding.
+
 ### Layer 3: Persistent State (Written by Skills)
 
 | File/Directory | Written By | Read By | Purpose |
@@ -1257,6 +1308,16 @@ my-project-sprint-6/  (worktree, on sprint-6 branch)
 | .claude/skills/*/assets/ | Output templates — copied to target location and edited, never read into context |
 
 **Design principle:** Assets are boilerplate templates used in skill output. Copy an asset to the target location and Edit it — never Read the asset into context first. This keeps context cost at zero.
+
+### Script Delegation (*new in v3.2*)
+
+| File | Purpose | Context Cost |
+|---|---|---|
+| scripts/pm/status.sh | Sprint status, story counts, open PRs | Zero |
+| scripts/pm/next-story.sh | Find next TODO story from backlog epic files | Zero |
+| scripts/pm/standup.sh | Yesterday's commits, today's focus, blockers | Zero |
+
+**Design principle:** Read-only query scripts that execute as black boxes — their output appears in the conversation but their source is never read into context. This replaces the common pattern of reading progress.md + backlog files + git log manually (which consumes ~2000+ tokens) with a single `bash scripts/pm/status.sh` call (zero context tokens, same information). All scripts support `--help` and degrade gracefully when tools like `gh` are unavailable.
 | docs/adr/*.md | Architecture Decision Records |
 | docs/technical-debt.md | Technical debt inventory |
 
@@ -1284,6 +1345,7 @@ All skills now include YAML frontmatter with machine-readable metadata: `name`, 
 | .claude/prompts/quality-gate-sequence.md | Run lint → typecheck → test in order | sprint-end, story-cycle Phase 4, pre-stop hook |
 | .claude/prompts/verify-clean-git-state.md | Check working tree cleanliness | sprint-start, sprint-end, continue |
 | .claude/prompts/context-budget.md | Estimate context budget usage and compaction proximity | story-cycle Phase 2, manual invocation |
+| .claude/prompts/context-prime.md | Priority-ordered project context loading from docs/context/ | continue, sprint-start, story-cycle |
 
 **Design principle:** Reusable operation sequences that multiple skills reference to avoid duplicating the same logic. Each is 5-15 lines — lightweight enough to not burden context, but centralized enough to maintain once. Skills reference them as shared procedures: "Use the `discover-commands` micro-component."
 
@@ -1323,6 +1385,21 @@ Lists all key files with descriptions so any LLM tool can understand the project
 ---
 
 ## 17. Optimization Opportunities
+
+### Implemented in v3.2
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-103 | Worktree-aware Bash hook — transparent directory fix for subagent commands in git worktrees | Implemented |
+| OPT-104 | Parallel stream decomposition — optional Phase 3a for concurrent story execution in worktrees | Implemented |
+| OPT-105 | Project context knowledge base — 5 persistent context files in docs/context/ with priority-ordered loading | Implemented |
+| OPT-106 | Script delegation for simple queries — zero-context-cost status/standup/next-story scripts in scripts/pm/ | Implemented |
+| OPT-107 | Documentation accuracy safeguards — anti-hallucination protocol with evidence levels and self-verification | Implemented |
+| OPT-108 | Template repository safety check — prevent accidental operations against the framework repo | Implemented |
+
+**Key changes in v3.2:** Worktree reliability improved with a transparent bash hook that fixes the subagent working directory problem, making parallel development via worktrees production-ready. Story execution improved with optional parallel stream decomposition for well-decomposed stories with non-overlapping file scopes. Session continuity improved with a persistent project context knowledge base that captures what the project IS (not just what happened) and compounds across sessions. Context efficiency improved with script delegation (zero-token-cost status queries) and a context-prime micro-component for priority-ordered loading. Documentation quality improved with accuracy safeguards that prevent hallucinated project details in generated docs. Safety improved with template repository detection that prevents accidental PRs/pushes to the framework repo.
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
 
 ### Implemented in v3.1
 
@@ -1578,6 +1655,12 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Workflow state persistence requires plan file saving:** State tracking only works when plans are saved to `docs/plans/`. For stories small enough that the plan stays in conversation context, state persistence doesn't apply.
 - **Hook self-validation degrades gracefully but silently:** When a hook dependency is missing, it reports once per session and continues. This means the hook's intended protection (formatting, linting) is quietly absent. Check `/doctor` output if quality seems to drift.
 - **Dead code detection depends on language tooling:** The code-quality skill's dead code detection relies on language-specific tools (ts-prune, vulture, etc.). If no tool is available for the project's language, the check is skipped silently.
+- **Worktree bash hook relies on .git file format:** The worktree detection checks whether `.git` is a file (containing a `gitdir:` path) rather than a directory. Non-standard git configurations or alternative VCS tools may not be detected correctly. The hook degrades gracefully — if detection fails, commands execute unchanged.
+- **Parallel stream decomposition requires well-decomposed stories:** Phase 3a only works when file scopes don't overlap between streams. Stories with tightly coupled components (e.g., shared state mutations across layers) cannot be parallelized. The eligibility check catches obvious overlaps but may miss subtle shared dependencies.
+- **Project context files can drift from reality:** The context knowledge base is updated by `/sprint-end` but may fall behind if sprints skip documentation updates or if significant changes happen outside the framework workflow. Periodically re-run `/bootstrap` context generation or manually review `docs/context/` files.
+- **Script delegation requires bash/POSIX shell:** The `scripts/pm/` scripts use POSIX shell syntax with `grep`, `git`, and `gh` commands. They degrade gracefully on missing tools but may produce incomplete output. They're read-only (no modifications) and zero-risk.
+- **Template repo safety check uses remote URL matching:** The check compares the git remote URL against a configurable pattern. Fork URLs or renamed repos may not match, allowing accidental operations. The `JD_FRAMEWORK_REPO` env var can be customized to match the specific fork URL.
+- **Accuracy safeguards are advisory:** The documentation accuracy rules and evidence level classification depend on Claude following the protocol. A confidently wrong LLM may still generate plausible-sounding but incorrect documentation. Post-creation validation (the last step in the protocol) provides a safety net but is not deterministic.
 
 ### Git Workflow Assumptions
 

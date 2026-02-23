@@ -1,6 +1,6 @@
 ---
 name: continue
-version: 2.4.0
+version: 2.5.0
 description: Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.
 trigger: manual
 depends-on: []
@@ -62,7 +62,15 @@ If a session file exists, read it as the primary context source. It contains: co
 - **On main with changes**: Should not happen - create branch first
 - **On main, clean**: Between sprints, ready to start new work
 
-## 1.5. Reload Working Context
+## 1.5. Load Project Context
+
+Load the project context knowledge base for deep project understanding (use the `context-prime` micro-component from `.claude/prompts/context-prime.md`):
+
+- Read `docs/context/` files in priority order: overview + tech first, patterns + structure second, product last
+- Skip files that are still template placeholders (contain only `<!-- filled by -->` comments)
+- This provides persistent project knowledge that compounds across sessions
+
+## 1.6. Reload Working Context
 
 If a session file was found, use its "Files Accessed" section to reload context efficiently:
 

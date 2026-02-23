@@ -42,3 +42,15 @@ When a skill's output will be consumed by another skill or a future session (pla
 - **YAML frontmatter for machine-parseable metadata** — dates, status, phase, story type
 - **Section budgets** — No plan section should exceed 20 lines; split into sub-sections if needed
 - **Use output templates** — Skills with `assets/` templates should copy and fill them rather than generating structure from scratch
+
+## Documentation Accuracy
+
+When creating or updating project documentation (architecture, context, coding standards, progress):
+
+- **Evidence-based claims only** — every technical claim must reference specific files or code
+- **Qualify uncertain claims** — use "appears to", "likely", "based on [file]" for indirect evidence
+- **Flag assumptions** — mark unverified claims with `[Assumed — needs verification]`
+- **Post-creation validation** — after generating documentation, re-read and verify each technical claim against actual files
+- **No pattern inference from training data** — describe what THIS codebase does, not what similar projects typically do
+
+See `.claude/skills/bootstrap/references/accuracy-safeguards.md` for the full anti-hallucination protocol.

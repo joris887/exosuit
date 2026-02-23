@@ -1,5 +1,63 @@
 # Changelog
 
+## [3.2.0] - 2026-02-23
+
+### Parallel Development Infrastructure (OPT-103, OPT-104)
+
+#### OPT-103: Worktree-Aware Bash Hook
+- **New:** `.claude/hooks/worktree-bash-fix.sh`
+- **Modified:** `.claude/settings.json` (added PreToolUse hook for Bash with `apply_to_subagents: true`)
+- **What:** A POSIX-compliant pre-tool-use hook that detects when Claude Code is running inside a git worktree and transparently injects `cd '/path/to/worktree' &&` before every Bash command. Handles edge cases: commands that already contain `cd`, shell builtins that don't need directory context, background processes, variable assignments.
+- **Why:** Claude Code resets the working directory between Bash tool invocations. When `/parallel-work` creates worktrees and agents are spawned to work in them, every Bash command silently executes in the wrong directory. This hook makes the entire parallel worktree system actually functional for multi-agent execution.
+- **To test:** Create a worktree with `/parallel-work create`. Open a Claude Code instance in the worktree. Run any Bash command (e.g., `git status`, `ls`). Verify the output reflects the worktree's directory, not the main repo. Verify the hook is transparent (no visible cd injection in output).
+- **To revert:** Delete `.claude/hooks/worktree-bash-fix.sh`. Remove the second PreToolUse entry (the one with `apply_to_subagents: true` and `worktree-bash-fix.sh`) from `.claude/settings.json`.
+
+#### OPT-104: Sub-Story Parallel Stream Decomposition
+- **New:** `.claude/skills/story-cycle/references/parallel-streams.md`
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added Phase 3a between Phase 2 and Phase 3, updated process flowchart, updated version to 2.9.0, added `references/parallel-streams.md` to frontmatter references)
+- **What:** An optional Phase 3a in story-cycle that decomposes STANDARD-size, low/medium-risk stories into independent parallel work streams with non-overlapping file scopes. Each stream is executed in its own worktree by a separate agent. Dependencies between streams are respected (e.g., tests wait for service layer). Falls back to serial execution if file scopes overlap or user declines.
+- **Why:** Large stories often contain naturally independent work units (database layer, API layer, UI layer, tests) that can be developed simultaneously. This multiplies throughput while keeping merge conflicts impossible (non-overlapping file scopes).
+- **To test:** Run `/story-cycle` on a STANDARD-size Feature story that touches multiple modules. Verify Phase 3a is offered after Phase 2. Verify stream analysis shows file scopes. Accept parallel execution and verify agents are spawned in separate worktrees. Verify serial fallback works when declining.
+- **To revert:** Delete `.claude/skills/story-cycle/references/parallel-streams.md`. Remove the `## Phase 3a` section from story-cycle SKILL.md. Remove `→ Phase 3a:` line from the process flowchart. Remove `references/parallel-streams.md` from the frontmatter references array. Revert version to 2.8.0.
+
+### Context Efficiency (OPT-105, OPT-106)
+
+#### OPT-105: Persistent Project Context Knowledge Base
+- **New:** `docs/context/project-overview.md`, `docs/context/tech-context.md`, `docs/context/system-patterns.md`, `docs/context/project-structure.md`, `docs/context/product-context.md`
+- **New:** `.claude/prompts/context-prime.md` (micro-component for priority-ordered context loading)
+- **Modified:** `.claude/skills/continue/SKILL.md` (added Step 1.5 "Load Project Context" before working context reload, version bumped to 2.5.0)
+- **Modified:** `.claude/skills/bootstrap/SKILL.md` (added Step A3.55 "Generate Project Context Knowledge Base")
+- **Modified:** `.claude/skills/sprint-end/SKILL.md` (added incremental context update to Step 3 documentation updates)
+- **What:** A 5-file project context knowledge base at `docs/context/` with a create/prime/update lifecycle. Files capture deep project knowledge (overview, tech stack, design patterns, structure, product domain) that persists across sessions. `/bootstrap` generates initial versions, `/sprint-end` incrementally updates changed files, `/continue` loads them in priority order (essential first, deep context last). A new `context-prime` micro-component handles priority-ordered loading.
+- **Why:** Cross-session project knowledge currently lives in CLAUDE.md (intentionally minimal) and session handoff files (capture what happened, not deep knowledge). Each new session requires re-discovering project patterns by reading code. The context knowledge base compounds over a project's lifetime — every session starts smarter than the last.
+- **To test:** Run `/bootstrap` on an existing project. Verify 5 context files are generated in `docs/context/` with evidence-based content. Run `/continue` and verify context files are loaded in priority order. Run `/sprint-end` after making changes and verify relevant context files are updated.
+- **To revert:** Delete the `docs/context/` directory and its 5 files. Delete `.claude/prompts/context-prime.md`. Remove Step 1.5 from continue/SKILL.md and revert version to 2.4.0. Remove Step A3.55 from bootstrap/SKILL.md. Remove the "Project context" bullet from sprint-end/SKILL.md Step 3.
+
+#### OPT-106: Script Delegation for Simple Queries
+- **New:** `scripts/pm/status.sh`, `scripts/pm/next-story.sh`, `scripts/pm/standup.sh`
+- **What:** Three bash scripts for common read-only operations: sprint status overview (git state + progress.md + backlog counts + open PRs), next available TODO story from backlog, and daily standup summary (yesterday's commits + today's focus + blockers). Execute as black boxes with zero context token cost.
+- **Why:** Simple read-only queries currently require loading full skill prompts (300-800 tokens each). Bash scripts execute as black boxes and return only their output — zero tokens consumed in context. The 80% case for status queries can be answered faster and cheaper.
+- **To test:** Run `bash scripts/pm/status.sh` in a project. Verify it shows git state, progress metrics, backlog counts, and open PRs. Run `bash scripts/pm/next-story.sh` and verify it finds TODO stories from backlog. Run `bash scripts/pm/standup.sh` and verify it shows yesterday's work, today's focus, and blockers.
+- **To revert:** Delete the three scripts from `scripts/pm/`.
+
+### Quality & Safety (OPT-107, OPT-108)
+
+#### OPT-107: Documentation Accuracy Safeguards
+- **New:** `.claude/skills/bootstrap/references/accuracy-safeguards.md`
+- **Modified:** `.claude/rules/documentation.md` (added "Documentation Accuracy" section)
+- **Modified:** `.claude/skills/bootstrap/SKILL.md` (added accuracy-safeguards.md to references, added accuracy safeguard callout in Step A3.5)
+- **What:** Structured anti-hallucination protocol for documentation creation. Includes: self-verification questions before writing technical claims, three evidence levels (Confirmed/Inferred/Assumed), qualifying language rules, post-creation validation checklist, and common hallucination pattern table. Integrated into both the documentation rule (applies to all doc edits) and bootstrap (applies during initial project analysis).
+- **Why:** When Claude generates project documentation, it can hallucinate technical details — claiming patterns exist that don't, describing architecture that's imagined, or listing technologies not actually used. These inaccuracies compound: if system-patterns.md incorrectly says "uses repository pattern," future sessions follow that pattern even when the codebase uses something else.
+- **To test:** Run `/bootstrap` on an existing project. Verify generated ARCHITECTURE.md and context files reference actual files (not inferred patterns). Check for `[Inferred]` or `[Assumed]` markers on uncertain claims. Read the `documentation.md` rule and verify the "Documentation Accuracy" section exists.
+- **To revert:** Delete `.claude/skills/bootstrap/references/accuracy-safeguards.md`. Remove the "## Documentation Accuracy" section (including all bullets and the "See" reference) from `.claude/rules/documentation.md`. Remove `references/accuracy-safeguards.md` from bootstrap SKILL.md frontmatter. Remove the "Apply accuracy safeguards" sentence from Step A3.5.
+
+#### OPT-108: Template Repository Safety Check
+- **Modified:** `.claude/hooks/pre-tool-safety.sh` (added framework repository remote URL check before `gh pr create`, `gh issue create`, and `git push`)
+- **What:** Before any GitHub write operation (PR creation, issue creation, push), the safety hook checks if the git remote points to the framework template repository. If matched, blocks the operation with a clear message suggesting `git remote set-url origin`. The blocked repo identifier is configurable via `JD_FRAMEWORK_REPO` environment variable (defaults to `joris887/JD-LLM-Development_framework`).
+- **Why:** When users install the framework via `install.sh` or manual copy, they may forget to update their git remote. Operations like `/sprint-end` (creates PRs) or `/fix-issue` (creates branches and PRs) could accidentally affect the framework repo instead of the user's project. Low probability but catastrophic when it happens.
+- **To test:** In a repo with remote pointing to `joris887/JD-LLM-Development_framework`, run `gh pr create --title "test"`. Verify it's blocked with a message about updating the remote. Verify the block doesn't trigger in repos with different remotes.
+- **To revert:** Remove the "Block operations against the framework template repository" section (the comment block and the `if` block checking `FRAMEWORK_REPO`) from `.claude/hooks/pre-tool-safety.sh`.
+
 ## [3.1.0] - 2026-02-23
 
 ### Quality & Validation (OPT-93, OPT-94)

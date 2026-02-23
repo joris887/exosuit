@@ -4,7 +4,7 @@ version: 2.8.0
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
-references: [references/stack-detection.md, references/new-project.md]
+references: [references/stack-detection.md, references/new-project.md, references/accuracy-safeguards.md]
 ---
 ______________________________________________________________________
 
@@ -70,12 +70,24 @@ Read `references/stack-detection.md` for detailed detection tables and commands.
 
 ### A3.5. Generate Architecture Overview
 
-Auto-populate `docs/architecture/ARCHITECTURE.md` from code structure:
+Auto-populate `docs/architecture/ARCHITECTURE.md` from code structure. Apply accuracy safeguards from `references/accuracy-safeguards.md` — every claim must reference actual files:
 
 - List top-level modules and their responsibilities
 - Identify module boundaries and dependencies
 - Note entry points and data flow direction
 - Keep it brief — a starting point for the developer to refine
+
+### A3.55. Generate Project Context Knowledge Base
+
+Populate `docs/context/` files by analyzing the codebase. Apply accuracy safeguards from `references/accuracy-safeguards.md`:
+
+- `project-overview.md` — What the project does, who it's for, core workflows
+- `tech-context.md` — Stack, key libraries, API contracts, data layer
+- `system-patterns.md` — Design patterns, conventions, error handling
+- `project-structure.md` — Directory layout, module responsibilities, data flow
+- `product-context.md` — Domain terminology, user personas, feature areas
+
+Each file: ≤200 lines, evidence-based claims only, update YAML frontmatter timestamps.
 
 ### A3.6. Establish Project Ground Rules
 

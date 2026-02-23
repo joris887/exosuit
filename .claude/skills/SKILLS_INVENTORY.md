@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 3.0
+**Framework Version:** 3.2
 
 ## Core Workflow
 
@@ -34,7 +34,7 @@ For technology skill generation: `/skill-create`
 | --------------- | ------------------ | --------------------- | ----------------------------------------- |
 | `/sprint-start` | Starting new work  | `[branch] [--worktree]` | Pre-flight checks + branch (supports worktrees) |
 | `/sprint-end`   | Completing sprint  | -                     | Quality gates, test protection, control flow markers, error recovery tables, graceful degradation, docs, PR, merge |
-| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (intent decomposition, reasoning scaffolds, control flow markers, error recovery tables, completion verification) |
+| `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (intent decomposition, reasoning scaffolds, control flow markers, error recovery tables, completion verification, parallel stream decomposition) |
 | `/continue`     | Session start      | -                     | Smart continuation from session files + git state |
 | `/handoff`      | Session end        | -                     | Structured session file to docs/sessions/ |
 
@@ -73,7 +73,7 @@ For technology skill generation: `/skill-create`
 
 | Skill            | Arguments                   | Description                              |
 | ---------------- | --------------------------- | ---------------------------------------- |
-| `/parallel-work` | `[list\|create\|cleanup]`   | Manage git worktrees for concurrent stories |
+| `/parallel-work` | `[list\|create\|cleanup]`   | Manage git worktrees for concurrent stories (worktree-aware bash hook ensures correct working directory) |
 
 ### Testing Workflow (Manual-only)
 
@@ -214,7 +214,8 @@ Deterministic enforcement via shell scripts (all hooks declare requirements in h
 - `activity-logger.sh` — Tool invocation logging for retrospective metrics
 - `post-edit-format.sh` — Auto-format after edits + secrets detection
 - `pre-stop-quality.sh` — Quality gate before completion + auto-save session state
-- `pre-tool-safety.sh` — Block dangerous operations
+- `pre-tool-safety.sh` — Block dangerous operations + template repo safety check
+- `worktree-bash-fix.sh` — Transparent worktree directory fix for Bash commands (applied to subagents)
 
 ## References
 
@@ -228,6 +229,7 @@ Deterministic enforcement via shell scripts (all hooks declare requirements in h
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 3.2     | 2026-02-23 | Worktree-aware bash hook, parallel stream decomposition, project context knowledge base, script delegation (status/standup/next-story), documentation accuracy safeguards, template repo safety check |
 | 3.0     | 2026-02-22 | CI PR review, PR template, session-start hook, activity logging, skill conformance validator, registry schema, story-cycle fast-track, dynamic quality scaling, agent tool restrictions, GitHub issue templates |
 | 2.9     | 2026-02-22 | Pre-compaction state persistence, secrets detection hook, skill prerequisites, subagent context protocol, reference file budgets, context budget visibility, /doctor health check, hook self-validation, dead code detection |
 | 2.7     | 2026-02-22 | Cognitive reasoning scaffolds, symbolic state encoding, control flow markers (IF/ELSE/LOOP/HALT), phase-specific error recovery tables, context relevance scoring, reusable micro-components |

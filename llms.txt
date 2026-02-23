@@ -12,15 +12,17 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.1)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.2)
+- docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context)
 
 ## Skills (invoked via /skill-name in Claude Code)
-- .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack
+- .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack, generate project context knowledge base
   - references/stack-detection.md: Technology detection tables and commands
   - references/new-project.md: New project braindump and generation workflow
+  - references/accuracy-safeguards.md: Anti-hallucination protocol for documentation creation
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with risk-calibrated depth, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, control flow markers, error recovery, disaster prevention, completion verification, and handoff suggestions
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with risk-calibrated depth, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, control flow markers, error recovery, disaster prevention, parallel stream decomposition, completion verification, and handoff suggestions
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
   - references/self-review.md: Self-review checklist with red flags + disaster prevention reference
   - references/disaster-prevention.md: Adversarial LLM failure mode checklist (wheel reinvention, spec drift, integration wiring, file structure, regression surface)
