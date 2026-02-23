@@ -78,6 +78,16 @@ Parse `docs/sessions/.activity-log.jsonl` to extract:
 Activity log not available — skip activity metrics. Note: enable `activity-logger.sh` hook for richer retrospective data.
 </ELSE>
 
+### Skill Execution Metrics
+
+Run the metrics script for quantitative skill data:
+
+```bash
+bash scripts/pm/metrics.sh
+```
+
+This reports: skill success/failure rates, per-skill breakdown, tool usage distribution, and rule trigger counts. Use this data to identify bottlenecks (skills with high failure rates), rework patterns (high Bash ratio), and underutilized quality gates.
+
 ## 3. Retrospective Framework
 
 Use the 4Ls format:

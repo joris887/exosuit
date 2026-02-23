@@ -1,10 +1,13 @@
 ---
 name: continue
-version: 2.5.0
+version: 2.6.0
 description: Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.
 trigger: manual
 depends-on: []
 references: []
+micro-components:
+  step-1.5: [context-prime]
+  step-5: [discover-commands]
 ---
 ______________________________________________________________________
 
@@ -43,7 +46,26 @@ Present as a health dashboard before the session state:
 
 Only flag items that are missing or incomplete — don't clutter with all-green checks unless it's the first session.
 
-## 0.5. Read Latest Session Handoff
+## 0.5. Check for Failure State
+
+Check for an interrupted skill session:
+
+```bash
+cat docs/sessions/.failure-state.md 2>/dev/null
+```
+
+If `.failure-state.md` exists, a previous skill was interrupted mid-execution. This is the **highest-priority context source** — it tells you exactly what skill was running, what phase it was in, and how to resume. Present it prominently:
+
+```markdown
+### Interrupted Session Detected
+- **Skill:** [skill name]
+- **Phase:** [phase and sub-step]
+- **Recovery hint:** [what to do next]
+```
+
+Recommend the user resume the interrupted skill (e.g., `/story-cycle` or `/debug-session`) with the recovery context.
+
+## 0.6. Read Latest Session Handoff
 
 Check for the most recent session file:
 

@@ -1,16 +1,25 @@
 ---
 name: story-cycle
-version: 2.9.0
+version: 3.0.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
 references: [references/story-types.md, references/self-review.md, references/disaster-prevention.md, references/reasoning-tools.md, references/elicitation-techniques.md, references/error-recovery.md, references/plan-template.md, references/parallel-streams.md]
+micro-components:
+  phase-0: [context-prime]
+  phase-1: [discover-commands, verify-clean-git-state]
+  phase-4: [quality-gate-sequence]
 ---
 ______________________________________________________________________
 
 ## name: story-cycle description: Use when the user wants to implement a single story or deliver a backlog item. argument-hint: <story-description-or-id> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 
 Delivering story: **$ARGUMENTS**
+
+**Skill metrics:** Emit a start event to the activity log:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"story-cycle\",\"story\":\"$ARGUMENTS\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
 
 ## Process Flow (authoritative — prose below is supporting detail)
 
@@ -66,6 +75,11 @@ After Phase 0 decomposition, classify by **size** then **risk**:
 | **TRIVIAL** | Single-file, <10 lines changed, no behavioral change (typo, config, comment) | Phase 3-lite (below) |
 | **SMALL** | Single-file, <50 lines changed, clear acceptance criteria | Lightweight Phase 1 (skip 1f, 1g) → Phase 2 → Phase 3 → Phase 4 |
 | **STANDARD** | Everything else | Full workflow (unchanged) |
+
+**Adaptive calibration:** If `docs/sessions/.activity-log.jsonl` contains 10+ skill execution records, check historical data for this story type/scope:
+- If stories matching this type consistently required full workflow despite SMALL classification → escalate to STANDARD
+- If STANDARD stories in this area consistently completed without issues → note as candidate for lightweight treatment
+- Log calibration adjustment in plan for transparency: `Depth calibration: [escalated/standard/downgraded] based on [N] prior executions`
 
 **Risk classification** (apply `risk_classification` reasoning tool from `references/reasoning-tools.md`):
 
@@ -140,6 +154,8 @@ Determine which skills benefit this story. If the story metadata already defines
 | `/code-quality`     | Feature, refactoring, infrastructure stories          |
 | `/test-validator`   | Feature, bug fix, testing stories                     |
 | `/security-audit`   | Security stories, code touching auth/credentials/data |
+
+**Intent-based security activation:** If the story touches user input, API endpoints, database queries, file uploads, sessions, or network calls, treat the security rule as active for ALL files in this story — not just files matching security path patterns. Note this in the plan: `Security scope: story-wide (intent-based)`.
 
 ### 1d.5. Discovery Gate (Facilitator Check)
 
@@ -279,9 +295,27 @@ Analyze the approved plan for parallel execution opportunities. Read `references
 Skip — proceed directly to Phase 3.
 </ELSE>
 
+## Failure State Persistence
+
+At each phase transition, update `docs/sessions/.failure-state.md` with current progress. This enables `/continue` to resume precisely where work stopped if a session ends unexpectedly.
+
+```markdown
+# Active Skill State
+- Skill: story-cycle
+- Story: [description]
+- Phase: [current phase number and name]
+- Sub-step: [what is being done right now]
+- Files modified: [list of files changed so far]
+- Tests status: [passing count / total, or "not yet run"]
+- Last action: [what was just done or attempted]
+- Recovery hint: [what to do next to resume]
+```
+
+**On successful completion (Phase 4.5 passes):** Delete `.failure-state.md` — clean state means no failure to recover from.
+
 ## Phase 3: Execute by Story Type
 
-**State update:** If the plan is saved to `docs/plans/`, update the Story-Cycle Context: `phase: "3-executing"`, append `3-started` to `stepsCompleted`.
+**State update:** If the plan is saved to `docs/plans/`, update the Story-Cycle Context: `phase: "3-executing"`, append `3-started` to `stepsCompleted`. Also update `docs/sessions/.failure-state.md` with Phase 3 entry.
 
 In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 
@@ -302,6 +336,13 @@ If any checklist item fails, go back to Phase 3 and fix the issue before proceed
 </HARD-GATE>
 
 ## Phase 4: Wrap Up
+
+**Cross-skill status:** Update `docs/progress.md` with the current story status at each phase gate:
+- Phase 3 complete: `- **Status**: Phase 3 — implementation complete, self-review pending`
+- Phase 3.5 complete: `- **Status**: Phase 4 — tests pass, wrapping up`
+- Phase 4.5 complete: `- **Status**: DONE`
+
+This allows `/sprint-end` to understand partial completion if the session ends unexpectedly.
 
 After execution is complete:
 
@@ -340,6 +381,11 @@ If 2 extra passes are exhausted: report what IS complete with evidence, list rem
 <HARD-GATE>
 Do NOT print the completion report until every acceptance criterion has been verified with evidence. "I believe it works" is not evidence — show test output or code references.
 </HARD-GATE>
+
+**Skill metrics:** Emit a completion event:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"story-cycle\",\"outcome\":\"success\",\"story\":\"$ARGUMENTS\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
 
 ### Completion Report
 

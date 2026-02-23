@@ -36,6 +36,20 @@ references: [references/file1.md, references/file2.md]
 | `trigger` | Yes | `manual`, `auto`, `conditional` | How the skill is invoked |
 | `depends-on` | Yes | list of skill names | Skills this may invoke |
 | `references` | Yes | list of file paths | Supporting reference files |
+| `micro-components` | No | map of phase → list | Micro-components to load per phase |
+
+### Micro-Components in Frontmatter
+
+Skills can declare which micro-components (from `.claude/prompts/`) they need and when:
+
+```yaml
+micro-components:
+  phase-0: [context-prime]
+  phase-1: [discover-commands, verify-clean-git-state]
+  phase-4: [quality-gate-sequence]
+```
+
+At the start of each declared phase, load and execute the listed micro-components. This replaces inline references to micro-components in the skill body, making updates to a micro-component automatically affect all skills that declare it.
 
 The frontmatter goes BEFORE the `______________________________________________________________________` separator line.
 

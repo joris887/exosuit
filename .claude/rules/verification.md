@@ -5,6 +5,16 @@ paths:
 
 # Verification Rules
 
+## Rule Effectiveness Tracking
+
+When a rule influences your behavior (causes you to change an approach, block an action, or apply a check you wouldn't otherwise do), emit a tracking event:
+
+```bash
+echo "{\"type\":\"rule\",\"rule\":\"<rule-name>\",\"action\":\"<what-it-caused>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
+This data feeds into `/retrospective` and `/weekly-maintenance` for rule health analysis. Rules that never trigger may be too narrow; rules that trigger constantly may be too broad.
+
 ## Evidence Required Before Completion Claims
 
 - NEVER claim "tests pass" without running the test command and showing output in the current turn

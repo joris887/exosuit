@@ -1,4 +1,4 @@
-# JD-LLM Development Framework v3.2 — Deep Dive
+# JD-LLM Development Framework v3.3 — Deep Dive
 
 A comprehensive reference explaining every element of the framework, its purpose, how it contributes to the whole, and where to look for optimization opportunities.
 
@@ -1386,6 +1386,25 @@ Lists all key files with descriptions so any LLM tool can understand the project
 
 ## 17. Optimization Opportunities
 
+### Implemented in v3.3
+
+| ID | Optimization | Status |
+|---|---|---|
+| OPT-109 | Intent-aware context priming — task classification reorders context file loading by relevance | Implemented |
+| OPT-110 | Intent-based rule activation — expanded security rule scope + story-wide security flag in story-cycle | Implemented |
+| OPT-111 | Structured failure state persistence — .failure-state.md for mid-skill session recovery | Implemented |
+| OPT-112 | Cross-skill error awareness — story completion status in progress.md for sprint-end awareness | Implemented |
+| OPT-113 | Skill-level execution metrics — lifecycle events, metrics.sh query script, retrospective integration | Implemented |
+| OPT-114 | Ground rule compliance ledger — longitudinal compliance tracking in progress.md | Implemented |
+| OPT-115 | Rule effectiveness tracking — rule trigger events in activity log + weekly-maintenance health review | Implemented |
+| OPT-116 | Adaptive depth calibration — historical data adjusts size×risk depth classification | Implemented |
+| OPT-117 | Dynamic micro-component composition — declarative micro-components field in YAML frontmatter | Implemented |
+| OPT-118 | Skill version regression detection — baseline capture and regression comparison modes in skill-eval | Implemented |
+
+**Key changes in v3.3:** Observability dramatically improved with skill-level execution metrics (lifecycle events, metrics.sh query script, retrospective integration), rule effectiveness tracking (trigger events + weekly health review), and ground rule compliance ledger (longitudinal tracking in progress.md). Context intelligence improved with intent-aware context priming (task classification reorders loading priority) and intent-based rule activation (security rules now cover API routes, middleware, DB operations, and story-wide security scope). Failure resilience improved with structured failure state persistence (.failure-state.md enables precise session resumption) and cross-skill error awareness (sprint-end reads story completion status from progress.md). Prompt engineering improved with adaptive depth calibration (historical data adjusts size×risk matrix) and dynamic micro-component composition (declarative frontmatter field replaces inline references). Framework evolution improved with skill version regression detection (baseline capture + regression comparison in skill-eval).
+
+See `CHANGELOG.md` for detailed test and revert instructions for each optimization.
+
 ### Implemented in v3.2
 
 | ID | Optimization | Status |
@@ -1661,6 +1680,15 @@ See `CHANGELOG.md` for detailed test and revert instructions for each.
 - **Script delegation requires bash/POSIX shell:** The `scripts/pm/` scripts use POSIX shell syntax with `grep`, `git`, and `gh` commands. They degrade gracefully on missing tools but may produce incomplete output. They're read-only (no modifications) and zero-risk.
 - **Template repo safety check uses remote URL matching:** The check compares the git remote URL against a configurable pattern. Fork URLs or renamed repos may not match, allowing accidental operations. The `JD_FRAMEWORK_REPO` env var can be customized to match the specific fork URL.
 - **Accuracy safeguards are advisory:** The documentation accuracy rules and evidence level classification depend on Claude following the protocol. A confidently wrong LLM may still generate plausible-sounding but incorrect documentation. Post-creation validation (the last step in the protocol) provides a safety net but is not deterministic.
+- **Intent classification in context-prime is keyword-based:** The intent-aware context loading maps task keywords to categories. Ambiguous tasks that span multiple categories may get suboptimal loading order. The default order serves as fallback for unclassified tasks.
+- **Failure state persistence depends on Claude updating the file:** The `.failure-state.md` protocol relies on Claude writing phase transitions to the file. If Claude skips the update or the session crashes before a write, the file may be stale or missing.
+- **Skill lifecycle events are opt-in per skill:** Only skills with explicit event emission code generate metrics. Skills without the emission code won't appear in metrics.sh output. New skills must add emission code manually.
+- **Rule effectiveness tracking is convention-based:** Rules must emit tracking events explicitly. If Claude doesn't emit the event when a rule influences behavior, that trigger goes unrecorded. Coverage depends on Claude's compliance with the convention.
+- **Adaptive depth calibration requires 10+ records:** The historical calibration step is a no-op until sufficient execution data exists. New projects start without calibration data and use the static size×risk matrix.
+- **Micro-component composition is advisory:** The `micro-components:` frontmatter field tells Claude what to load at each phase, but Claude may skip loading components if it judges them unnecessary. Critical operations should still be referenced inline as a fallback.
+- **Baseline regression detection is mental execution:** Like all skill-eval modes, baseline and regression modes rely on mental simulation, not actual skill execution. The comparison catches structural regressions but may miss subtle behavioral changes.
+- **Cross-skill status in progress.md is overwritten per story:** Only the most recent story's phase status is tracked. If multiple stories are in progress (e.g., via worktrees), only one status line exists. This works for single-story sprints but not parallel story execution.
+- **Compliance ledger is only as accurate as the compliance check:** If sprint-end's ground rule check misses a violation, the ledger records a false "clean" result. The ledger tracks what was found, not what exists.
 
 ### Git Workflow Assumptions
 

@@ -35,6 +35,12 @@
 - Dependency health: clean
 - Security findings: 0 -->
 
+## Ground Rule Compliance
+
+<!-- Updated by /sprint-end after each sprint -->
+| Sprint | Rules Checked | Violations | Details |
+|--------|--------------|------------|---------|
+
 ## Next Steps
 
 <!-- Updated by /sprint-end or /handoff -->

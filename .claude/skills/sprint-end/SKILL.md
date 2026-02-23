@@ -1,10 +1,13 @@
 ---
 name: sprint-end
-version: 2.8.0
+version: 2.9.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
 references: [references/quality-gates.md, references/error-recovery.md]
+micro-components:
+  step-1: [discover-commands, verify-clean-git-state]
+  step-2: [quality-gate-sequence]
 ---
 ______________________________________________________________________
 
@@ -31,7 +34,11 @@ START → 1. Discover Sprint State (from git, no assumptions)
 
 ## 1. Discover Sprint State
 
-No assumptions about previous context. Discover everything from git:
+No assumptions about previous context. Discover everything from git.
+
+**Check story completion status:** Read `docs/progress.md` for the current story status. If it shows a phase earlier than "DONE" (e.g., "Phase 3 — tests pass, self-review pending"), the last story was only partially completed. Factor this into quality gates — run the missing steps as part of sprint-end rather than flagging them as new issues.
+
+Discover from git:
 
 ```bash
 git branch --show-current
@@ -56,6 +63,16 @@ All gates must pass before proceeding. Read `references/quality-gates.md` for de
 
 <IF condition="docs/reference/GROUND_RULES.md exists and has principles defined">
 **Ground rules compliance:** Verify sprint changes don't introduce untracked ground rules violations. Check commit diffs against MUST principles. Any violations must have been documented in story plans with justification.
+
+**Compliance ledger:** After checking, record results in `docs/progress.md` under the `## Ground Rule Compliance` section:
+
+```markdown
+| Sprint | Rules Checked | Violations | Details |
+|--------|--------------|------------|---------|
+| N      | X/Y          | Z          | [description or "Clean"] |
+```
+
+This builds a longitudinal compliance profile. Over time, frequently violated rules may need reinforcement or clarification; never-tested rules may be dead rules to review.
 </IF>
 
 <HARD-GATE>

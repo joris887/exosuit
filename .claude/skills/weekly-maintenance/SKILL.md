@@ -1,6 +1,6 @@
 ---
 name: weekly-maintenance
-version: 2.4.0
+version: 2.5.0
 description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning.
 trigger: manual
 depends-on: [code-quality]
@@ -80,7 +80,22 @@ Flag and report:
 - Lockfile in sync: [yes/no]
 ```
 
-## 5. Weekly Summary
+## 5. Rule Health Review
+
+Run the metrics script to assess rule effectiveness:
+
+```bash
+bash scripts/pm/metrics.sh
+```
+
+Review the "Rule Triggers" section. Flag:
+- **Over-active rules** (>20 triggers/week) — may be too broad or indicating a persistent issue
+- **Silent rules** (0 triggers in 30+ days) — may be too narrow or addressing a solved problem
+- **High-failure skills** (success rate <70%) — investigate common failure points
+
+Record findings in the weekly summary below.
+
+## 6. Weekly Summary
 
 Update @docs/progress.md with:
 
@@ -108,7 +123,7 @@ Update @docs/progress.md with:
 - [Story IDs planned]
 ```
 
-## 6. Plan Next Week
+## 7. Plan Next Week
 
 Review @docs/reference/BACKLOG_INDEX.md and relevant epic files to identify:
 

@@ -1,5 +1,101 @@
 # Changelog
 
+## [3.3.0] - 2026-02-23
+
+### Context Intelligence (OPT-109, OPT-110)
+
+#### OPT-109: Intent-Aware Context Priming
+- **Modified:** `.claude/prompts/context-prime.md` (added intent classification table and dynamic loading order)
+- **What:** The context-prime micro-component now classifies the current task's intent (security, UI, data/API, refactoring, new feature) and reorders context file loading based on relevance. A security task loads system-patterns first; a UI task loads product-context first.
+- **Why:** Previously, context files loaded in a fixed priority order regardless of task type. The most relevant context could be loaded last — or dropped if budget was tight.
+- **To test:** Run `/continue` on a security-related task. Verify system-patterns and tech-context load before product-context. Compare with a UI task — product-context should load first.
+- **To revert:** Replace the contents of `.claude/prompts/context-prime.md` with the original fixed-order loading (Priority 1: project-overview + tech-context, Priority 2: system-patterns + project-structure, Priority 3: product-context).
+
+#### OPT-110: Intent-Based Rule Activation
+- **Modified:** `.claude/rules/security.md` (expanded path scope to include API, routes, middleware, controllers, handlers, DB, models, schema, upload, session, cookie, CORS patterns)
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added intent-based security activation note to Phase 1d)
+- **What:** Security rules now activate for a much wider range of security-sensitive file paths (API endpoints, route handlers, middleware, database operations, models, file uploads, sessions, cookies, CORS config). Additionally, story-cycle Phase 1d can flag `Security scope: story-wide` when a story's intent involves user input, APIs, or data handling — activating security review for ALL files in the story.
+- **Why:** Previously, security rules only triggered for files matching auth/credential/token patterns. Code handling user input in API routes, database queries with user data, or file upload handlers received no automatic security review.
+- **To test:** Edit a file in an `api/` or `routes/` directory. Verify security rules activate. In story-cycle, start a story touching user input — verify security scope is noted as story-wide.
+- **To revert:** Restore original `paths:` in security.md (remove lines for api, routes, middleware, controllers, handlers, db, database, models, schema, upload, session, cookie, cors). Remove the "Intent-based security activation" paragraph from story-cycle Phase 1d.
+
+### Failure Resilience (OPT-111, OPT-112)
+
+#### OPT-111: Structured Failure State Persistence
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added "Failure State Persistence" section before Phase 3, version bumped to 3.0.0)
+- **Modified:** `.claude/skills/debug-session/SKILL.md` (added "Failure State Persistence" section before Phase 1)
+- **Modified:** `.claude/skills/continue/SKILL.md` (added Step 0.5 "Check for Failure State" before session handoff reading, renumbered existing 0.5 to 0.6, version bumped to 2.6.0)
+- **What:** When story-cycle or debug-session is running, a structured failure state file (`docs/sessions/.failure-state.md`) is maintained at each phase transition. It records: current skill, phase, sub-step, files modified, test status, last action, and recovery hint. If a session ends unexpectedly, `/continue` detects and prominently displays this file as highest-priority context, enabling precise resumption.
+- **Why:** Previously, if a session ended mid-skill, `/continue` relied on handoff files (written manually at session end) or git state inference. An interrupted session lost structured context about what phase was active, what had been completed, and how to resume.
+- **To test:** Start `/story-cycle`, let it reach Phase 3, then end the session without `/handoff`. Start new session, run `/continue`. Verify it detects `.failure-state.md` and shows the interrupted session prominently. After successful story completion, verify `.failure-state.md` is deleted.
+- **To revert:** Remove the "Failure State Persistence" section from story-cycle/SKILL.md and debug-session/SKILL.md. Remove Step 0.5 from continue/SKILL.md and renumber 0.6 back to 0.5. Revert continue version to 2.5.0 and story-cycle to 2.9.0.
+
+#### OPT-112: Cross-Skill Error Awareness
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added cross-skill status updates to Phase 4)
+- **Modified:** `.claude/skills/sprint-end/SKILL.md` (added story completion status check to Step 1, version bumped to 2.9.0)
+- **What:** story-cycle now writes structured completion status to `docs/progress.md` at each phase gate (e.g., "Phase 3 — implementation complete, self-review pending"). sprint-end reads this status before quality gates and adjusts expectations — if the last story was only partially completed, sprint-end runs the missing steps rather than flagging them as new issues.
+- **Why:** Previously, sprint-end had no structured way to know if the last story was 80% or 100% complete. It would run quality gates, find issues from incomplete work, and couldn't distinguish "known incomplete" from "new problems."
+- **To test:** Start a story-cycle, complete Phase 3 but stop before Phase 4. Check progress.md for phase status. Run sprint-end and verify it reads the incomplete status and accounts for it.
+- **To revert:** Remove the "Cross-skill status" paragraph from story-cycle Phase 4. Remove the "Check story completion status" paragraph from sprint-end Step 1. Revert sprint-end version to 2.8.0.
+
+### Observability & Metrics (OPT-113, OPT-114, OPT-115)
+
+#### OPT-113: Skill-Level Execution Metrics
+- **New:** `scripts/pm/metrics.sh` (executable query script for skill execution metrics)
+- **Modified:** `.claude/hooks/activity-logger.sh` (updated comment to document skill event support)
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added skill lifecycle event emission at start and completion)
+- **Modified:** `.claude/skills/retrospective/SKILL.md` (added "Skill Execution Metrics" section that runs metrics.sh)
+- **What:** A metrics query script (`scripts/pm/metrics.sh`) that parses the activity log for skill-level events (start, phase, end with outcome). Core skills (story-cycle) emit structured lifecycle events to the activity log. The retrospective skill now runs this script for quantitative analysis: skill success/failure rates, per-skill breakdown, tool usage distribution, and rule trigger counts.
+- **Why:** The activity logger captured tool-level events (Edit, Write, Bash) but had no visibility into skill-level outcomes. `/retrospective` lacked quantitative data about which skills succeed, which fail, and where bottlenecks exist.
+- **To test:** Run `bash scripts/pm/metrics.sh --help` to verify the script works. Run `/story-cycle` on a story — verify skill start/end events appear in `.activity-log.jsonl`. Run `/retrospective` and verify the "Skill Execution Metrics" section appears.
+- **To revert:** Delete `scripts/pm/metrics.sh`. Remove the skill event emission blocks from story-cycle (the two `echo "{\"type\":\"skill\"..."` code blocks). Remove the "Skill Execution Metrics" section from retrospective/SKILL.md. Revert the comment change in activity-logger.sh.
+
+#### OPT-114: Ground Rule Compliance Ledger
+- **Modified:** `.claude/skills/sprint-end/SKILL.md` (added compliance ledger recording after ground rules check)
+- **Modified:** `docs/progress.md` (added "Ground Rule Compliance" table section)
+- **What:** After sprint-end checks ground rules compliance, results are recorded in a persistent table in `progress.md`. Tracks: sprint number, rules checked, violations count, and details. Builds a longitudinal compliance profile across sprints.
+- **Why:** Ground rule checks happened but results evaporated after each session. Over months, no visibility into which rules are upheld, which are violated frequently (need reinforcement), or which are never tested (dead rules).
+- **To test:** Run `/sprint-end` on a project with GROUND_RULES.md. Verify a new row is added to the "Ground Rule Compliance" table in progress.md.
+- **To revert:** Remove the "Compliance ledger" paragraph (including the markdown table format) from sprint-end Step 2. Remove the "Ground Rule Compliance" section from progress.md.
+
+#### OPT-115: Rule Effectiveness Tracking
+- **Modified:** `.claude/rules/verification.md` (added "Rule Effectiveness Tracking" section with event emission protocol)
+- **Modified:** `.claude/skills/weekly-maintenance/SKILL.md` (added Step 5 "Rule Health Review" with metrics.sh integration, renumbered subsequent steps, version bumped to 2.5.0)
+- **New:** Rule trigger events in activity log format: `{"type":"rule","rule":"<name>","action":"<what>"}`
+- **What:** When a rule influences behavior, a tracking event is emitted to the activity log. The metrics.sh script reports rule trigger counts. Weekly-maintenance now includes a "Rule Health Review" step that flags over-active rules (>20/week), silent rules (0 triggers in 30+ days), and high-failure skills.
+- **Why:** Rules are enforced automatically but their effectiveness is invisible. Some rules may trigger constantly (too broad or persistent issue), others never trigger (too narrow or solved problem). Data-driven rule evolution requires measurement.
+- **To test:** Edit a file that triggers a rule (e.g., a test file). Check if a rule event appears in `.activity-log.jsonl`. Run `bash scripts/pm/metrics.sh` and check the "Rule Triggers" section. Run `/weekly-maintenance` and verify Step 5 appears.
+- **To revert:** Remove the "Rule Effectiveness Tracking" section from verification.md. Remove Step 5 from weekly-maintenance, renumber Step 6→5 and Step 7→6, revert version to 2.4.0.
+
+### Prompt Engineering (OPT-116, OPT-117)
+
+#### OPT-116: Adaptive Depth Calibration
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added adaptive calibration paragraph after size classification table)
+- **What:** After the size classification table, story-cycle now checks historical execution data (if 10+ records exist in the activity log) to adjust depth classification. Stories of a type that consistently required full workflow despite SMALL classification get escalated; STANDARD stories that consistently completed without issues are noted as candidates for lightweight treatment.
+- **Why:** The size×risk depth matrix is static. In practice, some story types consistently need more depth than their classification suggests. Historical data enables the matrix to adapt to the actual project's characteristics.
+- **To test:** After accumulating 10+ story-cycle executions in the activity log, start a new story-cycle. Verify the adaptive calibration check runs and notes any adjustments.
+- **To revert:** Remove the "Adaptive calibration" paragraph (from "**Adaptive calibration:**" to the end of the `Depth calibration:` log line) from story-cycle SKILL.md.
+
+#### OPT-117: Dynamic Micro-Component Composition
+- **Modified:** `.claude/skills/SKILL_TEMPLATE.md` (added `micro-components` field documentation and usage instructions)
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added `micro-components:` to YAML frontmatter)
+- **Modified:** `.claude/skills/sprint-end/SKILL.md` (added `micro-components:` to YAML frontmatter)
+- **Modified:** `.claude/skills/continue/SKILL.md` (added `micro-components:` to YAML frontmatter)
+- **What:** Skills can now declare which micro-components (from `.claude/prompts/`) they need and at which phase, via a `micro-components:` field in YAML frontmatter. This replaces inline references to micro-components in skill bodies. When a micro-component is updated, all skills that declare it automatically get the update.
+- **Why:** Currently, skills reference micro-components inline. When a micro-component changes, every skill referencing it needs manual updating. Declarative composition is DRYer and more maintainable.
+- **To test:** Check story-cycle, sprint-end, and continue frontmatter for `micro-components:` entries. Verify the SKILL_TEMPLATE.md documents the new field.
+- **To revert:** Remove `micro-components:` blocks from story-cycle, sprint-end, and continue SKILL.md frontmatter. Remove the "Micro-Components in Frontmatter" subsection from SKILL_TEMPLATE.md. Remove `micro-components` row from the frontmatter field table.
+
+### Framework Evolution (OPT-118)
+
+#### OPT-118: Skill Version Regression Detection
+- **New:** `.claude/skills/skill-eval/baselines/` (directory for baseline captures)
+- **Modified:** `.claude/skills/skill-eval/SKILL.md` (added `baseline` and `regression` modes, updated mode table, version bumped to 2.5.0)
+- **What:** Two new modes for skill-eval: `baseline` captures a graded eval output as a reference point for a skill version; `regression` compares the current skill version against the saved baseline and flags any criteria that changed from PASS to FAIL.
+- **Why:** `/skill-eval` could test and compare skills, but had no way to detect regressions when skills are updated. Baseline capture + regression comparison closes this gap.
+- **To test:** Run `/skill-eval baseline story-cycle --scenario "add user login"`. Verify a baseline file is created in `baselines/`. Modify story-cycle slightly. Run `/skill-eval regression story-cycle`. Verify it compares against the baseline and reports any differences.
+- **To revert:** Delete `.claude/skills/skill-eval/baselines/` directory. Remove the "Mode: baseline" and "Mode: regression" sections from skill-eval/SKILL.md. Remove the two new rows from the mode table. Revert version to 2.4.0 and description to original.
+
 ## [3.2.0] - 2026-02-23
 
 ### Parallel Development Infrastructure (OPT-103, OPT-104)

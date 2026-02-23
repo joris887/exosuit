@@ -1,7 +1,7 @@
 ---
 name: skill-eval
-version: 2.4.0
-description: Use when you want to test, measure, or compare skill effectiveness. Supports eval (test against scenario), compare (A/B test two versions), and metrics (track execution data).
+version: 2.5.0
+description: Use when you want to test, measure, or compare skill effectiveness. Supports eval, compare, metrics, baseline capture, and regression detection.
 trigger: manual
 depends-on: []
 references: []
@@ -21,6 +21,8 @@ Parse the first argument to determine mode:
 | **eval** | `/skill-eval eval <skill-name> --scenario "<prompt>"` | Test a skill against a known scenario |
 | **compare** | `/skill-eval compare <skill-name> --old <path> --new <path> --scenario "<prompt>"` | A/B test two versions of a skill |
 | **metrics** | `/skill-eval metrics <skill-name>` | Analyze a skill's evaluation criteria and pressure scenarios |
+| **baseline** | `/skill-eval baseline <skill-name> --scenario "<prompt>"` | Capture baseline output for regression detection |
+| **regression** | `/skill-eval regression <skill-name>` | Compare current skill against saved baseline |
 
 ## Mode: eval
 
@@ -133,9 +135,64 @@ Analyze a skill's testability and evaluation readiness.
 - [ ] [Criterion to add to the skill]
 ```
 
+## Mode: baseline
+
+Capture a baseline output for regression detection.
+
+### Process
+
+1. **Load the skill** — Read `.claude/skills/<skill-name>/SKILL.md`
+2. **Define scenario** — Use provided `--scenario` or prompt for one
+3. **Execute eval** — Run the standard eval process
+4. **Save baseline** — Write the graded output to `.claude/skills/skill-eval/baselines/<skill-name>-v<version>.md`
+
+### Baseline Format
+
+```markdown
+# Baseline: <skill-name> v<version>
+
+## Scenario
+> <the test scenario>
+
+## Expected Behavior
+[Full eval criteria results]
+
+## Captured: <date>
+```
+
+## Mode: regression
+
+Compare current skill behavior against a saved baseline.
+
+### Process
+
+1. **Load the skill** — Read current `.claude/skills/<skill-name>/SKILL.md`
+2. **Load baseline** — Read `.claude/skills/skill-eval/baselines/<skill-name>-v<latest>.md`
+3. **Run eval** — Execute eval with the baseline's scenario
+4. **Diff results** — Compare current eval against baseline criteria
+5. **Report regressions** — Flag any criteria that changed from PASS to FAIL
+
+### Output
+
+```markdown
+## Regression Check: <skill-name>
+
+### Baseline: v<old> → Current: v<new>
+
+| # | Criterion | Baseline | Current | Status |
+|---|-----------|----------|---------|--------|
+| 1 | [text]    | PASS     | PASS    | OK     |
+| 2 | [text]    | PASS     | FAIL    | REGRESSION |
+
+### Verdict: CLEAN / REGRESSION DETECTED
+[Details of any regressions]
+```
+
 ## Rules
 
 - This skill is for ANALYSIS only — do not modify skill files during eval or compare
 - In compare mode, do NOT reveal which version is old/new until the blind assessment is complete
 - Be honest about limitations — mental execution is not the same as actual execution
 - Reference specific lines in skill files when citing evidence
+- In baseline mode, always include the version number in the filename
+- In regression mode, always compare against the most recent baseline

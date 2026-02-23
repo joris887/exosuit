@@ -12,6 +12,24 @@ ______________________________________________________________________
 
 Debug session for: **$ARGUMENTS**
 
+## Failure State Persistence
+
+At each phase transition, update `docs/sessions/.failure-state.md` so `/continue` can resume if the session ends unexpectedly:
+
+```markdown
+# Active Skill State
+- Skill: debug-session
+- Error: [error description]
+- Phase: [current phase]
+- Root cause: [identified or "not yet identified"]
+- Hypothesis: [current hypothesis or "none"]
+- Fix attempts: [count]
+- Files investigated: [list]
+- Recovery hint: [what to do next]
+```
+
+On successful fix (Phase 5 complete): delete `.failure-state.md`.
+
 ## Phase 1: Root Cause Investigation (MANDATORY)
 
 Do NOT skip this phase. Do NOT jump to a fix.

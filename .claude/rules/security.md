@@ -8,6 +8,19 @@ paths:
   - "**/*password*"
   - "**/*token*"
   - "**/*key*"
+  - "**/api/**"
+  - "**/routes/**"
+  - "**/middleware/**"
+  - "**/controllers/**"
+  - "**/handlers/**"
+  - "**/db/**"
+  - "**/database/**"
+  - "**/models/**"
+  - "**/schema/**"
+  - "**/upload*"
+  - "**/session*"
+  - "**/cookie*"
+  - "**/cors*"
 ---
 
 # Security Rules

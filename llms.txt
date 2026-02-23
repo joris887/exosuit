@@ -12,7 +12,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.2)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.3)
 - docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context)
 
 ## Skills (invoked via /skill-name in Claude Code)
@@ -22,7 +22,7 @@
   - references/accuracy-safeguards.md: Anti-hallucination protocol for documentation creation
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with risk-calibrated depth, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, control flow markers, error recovery, disaster prevention, parallel stream decomposition, completion verification, and handoff suggestions
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with risk-calibrated depth, intent-based security activation, adaptive depth calibration, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, failure state persistence, control flow markers, error recovery, disaster prevention, parallel stream decomposition, skill lifecycle metrics, cross-skill status, completion verification, micro-component composition, and handoff suggestions
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
   - references/self-review.md: Self-review checklist with red flags + disaster prevention reference
   - references/disaster-prevention.md: Adversarial LLM failure mode checklist (wheel reinvention, spec drift, integration wiring, file structure, regression surface)
@@ -30,7 +30,7 @@
   - references/elicitation-techniques.md: Structured questioning methods (assumption surfacing, constraint mapping, failure mode exploration, stakeholder perspective shift, boundary probing)
   - references/plan-template.md: Plan output template with workflow state frontmatter, Specification (WHAT/WHY) and Implementation (HOW) sections, anti-patterns
   - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (19 error patterns)
-- .claude/skills/sprint-end/SKILL.md: Quality gates with control flow markers, error recovery, graceful degradation, project state adaptation, PR, merge
+- .claude/skills/sprint-end/SKILL.md: Quality gates with control flow markers, error recovery, graceful degradation, project state adaptation, compliance ledger, cross-skill status awareness, micro-component composition, PR, merge
   - references/quality-gates.md: Detailed quality gate checks and recovery
   - references/error-recovery.md: Step-specific error/cause/recovery decision tables (18 error patterns)
   - scripts/test-count-delta.sh: Compare test counts between branch and main
@@ -39,7 +39,7 @@
 - .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories with story template, doc quality check, and handoff suggestions
   - references/story-template.md: Story output template with user-centric framing (As a/I want/So that), Given/When/Then criteria, independent testability, and priority justification
   - assets/story-template.md: Structured story output template for /ideate
-- .claude/skills/continue/SKILL.md: Smart session resumption with project health scan
+- .claude/skills/continue/SKILL.md: Smart session resumption with failure state detection, project health scan, micro-component composition
 - .claude/skills/handoff/SKILL.md: Session end, handoff document with quality check
 - .claude/skills/skill-create/SKILL.md: Generate technology-specific skills with co-located references
   - scripts/init-skill.sh: Scaffold a new skill directory with SKILL.md template
@@ -56,7 +56,8 @@
 - .claude/skills/architecture-check/SKILL.md: Architecture validation
 - .claude/skills/doctor/SKILL.md: Framework health check — validates config, hooks, dependencies, rules, documentation freshness, skill conformance
   - scripts/validate-skills.sh: Skill conformance validator (frontmatter, line budget, references, registry)
-- .claude/skills/skill-eval/SKILL.md: Skill evaluation — test, A/B compare, metrics
+- .claude/skills/skill-eval/SKILL.md: Skill evaluation — test, A/B compare, metrics, baseline capture, regression detection
+  - baselines/: Stored baseline outputs for regression detection
 - .claude/skills/refine-loop/SKILL.md: Iterative self-improvement until completion criteria met
 - .claude/skills/SKILLS_INVENTORY.md: Full skill inventory
 - .claude/skills/SKILL_TEMPLATE.md: Skill creation guidelines with YAML frontmatter, skill prerequisites (requires), subagent context protocol, tool restrictions per agent, resource types, reference file budgets, control flow markers (IF/ELSE/LOOP/HALT), reasoning tools, error recovery tables, script policy, grep navigation, graceful degradation, pre-execution validation, TDD methodology, and skill-specific persistent sidecar memory
@@ -65,10 +66,10 @@
 ## Rules
 - .claude/rules/testing.md: Test file protection rules
 - .claude/rules/documentation.md: Documentation rules + reference file size budgets + cross-skill output optimization
-- .claude/rules/security.md: Security-sensitive file rules + fix-immediately pattern
+- .claude/rules/security.md: Security-sensitive file rules + fix-immediately pattern + expanded path scope (API, routes, middleware, DB, models, uploads, sessions)
 - .claude/rules/git.md: Git workflow rules
 - .claude/rules/dependencies.md: Dependency management rules
-- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern + task completion enforcement + context budget awareness + context relevance scoring (5-level classification) + pre-compaction state persistence
+- .claude/rules/verification.md: Evidence required before completion claims + CLI discovery pattern + task completion enforcement + context budget awareness + context relevance scoring (5-level classification) + pre-compaction state persistence + rule effectiveness tracking protocol
 - .claude/rules/code-slop.md: AI slop detection — banned comment patterns, obvious comment detection, code prose anti-patterns
 - .claude/rules/edit-recovery.md: Edit failure recovery decision tree — re-read before retry, escalating recovery
 
@@ -82,6 +83,7 @@
 - .claude/prompts/quality-gate-sequence.md: Run lint → typecheck → test sequence
 - .claude/prompts/verify-clean-git-state.md: Verify clean git working tree
 - .claude/prompts/context-budget.md: Estimate context budget usage and compaction proximity
+- .claude/prompts/context-prime.md: Intent-aware context loading with task classification (security, UI, data/API, refactoring, new feature)
 
 ## Subagent Templates
 - .claude/prompts/agents/code-reviewer.md: Code review dispatch template with severity classification
@@ -89,7 +91,7 @@
 
 ## Hooks
 - .claude/hooks/session-start.sh: Advisory environment checks at session start (tool existence, stale state, git health, hook coverage)
-- .claude/hooks/activity-logger.sh: Tool invocation logging (Edit, Write, Bash) to docs/sessions/.activity-log.jsonl for retrospective metrics
+- .claude/hooks/activity-logger.sh: Tool invocation logging (Edit, Write, Bash) and skill lifecycle events to docs/sessions/.activity-log.jsonl for retrospective metrics
 - .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits + automated secrets detection (AWS keys, API tokens, private keys, hardcoded credentials)
 - .claude/hooks/pre-stop-quality.sh: Quality gate before completion + auto-save session state
 - .claude/hooks/pre-tool-safety.sh: Block dangerous operations (git, publishing, DB, process killing)
@@ -100,6 +102,12 @@
 - .github/pull_request_template.md: PR template with quality gates checklist
 - .github/ISSUE_TEMPLATE/bug_report.yml: Structured bug report form
 - .github/ISSUE_TEMPLATE/feature_request.yml: Structured feature request form
+
+## Scripts
+- scripts/pm/status.sh: Sprint status overview (git state, progress, backlog, PRs)
+- scripts/pm/next-story.sh: Next available TODO story from backlog
+- scripts/pm/standup.sh: Daily standup summary
+- scripts/pm/metrics.sh: Skill execution metrics, rule trigger counts, tool usage distribution
 
 ## Other
 - CHANGELOG.md: Per-optimization changelog with test and revert instructions

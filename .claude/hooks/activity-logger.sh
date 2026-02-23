@@ -29,7 +29,8 @@ else
   command_val=$(echo "$INPUT" | sed -n 's/.*"command"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
 fi
 
-# Only log Edit, Write, Bash
+# Log Edit, Write, Bash tool events and skill lifecycle events
+# Skill events are emitted by skills via: bash -c 'echo "{\"type\":\"skill\",...}" >> docs/sessions/.activity-log.jsonl'
 case "$tool_name" in
   Edit|Write|Bash) ;;
   *) exit 0 ;;

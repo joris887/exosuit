@@ -173,7 +173,7 @@ The framework includes hooks that run automatically — you don't need to invoke
 | Worktree directory fix | Transparently ensures Bash commands execute in the correct worktree directory | Before bash commands (subagents too) |
 | Quality gates | Runs lint, typecheck, and test suite before allowing completion | Before task completion |
 | Session state auto-save | Saves branch, commits, and changes for `/continue` recovery | Before task completion |
-| Activity logging | Logs tool usage for retrospective metrics | After each tool use |
+| Activity logging | Logs tool usage and skill lifecycle events for retrospective metrics | After each tool use |
 | Environment checks | Validates framework setup, warns about stale sessions | At session start |
 
 ## Full Skill Reference
@@ -184,9 +184,9 @@ The framework includes hooks that run automatically — you don't need to invoke
 |---|---|
 | `/bootstrap` | First-run setup — detect stack or generate from vision |
 | `/sprint-start` | Pre-flight checks + create sprint branch (supports `--worktree`) |
-| `/story-cycle` | Universal story delivery with risk-calibrated planning, depth exploration, TDD, parallel stream decomposition, disaster prevention, and verification |
-| `/sprint-end` | Quality gates, documentation updates, PR creation, squash merge to main |
-| `/continue` | Smart session resumption with project health scan, git state, and handoff files |
+| `/story-cycle` | Universal story delivery with risk-calibrated planning, intent-based security, adaptive depth, TDD, parallel streams, failure state persistence, and verification |
+| `/sprint-end` | Quality gates, compliance ledger, documentation updates, PR creation, squash merge to main |
+| `/continue` | Smart session resumption with failure state detection, project health scan, git state, and handoff files |
 | `/handoff` | End session with structured handoff document |
 
 ### Planning & Design
@@ -226,7 +226,7 @@ The framework includes hooks that run automatically — you don't need to invoke
 
 | Skill | Purpose |
 |---|---|
-| `/weekly-maintenance` | Comprehensive weekly health check (1-2 hours, Friday recommended) |
+| `/weekly-maintenance` | Comprehensive weekly health check with rule health review (1-2 hours, Friday recommended) |
 | `/retrospective` | Sprint retrospective using 4Ls framework with metrics dashboard |
 | `/backlog-review` | Backlog health analysis — coverage, quality, dependencies |
 | `/doctor` | Framework health check — validate config, hooks, dependencies |
@@ -238,7 +238,7 @@ The framework includes hooks that run automatically — you don't need to invoke
 |---|---|
 | `/commit` | Guided conventional commit |
 | `/parallel-work` | Manage git worktrees for concurrent Claude Code instances |
-| `/skill-eval` | Test, measure, or A/B compare skill effectiveness |
+| `/skill-eval` | Test, measure, A/B compare, baseline capture, and regression detection for skills |
 | `/refine-loop` | Iterative self-improvement until completion criteria met |
 
 ### Prompt Snippets (lightweight, no workflow)
@@ -253,7 +253,7 @@ The framework includes hooks that run automatically — you don't need to invoke
 
 ```
 .claude/
-  skills/               # 29 skills, each with YAML frontmatter
+  skills/               # 29 skills, each with YAML frontmatter + optional micro-components
     <skill>/
       SKILL.md          # Lean entry point (<150 lines)
       references/       # Detailed docs loaded on demand (elicitation techniques, disaster prevention, etc.)
@@ -294,7 +294,7 @@ docs/
   progress.md           # Sprint history + metrics
   technical-debt.md     # Technical debt inventory
 scripts/
-  pm/                   # Read-only query scripts (status, standup, next-story)
+  pm/                   # Read-only query scripts (status, standup, next-story, metrics)
 vision/                 # New project braindump flow
 CLAUDE.md               # Framework entry point (auto-loaded every session)
 AGENTS.md               # Cross-tool compatibility (symlink → CLAUDE.md)
@@ -334,6 +334,12 @@ A: During story planning, if areas have high complexity or unresolved uncertaint
 **Q: Does this integrate with CI/CD?**
 A: Yes. The framework includes a GitHub Actions workflow (`.github/workflows/claude-pr-review.yml`) that uses Claude Code to review PRs in CI. It runs code quality, test validation, and security checks, then posts a structured review comment. External contributors get structure-only review (no code-level access).
 
+**Q: What happens if my session ends mid-story?**
+A: The framework maintains a failure state file (`docs/sessions/.failure-state.md`) during skill execution. When you resume with `/continue`, it detects the interrupted state and shows exactly where you left off — which phase, what was completed, and how to resume.
+
+**Q: How do I track framework effectiveness over time?**
+A: Run `bash scripts/pm/metrics.sh` for skill execution metrics (success rates, per-skill breakdowns, rule trigger counts). `/retrospective` includes these metrics automatically. `/weekly-maintenance` reviews rule health. `/sprint-end` records ground rule compliance.
+
 **Q: How do I check if the framework is set up correctly?**
 A: Run `/doctor`. It validates configuration, hooks, dependencies, rules, documentation freshness, and skill conformance.
 
@@ -350,7 +356,8 @@ A: Run `/doctor`. It validates configuration, hooks, dependencies, rules, docume
 - **Facilitator-driven** — Asks questions before generating; structured elicitation techniques for deep requirements discovery
 - **Ground-rules-governed** — Per-project architectural principles checked at planning and shipping time
 - **Risk-calibrated** — Workflow depth adapts to both size and risk; high-risk changes get extra scrutiny regardless of size
-- **Observable** — Framework health checks (`/doctor`), activity logging, context budget visibility
+- **Observable** — Framework health checks (`/doctor`), skill execution metrics, rule effectiveness tracking, ground rule compliance ledger
+- **Data-driven** — Adaptive depth calibration from historical data, rule health analysis, skill regression detection
 - **Secrets-aware** — Automated credential detection in post-edit hooks, CODEOWNERS protection on sensitive files
 - **CI-enforced** — GitHub Actions workflow for automated PR review catches issues even when local workflow is bypassed
 
