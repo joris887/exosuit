@@ -61,7 +61,47 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/pre-stop-quality.sh"
+            "command": "python3 .claude/hooks/pre_stop_quality.py 2>/dev/null || bash .claude/hooks/pre-stop-quality.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/user-prompt-handler.sh"
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/worktree-init.sh"
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/worktree-cleanup.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/subagent_validator.py"
           }
         ]
       }

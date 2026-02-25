@@ -77,6 +77,20 @@ For smaller sprints, the standard quality agents (code-quality + test-validator)
 
 Present aggregated agent findings to user. If critical issues found, stop and fix first.
 
+### Cross-Validation Step
+
+After all quality agents report findings:
+
+1. Collect all findings with confidence ≥80 from all agents
+2. Dispatch a code-reviewer agent (with correctness lens) to independently verify each finding:
+   - For each: read the cited file:line, assess if the issue is real
+   - Rate: CONFIRMED / DISPUTED / INCONCLUSIVE
+3. Surface only CONFIRMED findings as blocking issues
+4. List DISPUTED findings as informational (non-blocking, FYI only)
+5. Discard INCONCLUSIVE findings
+
+This step prevents quality gate fatigue from false positives.
+
 **DO / DON'T:**
 - DO run ALL quality agents before declaring gates passed — skipping one agent is not "mostly passed."
 - DON'T use a previous session's quality results — run fresh agents against the current branch state.
