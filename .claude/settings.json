@@ -20,6 +20,15 @@
             "command": "bash .claude/hooks/activity-logger.sh"
           }
         ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-edit-format.sh \"$FILE_PATH\""
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -41,6 +50,16 @@
           }
         ],
         "apply_to_subagents": true
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-stop-quality.sh"
+          }
+        ]
       }
     ]
   }
