@@ -78,7 +78,7 @@ Parse `docs/sessions/.activity-log.jsonl` to extract:
 - Time distribution across files
 </IF>
 <ELSE>
-Activity log not available — skip activity metrics. Note: enable `activity-logger.sh` hook for richer retrospective data.
+Activity log not available — skip activity metrics. Note: enable the PostToolUse hook via engine.py for richer retrospective data.
 </ELSE>
 
 ### Skill Execution Metrics
