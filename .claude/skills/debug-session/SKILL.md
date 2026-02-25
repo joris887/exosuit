@@ -1,6 +1,6 @@
 ---
 name: debug-session
-version: 2.8.0
+version: 2.9.0
 description: Use when the user reports a bug, error, or unexpected behavior that needs investigation.
 trigger: manual
 depends-on: []
@@ -9,7 +9,7 @@ micro-components:
   phase-4: [record-failure]
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash, WebSearch
 argument-hint: "[error-description]"
 ---
 ______________________________________________________________________
@@ -110,6 +110,17 @@ Do NOT attempt any fix until the root cause is identified with evidence. "I thin
 2. Compare the working example against the broken code line by line
 3. Identify specific differences — which difference explains the bug?
 4. Understand the dependency chain — are all dependencies correct and available?
+
+### 2b. Search for Known Issues (Optional)
+
+<IF condition="error involves a third-party dependency or library">
+Search for known issues before deep analysis — someone may have already solved this:
+
+1. Identify the dependency name and version from `package.json`, `requirements.txt`, or equivalent
+2. Use WebSearch to search for: `"[dependency] [error message or key phrase]"`
+3. If a known issue or fix is found, verify it applies to your version and context
+4. If no results: proceed to Phase 3 — the bug is likely project-specific
+</IF>
 
 ## Phase 3: Hypothesis and Testing
 

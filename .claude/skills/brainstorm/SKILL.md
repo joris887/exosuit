@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-version: 2.4.0
+version: 2.5.0
 description: Use when the user has a complex idea that needs design exploration before story decomposition.
 trigger: manual
 depends-on: [ideate]
@@ -15,6 +15,14 @@ ______________________________________________________________________
 ## brainstorm
 
 Brainstorming: **$ARGUMENTS**
+
+## Plan Mode (Optional)
+
+For complex or high-stakes brainstorms, consider using Plan Mode for Phases 1-4. This adds an extra layer of safety by preventing premature implementation during design exploration.
+
+**When to use:** The idea is architecturally significant, affects multiple systems, or the user explicitly requests a careful exploration.
+
+**How:** Enter Plan Mode before Phase 1. Remain in Plan Mode through Phase 4 (risk identification). Exit Plan Mode before Phase 5 (design presentation) so you can interact with the user for approval.
 
 ## 1. Explore the Problem Space
 

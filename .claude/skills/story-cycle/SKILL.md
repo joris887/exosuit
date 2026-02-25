@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 3.1.0
+version: 3.2.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -68,6 +68,14 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
                         → NO: Loop back to Phase 3 for gaps (max 2 extra passes)
                         → YES: Report → DONE
 ```
+
+## Plan Mode for Phases 0-2 (Optional)
+
+For STANDARD stories, consider entering Plan Mode at the start of Phase 0 and remaining in it through Phase 2 (Context Transition). This prevents accidental implementation during the planning phases and provides a natural approval checkpoint.
+
+**When to use:** Complex stories, high-risk changes, or when the user requests careful planning.
+
+**How:** Enter Plan Mode before Phase 0. The existing Phase 1 already operates in Plan Mode. Remain in Plan Mode through Phase 2, exiting after plan approval and context transition — just before Phase 2.5 (Confidence Gate) and Phase 3 (Execution).
 
 ## Phase 0: Intent Decomposition
 

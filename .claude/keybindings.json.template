@@ -1,0 +1,7 @@
+{
+  "ctrl+shift+s": "chat:send:/story-cycle ",
+  "ctrl+shift+c": "chat:send:/continue",
+  "ctrl+shift+e": "chat:send:/sprint-end",
+  "ctrl+shift+h": "chat:send:/handoff",
+  "ctrl+shift+d": "chat:send:/doctor"
+}
