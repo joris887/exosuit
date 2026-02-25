@@ -135,9 +135,9 @@ Save rules to `.claude/rules/<rule-name>.md` with YAML frontmatter containing `p
 Based on detected tools:
 
 - **Formatter found** → Configure `post-edit-format.sh` for the detected formatter
-- **Linter found** → Add to `pre-stop-quality.sh`
-- **Type checker found** → Add to `pre-stop-quality.sh`
-- **Test runner found** → Add to `pre-stop-quality.sh`
+- **Linter found** → Add to `.claude/hooks/rules/quality.yaml`
+- **Type checker found** → Add to `.claude/hooks/rules/quality.yaml`
+- **Test runner found** → Add to `.claude/hooks/rules/quality.yaml`
 
 Update `.claude/hooks/` scripts and `.claude/settings.json` as needed.
 

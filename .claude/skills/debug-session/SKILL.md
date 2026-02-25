@@ -20,21 +20,34 @@ Debug session for: **$ARGUMENTS**
 
 ## Failure State Persistence
 
-At each phase transition, update `docs/sessions/.failure-state.md` so `/continue` can resume if the session ends unexpectedly:
+At each phase transition, write `docs/sessions/.failure-state.md` with YAML frontmatter so the Stop hook and `/continue` can programmatically detect incomplete workflows.
 
-```markdown
-# Active Skill State
-- Skill: debug-session
-- Error: [error description]
-- Phase: [current phase]
-- Root cause: [identified or "not yet identified"]
-- Hypothesis: [current hypothesis or "none"]
-- Fix attempts: [count]
-- Files investigated: [list]
-- Recovery hint: [what to do next]
+**At workflow start** (Phase 1 entry):
+
+```yaml
+---
+status: active
+skill: debug-session
+phase: "1"
+phase_name: "Root Cause Investigation"
+started_at: "[ISO-8601 timestamp from date -u +%Y-%m-%dT%H:%M:%SZ]"
+story: "[from $ARGUMENTS — the error description]"
+branch: "[from git branch --show-current]"
+next_action: "Reproduce error and trace root cause"
+files_modified: []
+---
+
+## Context
+Error: [error description]
+Root cause: not yet identified
+Hypothesis: none
+Fix attempts: 0
+Files investigated: [list as investigation proceeds]
 ```
 
-On successful fix (Phase 5 complete): delete `.failure-state.md`.
+**At each phase transition:** Update the frontmatter fields: `phase`, `phase_name`, `next_action`, and append to `files_modified`. Update the Context section with investigation progress (root cause, hypothesis, fix attempts).
+
+**On successful fix (Phase 5 complete):** Delete `.failure-state.md` — clean state means no failure to recover from.
 
 ## Phase 1: Root Cause Investigation (MANDATORY)
 

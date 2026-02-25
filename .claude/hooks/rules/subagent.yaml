@@ -1,0 +1,10 @@
+# SubagentStop validation rules
+# Advisory checks on subagent output quality.
+
+# Require file:line references in substantial output
+require_references: true
+
+# Weak claim language patterns
+weak_claims:
+  - regex: '\b(should work|looks correct|I believe|I think)\b'
+    message: "Subagent used unverified language"

@@ -33,8 +33,8 @@ For each hook in `.claude/settings.json`:
 
 - Verify the hook script file exists and is executable
 - For `post-edit-format.sh`: check if at least one formatter is installed (prettier, biome, ruff, black, rustfmt, gofmt)
-- For `pre-tool-safety.sh`: verify grep is available (always should be)
-- For `pre-stop-quality.sh`: verify git is available
+- For `engine.py`: verify python3 is available
+- For `engine.py` handlers: verify git is available (used by stop, session_start)
 
 Report: PASS/WARN (missing optional tools)/FAIL (missing required tools)
 

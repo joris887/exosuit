@@ -26,7 +26,7 @@ done
 
 if [[ ! -f "$LOG_FILE" ]]; then
   echo "No activity log found at $LOG_FILE"
-  echo "Enable the activity-logger.sh hook and emit skill events to populate metrics."
+  echo "Enable the PostToolUse hook via engine.py and emit skill events to populate metrics."
   exit 0
 fi
 

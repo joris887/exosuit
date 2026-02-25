@@ -1,0 +1,6 @@
+# UserPromptSubmit intent classification rules
+# Advisory warnings for potentially destructive user requests.
+
+destructive_patterns:
+  - regex: 'delete (all|everything)|drop (table|database)|remove all files|wipe|nuke|destroy|format disk'
+    message: "This request sounds potentially destructive. Proceed with caution."

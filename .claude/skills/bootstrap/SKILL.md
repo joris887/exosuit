@@ -124,7 +124,7 @@ Generate technology-specific skills for the detected stack.
 Based on detected stack, configure hooks:
 
 - **Formatter detected** → uncomment/configure `post-edit-format.sh` for the language
-- **Linter + test runner detected** → uncomment/configure `pre-stop-quality.sh`
+- **Linter + test runner detected** → configure quality rules in `.claude/hooks/rules/quality.yaml`
 - **Safety hooks** → always enabled (already in settings.json)
 
 Update `.claude/settings.json` if adding PostToolUse or Stop hooks.

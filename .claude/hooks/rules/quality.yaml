@@ -1,0 +1,13 @@
+# Stop hook quality rules: validate completion evidence
+# Checks the last assistant message for unverified completion claims.
+
+# Regex to detect completion claims
+completion_regex: '\b(complete|done|finished|implemented|delivered|ready for review)\b'
+
+# Regex to detect actual test evidence
+evidence_regex: '(\d+ tests?.*pass|PASS\b|Tests:\s+\d+|test result:.*ok|pytest.*passed|All \d+ tests passed)'
+
+# Weak claim language that should be flagged
+weak_claims:
+  - regex: '\b(should work|looks correct|I believe|I think|probably works|seems fine)\b'
+    message: "Unverified claims detected"

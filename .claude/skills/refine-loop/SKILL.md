@@ -23,6 +23,35 @@ Refining: **$ARGUMENTS**
 | `--until "<criteria>"` | Yes | - | Completion condition (must be verifiable) |
 | `--max <N>` | No | 5 | Maximum iterations before stopping |
 
+## Failure State Persistence
+
+At loop entry, write `docs/sessions/.failure-state.md` with YAML frontmatter so the Stop hook and `/continue` can programmatically detect incomplete workflows.
+
+**At loop entry** (before first execution):
+
+```yaml
+---
+status: active
+skill: refine-loop
+phase: "1"
+phase_name: "Initial Execution"
+started_at: "[ISO-8601 timestamp from date -u +%Y-%m-%dT%H:%M:%SZ]"
+story: "[from $ARGUMENTS — the task description]"
+branch: "[from git branch --show-current]"
+next_action: "Execute task and produce first draft"
+files_modified: []
+---
+
+## Context
+Task: [task description]
+Criteria: [completion criteria]
+Iteration: 1 of [max]
+```
+
+**At each iteration:** Update `phase` to the iteration number, `phase_name` to `"Iteration N"`, `next_action` to the specific improvement being applied, and append to `files_modified`. Update the Context section with iteration progress and remaining gaps.
+
+**When criteria are met (or max iterations reached):** Delete `.failure-state.md` — clean state means no failure to recover from.
+
 ## Process
 
 ### 1. Initial Execution

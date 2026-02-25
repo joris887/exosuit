@@ -99,12 +99,13 @@
 - .claude/agents/codebase-explorer.md: Fast file discovery and codebase mapping (model: haiku)
 
 ## Hooks
-- .claude/hooks/session-start.sh: Advisory environment checks at session start (tool existence, stale state, git health, hook coverage)
-- .claude/hooks/activity-logger.sh: Tool invocation logging (Edit, Write, Bash) and skill lifecycle events to docs/sessions/.activity-log.jsonl for retrospective metrics
-- .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits + automated secrets detection (AWS keys, API tokens, private keys, hardcoded credentials)
-- .claude/hooks/pre-stop-quality.sh: Quality gate before completion + auto-save session state
-- .claude/hooks/pre-tool-safety.sh: Block dangerous operations (git, publishing, DB, process killing)
-- All hooks declare requirements in headers and degrade gracefully with once-per-session missing tool reports
+- .claude/hooks/engine.py: Unified Python dispatch engine routing all hook events to handler modules with YAML rule configuration
+- .claude/hooks/rules/safety.yaml: PreToolUse blocking patterns (git force push, destructive ops, publishing, DB, process killing)
+- .claude/hooks/rules/quality.yaml: Stop quality gate rules (weak claims, completion evidence)
+- .claude/hooks/handlers/: Per-event handler modules (pre_tool_use, post_tool_use, stop, user_prompt, subagent_stop, session_start, worktree)
+- .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits + automated secrets detection (bash, kept for file-type switching)
+- .claude/hooks/worktree-bash-fix.sh: Transparent worktree directory fix for Bash commands (bash, apply_to_subagents)
+- Engine falls back gracefully if Python unavailable
 
 ## GitHub Templates
 - .github/workflows/claude-pr-review.yml: CI-based Claude Code PR review with tiered access

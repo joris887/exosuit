@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/session-start.sh"
+            "command": "python3 .claude/hooks/engine.py SessionStart"
           }
         ]
       }
@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/activity-logger.sh"
+            "command": "python3 .claude/hooks/engine.py PostToolUse"
           }
         ]
       },
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/pre-tool-safety.sh \"$COMMAND\""
+            "command": "python3 .claude/hooks/engine.py PreToolUse"
           }
         ]
       },
@@ -61,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/pre_stop_quality.py 2>/dev/null || bash .claude/hooks/pre-stop-quality.sh"
+            "command": "python3 .claude/hooks/engine.py Stop"
           }
         ]
       }
@@ -71,7 +71,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/user-prompt-handler.sh"
+            "command": "python3 .claude/hooks/engine.py UserPromptSubmit"
           }
         ]
       }
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/worktree-init.sh"
+            "command": "python3 .claude/hooks/engine.py WorktreeCreate"
           }
         ]
       }
@@ -91,7 +91,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/worktree-cleanup.sh"
+            "command": "python3 .claude/hooks/engine.py WorktreeRemove"
           }
         ]
       }
@@ -101,7 +101,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/subagent_validator.py"
+            "command": "python3 .claude/hooks/engine.py SubagentStop"
           }
         ]
       }

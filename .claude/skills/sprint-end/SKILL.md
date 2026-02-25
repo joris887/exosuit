@@ -46,6 +46,33 @@ START → 1. Discover Sprint State (from git, no assumptions)
                 → 7. Sprint Complete Summary → DONE
 ```
 
+## Failure State Persistence
+
+At step boundaries, write `docs/sessions/.failure-state.md` with YAML frontmatter so the Stop hook and `/continue` can programmatically detect incomplete workflows.
+
+**At workflow start** (Step 1 entry):
+
+```yaml
+---
+status: active
+skill: sprint-end
+phase: "1"
+phase_name: "Discover Sprint State"
+started_at: "[ISO-8601 timestamp from date -u +%Y-%m-%dT%H:%M:%SZ]"
+story: "[branch name or sprint identifier]"
+branch: "[from git branch --show-current]"
+next_action: "Discover sprint state from git"
+files_modified: []
+---
+
+## Context
+[Free-form notes — stories in sprint, quality gate status, PR state]
+```
+
+**At each step transition:** Update the frontmatter fields: `phase`, `phase_name`, `next_action`, and append to `files_modified`. Update the Context section with current progress.
+
+**On successful completion (Step 7 — Sprint Complete):** Delete `.failure-state.md` — clean state means no failure to recover from.
+
 ## 1. Discover Sprint State
 
 No assumptions about previous context. Discover everything from git.

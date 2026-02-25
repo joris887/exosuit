@@ -213,13 +213,16 @@ Path-scoped rules loaded automatically when matching files are edited:
 - `documentation.md` — Documentation discipline + reference file size budgets
 
 ### Hooks (`.claude/hooks/`)
-Deterministic enforcement via shell scripts (all hooks declare requirements in headers and degrade gracefully):
-- `session-start.sh` — Advisory environment checks at session start
-- `activity-logger.sh` — Tool invocation logging for retrospective metrics
-- `post-edit-format.sh` — Auto-format after edits + secrets detection
-- `pre-stop-quality.sh` — Quality gate before completion + auto-save session state
-- `pre-tool-safety.sh` — Block dangerous operations + template repo safety check
-- `worktree-bash-fix.sh` — Transparent worktree directory fix for Bash commands (applied to subagents)
+Unified Python engine (`engine.py`) with YAML rule configuration. Two bash hooks kept for POSIX/file-type tasks:
+- `engine.py` — Dispatch entry point routing to `handlers/` modules
+- `rules/safety.yaml` — PreToolUse blocking patterns (9 rules)
+- `rules/quality.yaml` — Stop quality gate rules
+- `rules/subagent.yaml` — SubagentStop validation rules
+- `rules/intent.yaml` — UserPromptSubmit intent rules
+- `handlers/` — Per-event handler modules (pre_tool_use, post_tool_use, stop, user_prompt, subagent_stop, session_start, worktree)
+- `state/session.json` — Per-session state (warnings, iterations)
+- `post-edit-format.sh` — Auto-format after edits + secrets detection (bash)
+- `worktree-bash-fix.sh` — Transparent worktree directory fix for Bash commands (bash, applied to subagents)
 
 ## References
 
