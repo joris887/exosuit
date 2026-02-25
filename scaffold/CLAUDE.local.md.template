@@ -1,0 +1,24 @@
+# Local Overrides (Personal)
+
+<!-- Copy this file to CLAUDE.local.md (gitignored) for personal preferences -->
+
+## Personal Preferences
+
+<!-- Examples:
+- Always use bun instead of npm
+- Never auto-commit
+- Prefer verbose test output
+- Use vim keybindings
+-->
+
+## Local Environment
+
+<!-- Examples:
+- My test database is on port 5433
+- I use Docker for Redis instead of local install
+- My Ollama runs on a different port
+-->
+
+## Notes
+
+<!-- Personal notes that don't belong in the shared CLAUDE.md -->

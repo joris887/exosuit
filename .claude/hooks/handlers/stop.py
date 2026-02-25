@@ -14,7 +14,9 @@ import re
 import subprocess
 from datetime import datetime, timezone
 
-FAILURE_STATE_PATH = "docs/sessions/.failure-state.md"
+from lib.paths import project_path
+
+FAILURE_STATE_PATH = project_path("docs", "sessions", ".failure-state.md")
 
 
 def handle(input_data, event, state, load_rules):
@@ -165,7 +167,7 @@ def _auto_save():
     if not os.path.isdir(".git"):
         return
 
-    sessions_dir = "docs/sessions"
+    sessions_dir = project_path("docs", "sessions")
     os.makedirs(sessions_dir, exist_ok=True)
 
     def git(*args):

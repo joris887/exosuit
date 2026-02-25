@@ -18,16 +18,39 @@ Setting up the JD-LLM Development Framework for this project.
 ## Process Flow (authoritative — prose below is supporting detail)
 
 ```
-START → 1. Detect Project State
-  → [Source files exist?]
-    → YES: Path A (Existing Repository)
-      → A1-A3: Detect stack, commands, assess docs/coverage/architecture, measure codebase
-        → A3.5: Generate architecture → A3.6: Establish ground rules
-          → A4: Generate config → A5: Run /skill-create → A5.5-A5.6: Configure hooks and rules
-            → A6: Clean up → A7: Present summary → DONE
-    → NO: Path B (New Project)
-      → Read references/new-project.md and follow B1-B4 → DONE
+START → 0. Detect Installation Mode
+  → [Plugin mode?]
+    → YES: CLAUDE_PLUGIN_ROOT is set, skip .claude/ setup
+    → NO: Template mode, .claude/ already in project
+  → 1. Detect Project State
+    → [Source files exist?]
+      → YES: Path A (Existing Repository)
+        → A1-A3: Detect stack, commands, assess docs/coverage/architecture, measure codebase
+          → A3.5: Generate architecture → A3.6: Establish ground rules
+            → A4: Generate config → A5: Run /skill-create → A5.5-A5.6: Configure hooks and rules
+              → A6: Clean up → A7: Present summary → DONE
+      → NO: Path B (New Project)
+        → Read references/new-project.md and follow B1-B4 → DONE
 ```
+
+## 0. Detect Installation Mode
+
+Determine whether the framework is running as a **plugin** or as a **template**:
+
+```bash
+# Plugin mode: CLAUDE_PLUGIN_ROOT is set by Claude Code
+if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+    echo "Plugin mode: core at $CLAUDE_PLUGIN_ROOT"
+else
+    echo "Template mode: core at .claude/"
+fi
+```
+
+**Plugin mode** (`CLAUDE_PLUGIN_ROOT` set): Core framework (hooks, skills, agents, rules, prompts) is installed as a Claude Code plugin. Only scaffold files (docs/, vision/, CLAUDE.md) need to be in the project.
+
+**Template mode** (default): Full framework cloned into the project. Both core and scaffold files are in the project directory.
+
+This affects Path A steps A5.5 (hook configuration) and A5.6 (rule configuration) — in plugin mode, hook and rule configuration is managed by the plugin, not project-level settings.json.
 
 ## 1. Detect Project State
 

@@ -1,0 +1,19 @@
+{
+  "name": "jd-llm-development-framework",
+  "version": "3.4.0",
+  "description": "Opinionated development framework with hooks, skills, agents, and quality gates for Claude Code",
+  "homepage": "https://github.com/joris887/JD-LLM-Development_framework",
+  "author": "Joris de Umens",
+  "license": "MIT",
+  "permissions": {
+    "deny": [
+      "${CLAUDE_PLUGIN_ROOT}/**"
+    ]
+  },
+  "settings": {
+    "statusLine": {
+      "type": "command",
+      "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/status-line.sh"
+    }
+  }
+}

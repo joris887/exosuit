@@ -6,6 +6,9 @@
 # This script receives the edited file path as $1.
 # Customize the formatter commands below for your stack.
 
+# Path resolution (plugin/template mode compatible)
+source "$(dirname "$0")/lib/paths.sh"
+
 FILE="$1"
 
 if [ -z "$FILE" ]; then

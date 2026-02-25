@@ -14,9 +14,15 @@ import json
 import os
 import sys
 
-HOOKS_DIR = os.path.dirname(os.path.abspath(__file__))
-STATE_FILE = os.path.join(HOOKS_DIR, "state", "session.json")
-RULES_DIR = os.path.join(HOOKS_DIR, "rules")
+# Bootstrap: add hooks dir to path for lib imports
+_HOOKS_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _HOOKS_DIR)
+
+from lib.paths import core_path  # noqa: E402
+
+HOOKS_DIR = core_path("hooks")
+STATE_FILE = core_path("hooks", "state", "session.json")
+RULES_DIR = core_path("hooks", "rules")
 
 HANDLER_MAP = {
     "PreToolUse": "pre_tool_use",
@@ -211,8 +217,7 @@ def main():
     except (json.JSONDecodeError, EOFError, ValueError):
         input_data = {}
 
-    # Import handler
-    sys.path.insert(0, HOOKS_DIR)
+    # Import handler (HOOKS_DIR already on sys.path from bootstrap)
     try:
         handler = importlib.import_module(f"handlers.{module_name}")
     except ImportError as e:
