@@ -8,6 +8,8 @@ import os
 import shutil
 import subprocess
 
+from lib.paths import project_path
+
 
 def handle(input_data, event, state, load_rules):
     if event == "WorktreeCreate":
@@ -27,14 +29,15 @@ def _init(input_data, state):
     if current == main_worktree:
         return None
 
-    # Copy state files from main worktree
+    # Copy state files from main worktree (project-owned paths)
     for rel_path in ("docs/sessions/.failure-state.md", "docs/sessions/.auto-save.md"):
         src = os.path.join(main_worktree, rel_path)
+        dst = project_path(rel_path)
         if os.path.isfile(src):
-            os.makedirs(os.path.dirname(rel_path) or ".", exist_ok=True)
-            shutil.copy2(src, rel_path)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy2(src, dst)
 
-    os.makedirs("docs/sessions", exist_ok=True)
+    os.makedirs(project_path("docs", "sessions"), exist_ok=True)
     return {"action": "warn", "message": "Worktree initialized with framework state."}
 
 
@@ -44,7 +47,7 @@ def _cleanup(input_data, state):
     if not main_worktree:
         return None
 
-    log = "docs/sessions/.activity-log.jsonl"
+    log = project_path("docs", "sessions", ".activity-log.jsonl")
     main_log = os.path.join(main_worktree, log)
 
     if os.path.isfile(log):

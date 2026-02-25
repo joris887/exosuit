@@ -9,14 +9,17 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 
+from lib.paths import project_path
+
 
 def handle(input_data, event, state, load_rules):
     warnings = []
 
     # 1. Check project tool availability
-    if os.path.isfile("CLAUDE.md"):
+    claude_md = project_path("CLAUDE.md")
+    if os.path.isfile(claude_md):
         try:
-            with open("CLAUDE.md") as f:
+            with open(claude_md) as f:
                 for line in f:
                     for key in ("test:", "lint:", "format:", "build:", "typecheck:"):
                         if key in line:
@@ -31,7 +34,7 @@ def handle(input_data, event, state, load_rules):
             pass
 
     # 2. Stale session detection
-    auto_save = "docs/sessions/.auto-save.md"
+    auto_save = project_path("docs", "sessions", ".auto-save.md")
     if os.path.isfile(auto_save):
         try:
             mtime = os.path.getmtime(auto_save)

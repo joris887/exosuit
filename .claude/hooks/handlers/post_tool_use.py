@@ -8,8 +8,10 @@ import json
 import os
 from datetime import datetime, timezone
 
-LOG_DIR = "docs/sessions"
-LOG_FILE = os.path.join(LOG_DIR, ".activity-log.jsonl")
+from lib.paths import project_path
+
+LOG_DIR = project_path("docs", "sessions")
+LOG_FILE = project_path("docs", "sessions", ".activity-log.jsonl")
 MAX_ENTRIES = 200
 
 
