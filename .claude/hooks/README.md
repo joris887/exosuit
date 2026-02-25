@@ -20,8 +20,20 @@ Runs after Claude edits a file. Auto-formats the file using your project's forma
 **Supported formatters:** prettier, biome, ruff, black, rustfmt, gofmt, swift-format, rubocop
 **Supported linters (auto-fix):** ruff, eslint, biome, golangci-lint (Rust clippy and Swift swiftlint skipped — they require full project context)
 
-### pre-stop-quality.sh (Stop)
-Runs before Claude reports a task as complete. Executes lint, typecheck, and test suite. Blocks completion if any check fails, creating a self-correction loop.
+### pre_stop_quality.py / pre-stop-quality.sh (Stop)
+Runs before Claude reports a task as complete. The Python version (preferred) analyzes `last_assistant_message` for unverified completion claims ("should work", "I think", etc.) and blocks (exit 2) when completion is claimed without test evidence. Also auto-saves session state. Falls back to the bash version if Python is unavailable. The bash version executes lint, typecheck, and test suite checks.
+
+### user-prompt-handler.sh (UserPromptSubmit)
+Runs before processing user input. Advisory-only — warns when destructive-sounding phrases are detected (e.g., "delete everything", "drop database", "nuke"). Never blocks (always exits 0). Gracefully degrades if jq is unavailable.
+
+### worktree-init.sh (WorktreeCreate)
+Runs when a new worktree is created via `/parallel-work` or `EnterWorktree`. Copies framework state files (`.failure-state.md`, `.auto-save.md`) from the main worktree to the new one. Advisory only.
+
+### worktree-cleanup.sh (WorktreeRemove)
+Runs when a worktree is removed. Merges `docs/sessions/.activity-log.jsonl` back to the main worktree so activity logs are not lost. Advisory only.
+
+### subagent_validator.py (SubagentStop)
+Runs after each subagent completes. Warns (via stderr) when subagent output contains weak claim language ("should work", "I think") or lacks file:line references (for outputs >200 chars). Advisory only — never blocks.
 
 ### pre-tool-safety.sh (PreToolUse)
 Runs before Bash commands execute. Blocks dangerous operations:

@@ -154,17 +154,19 @@ If the story type is ambiguous after checking indicators, ask the user using Ask
 - **Performance** — description: "Baseline measurement required. Optimize, then benchmark."
 - **Skill/Tooling** — description: "Developer experience. Design, build, document pattern."
 
-### 1b. File Discovery (Context Optimization)
+### 1b. Parallel Codebase Exploration
 
-Before deep-reading files, dispatch a lightweight Explore agent to identify the most relevant files:
+Launch 2-3 codebase-explorer agents in parallel, each with a different focus:
 
-**Agent task:** "Given this story: [description]. And this project architecture: [read ARCHITECTURE.md]. Identify the 5–10 files most relevant to implementing this story. Return ONLY file paths with a one-line explanation of why each matters. Do NOT return file contents."
+1. **Architecture focus:** "Find files related to the module structure, boundaries, and dependencies for: [story description]. Check ARCHITECTURE.md and any .claude-context.md files first."
+2. **Implementation focus:** "Find source files that implement or relate to: [story description]. Focus on the primary implementation files and related utilities."
+3. **Test focus:** "Find test files, test utilities, and fixtures related to: [story description]. Include both unit and integration test locations."
 
-Read ONLY the files the agent identified. If during implementation you need additional files, read them then — don't front-load.
+Collect results from all agents. Deduplicate and synthesize into a single focused file list (10-15 files max). This list drives all subsequent phases.
+
+Read ONLY the files identified by the agents. If during implementation you need additional files, read them then — don't front-load.
 
 **If sub-agents are NOT available:** Explore manually, but be selective — read file listings and imports first to narrow down before reading full files.
-
-**Parallel Research Optimization:** If the story touches multiple modules or subsystems, dispatch 2-3 explore agents in parallel with independent questions (e.g., one for API patterns, one for test conventions, one for data models). Synthesize findings before writing the plan.
 
 ### 1c. Research Codebase
 
