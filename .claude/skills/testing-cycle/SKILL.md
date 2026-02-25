@@ -5,10 +5,14 @@ description: Process a single user testing feedback item — classify, fix or lo
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+argument-hint: "<feedback-description>"
 ---
 ______________________________________________________________________
 
-## name: testing-cycle description: Process a single user testing feedback item — classify, fix or log, verify, and report. argument-hint: <feedback-description> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## testing-cycle
 
 Processing feedback: **$ARGUMENTS**
 

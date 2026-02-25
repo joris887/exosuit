@@ -5,10 +5,14 @@ description: Execute a UAT test case — select, test, process findings, fix or 
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+argument-hint: "<test-case-id-or-description>"
 ---
 ______________________________________________________________________
 
-## name: UAT-cycle description: Execute a UAT test case — select, test, process findings, fix or log, and close the cycle. argument-hint: <test-case-id-or-description> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## UAT-cycle
 
 Executing UAT cycle: **$ARGUMENTS**
 

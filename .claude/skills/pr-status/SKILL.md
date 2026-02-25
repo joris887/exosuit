@@ -5,10 +5,13 @@ description: Check status of open pull requests and provide options for next ste
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Bash
 ---
 ______________________________________________________________________
 
-## name: pr-status description: Check status of open pull requests and provide options for next steps. Use to review PR status, handle feedback, or merge approved PRs. disable-model-invocation: true user-invocable: true allowed-tools: Bash
+## pr-status
 
 Check status of your pull requests:
 

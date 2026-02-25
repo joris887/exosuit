@@ -5,10 +5,14 @@ description: Safely discard or revert failed implementation attempts and restore
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Bash, Read, Glob, Grep
+argument-hint: "[--soft | --hard | --story]"
 ---
 ______________________________________________________________________
 
-## name: undo-work description: Safely discard or revert failed implementation attempts and restore a clean working state. argument-hint: [--soft | --hard | --story] disable-model-invocation: true user-invocable: true allowed-tools: Bash, Read, Glob, Grep
+## undo-work
 
 Safely undo work when an implementation attempt has gone wrong. Provides structured rollback with safeguards against accidental data loss.
 

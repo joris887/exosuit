@@ -126,17 +126,18 @@ Lightweight, reusable prompt templates — simpler than full skills. See `.claud
 | `/explain-pattern`  | `<pattern> [file]`   | Explain a code pattern in this codebase |
 | `/suggest-tests`    | `<file-path>`        | Suggest test cases for a file        |
 
-### Subagent Prompt Templates (`.claude/prompts/agents/`)
+### Native Agents (`.claude/agents/`)
 
-Structured templates for dispatching subagents with context and review checklists:
+Claude Code native agents with YAML frontmatter. Discoverable via `claude agents` CLI.
 
-| Template               | Purpose                                              |
-| ---------------------- | ---------------------------------------------------- |
-| `code-reviewer`        | Code review with severity classification             |
-| `spec-reviewer`        | Spec compliance verification with file:line refs     |
-| `security-analyst`     | Security-focused analysis with attacker mindset      |
-| `performance-engineer` | Performance analysis with bottleneck identification  |
-| `architecture-reviewer`| Architecture validation with boundary enforcement    |
+| Agent                  | Model   | Purpose                                              |
+| ---------------------- | ------- | ---------------------------------------------------- |
+| `code-reviewer`        | inherit | Code review with severity classification             |
+| `spec-reviewer`        | haiku   | Spec compliance verification with file:line refs     |
+| `security-analyst`     | inherit | Security-focused analysis with attacker mindset      |
+| `performance-engineer` | inherit | Performance analysis with bottleneck identification  |
+| `architecture-reviewer`| inherit | Architecture validation with boundary enforcement    |
+| `codebase-explorer`    | haiku   | Fast file discovery and codebase mapping             |
 
 ### Technology Skills (Auto-invocable)
 

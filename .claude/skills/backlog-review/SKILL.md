@@ -5,10 +5,13 @@ description: Execute comprehensive backlog review. Analyzes theme coverage, stor
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep
 ---
 ______________________________________________________________________
 
-## name: backlog-review description: Execute comprehensive backlog review. Analyzes theme coverage, story quality, dependencies, and generates a backlog health report. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep
+## backlog-review
 
 Execute comprehensive backlog review:
 

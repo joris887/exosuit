@@ -5,10 +5,13 @@ description: Analyze the repository's technology stack and generate appropriate 
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 ______________________________________________________________________
 
-## name: skill-create description: Analyze the repository's technology stack and generate appropriate skills, rules, and hook configurations. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## skill-create
 
 Analyzing repository and generating technology skills.
 

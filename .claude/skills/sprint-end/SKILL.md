@@ -8,12 +8,26 @@ references: [references/quality-gates.md, references/error-recovery.md]
 micro-components:
   step-1: [discover-commands, verify-clean-git-state]
   step-2: [quality-gate-sequence]
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 ______________________________________________________________________
 
-## name: sprint-end description: Use when the user wants to ship a sprint's work to main via PR. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## sprint-end
 
 Ending the sprint. Discovering and wrapping up all work on the current branch.
+
+**Progress tracking:** Create step-level tasks:
+
+1. "Discover sprint state" — activeForm: "Discovering sprint state..."
+2. "Run quality gates" — activeForm: "Running quality gates..." — blockedBy: [1]
+3. "Update documentation" — activeForm: "Updating docs..." — blockedBy: [2]
+4. "Push and create PR" — activeForm: "Creating PR..." — blockedBy: [3]
+5. "Wait for CI" — activeForm: "Waiting for CI..." — blockedBy: [4]
+6. "Merge and clean up" — activeForm: "Merging to main..." — blockedBy: [5]
+
+At each step boundary, mark current task completed and next task in_progress.
 
 ## Process Flow (authoritative — prose below is supporting detail)
 
@@ -59,7 +73,20 @@ Analyze: branch name, all commits since branching, all files changed, stories co
 
 **Mindset:** Assume there are problems. Your job is to find them. Your first assessment is almost never "all clear."
 
-All gates must pass before proceeding. Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents with scope-based scaling, recovery). For error recovery during this step, consult `references/error-recovery.md` — search for `## Step 2`.
+Before running gates, present available checks using AskUserQuestion with `multiSelect: true`:
+
+- **Run test suite** — description: "Execute all tests, verify zero failures"
+- **Test count protection** — description: "Verify test count did not decrease from last sprint"
+- **Code quality analysis** — description: "Complexity, duplication, patterns via code-quality agent"
+- **Test quality validation** — description: "Coverage, TDD compliance via test-validator agent"
+- **Security audit** — description: "CWE checklist, phantom packages, secrets via security-audit agent"
+- **Ground rules compliance** — description: "Check against GROUND_RULES.md principles"
+
+All gates selected by default. If the user deselects any: "Note: skipping gates may allow issues to reach main. All gates recommended for production sprints."
+
+Run only selected gates. The HARD-GATE still applies: if any selected gate fails, do NOT proceed.
+
+Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents with scope-based scaling, recovery). For error recovery during this step, consult `references/error-recovery.md` — search for `## Step 2`.
 
 <IF condition="docs/reference/GROUND_RULES.md exists and has principles defined">
 **Ground rules compliance:** Verify sprint changes don't introduce untracked ground rules violations. Check commit diffs against MUST principles. Any violations must have been documented in story plans with justification.

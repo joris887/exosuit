@@ -5,10 +5,13 @@ description: Generate a structured handoff document for ending a development ses
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 ______________________________________________________________________
 
-## name: handoff description: Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## handoff
 
 Generate a comprehensive handoff for ending a development session:
 

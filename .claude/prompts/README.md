@@ -56,11 +56,6 @@ Reusable operation sequences referenced by skills to avoid duplication. These ar
 | `context-budget.md` | Estimate context budget usage and compaction proximity | story-cycle Phase 2, manual invocation |
 | `context-prime.md` | Priority-ordered project context loading from docs/context/ | continue, sprint-start, story-cycle |
 
-## Subagent Templates (`agents/`)
+## Native Agents
 
-Structured prompt templates for dispatching subagents with context and review checklists. These are not invoked directly — they're used by skills (like `/sprint-end`) when dispatching quality agents.
-
-| Template | Purpose |
-|----------|---------|
-| `agents/code-reviewer.md` | Code review with severity classification (Critical/Important/Minor) |
-| `agents/spec-reviewer.md` | Spec compliance verification with file:line references |
+Subagent templates have been migrated to `.claude/agents/` as Claude Code native agents with YAML frontmatter. See `.claude/agents/` for the full list. They are discoverable via `claude agents` CLI.

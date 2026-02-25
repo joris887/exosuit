@@ -5,10 +5,14 @@ description: Manage git worktrees for parallel Claude Code instances working on 
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
+argument-hint: "[list|create|cleanup]"
 ---
 ______________________________________________________________________
 
-## name: parallel-work description: Manage git worktrees for parallel Claude Code instances working on different stories. List, create, and clean up worktrees. argument-hint: \[list|create|cleanup\] disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## parallel-work
 
 Manage parallel development worktrees.
 

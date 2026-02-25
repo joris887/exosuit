@@ -5,10 +5,13 @@ description: Use when you want to test, measure, or compare skill effectiveness.
 trigger: manual
 depends-on: []
 references: []
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+argument-hint: "<mode> [skill-name] [--scenario <desc>]"
 ---
 ______________________________________________________________________
 
-## name: skill-eval description: Use when you want to test, measure, or compare skill effectiveness. Supports eval (test against scenario), compare (A/B test two versions), and metrics (track execution data). argument-hint: <mode> [skill-name] [--scenario <description>] user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## skill-eval
 
 Evaluating skill: **$ARGUMENTS**
 

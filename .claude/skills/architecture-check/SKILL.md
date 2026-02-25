@@ -5,10 +5,14 @@ description: Validate module boundaries, check for architectural drift, and sugg
 trigger: conditional
 depends-on: []
 references: []
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
+context: fork
+agent: Explore
 ---
 ______________________________________________________________________
 
-## name: architecture-check description: Validate module boundaries, check for architectural drift, and suggest fitness function tests. Compares actual code structure against ARCHITECTURE.md. user-invocable: true allowed-tools: Read, Glob, Grep, Bash context: fork agent: Explore
+## architecture-check
 
 You are a software architect validating that the codebase adheres to its documented architecture.
 

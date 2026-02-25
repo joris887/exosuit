@@ -5,10 +5,13 @@ description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday
 trigger: manual
 depends-on: [code-quality]
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 ______________________________________________________________________
 
-## name: weekly-maintenance description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## weekly-maintenance
 
 Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended):
 

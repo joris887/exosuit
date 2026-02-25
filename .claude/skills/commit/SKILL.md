@@ -5,10 +5,14 @@ description: Create a well-formatted conventional commit with proper message str
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Bash
+argument-hint: "[type] [scope]"
 ---
 ______________________________________________________________________
 
-## name: commit description: Create a well-formatted conventional commit with proper message structure. Use when ready to commit changes. argument-hint: \[type\] \[scope\] disable-model-invocation: true user-invocable: true allowed-tools: Bash
+## commit
 
 Create a conventional commit for staged changes.
 

@@ -5,10 +5,13 @@ description: Run a sprint or weekly retrospective using the 4Ls framework with m
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
 ---
 ______________________________________________________________________
 
-## name: retrospective description: Run a sprint or weekly retrospective using the 4Ls framework with metrics dashboard. Analyzes what worked, what was learned, what was lacking, and what we wish we had. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## retrospective
 
 Run a sprint or weekly retrospective:
 

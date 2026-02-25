@@ -11,10 +11,14 @@ micro-components:
   phase-2.5: [confidence-gate]
   phase-3.5: [record-failure]
   phase-4: [quality-gate-sequence]
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+argument-hint: "<story-description-or-id>"
 ---
 ______________________________________________________________________
 
-## name: story-cycle description: Use when the user wants to implement a single story or deliver a backlog item. argument-hint: <story-description-or-id> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## story-cycle
 
 Delivering story: **$ARGUMENTS**
 
@@ -22,6 +26,16 @@ Delivering story: **$ARGUMENTS**
 ```bash
 echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"story-cycle\",\"story\":\"$ARGUMENTS\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
 ```
+
+**Progress tracking:** At the start, create a task list for phase tracking:
+
+1. "Decompose intent and classify story" — activeForm: "Classifying story..."
+2. "Plan implementation approach" — activeForm: "Planning..." — blockedBy: [1]
+3. "Execute implementation" — activeForm: "Implementing..." — blockedBy: [2]
+4. "Self-review and quality gates" — activeForm: "Running quality checks..." — blockedBy: [3]
+5. "Verify completion and wrap up" — activeForm: "Verifying completion..." — blockedBy: [4]
+
+At each phase boundary, mark the current task completed and the next task in_progress.
 
 ## Process Flow (authoritative — prose below is supporting detail)
 
@@ -127,7 +141,18 @@ Determine the story type from the description, backlog entry, or user input:
 | **Performance**    | "Optimize", "benchmark", "speed up", "latency"     | Baseline → Optimize → Benchmark            |
 | **Skill/Tooling**  | "Create skill", "add tool", "developer experience" | Design → Build → Document                  |
 
-If unclear, ask the user to clarify the story type.
+If the story type is ambiguous after checking indicators, ask the user using AskUserQuestion with `description` fields explaining workflow implications:
+
+- **Feature** — description: "Full TDD (RED-GREEN-REFACTOR). AC in Given/When/Then. Heaviest testing."
+- **Bug Fix** — description: "Reproduce first, then fix. Creates regression test. Lighter planning."
+- **Refactoring** — description: "No behavior change. Characterization tests first, then restructure."
+- **Spike/Research** — description: "Time-boxed exploration. Output is a decision doc, not code. No TDD."
+- **Infrastructure** — description: "CI/CD, tooling, config. Smoke test verification. Lighter AC."
+- **Testing** — description: "Pure test code. Design strategy, generate tests, validate coverage."
+- **Documentation** — description: "Non-code deliverable. Gather, generate, review cycle."
+- **Security** — description: "Threat model first. Mandatory security-audit agent. CWE checklist."
+- **Performance** — description: "Baseline measurement required. Optimize, then benchmark."
+- **Skill/Tooling** — description: "Developer experience. Design, build, document pattern."
 
 ### 1b. File Discovery (Context Optimization)
 

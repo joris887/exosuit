@@ -5,10 +5,14 @@ description: Use when the user has a complex idea that needs design exploration 
 trigger: manual
 depends-on: [ideate]
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
+argument-hint: "<idea-or-topic>"
 ---
 ______________________________________________________________________
 
-## name: brainstorm description: Use when the user has a complex idea that needs design exploration before story decomposition. argument-hint: <idea-or-topic> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## brainstorm
 
 Brainstorming: **$ARGUMENTS**
 
@@ -34,25 +38,32 @@ Investigate relevant existing code:
 
 ## 3. Propose Alternative Approaches
 
-Present 2-3 distinct approaches with tradeoffs:
+Present 2-3 distinct approaches using AskUserQuestion with `markdown` previews for visual comparison.
 
-```markdown
-### Approach A: [Name]
-**How:** [Brief description]
-**Pros:** [Benefits]
-**Cons:** [Drawbacks]
-**Complexity:** [Low/Medium/High]
-**Files affected:** [Estimated count and key paths]
+For each approach, create an option with:
+- **label:** Short approach name (e.g., "Event-Driven", "REST API", "Monolith-First")
+- **description:** One-line tradeoff summary (e.g., "Flexible but adds message broker dependency")
+- **markdown:** Rich preview containing:
+  ```
+  ## [Approach Name]
 
-### Approach B: [Name]
-**How:** [Brief description]
-**Pros:** [Benefits]
-**Cons:** [Drawbacks]
-**Complexity:** [Low/Medium/High]
-**Files affected:** [Estimated count and key paths]
-```
+  **How:** [2-3 sentence description]
 
-**Recommendation:** State which approach you recommend and why.
+  **Architecture:**
+  [ASCII diagram or file structure tree]
+
+  **Pros:**
+  - [benefit 1]
+  - [benefit 2]
+
+  **Cons:**
+  - [tradeoff 1]
+  - [tradeoff 2]
+
+  **Complexity:** [Low/Medium/High] — [N files, N new deps]
+  ```
+
+State which approach you recommend and why. The user selects their preferred approach.
 
 ## 4. Identify Risks and Open Questions
 

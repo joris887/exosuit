@@ -1,5 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "statusLine": {
+    "type": "command",
+    "command": "bash .claude/hooks/status-line.sh"
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -18,6 +22,15 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/activity-logger.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-edit-format.sh \"$FILE_PATH\""
           }
         ]
       }
@@ -41,6 +54,16 @@
           }
         ],
         "apply_to_subagents": true
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-stop-quality.sh"
+          }
+        ]
       }
     ]
   }

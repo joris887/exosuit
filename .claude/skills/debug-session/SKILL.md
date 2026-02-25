@@ -7,10 +7,14 @@ depends-on: []
 references: [references/root-cause-tracing.md, references/condition-based-waiting.md, references/error-recovery.md]
 micro-components:
   phase-4: [record-failure]
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
+argument-hint: "[error-description]"
 ---
 ______________________________________________________________________
 
-## name: debug-session description: Use when the user reports a bug, error, or unexpected behavior that needs investigation. argument-hint: [error-description] disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## debug-session
 
 Debug session for: **$ARGUMENTS**
 
