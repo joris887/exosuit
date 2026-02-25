@@ -57,16 +57,41 @@ Check for an interrupted skill session:
 cat docs/sessions/.failure-state.md 2>/dev/null
 ```
 
-If `.failure-state.md` exists, a previous skill was interrupted mid-execution. This is the **highest-priority context source** — it tells you exactly what skill was running, what phase it was in, and how to resume. Present it prominently:
+If `.failure-state.md` exists, a previous skill was interrupted mid-execution. This is the **highest-priority context source**. The file uses YAML frontmatter with structured fields:
+
+```yaml
+---
+status: active          # "active" means interrupted workflow
+skill: story-cycle      # which skill was running
+phase: "3"              # phase number
+phase_name: "Execution" # human-readable phase name
+started_at: "..."       # when the workflow started (ISO-8601)
+story: "..."            # story/task being worked on
+branch: "..."           # git branch at time of interruption
+next_action: "..."      # what to do next to resume
+files_modified: [...]   # files changed so far
+---
+
+## Context
+[Free-form notes about the interrupted state]
+```
+
+Parse the YAML frontmatter to extract structured data. Present it prominently:
 
 ```markdown
 ### Interrupted Session Detected
-- **Skill:** [skill name]
-- **Phase:** [phase and sub-step]
-- **Recovery hint:** [what to do next]
+- **Skill:** [from `skill` field]
+- **Phase:** [from `phase` + `phase_name` fields]
+- **Story:** [from `story` field]
+- **Branch:** [from `branch` field]
+- **Next action:** [from `next_action` field]
+- **Files modified:** [from `files_modified` field]
 ```
 
-Recommend the user resume the interrupted skill (e.g., `/story-cycle` or `/debug-session`) with the recovery context.
+Check `started_at` — if the failure state is older than 4 hours, flag it as potentially stale:
+> "This failure state is [N] hours old. It may be from a previous session that was abandoned. Confirm you want to resume this workflow."
+
+Recommend the user resume the interrupted skill (e.g., `/story-cycle` or `/debug-session`) with the recovery context from the `next_action` and `## Context` section.
 
 ## 0.6. Read Latest Session Handoff
 

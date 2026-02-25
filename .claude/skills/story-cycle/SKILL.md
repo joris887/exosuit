@@ -339,19 +339,28 @@ Skip — proceed directly to Phase 3.
 
 ## Failure State Persistence
 
-At each phase transition, update `docs/sessions/.failure-state.md` with current progress. This enables `/continue` to resume precisely where work stopped if a session ends unexpectedly.
+At each phase transition, write `docs/sessions/.failure-state.md` with YAML frontmatter so the Stop hook and `/continue` can programmatically detect incomplete workflows.
 
-```markdown
-# Active Skill State
-- Skill: story-cycle
-- Story: [description]
-- Phase: [current phase number and name]
-- Sub-step: [what is being done right now]
-- Files modified: [list of files changed so far]
-- Tests status: [passing count / total, or "not yet run"]
-- Last action: [what was just done or attempted]
-- Recovery hint: [what to do next to resume]
+**At workflow start** (after Phase 0, before main work):
+
+```yaml
+---
+status: active
+skill: story-cycle
+phase: "0"
+phase_name: "Intent Decomposition"
+started_at: "[ISO-8601 timestamp from date -u +%Y-%m-%dT%H:%M:%SZ]"
+story: "[from $ARGUMENTS]"
+branch: "[from git branch --show-current]"
+next_action: "Classify story type and begin planning"
+files_modified: []
+---
+
+## Context
+[Free-form notes about current state — what has been done, what remains]
 ```
+
+**At each phase transition:** Update the frontmatter fields: `phase`, `phase_name`, `next_action`, and append to `files_modified`. Update the Context section with current progress.
 
 **On successful completion (Phase 4.5 passes):** Delete `.failure-state.md` — clean state means no failure to recover from.
 
