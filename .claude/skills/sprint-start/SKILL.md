@@ -5,10 +5,14 @@ description: Pre-sprint checks and feature branch creation. Ensures clean state 
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
+argument-hint: "[branch-name] [--worktree]"
 ---
 ______________________________________________________________________
 
-## name: sprint-start description: Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development. argument-hint: \[branch-name\] \[--worktree\] disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## sprint-start
 
 Starting a new sprint.
 

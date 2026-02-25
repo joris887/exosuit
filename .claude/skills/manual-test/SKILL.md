@@ -5,10 +5,13 @@ description: Prepare for manual testing session with test plan based on known is
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
 ---
 ______________________________________________________________________
 
-## name: manual-test description: Prepare for manual testing session with test plan based on known issues, recent changes, and acceptance criteria. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## manual-test
 
 Preparing manual test session...
 

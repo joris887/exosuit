@@ -5,10 +5,13 @@ description: First-run framework setup. Detects existing project stack or guides
 trigger: manual
 depends-on: [skill-create]
 references: [references/stack-detection.md, references/new-project.md, references/accuracy-safeguards.md]
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 ______________________________________________________________________
 
-## name: bootstrap description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## bootstrap
 
 Setting up the JD-LLM Development Framework for this project.
 

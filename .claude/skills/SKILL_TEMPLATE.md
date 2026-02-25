@@ -87,27 +87,24 @@ Not all skills need `requires` — only add it when the skill has hard dependenc
 
 ## Standard Header Format
 
-Below the frontmatter, every skill file has a metadata header line:
+Below the frontmatter and separator line, the skill body starts with a simplified header:
 
 ```
-## name: <skill-name> description: <one-line description> [optional attributes]
+## <skill-name>
 ```
 
-### Required Attributes
+All operational attributes are in the YAML frontmatter — not on the header line.
 
-- `name:` — Skill identifier (used as `/skill-name`)
-- `description:` — One-line purpose (shown in skill listings)
+### Operational Attributes (in YAML frontmatter)
 
-### Optional Attributes
-
-| Attribute                        | Values                               | When to Use                                |
-| -------------------------------- | ------------------------------------ | ------------------------------------------ |
-| `argument-hint:`                 | `<description>`                      | Skill accepts arguments                    |
-| `disable-model-invocation: true` | boolean                              | Workflow skills with side effects          |
-| `user-invocable: true`           | boolean                              | Can be manually invoked with `/name`       |
-| `allowed-tools:`                 | comma-separated                      | Restrict tool access                       |
-| `context: fork`                  | `fork`                               | Analysis agents (keeps main context clean) |
-| `agent:`                         | `Explore`, `general-purpose`, `Plan` | Delegate to subagent                       |
+| Attribute                  | Values                               | When to Use                                |
+| -------------------------- | ------------------------------------ | ------------------------------------------ |
+| `disable-model-invocation` | `true`                               | Workflow skills with side effects          |
+| `user-invocable`           | `true`                               | Can be manually invoked with `/name`       |
+| `allowed-tools`            | comma-separated                      | Restrict tool access                       |
+| `argument-hint`            | `"<description>"`                    | Skill accepts arguments                    |
+| `context`                  | `fork`                               | Analysis agents (keeps main context clean) |
+| `agent`                    | `Explore`, `general-purpose`, `Plan` | Delegate to subagent                       |
 
 ## Context Patterns
 
@@ -281,11 +278,16 @@ Descriptions MUST contain only triggering conditions ("Use when..."). NEVER summ
 
 ## Example Block Triggers
 
-For auto-invoked skills (quality agents, security audit), add `<example>` blocks to the description with literal phrases that should activate the skill. This improves trigger reliability.
+For auto-invoked skills (quality agents, security audit), add `<example>` blocks in the skill body immediately after the `## <skill-name>` header. These trigger auto-invocation when the model sees matching user context.
 
-```yaml
-# With example blocks for better auto-invocation:
-description: Analyzes code quality. Auto-invoke after code changes. <example>Review code quality for these changes</example> <example>Check complexity in modified files</example>
+```markdown
+## code-quality
+
+<example>Review code quality for the changes in this sprint</example>
+<example>Check complexity and duplication in modified files</example>
+<example>Analyze code patterns in the diff</example>
+
+[rest of skill content]
 ```
 
 Include 2–3 examples per auto-invoked skill. Each example should be a realistic user phrase.

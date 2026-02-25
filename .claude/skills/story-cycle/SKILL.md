@@ -11,10 +11,14 @@ micro-components:
   phase-2.5: [confidence-gate]
   phase-3.5: [record-failure]
   phase-4: [quality-gate-sequence]
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+argument-hint: "<story-description-or-id>"
 ---
 ______________________________________________________________________
 
-## name: story-cycle description: Use when the user wants to implement a single story or deliver a backlog item. argument-hint: <story-description-or-id> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## story-cycle
 
 Delivering story: **$ARGUMENTS**
 

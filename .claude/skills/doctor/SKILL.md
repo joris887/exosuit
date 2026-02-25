@@ -5,10 +5,13 @@ description: Validate framework configuration, check runtime dependencies, and r
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
 ---
 ______________________________________________________________________
 
-## name: doctor description: Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## doctor
 
 Run a comprehensive health check on the framework configuration and project setup.
 

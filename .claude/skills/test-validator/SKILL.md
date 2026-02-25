@@ -5,10 +5,19 @@ description: Validates test coverage, quality, and TDD compliance. Detects weake
 trigger: auto
 depends-on: []
 references: []
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
+context: fork
+agent: Explore
 ---
 ______________________________________________________________________
 
-## name: test-validator description: Validates test coverage, quality, and TDD compliance. Detects weakened assertions, deleted tests, and tautological patterns. Auto-invoke when user has written code and needs test validation. <example>Validate test quality for the implementation</example> <example>Check for weakened assertions in test files</example> <example>Run test coverage analysis on changed code</example> user-invocable: true allowed-tools: Read, Glob, Grep, Bash context: fork agent: Explore
+## test-validator
+
+<example>Validate test quality for the implementation</example>
+<example>Check for weakened assertions in test files</example>
+<example>Run test coverage analysis on changed code</example>
+
 
 You are a QA engineer ensuring tests are meaningful, coverage is adequate, and TDD discipline is maintained.
 

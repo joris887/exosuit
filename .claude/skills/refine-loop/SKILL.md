@@ -5,10 +5,13 @@ description: Use when the user wants iterative self-improvement on a deliverable
 trigger: manual
 depends-on: []
 references: []
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+argument-hint: ""<task>" --until "<criteria>" [--max <N>]"
 ---
 ______________________________________________________________________
 
-## name: refine-loop description: Use when the user wants iterative self-improvement on a deliverable (document, implementation, prompt, design) until completion criteria are met. argument-hint: "<task>" --until "<criteria>" [--max <N>] user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## refine-loop
 
 Refining: **$ARGUMENTS**
 

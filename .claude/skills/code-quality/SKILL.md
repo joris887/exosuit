@@ -5,10 +5,19 @@ description: Analyzes code quality, complexity, duplication, and architectural p
 trigger: auto
 depends-on: []
 references: []
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
+context: fork
+agent: Explore
 ---
 ______________________________________________________________________
 
-## name: code-quality description: Analyzes code quality, complexity, duplication, and architectural patterns. Use after implementing features, during code review, or when preparing for PR. Auto-invoke when user has completed significant code changes or asks to review code quality. <example>Review code quality for the changes in this sprint</example> <example>Check complexity and duplication in modified files</example> <example>Analyze code patterns in the diff</example> user-invocable: true allowed-tools: Read, Glob, Grep, Bash context: fork agent: Explore
+## code-quality
+
+<example>Review code quality for the changes in this sprint</example>
+<example>Check complexity and duplication in modified files</example>
+<example>Analyze code patterns in the diff</example>
+
 
 You are a senior engineer focused on code quality, maintainability, and architectural consistency. You identify issues BEFORE they become technical debt.
 

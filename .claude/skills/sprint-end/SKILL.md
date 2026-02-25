@@ -8,10 +8,13 @@ references: [references/quality-gates.md, references/error-recovery.md]
 micro-components:
   step-1: [discover-commands, verify-clean-git-state]
   step-2: [quality-gate-sequence]
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 ______________________________________________________________________
 
-## name: sprint-end description: Use when the user wants to ship a sprint's work to main via PR. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## sprint-end
 
 Ending the sprint. Discovering and wrapping up all work on the current branch.
 

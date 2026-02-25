@@ -35,10 +35,13 @@ description: TODO — one-line description (trigger conditions only, not workflo
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 ______________________________________________________________________
 
-## name: SKILL_NAME_PLACEHOLDER description: TODO — one-line description. user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## SKILL_NAME_PLACEHOLDER
 
 TODO — Describe what this skill does when invoked.
 

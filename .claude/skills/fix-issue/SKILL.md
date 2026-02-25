@@ -5,10 +5,14 @@ description: Fix a GitHub issue following project coding standards. Creates bran
 trigger: manual
 depends-on: []
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+argument-hint: "<issue-number>"
 ---
 ______________________________________________________________________
 
-## name: fix-issue description: Fix a GitHub issue following project coding standards. Creates branch, implements fix with TDD, and prepares PR. argument-hint: <issue-number> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## fix-issue
 
 Fix GitHub issue **$ARGUMENTS** following project coding standards.
 

@@ -8,10 +8,13 @@ references: []
 micro-components:
   step-1.5: [context-prime]
   step-5: [discover-commands]
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
 ---
 ______________________________________________________________________
 
-## name: continue description: Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward. disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## continue
 
 Resume development. Execute this smart continuation workflow:
 

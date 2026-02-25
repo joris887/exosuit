@@ -5,10 +5,14 @@ description: Use when the user has an idea or requirement to decompose into back
 trigger: manual
 depends-on: []
 references: [references/story-template.md]
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+argument-hint: "<idea-or-requirement>"
 ---
 ______________________________________________________________________
 
-## name: ideate description: Use when the user has an idea or requirement to decompose into backlog stories. argument-hint: <idea-or-requirement> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+## ideate
 
 Transforming idea into backlog stories: **$ARGUMENTS**
 

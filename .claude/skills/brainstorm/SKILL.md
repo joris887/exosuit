@@ -5,10 +5,14 @@ description: Use when the user has a complex idea that needs design exploration 
 trigger: manual
 depends-on: [ideate]
 references: []
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash
+argument-hint: "<idea-or-topic>"
 ---
 ______________________________________________________________________
 
-## name: brainstorm description: Use when the user has a complex idea that needs design exploration before story decomposition. argument-hint: <idea-or-topic> disable-model-invocation: true user-invocable: true allowed-tools: Read, Glob, Grep, Bash
+## brainstorm
 
 Brainstorming: **$ARGUMENTS**
 
