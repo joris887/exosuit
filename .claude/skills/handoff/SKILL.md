@@ -1,6 +1,6 @@
 ---
 name: handoff
-version: 2.4.0
+version: 2.5.0
 description: Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read.
 trigger: manual
 depends-on: []
@@ -43,9 +43,19 @@ If work was done this session, ensure it's captured:
 
 ## 3. Generate Session File
 
-Save a structured session file to `docs/sessions/session-YYYY-MM-DD.md`:
+Save a structured session file to `docs/sessions/session-YYYY-MM-DD.md`.
+
+The file MUST start with YAML frontmatter for `/resume` searchability:
 
 ```markdown
+---
+date: YYYY-MM-DD
+sprint: [current sprint number]
+branch: [branch-name]
+stories: [comma-separated story IDs worked on]
+status: [completed | in-progress | blocked]
+---
+
 # Session Handoff — [YYYY-MM-DD]
 
 ## Git State
