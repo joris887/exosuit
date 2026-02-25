@@ -90,12 +90,13 @@
 - .claude/prompts/wave-execution.md: Wave → Checkpoint → Wave parallel execution pattern for independent operations
 - .claude/prompts/select-tool.md: MCP server vs built-in tool selection guide with decision matrix
 
-## Subagent Templates
-- .claude/prompts/agents/code-reviewer.md: Code review dispatch template with severity classification
-- .claude/prompts/agents/spec-reviewer.md: Spec compliance verification with file:line references
-- .claude/prompts/agents/security-analyst.md: Security-focused analysis with attacker mindset, STRIDE/CWE frameworks, and threat modeling
-- .claude/prompts/agents/performance-engineer.md: Performance analysis with bottleneck identification, N+1 detection, and scaling assessment
-- .claude/prompts/agents/architecture-reviewer.md: Architecture validation with boundary enforcement, dependency direction, and coupling analysis
+## Native Agents (.claude/agents/)
+- .claude/agents/code-reviewer.md: Code review with severity classification (correctness, conventions, security lenses)
+- .claude/agents/spec-reviewer.md: Spec compliance verification with file:line references (model: haiku)
+- .claude/agents/security-analyst.md: Security-focused analysis with attacker mindset, OWASP top 10, CWE references
+- .claude/agents/performance-engineer.md: Performance analysis with bottleneck identification, N+1 detection, and scaling assessment
+- .claude/agents/architecture-reviewer.md: Architecture validation with boundary enforcement, dependency direction, and coupling analysis
+- .claude/agents/codebase-explorer.md: Fast file discovery and codebase mapping (model: haiku)
 
 ## Hooks
 - .claude/hooks/session-start.sh: Advisory environment checks at session start (tool existence, stale state, git health, hook coverage)

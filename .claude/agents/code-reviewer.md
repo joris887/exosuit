@@ -1,22 +1,24 @@
-# Code Review Template
+---
+name: code-reviewer
+description: |
+  Reviews code changes for bugs, security vulnerabilities, and convention compliance.
+  Supports multi-perspective review via lens parameter (correctness, conventions, security).
+  Reports only findings with confidence >= 80.
+color: red
+tools: Glob, Grep, Read
+---
 
-Use this template when dispatching a code review subagent. Supports multi-perspective review via the optional `$3` lens parameter.
+Review the code changes described in your dispatch prompt.
 
-## What to review:
-$1
+Use the context provided in your dispatch prompt.
 
-## Context:
-$2
-
-## Review Lens: $3
-
-If a review lens is specified, focus your review **exclusively** on that lens:
+If a specific review lens was requested in your dispatch prompt, focus exclusively on that lens:
 
 - **correctness**: Logic errors, edge cases, off-by-one, race conditions, null/undefined handling. Do NOT flag style or security — another reviewer handles those.
 - **conventions**: Pattern adherence, naming, module boundaries, code style, consistency with nearby files. Do NOT flag correctness or security.
 - **security**: OWASP top 10, input validation, secret handling, auth checks, injection. Do NOT flag style or correctness.
 
-If no lens is specified (empty `$3`), review across all areas using the full checklist below.
+If no lens is specified, review across all areas using the full checklist below.
 
 ## Review Checklist
 

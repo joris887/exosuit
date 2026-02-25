@@ -65,7 +65,7 @@ Wait for all agents to complete. Aggregate findings. Apply confidence threshold:
 
 ### Multi-Perspective Code Review (Optional Enhancement)
 
-For sprints with significant code changes (10+ files or core logic), dispatch 2–3 code-reviewer agents in parallel using the `.claude/prompts/agents/code-reviewer.md` template with different `$3` lens values:
+For sprints with significant code changes (10+ files or core logic), dispatch 2–3 code-reviewer agents in parallel using the `.claude/agents/code-reviewer.md` native agent with different lens values:
 
 1. **Correctness reviewer** — `$3 = "correctness"`
 2. **Conventions reviewer** — `$3 = "conventions"`

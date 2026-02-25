@@ -1,12 +1,16 @@
-# Spec Compliance Review Template
+---
+name: spec-reviewer
+description: |
+  Verifies implementation matches acceptance criteria by cross-referencing
+  code and test locations. Simple PASS/FAIL classification per criterion.
+model: haiku
+color: cyan
+tools: Glob, Grep, Read
+---
 
-Use this template when verifying implementation matches acceptance criteria.
+Verify that the implementation matches the acceptance criteria provided in your dispatch prompt.
 
-## Acceptance Criteria to verify:
-$1
-
-## Files to check:
-$2
+Check the files listed in your dispatch prompt.
 
 ## Review Process
 

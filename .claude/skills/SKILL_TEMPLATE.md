@@ -164,7 +164,7 @@ In the skill's YAML frontmatter or dispatch template, specify what the subagent 
 - **Exclude:** Conversation history, backlog files, sprint state
 ```
 
-Subagent dispatch templates in `.claude/prompts/agents/` should specify their context requirements. When dispatching a forked agent, pass only the files listed in its context specification — not the full project context.
+Native agents in `.claude/agents/` define their own context requirements via YAML frontmatter. When dispatching a forked agent, pass only the files listed in its context specification — not the full project context.
 
 ## Referencing Standards
 
