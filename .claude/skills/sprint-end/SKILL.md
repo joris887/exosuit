@@ -23,9 +23,10 @@ Ending the sprint. Discovering and wrapping up all work on the current branch.
 1. "Discover sprint state" — activeForm: "Discovering sprint state..."
 2. "Run quality gates" — activeForm: "Running quality gates..." — blockedBy: [1]
 3. "Update documentation" — activeForm: "Updating docs..." — blockedBy: [2]
-4. "Push and create PR" — activeForm: "Creating PR..." — blockedBy: [3]
-5. "Wait for CI" — activeForm: "Waiting for CI..." — blockedBy: [4]
-6. "Merge and clean up" — activeForm: "Merging to main..." — blockedBy: [5]
+4. "Commit documentation artifacts" — activeForm: "Committing docs..." — blockedBy: [3]
+5. "Push and create PR" — activeForm: "Creating PR..." — blockedBy: [4]
+6. "Wait for CI" — activeForm: "Waiting for CI..." — blockedBy: [5]
+7. "Merge and clean up" — activeForm: "Merging to main..." — blockedBy: [6]
 
 At each step boundary, mark current task completed and next task in_progress.
 
@@ -38,12 +39,13 @@ START → 1. Discover Sprint State (from git, no assumptions)
     → [All gates pass?]
       → NO: Fix issues → re-run gates
       → YES: 3. Documentation Updates (epics, backlog, progress)
-        → 4. Push and Create PR
-          → 5. Wait for CI
-            → [CI green?]
-              → NO: Fix → push → re-check
-              → YES: 6. Merge and Clean Up (squash, delete branch, worktree)
-                → 7. Sprint Complete Summary → DONE
+        → 3.5. Commit Documentation Artifacts
+          → 4. Push and Create PR
+            → 5. Wait for CI
+              → [CI green?]
+                → NO: Fix → push → re-check
+                → YES: 6. Merge and Clean Up (squash, delete branch, worktree)
+                  → 7. Sprint Complete Summary → DONE
 ```
 
 ## Failure State Persistence
@@ -116,14 +118,29 @@ Analyze: branch name, all commits since branching, all files changed, stories co
 
 Before running gates, present available checks using AskUserQuestion with `multiSelect: true`:
 
+- **All quality gates (Recommended)** — description: "Run all checks below"
 - **Run test suite** — description: "Execute all tests, verify zero failures"
 - **Test count protection** — description: "Verify test count did not decrease from last sprint"
-- **Code quality analysis** — description: "Complexity, duplication, patterns via code-quality agent"
-- **Test quality validation** — description: "Coverage, TDD compliance via test-validator agent"
-- **Security audit** — description: "CWE checklist, phantom packages, secrets via security-audit agent"
+- **/code-quality** — description: "Complexity, duplication, dead code, naming patterns"
+- **/test-validator** — description: "Weakened assertions, deleted tests, tautological tests, TDD compliance"
+- **/security-audit** — description: "OWASP top 10, secrets, injection, auth issues, CWE checklist"
+- **/architecture-check** — description: "Module boundaries, dependency direction, coupling, architectural drift"
 - **Ground rules compliance** — description: "Check against GROUND_RULES.md principles"
+- **Skip all quality gates** — description: "Skip all gates (not recommended)"
 
-All gates selected by default. If the user deselects any: "Note: skipping gates may allow issues to reach main. All gates recommended for production sprints."
+If "All quality gates" is selected, run all individual gates. If the user deselects any: "Note: skipping gates may allow issues to reach main. All gates recommended for production sprints."
+
+### Quality Agent Dispatch
+
+Dispatch quality agent **skills** (not native agents) as parallel Task agents using the Task tool with `subagent_type: "general-purpose"`. Each skill has its own methodology, scoring, and AI-specific anti-pattern checks.
+
+**Skills to dispatch** (based on user selection above):
+- `/code-quality` — code complexity, duplication, dead code, naming
+- `/test-validator` — weakened assertions, deleted tests, tautological tests
+- `/security-audit` — OWASP top 10, secrets, injection, auth issues
+- `/architecture-check` — module boundaries, dependency direction, coupling
+
+**Do NOT use native agents** (`.claude/agents/code-reviewer.md`, `.claude/agents/security-analyst.md`) for quality gates — they use persona-driven review methodology, not the structured quality checklists that the skills provide.
 
 Run only selected gates. The HARD-GATE still applies: if any selected gate fails, do NOT proceed.
 
@@ -157,12 +174,23 @@ Based on what was done in the sprint, update relevant documentation:
 - **CLAUDE.md**: Update Current Focus if epic status changed
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
 
-Commit documentation updates:
+## 3.5 Commit Documentation Artifacts
+
+Commit all documentation changes as a separate commit. This ensures documentation is preserved even if the push or PR step fails or is skipped.
 
 ```bash
-git add docs/ CLAUDE.md
-git commit -m "docs: update progress and backlog for sprint completion"
+# Check if there are uncommitted documentation changes
+if ! git diff --quiet docs/ CLAUDE.md 2>/dev/null || \
+   ! git diff --quiet --cached docs/ CLAUDE.md 2>/dev/null || \
+   git ls-files --others --exclude-standard docs/ | grep -q .; then
+    git add docs/ CLAUDE.md
+    git commit -m "docs(sprint): update sprint documentation and session artifacts
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+fi
 ```
+
+If there are no documentation changes, skip this step gracefully. This commit happens regardless of whether push will be performed.
 
 ## 4. Push and Create PR
 

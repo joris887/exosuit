@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Requirements: At least one formatter (prettier|biome|ruff|black|rustfmt|gofmt|swift-format|rubocop)
-# Optional: At least one linter (ruff|eslint|biome|golangci-lint)
+# Requirements: At least one formatter (prettier|biome|ruff|black|rustfmt|gofmt|swift-format|rubocop|google-java-format|ktfmt|php-cs-fixer|dart|dotnet|clang-format)
+# Optional: At least one linter (ruff|eslint|biome|golangci-lint|phpstan|dart-analyze)
 # Behavior: Auto-formats and lints after edits; reports missing tools once per session
 #
 # This script receives the edited file path as $1.
@@ -69,6 +69,42 @@ case "$FILE" in
             rubocop -A --fail-level=error "$FILE" 2>/dev/null
         fi
         ;;
+    *.java)
+        # Java: google-java-format
+        if command -v google-java-format &>/dev/null; then
+            google-java-format --replace "$FILE" 2>/dev/null
+        fi
+        ;;
+    *.kt|*.kts)
+        # Kotlin: ktfmt
+        if command -v ktfmt &>/dev/null; then
+            ktfmt "$FILE" 2>/dev/null
+        fi
+        ;;
+    *.php)
+        # PHP: php-cs-fixer
+        if command -v php-cs-fixer &>/dev/null; then
+            php-cs-fixer fix "$FILE" --quiet 2>/dev/null
+        fi
+        ;;
+    *.dart)
+        # Dart: dart format
+        if command -v dart &>/dev/null; then
+            dart format "$FILE" 2>/dev/null
+        fi
+        ;;
+    *.cs)
+        # C#: dotnet format
+        if command -v dotnet &>/dev/null; then
+            dotnet format --include "$FILE" 2>/dev/null
+        fi
+        ;;
+    *.c|*.cpp|*.cc|*.cxx|*.h|*.hpp|*.hxx)
+        # C/C++: clang-format
+        if command -v clang-format &>/dev/null; then
+            clang-format -i "$FILE" 2>/dev/null
+        fi
+        ;;
 esac
 
 # After formatting, run linter on the specific file (auto-fix mode, quiet)
@@ -95,7 +131,17 @@ case "$FILE" in
             golangci-lint run --fix "$FILE" 2>/dev/null
         fi
         ;;
-    # Rust clippy and Swift swiftlint require full project context — skip per-file
+    *.php)
+        if command -v phpstan &>/dev/null; then
+            phpstan analyse --no-progress "$FILE" 2>/dev/null
+        fi
+        ;;
+    *.dart)
+        if command -v dart &>/dev/null; then
+            dart analyze "$FILE" 2>/dev/null
+        fi
+        ;;
+    # Rust clippy, Swift swiftlint, Java/Kotlin/C#/C++ linters require full project context — skip per-file
 esac
 
 # Secrets detection: lightweight pattern scan for accidentally committed credentials
