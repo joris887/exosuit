@@ -17,14 +17,20 @@ For each Readiness Report item classified as `⚠️ Risk` or `✗ Missing`, gen
 | Sprint-based | — (unlikely for existing repos) | `[Infrastructure]` Clean up git state (resolve conflicts, stash changes) |
 | Git-disciplined (no remote) | `[Infrastructure]` Configure git remote | — |
 | Verification-driven (tests fail) | `[Infrastructure]` Fix failing tests ({count} failures) | — |
-| CI-enforced | `[Infrastructure]` Set up CI/CD pipeline | `[Infrastructure]` Review and complete CI configuration |
+| CI-enforced (no CI) | `[Infrastructure]` Set up CI/CD pipeline with framework PR review | `[Infrastructure]` Add framework PR review workflow to existing CI |
 | Secrets-aware | `[Infrastructure]` Configure post-edit secrets scanning hook | — |
 | Anti-slop | — (framework provides this) | — |
 | Quality gates (no formatter) | `[Infrastructure]` Install and configure {formatter} | — |
 | Quality gates (no linter) | `[Infrastructure]` Install and configure {linter} | — |
 | Quality gates (no coverage) | See TDD-first coverage row | See TDD-first coverage row |
+| Quality gates (no type checker) | `[Infrastructure]` Install and configure type checker ({tool}) | — |
 | Context-efficient (oversized files) | `[Refactoring]` Split {file} ({loc} LOC) into modules | — |
+| Context-efficient (high fan-out) | — | `[Refactoring]` Reduce coupling in {module} (fan-out: {count}) |
+| Context-efficient (circular deps) | `[Refactoring]` Break circular dependency between {module_a} and {module_b} | — |
 | Documentation-lean | — (bootstrap just generated docs) | `[Documentation]` Review and complete generated documentation |
+| Pre-commit hooks | `[Infrastructure]` Set up pre-commit hooks for {stack} | — |
+| Type-safe (not configured) | `[Infrastructure]` Configure type checking ({tool}) for {language} | — |
+| Technical debt (high severity) | `[Infrastructure]` Address high-severity technical debt items | `[Refactoring]` Address medium-severity technical debt items |
 
 ## Story Template
 
@@ -61,10 +67,14 @@ Present stories in this order (highest impact first):
 1. Test framework setup (unblocks TDD-first)
 2. Coverage tool installation (unblocks coverage tracking)
 3. Failing test fixes (unblocks verification)
-4. Formatter + linter setup (unblocks quality gates)
-5. CI/CD pipeline setup (unblocks CI-enforced)
-6. Refactoring oversized files
-7. Documentation gaps
+4. Type checker setup (unblocks type safety)
+5. Formatter + linter setup (unblocks quality gates)
+6. CI/CD pipeline setup (unblocks CI-enforced)
+7. Pre-commit hook setup (protects manual commits)
+8. High-severity technical debt (security implications)
+9. Refactoring oversized files + high fan-out + circular deps
+10. Medium-severity technical debt
+11. Documentation gaps
 
 ## Epic File Format
 

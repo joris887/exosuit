@@ -1,10 +1,10 @@
 ---
 name: bootstrap
-version: 2.9.0
+version: 2.10.0
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
-references: [references/stack-detection.md, references/new-project.md, references/accuracy-safeguards.md, references/coverage-assessment.md, references/quality-tooling.md, references/readiness-report.md, references/foundation-backlog.md]
+references: [references/stack-detection.md, references/new-project.md, references/accuracy-safeguards.md, references/coverage-assessment.md, references/quality-tooling.md, references/readiness-report.md, references/foundation-backlog.md, references/llm-readiness.md, references/technical-debt-assessment.md]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write
@@ -26,11 +26,13 @@ START → 0. Detect Installation Mode
     → [Source files exist?]
       → YES: Path A (Existing Repository)
         → A1-A3: Detect stack, commands, assess docs/coverage/architecture, measure codebase
-          → A2.8: Offer quality tooling installation
-            → A3.5: Generate architecture → A3.6: Establish ground rules
-              → A4: Generate config → A5: Run /skill-create → A5.5-A5.6: Configure hooks and rules
-                → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
-                  → A6: Clean up → A7: Present summary → DONE
+          → A2.8: Assess type checking → A2.85: Offer quality tooling installation
+            → A3.1: LLM-readiness assessment → A3.2: Technical debt assessment
+              → A3.5: Generate architecture → A3.6: Establish ground rules
+                → A4: Generate config + populate TESTING_STRATEGY.md
+                  → A5: Run /skill-create → A5.5-A5.6: Configure hooks/rules + assess pre-commit + CI/CD
+                    → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
+                      → A6: Clean up → A7: Present summary → DONE
       → NO: Path B (New Project)
         → Read references/new-project.md and follow B1-B4 → DONE
 ```
@@ -96,11 +98,52 @@ Read `references/stack-detection.md` for detailed detection tables and commands.
 - Architecture assessment (A2.7)
 - Codebase metrics (A3)
 
-### A2.8. Offer Quality Tooling Installation
+### A2.8. Assess Type Checking Readiness
 
-Read `references/quality-tooling.md` for the complete flow. After detecting the stack and its available tools, present missing-but-recommended quality tools (formatter, linter, coverage, type checker) with correct install commands for the detected package manager. The user can select which tools to install or decline all. Declined tools are recorded for the Readiness Report and foundation backlog.
+Detect whether a type checker is configured for the detected stack:
+
+| Stack | Type Checker | Config Files to Check |
+|-------|-------------|----------------------|
+| Python | mypy or pyright | `mypy.ini`, `pyrightconfig.json`, `pyproject.toml [tool.mypy]`, `setup.cfg [mypy]` |
+| TypeScript | tsc (built-in) | `tsconfig.json` with `"strict": true` |
+| Go | Built-in | Always ready |
+| Rust | Built-in | Always ready |
+| Dart | Built-in | Always ready |
+| C# | Built-in | Always ready |
+| Java | Built-in (javac) | Always ready |
+| Ruby | sorbet or steep | `sorbet/config`, `.steep` directory |
+| PHP | phpstan or psalm | `phpstan.neon`, `psalm.xml` |
+
+- **If built-in:** Mark as ready, no action needed.
+- **If config found:** Mark as ready, record the type checker in use.
+- **If no config found (and not built-in):** Record gap for the Readiness Report and quality tooling offer (A2.85).
+
+### A2.85. Offer Quality Tooling Installation
+
+Read `references/quality-tooling.md` for the complete flow. After detecting the stack and its available tools (including type checker from A2.8), present missing-but-recommended quality tools (formatter, linter, coverage, type checker) with correct install commands for the detected package manager. The user can select which tools to install or decline all. Declined tools are recorded for the Readiness Report and foundation backlog.
 
 **For stacks with built-in tools** (Go, Rust, Dart): note as available, skip the offer for those categories.
+
+### A3.1. LLM-Readiness Assessment
+
+Read `references/llm-readiness.md` for the complete assessment flow. Using the codebase metrics from A3, assess whether the code structure supports effective LLM-assisted development:
+
+1. **File size analysis** — flag files exceeding 500 LOC
+2. **Fan-out analysis** — identify high-coupling modules (imported by >5 others)
+3. **Circular dependency check** — detect mutual import patterns (where feasible)
+
+Record metrics in `docs/progress.md` (codebase size, average file size, largest file, files over threshold). Results feed into the Context-efficient check in the Readiness Report (A5.8). Flagged files generate refactoring stories in the foundation backlog (A5.9).
+
+### A3.2. Technical Debt Assessment
+
+Read `references/technical-debt-assessment.md` for the complete assessment flow. Scan the codebase for common technical debt indicators:
+
+1. **Stale markers** — count TODO, FIXME, HACK, XXX comments
+2. **Missing types** — detect untyped code (stack-specific: Python functions without hints, TypeScript `any` usage)
+3. **Unsafe patterns** — detect known risky defaults (stack-specific)
+4. **Dead code indicators** — detect unused imports where tooling is available
+
+Record detected items in `docs/technical-debt.md` with category and severity. High-priority items (security implications) generate foundation stories in the foundation backlog (A5.9).
 
 ### A3.5. Generate Architecture Overview
 
@@ -166,7 +209,22 @@ Update these files with detected information:
 
 1. **`CLAUDE.md`** — Fill in Project Overview, Commands, Architecture one-liner, **Default branch** (from A3.6)
 2. **`docs/reference/CODING_STANDARDS.md`** — Fill in language-specific sections
-3. **`docs/progress.md`** — Initialize with baseline metrics
+3. **`docs/progress.md`** — Initialize with baseline metrics (including LLM-readiness metrics from A3.1)
+4. **`docs/reference/TESTING_STRATEGY.md`** — Populate the "Test Infrastructure" section with detected test tooling:
+
+```markdown
+## Test Infrastructure
+
+**Test Runner:** {test_framework} {version}
+**Test Command:** `{test_command}`
+**Fast Feedback:** `{fast_test_command}` (e.g., pytest -x --tb=short, npm test -- --bail)
+**Coverage:** `{coverage_command}` (or "Not configured — see foundation backlog")
+**Test Location:** {test_directory} (e.g., tests/, __tests__/, alongside source)
+**Naming Convention:** {test_pattern} (e.g., test_*.py, *.test.ts, *_test.go)
+**Fixtures:** {fixture_files_if_any} (e.g., tests/conftest.py — database session, test client)
+```
+
+All data comes from A2 (detect commands) and A2.6 (coverage assessment). If test setup files exist (conftest.py, jest.config.*, vitest.config.*, etc.), document key fixtures and configuration.
 
 ### A4.5. Detect MCP Servers (Optional)
 
@@ -196,7 +254,42 @@ Generate path-scoped rules for detected file types:
 - Ensure `.claude/rules/testing.md` paths match the project's test file patterns
 - Ensure `.claude/rules/dependencies.md` paths match the project's dependency files
 
-### A5.7. Document Quality Check
+### A5.65. Assess Pre-Commit Hook Readiness
+
+Check for existing pre-commit hook infrastructure:
+
+```bash
+# Check for pre-commit tools (language-agnostic)
+ls .pre-commit-config.yaml 2>/dev/null    # pre-commit (Python ecosystem)
+ls -d .husky/ 2>/dev/null                  # Husky (Node.js ecosystem)
+ls lefthook.yml 2>/dev/null                # Lefthook (any stack)
+ls .git/hooks/pre-commit 2>/dev/null       # Raw git hook
+```
+
+- **If found:** Record the tool in use. Mark as ready for the Readiness Report.
+- **If not found:** Record gap for the Readiness Report. Generate a low-priority foundation story. The framework's Claude Code hooks protect during AI sessions, but pre-commit hooks protect manual commits too.
+
+### A5.7. Assess CI/CD Foundation
+
+Check for existing CI/CD configuration:
+
+```bash
+# Check for CI/CD providers
+ls .github/workflows/*.yml 2>/dev/null     # GitHub Actions
+ls .gitlab-ci.yml 2>/dev/null              # GitLab CI
+ls Jenkinsfile 2>/dev/null                 # Jenkins
+ls .circleci/config.yml 2>/dev/null        # CircleCI
+ls bitbucket-pipelines.yml 2>/dev/null     # Bitbucket Pipelines
+ls .travis.yml 2>/dev/null                 # Travis CI
+```
+
+- **If CI/CD found:** Check if the framework's `claude-pr-review.yml` workflow is included. If not, note separately — existing CI exists but framework PR review is missing.
+- **If no CI/CD found:** Ask the user if they want to install the framework's GitHub Actions workflow (`claude-pr-review.yml`).
+  - **If user accepts:** Copy the workflow to `.github/workflows/claude-pr-review.yml`.
+  - **If user declines:** Generate a foundation story in the backlog.
+- Feed CI/CD status into the Readiness Report (A5.8) under "CI-enforced".
+
+### A5.75. Document Quality Check
 
 After generating ARCHITECTURE.md, dispatch a fresh sub-agent to test the document from a reader's perspective:
 
@@ -210,7 +303,7 @@ Review findings. Fix genuine gaps before presenting the summary to the user.
 
 Read `references/readiness-report.md` for the complete check definitions and classification rules.
 
-Using data collected in earlier steps (A1-A3, A2.6, A2.8, A3.6, A4, A5.5), assess each framework principle against the project's actual state. For each principle, classify as `✓ Ready`, `⚠️ Risk`, or `✗ Missing` with a brief explanation.
+Using data collected in earlier steps (A1-A3, A2.6, A2.8, A3.1, A3.2, A3.6, A4, A5.5, A5.65, A5.7), assess each framework principle against the project's actual state. For each principle, classify as `✓ Ready`, `⚠️ Risk`, or `✗ Missing` with a brief explanation.
 
 **Output:**
 1. Display the readiness report table in the A7 summary
@@ -275,7 +368,9 @@ If no foundation stories were generated (all principles Ready), still initialize
 - Test Framework: [name] ([count] tests, [coverage]% coverage)
 - Linter: [name]
 - Formatter: [name]
-- CI/CD: [provider]
+- Type Checker: [name or "not configured"]
+- CI/CD: [provider or "not found"]
+- Pre-commit: [tool or "not configured"]
 
 **Commands Configured:**
 | Operation | Command |
@@ -284,6 +379,13 @@ If no foundation stories were generated (all principles Ready), still initialize
 | Lint      | [cmd]   |
 | Format    | [cmd]   |
 | Build     | [cmd]   |
+| TypeCheck | [cmd]   |
+
+**Codebase Health:**
+- Total: [N] LOC across [N] files (avg [N] LOC/file)
+- Largest file: [path] ([N] LOC)
+- Files over 500 LOC: [N]
+- Technical debt items: [N] high / [N] medium / [N] low
 
 **Framework Readiness Report:**
 | Principle | Status | Detail |
@@ -291,7 +393,7 @@ If no foundation stories were generated (all principles Ready), still initialize
 | [principle] | [✓/⚠️/✗] | [explanation] |
 | ... | ... | ... |
 
-**Summary:** [N]/10 ready, [N] at risk, [N] missing
+**Summary:** [N]/12 ready, [N] at risk, [N] missing
 
 **Foundation Backlog:** [N] stories generated in E00-foundation (or "No gaps found — project is ready")
 
@@ -319,9 +421,12 @@ If no foundation stories were generated (all principles Ready), still initialize
 | Dependency       | If Missing                                              |
 |------------------|---------------------------------------------------------|
 | Package manager  | Skip dependency analysis, note "manual setup required"  |
-| Formatter        | Offer installation (A2.8) → if declined, skip hook config, note in summary and Readiness Report |
+| Formatter        | Offer installation (A2.85) → if declined, skip hook config, note in summary and Readiness Report |
 | Test runner      | Record "N/A" for test baseline, flag TDD-first as Missing in Readiness Report |
 | Coverage tool    | Offer installation → if declined, record "N/A — user declined", flag TDD-first as Risk |
+| Type checker     | Offer installation (A2.85) → if declined, flag Type-safe as Missing in Readiness Report |
+| CI/CD            | Offer GitHub Actions install (A5.7) → if declined, flag CI-enforced as Missing, generate foundation story |
+| Pre-commit hooks | Note gap in Readiness Report (A5.65), generate low-priority foundation story |
 
 ## Rules
 
