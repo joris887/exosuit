@@ -92,3 +92,7 @@ find . -name '*.go' -not -path './.git/*' | wc -l
 # jest: npx jest --listTests | wc -l
 # swift test: swift test list 2>/dev/null | wc -l
 ```
+
+After measuring file counts, proceed to:
+- **A3.1** — LLM-readiness assessment (read `references/llm-readiness.md`): file size analysis, fan-out, circular dependency detection
+- **A3.2** — Technical debt assessment (read `references/technical-debt-assessment.md`): stale markers, missing types, unsafe patterns

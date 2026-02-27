@@ -17,10 +17,12 @@
 | Quality gates | <!-- status --> | <!-- explanation --> |
 | Context-efficient | <!-- status --> | <!-- explanation --> |
 | Documentation-lean | <!-- status --> | <!-- explanation --> |
+| Pre-commit hooks | <!-- status --> | <!-- explanation --> |
+| Type-safe | <!-- status --> | <!-- explanation --> |
 
 ## Summary
 
-- **Ready:** <!-- count -->/10
+- **Ready:** <!-- count -->/12
 - **At risk:** <!-- count -->
 - **Missing:** <!-- count -->
 
