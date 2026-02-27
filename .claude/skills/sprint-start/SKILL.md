@@ -42,18 +42,38 @@ git status
 - Warn user — they must commit, stash, or discard before proceeding
 - Do NOT proceed with dirty working tree
 
-### 1c. Ensure on main and up to date
+### 1c. Ensure on default branch and up to date
+
+Read the **Default branch** from CLAUDE.md's Git Workflow section. If not set, detect it at runtime:
 
 ```bash
-git checkout main
-git pull origin main
+# Read from CLAUDE.md first, fall back to detection
+DEFAULT_BRANCH=$(grep -oP '^\- \*\*Default branch:\*\* \K\S+' CLAUDE.md 2>/dev/null)
+if [ -z "$DEFAULT_BRANCH" ]; then
+    DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+fi
+if [ -z "$DEFAULT_BRANCH" ]; then
+    for branch in main master develop; do
+        if git show-ref --verify --quiet "refs/heads/$branch"; then
+            DEFAULT_BRANCH="$branch"
+            break
+        fi
+    done
+fi
 ```
 
-### 1d. Verify tests pass on main
+```bash
+git checkout $DEFAULT_BRANCH
+git pull origin $DEFAULT_BRANCH
+```
+
+If the default branch was detected at runtime (not in CLAUDE.md), persist it by updating CLAUDE.md's Git Workflow section.
+
+### 1d. Verify tests pass on default branch
 
 Read CLAUDE.md Commands section to find the project's test command.
 
-- **If test command exists:** Run it. If tests fail on main, stop and alert user — main should always be green.
+- **If test command exists:** Run it. If tests fail on the default branch, stop and alert user — default branch should always be green.
 - **If NO test command configured:** Skip this check. Note in output: "No test command configured — consider running /bootstrap to set up."
 
 ## 2. Create Feature Branch
@@ -62,7 +82,7 @@ Determine the next sprint number by reading `docs/progress.md` and finding the h
 
 ### Standard Mode (default)
 
-Create a new branch from main:
+Create a new branch from the default branch:
 
 ```bash
 git checkout -b sprint-<number>

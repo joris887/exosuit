@@ -20,6 +20,7 @@ This framework turns Claude Code into a structured development partner. Instead 
 - [Claude Code](https://claude.com/claude-code) installed and working
 - [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated
 - Git configured with your identity
+- Python 3.8+ (required for the hook engine — runs regardless of your project's language)
 
 ## Quick Start
 

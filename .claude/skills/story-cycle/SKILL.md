@@ -120,6 +120,22 @@ Score domain risk, integration surface, and reversibility (1-3 each). Sum determ
 **Red flag:** If editing multiple files or changing observable behavior, STOP and reclassify as STANDARD. Fast-track is for genuinely trivial changes only.
 </HARD-GATE>
 
+### SMALL Story Checklist
+
+SMALL stories skip Phase 1f (clarification check) and 1g (plan completeness) **only**.
+All other phases are **REQUIRED** — do NOT skip them because the story feels simple:
+
+- [ ] Phase 0: Intent decomposition
+- [ ] Phase 1: Lightweight analysis + plan → `*** HARD GATE: user approval ***`
+- [ ] Phase 2: Context transition
+- [ ] Phase 2.5: Confidence gate (score ≥85) → `*** HARD GATE ***`
+- [ ] Phase 3: Implementation (TDD by story type)
+- [ ] Phase 3.5: Self-review + disaster prevention → `*** HARD GATE ***`
+- [ ] Phase 4: Quality gates + commit
+- [ ] Phase 4.5: Completion verification with evidence → `*** HARD GATE ***`
+
+**Why this matters:** Testing proved that SMALL stories get their quality gates skipped when the agent optimizes for speed. The code may be fine, but the process guarantees are missing. Every gate exists for a reason.
+
 ### Phase 3-lite (TRIVIAL only)
 
 1. Make the change
@@ -330,6 +346,10 @@ Before writing any implementation code, run the `confidence-gate` micro-componen
 
 This gate prevents wrong-direction implementations that waste the entire Phase 3 execution budget. A few tokens spent on confidence assessment saves thousands on rework.
 
+<HARD-GATE>
+Do NOT skip the confidence gate for ANY story size. SMALL stories require this gate. Output the 5-dimension score table before proceeding to Phase 3.
+</HARD-GATE>
+
 ## Phase 3a: Parallel Stream Analysis (Optional)
 
 <IF condition="story is STANDARD size AND risk is Low or Medium (3-6) AND plan identifies ≥2 independent work units">
@@ -391,10 +411,27 @@ Read `references/self-review.md` and complete the full checklist honestly. Do NO
 **If sub-agents are NOT available:** Perform the self-review checklist manually — do not skip quality checks just because agents aren't available.
 
 <HARD-GATE>
-If any checklist item fails, go back to Phase 3 and fix the issue before proceeding.
+Do NOT skip self-review for ANY story size. SMALL stories require this gate. If any checklist item fails, go back to Phase 3 and fix the issue before proceeding.
 </HARD-GATE>
 
 **Error learning:** If self-review caught a wrong approach that required significant rework (not routine TDD cycles), invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md` to record the pattern in `docs/context/error-patterns.md`. This builds a cross-session knowledge base of mistakes to avoid.
+
+### Phase Completion Tracker
+
+Before proceeding to Phase 4, output this tracker to confirm all required phases completed:
+
+```
+Phase Completion:
+✓ Phase 0: Intent decomposed — [N] deliverables identified
+✓ Phase 1: Plan approved by user
+✓ Phase 2: Context transitioned
+✓ Phase 2.5: Confidence score: [score]/100
+✓ Phase 3: Implementation complete, tests passing
+✓ Phase 3.5: Self-review clean, disaster check passed
+→ Proceeding to Phase 4: Quality gates + wrap up
+```
+
+If any line cannot be checked off, do NOT proceed — go back to the incomplete phase.
 
 ## Phase 4: Wrap Up
 

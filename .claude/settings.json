@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "statusLine": {
     "type": "command",
-    "command": "bash .claude/hooks/status-line.sh"
+    "command": "bash __PROJECT_ROOT__/.claude/hooks/status-line.sh"
   },
   "hooks": {
     "SessionStart": [
@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/engine.py SessionStart"
+            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py SessionStart"
           }
         ]
       }
@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/engine.py PostToolUse"
+            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py PostToolUse"
           }
         ]
       },
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/post-edit-format.sh \"$FILE_PATH\""
+            "command": "bash __PROJECT_ROOT__/.claude/hooks/post-edit-format.sh \"$FILE_PATH\""
           }
         ]
       }
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/engine.py PreToolUse"
+            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py PreToolUse"
           }
         ]
       },
@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh .claude/hooks/worktree-bash-fix.sh"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree-bash-fix.sh"
           }
         ],
         "apply_to_subagents": true
@@ -61,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/engine.py Stop"
+            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py Stop"
           }
         ]
       }
@@ -71,7 +71,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/engine.py UserPromptSubmit"
+            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py UserPromptSubmit"
           }
         ]
       }
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/engine.py WorktreeCreate"
+            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py WorktreeCreate"
           }
         ]
       }
@@ -91,7 +91,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/engine.py WorktreeRemove"
+            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py WorktreeRemove"
           }
         ]
       }
@@ -101,7 +101,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/engine.py SubagentStop"
+            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py SubagentStop"
           }
         ]
       }

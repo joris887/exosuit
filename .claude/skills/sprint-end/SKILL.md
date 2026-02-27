@@ -79,18 +79,32 @@ No assumptions about previous context. Discover everything from git.
 
 **Check story completion status:** Read `docs/progress.md` for the current story status. If it shows a phase earlier than "DONE" (e.g., "Phase 3 — tests pass, self-review pending"), the last story was only partially completed. Factor this into quality gates — run the missing steps as part of sprint-end rather than flagging them as new issues.
 
-Discover from git:
+Read the **Default branch** from CLAUDE.md's Git Workflow section. If not set, detect at runtime:
+
+```bash
+DEFAULT_BRANCH=$(grep -oP '^\- \*\*Default branch:\*\* \K\S+' CLAUDE.md 2>/dev/null)
+if [ -z "$DEFAULT_BRANCH" ]; then
+    DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+fi
+if [ -z "$DEFAULT_BRANCH" ]; then
+    for branch in main master develop; do
+        if git show-ref --verify --quiet "refs/heads/$branch"; then DEFAULT_BRANCH="$branch"; break; fi
+    done
+fi
+```
+
+Discover from git (using the detected default branch):
 
 ```bash
 git branch --show-current
-git log main..HEAD --oneline
-git diff --stat main...HEAD
-git diff --name-only main...HEAD
+git log $DEFAULT_BRANCH..HEAD --oneline
+git diff --stat $DEFAULT_BRANCH...HEAD
+git diff --name-only $DEFAULT_BRANCH...HEAD
 ```
 
-**If on main:** There is no sprint to end. Inform user and stop.
+**If on the default branch:** There is no sprint to end. Inform user and stop.
 
-**If no commits ahead of main:** Nothing to ship. Inform user and stop.
+**If no commits ahead of the default branch:** Nothing to ship. Inform user and stop.
 
 **If in a worktree:** Detect with `git rev-parse --git-common-dir`. Note the worktree path for cleanup in step 6.
 
@@ -141,7 +155,7 @@ Based on what was done in the sprint, update relevant documentation:
 - **BACKLOG_INDEX.md**: Update Done/In Progress/TODO counts
 - **progress.md**: Add sprint entry, update metrics
 - **CLAUDE.md**: Update Current Focus if epic status changed
-- **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff main...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
+- **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
 
 Commit documentation updates:
 
@@ -214,8 +228,8 @@ Once CI is green (or local gates passed) and any required reviews are complete:
 
 ```bash
 gh pr merge --squash --delete-branch
-git checkout main
-git pull origin main
+git checkout $DEFAULT_BRANCH
+git pull origin $DEFAULT_BRANCH
 ```
 
 **Worktree cleanup** (if running in a worktree detected in step 1):

@@ -17,10 +17,11 @@
 <!-- One-liner filled by /bootstrap. See docs/architecture/ARCHITECTURE.md for details. -->
 
 ## Git Workflow
+- **Default branch:** <!-- Detected by /bootstrap (main, master, develop, etc.) -->
 - **Flow:** GitHub Flow (feature branches → squash merge)
 - **Branches:** `feature/<story-id>-<description>` or `sprint-<number>`
 - **Commits:** Conventional: `<type>(<scope>): <description>`
-- **Rules:** Never push to main, never force push, always PR
+- **Rules:** Never push to default branch, never force push, always PR
 
 ## Current Focus
 <!-- Updated per sprint by /sprint-end -->
