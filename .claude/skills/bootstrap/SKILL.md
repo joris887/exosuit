@@ -124,11 +124,39 @@ Prompt the user for 3-7 non-negotiable architectural principles. Populate `docs/
 - If the user has no strong preferences, suggest 3-5 principles based on detected stack and architecture
 - The ground rules are checked during `/story-cycle` planning (Phase 1e) and `/sprint-end` quality gates
 
+### A3.6. Detect Default Branch
+
+Detect the repository's default branch name and store it in CLAUDE.md so all skills can reference it without guessing:
+
+```bash
+# Try remote HEAD first (most reliable for repos with a remote)
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+
+if [ -z "$DEFAULT_BRANCH" ]; then
+    # No remote HEAD — check common branch names
+    for branch in main master develop; do
+        if git show-ref --verify --quiet "refs/heads/$branch"; then
+            DEFAULT_BRANCH="$branch"
+            break
+        fi
+    done
+fi
+
+# Final fallback: use current branch
+if [ -z "$DEFAULT_BRANCH" ]; then
+    DEFAULT_BRANCH=$(git branch --show-current)
+fi
+
+echo "Default branch: $DEFAULT_BRANCH"
+```
+
+Update CLAUDE.md's Git Workflow section: replace the `<!-- Detected by /bootstrap -->` comment with the detected branch name.
+
 ### A4. Generate Configuration
 
 Update these files with detected information:
 
-1. **`CLAUDE.md`** — Fill in Project Overview, Commands, Architecture one-liner
+1. **`CLAUDE.md`** — Fill in Project Overview, Commands, Architecture one-liner, **Default branch** (from A3.6)
 2. **`docs/reference/CODING_STANDARDS.md`** — Fill in language-specific sections
 3. **`docs/progress.md`** — Initialize with baseline metrics
 
