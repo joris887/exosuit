@@ -65,21 +65,9 @@ Check which docs exist and whether they contain real content or only template pl
 
 ## A2.6. Assess Test Coverage
 
-Run coverage tool if available to establish a baseline.
+**Read `references/coverage-assessment.md`** for the complete coverage assessment flow.
 
-**If coverage tool detected:** Run `[tool] --help` first to verify available flags:
-
-**If no coverage tool detected:** Record "N/A" in progress.md. Do not install tools without user approval.
-
-```bash
-# Detect and run coverage (adapt to detected framework)
-# pytest --cov=src --cov-report=term-missing -q
-# npx jest --coverage --silent
-# go test -cover ./...
-# cargo tarpaulin --skip-clean -o stdout
-```
-
-Record baseline in progress.md.
+Summary: detect coverage tool for the stack → offer installation if missing (with user approval) → run coverage report → record baseline in progress.md → flag zero-coverage areas as unsafe for TDD refactoring. This data feeds into the Framework Readiness Report (A5.8).
 
 ## A2.7. Assess Architecture
 

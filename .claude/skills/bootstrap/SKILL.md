@@ -1,10 +1,10 @@
 ---
 name: bootstrap
-version: 2.8.0
+version: 2.9.0
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
-references: [references/stack-detection.md, references/new-project.md, references/accuracy-safeguards.md]
+references: [references/stack-detection.md, references/new-project.md, references/accuracy-safeguards.md, references/coverage-assessment.md, references/quality-tooling.md, references/readiness-report.md, references/foundation-backlog.md]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write
@@ -26,9 +26,11 @@ START → 0. Detect Installation Mode
     → [Source files exist?]
       → YES: Path A (Existing Repository)
         → A1-A3: Detect stack, commands, assess docs/coverage/architecture, measure codebase
-          → A3.5: Generate architecture → A3.6: Establish ground rules
-            → A4: Generate config → A5: Run /skill-create → A5.5-A5.6: Configure hooks and rules
-              → A6: Clean up → A7: Present summary → DONE
+          → A2.8: Offer quality tooling installation
+            → A3.5: Generate architecture → A3.6: Establish ground rules
+              → A4: Generate config → A5: Run /skill-create → A5.5-A5.6: Configure hooks and rules
+                → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
+                  → A6: Clean up → A7: Present summary → DONE
       → NO: Path B (New Project)
         → Read references/new-project.md and follow B1-B4 → DONE
 ```
@@ -90,9 +92,15 @@ Read `references/stack-detection.md` for detailed detection tables and commands.
 - Technology stack detection (A1)
 - Command detection (A2)
 - Documentation state assessment (A2.5)
-- Test coverage baseline (A2.6)
+- **Test coverage assessment (A2.6)** — Read `references/coverage-assessment.md` for the full flow: detect coverage tool → offer installation if missing → run coverage → record baseline → flag zero-coverage areas. This data feeds into the Readiness Report (A5.8).
 - Architecture assessment (A2.7)
 - Codebase metrics (A3)
+
+### A2.8. Offer Quality Tooling Installation
+
+Read `references/quality-tooling.md` for the complete flow. After detecting the stack and its available tools, present missing-but-recommended quality tools (formatter, linter, coverage, type checker) with correct install commands for the detected package manager. The user can select which tools to install or decline all. Declined tools are recorded for the Readiness Report and foundation backlog.
+
+**For stacks with built-in tools** (Go, Rust, Dart): note as available, skip the offer for those categories.
 
 ### A3.5. Generate Architecture Overview
 
@@ -198,6 +206,58 @@ After generating ARCHITECTURE.md, dispatch a fresh sub-agent to test the documen
 
 Review findings. Fix genuine gaps before presenting the summary to the user.
 
+### A5.8. Framework Readiness Report
+
+Read `references/readiness-report.md` for the complete check definitions and classification rules.
+
+Using data collected in earlier steps (A1-A3, A2.6, A2.8, A3.6, A4, A5.5), assess each framework principle against the project's actual state. For each principle, classify as `✓ Ready`, `⚠️ Risk`, or `✗ Missing` with a brief explanation.
+
+**Output:**
+1. Display the readiness report table in the A7 summary
+2. Save to `docs/reference/READINESS_REPORT.md`
+3. Pass Risk and Missing items to A5.9 for foundation story generation
+
+### A5.9. Generate Foundation Backlog & Initialize BACKLOG_INDEX.md
+
+Read `references/foundation-backlog.md` for story generation templates.
+
+Based on the Readiness Report (A5.8), auto-generate foundation stories for Risk and Missing items. Each story has a type, priority, description, and acceptance criteria. Present to the user for review — they can accept, modify, or discard stories. Write accepted stories to `docs/reference/backlog/E00-foundation.md`.
+
+**Initialize BACKLOG_INDEX.md** — remove template comments and populate with actual content:
+
+```markdown
+# Backlog Index
+
+**Last Updated:** {date}
+
+## Status Summary
+
+| Epic | Total | Done | In Progress | TODO |
+|------|-------|------|-------------|------|
+| E00-foundation | {n} | 0 | 0 | {n} |
+
+## Current Focus
+
+Foundation work: infrastructure and tooling gaps identified by the Framework Readiness Report.
+
+## Epic Files
+
+- @docs/reference/backlog/E00-foundation.md — Foundation (infrastructure + tooling)
+
+## Story ID → Epic Mapping
+
+| Story Range | Epic File |
+|-------------|-----------|
+| E00-S01 — E00-S{nn} | E00-foundation.md |
+
+## Next Steps
+
+- Run `/sprint-start` to begin foundation work
+- Run `/ideate` to generate feature stories after foundation is complete
+```
+
+If no foundation stories were generated (all principles Ready), still initialize BACKLOG_INDEX.md with an empty status table and point the user to `/ideate`.
+
 ### A6. Clean Up
 
 - Delete `vision/` directory (not needed for existing repos)
@@ -225,10 +285,23 @@ Review findings. Fix genuine gaps before presenting the summary to the user.
 | Format    | [cmd]   |
 | Build     | [cmd]   |
 
+**Framework Readiness Report:**
+| Principle | Status | Detail |
+|-----------|--------|--------|
+| [principle] | [✓/⚠️/✗] | [explanation] |
+| ... | ... | ... |
+
+**Summary:** [N]/10 ready, [N] at risk, [N] missing
+
+**Foundation Backlog:** [N] stories generated in E00-foundation (or "No gaps found — project is ready")
+
 **Files Updated:**
 - CLAUDE.md (project overview, commands, architecture)
 - docs/reference/CODING_STANDARDS.md (language standards)
 - docs/architecture/ARCHITECTURE.md (module overview)
+- docs/reference/READINESS_REPORT.md (principle assessment)
+- docs/reference/backlog/E00-foundation.md (if gaps found)
+- docs/reference/BACKLOG_INDEX.md (initialized)
 - docs/progress.md (baseline metrics)
 
 **Hooks Configured:**
@@ -237,8 +310,8 @@ Review findings. Fix genuine gaps before presenting the summary to the user.
 **Technology Skills Generated:** [count]
 
 **Next Steps:**
-- Run `/ideate` to plan your next feature
-- Run `/sprint-start` to begin a sprint
+- Foundation work needed? → Run `/sprint-start` to begin with E00-foundation stories
+- No foundation work? → Run `/ideate` to plan your next feature, then `/sprint-start`
 ```
 
 ## Graceful Degradation
@@ -246,8 +319,9 @@ Review findings. Fix genuine gaps before presenting the summary to the user.
 | Dependency       | If Missing                                              |
 |------------------|---------------------------------------------------------|
 | Package manager  | Skip dependency analysis, note "manual setup required"  |
-| Formatter        | Skip hook configuration, note in summary                |
-| Test runner      | Record "N/A" for test baseline, skip coverage analysis  |
+| Formatter        | Offer installation (A2.8) → if declined, skip hook config, note in summary and Readiness Report |
+| Test runner      | Record "N/A" for test baseline, flag TDD-first as Missing in Readiness Report |
+| Coverage tool    | Offer installation → if declined, record "N/A — user declined", flag TDD-first as Risk |
 
 ## Rules
 
