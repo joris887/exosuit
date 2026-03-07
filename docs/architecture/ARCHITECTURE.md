@@ -8,9 +8,40 @@
 
 ## Component Diagram
 
+<!-- Replace with your project's architecture. Mermaid examples below — pick the closest pattern and customize. -->
+
+<!-- Monolith / Single App:
+```mermaid
+graph TD
+    UI[UI Layer] --> API[API / Routes]
+    API --> SVC[Service Layer]
+    SVC --> DB[(Database)]
+    SVC --> EXT[External APIs]
 ```
-<!-- ASCII diagram of major components and their relationships -->
+-->
+
+<!-- Client-Server:
+```mermaid
+graph TD
+    CLIENT[Client App] -->|HTTP/WS| API[API Server]
+    API --> AUTH[Auth Service]
+    API --> BIZ[Business Logic]
+    BIZ --> DB[(Database)]
+    BIZ --> QUEUE[Message Queue]
 ```
+-->
+
+<!-- Microservices:
+```mermaid
+graph TD
+    GW[API Gateway] --> SVC_A[Service A]
+    GW --> SVC_B[Service B]
+    SVC_A --> DB_A[(DB A)]
+    SVC_B --> DB_B[(DB B)]
+    SVC_A -->|events| BROKER[Message Broker]
+    BROKER --> SVC_B
+```
+-->
 
 ## Key Components
 
@@ -37,6 +68,13 @@ See `docs/adr/` for Architecture Decision Records.
 ## Constraints
 
 <!-- Technical constraints, performance requirements, security requirements -->
+<!-- Examples:
+- **Memory:** Application must stay within Xmb baseline
+- **Latency:** API responses < Xms at p95
+- **Availability:** 99.X% uptime target
+- **Data:** All user data encrypted at rest
+- **Compliance:** GDPR / SOC2 / HIPAA requirements
+-->
 
 ## Dependencies
 
