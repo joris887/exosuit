@@ -89,13 +89,14 @@ For structured UAT with tracked test cases:
 /sprint-start → /UAT-cycle (repeat per test case) → /sprint-end
 ```
 
-**When to use which:** Use `/testing-cycle` for ad-hoc exploratory findings during manual testing. Use `/UAT-cycle` for pre-defined acceptance test cases from `UAT_COVERAGE.md`.
+**When to use which:** Use `/testing-cycle` for ad-hoc exploratory findings during manual testing. Use `/UAT-cycle` for pre-defined acceptance test cases from `UAT_COVERAGE.md`. Use `/claude-sense-check` to batch-verify UAT test case logic against actual code.
 
-| Skill            | Arguments                       | Description                                      |
-| ---------------- | ------------------------------- | ------------------------------------------------ |
-| `/manual-test`   | -                               | Generate test plan from recent changes/issues    |
-| `/testing-cycle` | `<feedback-description>`        | Process one ad-hoc feedback item (classify → fix)  |
-| `/UAT-cycle`     | `<test-case-id-or-description>` | Execute a formal UAT test case, process findings |
+| Skill                  | Arguments                       | Description                                      |
+| ---------------------- | ------------------------------- | ------------------------------------------------ |
+| `/manual-test`         | -                               | Generate test plan from recent changes/issues    |
+| `/testing-cycle`       | `<feedback-description>`        | Process one ad-hoc feedback item (classify → fix)  |
+| `/UAT-cycle`           | `<test-case-id-or-description>` | Execute a formal UAT test case, process findings |
+| `/claude-sense-check`  | -                               | Batch code logic verification of UAT cases (2-5 per run) |
 
 **UAT Coverage File:** `docs/testing/UAT_COVERAGE.md`
 
