@@ -30,6 +30,16 @@
   }
 ,
   {
+    "name": "claude-sense-check",
+    "version": "3.4.0",
+    "description": "Incremental code logic verification of UAT test cases — pick batch, trace code, fix issues, update tracking.",
+    "trigger": "manual",
+    "depends_on": ["story-cycle"],
+    "references": [],
+    "path": ".claude/skills/claude-sense-check/SKILL.md"
+  }
+,
+  {
     "name": "bootstrap",
     "version": "2.8.0",
     "description": "First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.",

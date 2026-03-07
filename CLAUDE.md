@@ -56,6 +56,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | Test plan              | `/manual-test`                 |
 | Test feedback          | `/testing-cycle <feedback>`    |
 | UAT test case          | `/UAT-cycle <test-case-id>`    |
+| Sense check UAT cases  | `/claude-sense-check`          |
 | Parallel work          | `/parallel-work`               |
 | Architecture check     | `/architecture-check`          |
 | Framework health check | `/doctor`                      |

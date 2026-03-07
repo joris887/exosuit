@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 3.2.0
+version: 3.5.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -48,6 +48,8 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
       → Lightweight Phase 1 (skip 1f-1g) → Phase 2 → Phase 3 → Phase 4 → DONE
     → [STANDARD: everything else]
       → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
+        → Phase 1c.5: Online Verification (WebFetch/WebSearch for API currency)
+        → Phase 1d.7: Story Refinement & Forward Context (gap analysis, cross-story notes)
         → Phase 1f: Clarification Check (ambiguity_scan across 7 categories)
           → [Clarifications needed?]
             → YES: Present questions → integrate answers → update plan
@@ -126,12 +128,12 @@ SMALL stories skip Phase 1f (clarification check) and 1g (plan completeness) **o
 All other phases are **REQUIRED** — do NOT skip them because the story feels simple:
 
 - [ ] Phase 0: Intent decomposition
-- [ ] Phase 1: Lightweight analysis + plan → `*** HARD GATE: user approval ***`
+- [ ] Phase 1: Lightweight analysis + plan (includes 1c.5 online verification if APIs involved) → `*** HARD GATE: user approval ***`
 - [ ] Phase 2: Context transition
 - [ ] Phase 2.5: Confidence gate (score ≥85) → `*** HARD GATE ***`
 - [ ] Phase 3: Implementation (TDD by story type)
 - [ ] Phase 3.5: Self-review + disaster prevention → `*** HARD GATE ***`
-- [ ] Phase 4: Quality gates + commit
+- [ ] Phase 4: Quality gates + optional UAT generation/sense check + commit
 - [ ] Phase 4.5: Completion verification with evidence → `*** HARD GATE ***`
 
 **Why this matters:** Testing proved that SMALL stories get their quality gates skipped when the agent optimizes for speed. The code may be fine, but the process guarantees are missing. Every gate exists for a reason.
@@ -199,6 +201,30 @@ Read ONLY the files identified by the agents. If during implementation you need 
 - Identify files to modify and files to create
 - Check for `.claude-context.md` files in the target directory and parent directories — these contain module-specific patterns and conventions that supplement global CLAUDE.md
 
+### 1c.5. Online Verification
+
+Before planning, verify that the approach and APIs are current. This prevents implementing outdated patterns or hallucinating API signatures.
+
+**Step 1 — Official documentation** (always do this when the story touches a framework/library):
+
+- Use `WebFetch` to check the official docs for any framework/library APIs you plan to use
+- Focus on: current API signatures, deprecation notices, migration guides, changelog entries for the pinned version
+- Compare against what the codebase currently uses and what any technology-specific skill references recommend
+
+**Step 2 — Broader research** (do this when the story involves unfamiliar territory, new integrations, or complex patterns):
+
+- Use `WebSearch` to find recent blog posts, GitHub issues, or Stack Overflow answers about the approach
+- Look for: known pitfalls, better alternatives, community-recommended patterns
+- Search for the specific error patterns or edge cases others have encountered
+
+**Step 3 — Record findings:**
+
+- If official docs reveal a deprecation or API change: note it in the plan as a "Doc Finding" and update relevant reference docs after implementation
+- If a better approach is found: incorporate it into the plan
+- If everything checks out: note "Online verification: APIs confirmed current" and move on
+
+**Skip when:** The story is purely internal logic with no framework/library API calls (e.g., pure business logic, documentation-only, config changes).
+
 ### 1d. Define Required Skills
 
 Determine which skills benefit this story. If the story metadata already defines skills, use those. Otherwise select from:
@@ -215,10 +241,22 @@ Determine which skills benefit this story. If the story metadata already defines
 
 Before writing the plan, check: do you have enough information to write a plan without assumptions?
 
-- If YES: proceed to 1e
-- If NO: present the 3 most critical unknowns to the user as focused questions with 2-4 answer options each. Integrate answers, then proceed to 1e.
+- If YES: proceed to 1d.7
+- If NO: present the 3 most critical unknowns to the user as focused questions with 2-4 answer options each. Integrate answers, then proceed to 1d.7.
 
 **Red flag:** If you're about to write "Assuming X..." in the plan, STOP — ask the user about X instead. Facilitate discovery; don't generate assumptions.
+
+### 1d.7. Story Refinement & Forward Context
+
+With codebase understanding from 1b-1c, pressure-test the story before planning:
+
+1. **Map to application**: For each acceptance criterion, identify the concrete components, endpoints, services, and modules involved. If a criterion is vague, make it specific to the project's architecture.
+2. **Gap analysis**: What's needed for this to work that the story doesn't mention? Check if gaps are covered by other TODO stories in the epic.
+   - Small uncovered gap → propose expanding this story's AC (confirm with user)
+   - Large uncovered gap → flag it, don't silently absorb scope
+3. **Forward context**: Check TODO stories in the same epic that depend on or relate to this one. If research clarifies anything for them (API shape they'll consume, patterns to follow, components to reuse), add a brief `> Context from [this story]: ...` note to those stories in the epic file.
+
+Summarize: what was refined, what gaps were found, what forward context was added.
 
 ### 1e. Write the Plan
 
@@ -264,10 +302,12 @@ Use this exact format at the TOP of the plan:
 
 workflow: story-cycle
 phase: "plan-approved — proceed to execution"
-stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1d-skills, 1e-plan, 1f-clarification, 1g-completeness, 2-transition]
+stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 2-transition]
 remaining_steps:
   - "Run tests: use project test command from CLAUDE.md Commands"
   - "Update documentation if AC requires it"
+  - "Generate UAT test case (if Feature/Bug Fix with user-visible behavior and UAT structure exists)"
+  - "Sense check UAT case (if generated — trace steps through code)"
   - "Commit: conventional format <type>(<scope>): <description>"
   - "Do NOT merge or create PR — that is sprint-end"
   - "Print completion report: story, type, approach, files, tests, commit hash"
@@ -423,12 +463,12 @@ Before proceeding to Phase 4, output this tracker to confirm all required phases
 ```
 Phase Completion:
 ✓ Phase 0: Intent decomposed — [N] deliverables identified
-✓ Phase 1: Plan approved by user
+✓ Phase 1: Plan approved by user (includes 1c.5 online verification, 1d.7 refinement)
 ✓ Phase 2: Context transitioned
 ✓ Phase 2.5: Confidence score: [score]/100
 ✓ Phase 3: Implementation complete, tests passing
 ✓ Phase 3.5: Self-review clean, disaster check passed
-→ Proceeding to Phase 4: Quality gates + wrap up
+→ Proceeding to Phase 4: Quality gates + wrap up (includes optional UAT generation + sense check)
 ```
 
 If any line cannot be checked off, do NOT proceed — go back to the incomplete phase.
@@ -452,11 +492,60 @@ After execution is complete:
 </ELSE>
 
 2. **Update documentation** if the story's AC requires it (but only what's relevant)
-3. **Commit:** Stage relevant files and commit with conventional format:
+3. **Generate UAT test case** (if applicable — see Phase 4a below)
+4. **Sense check UAT case** (if UAT case was generated — see Phase 4b below)
+5. **Commit:** Stage relevant files and commit with conventional format:
    ```
    <type>(<scope>): <description>
    ```
-4. **Do NOT merge or create PR** — that's `/sprint-end`'s job
+6. **Do NOT merge or create PR** — that's `/sprint-end`'s job
+
+### Phase 4a: Generate UAT Test Case (Optional)
+
+**Applies to:** Feature and Bug Fix stories that affect user-visible behavior, AND the project has a UAT structure (e.g., `docs/testing/uat/` or `tests/uat/`).
+**Skip for:** Spike/Research, Infrastructure, Documentation, Testing, Refactoring, Performance, Skill/Tooling stories. Also skip if no UAT directory exists in the project.
+
+1. **Find the UAT directory:** Check for `tests/uat/scenarios/`, `docs/testing/uat/`, or similar. If none exists, skip this phase entirely.
+2. **Find next UAT ID:** Check existing UAT files, increment the highest number, format as `UAT-###` (zero-padded to 3 digits).
+3. **Generate test case file** (YAML or Markdown, matching existing project convention):
+   - `id`: UAT-NNN
+   - `title`: Descriptive name derived from story
+   - `covers`: Story IDs (e.g., `[E3-S05]`)
+   - `prerequisites`: What must be set up
+   - `steps`: Derived from story acceptance criteria — each step has `action` and `assertion`
+   - `acceptance_criteria`: List of pass/fail conditions
+4. **Add entry to UAT index/area file** if one exists, with verification checkmarks:
+   ```
+   **Claude Sense Check**
+   - [ ] Logic verified from code perspective
+   - [ ] Notes:
+
+   **Human UAT Check**
+   - [ ] Tested by user
+   - [ ] Notes:
+   ```
+
+### Phase 4b: Sense Check UAT Case (Optional)
+
+**Applies when:** A UAT test case was generated in Phase 4a.
+**Skip when:** No UAT case was generated.
+
+Since the implementation code is fresh in context, immediately verify the UAT case logic:
+
+1. **Trace each UAT step** through the code just written:
+   - Does the action map to a real UI element / API endpoint / code path?
+   - Is the assertion verifiable from the implementation?
+   - Are there any steps that reference behavior not actually implemented?
+2. **Verify acceptance criteria coverage:**
+   - Each UAT acceptance criterion should correspond to tested, reachable code
+   - Flag any criterion that assumes functionality beyond what was built
+3. **Assign verdict:**
+   - **Pass** — all steps and criteria trace to working code
+   - **Warning** — potential gap found; note the issue in the UAT file and fix if trivial
+   - **Fail** — step references non-existent behavior; fix the UAT case (not the code — the code was already tested)
+4. **Update the UAT file:**
+   - Check the box: `- [x] Logic verified from code perspective`
+   - Fill in Notes with verdict and what was checked
 
 ## Phase 4.5: Completion Verification
 
