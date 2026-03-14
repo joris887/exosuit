@@ -81,6 +81,8 @@ For STANDARD stories, consider entering Plan Mode at the start of Phase 0 and re
 
 ## Phase 0: Intent Decomposition
 
+Run the `context-prime` micro-component from `.claude/prompts/context-prime.md` to load project context (intent-aware ordering based on the story description).
+
 Before any exploration, decompose the user's request. Apply the `scope_analysis` reasoning tool from `references/reasoning-tools.md`:
 
 1. List ALL distinct outcomes the user expects (implementation, tests, docs, PR, etc.)
@@ -150,6 +152,8 @@ All other phases are **REQUIRED** — do NOT skip them because the story feels s
 
 Enter plan mode to research and design the approach.
 
+**Pre-flight:** Run the `discover-commands` micro-component from `.claude/prompts/discover-commands.md` to extract configured commands (test, lint, format, build, typecheck) from CLAUDE.md. Run the `verify-clean-git-state` micro-component from `.claude/prompts/verify-clean-git-state.md` to confirm no uncommitted changes and correct branch.
+
 ### 1a. Identify Story Type
 
 Determine the story type from the description, backlog entry, or user input:
@@ -197,7 +201,7 @@ Use the `grep-first-explore` micro-component from `.claude/prompts/grep-first-ex
 3. Rank files by match density, select top 5-10
 4. If fewer than 3 files match (greenfield or entirely new feature): fall back to codebase-explorer agents
 
-**If sub-agents are available (STANDARD stories):** Dispatch codebase-explorer agents with focused prompts:
+**If sub-agents are available (STANDARD stories):** Use the `wave-execution` micro-component from `.claude/prompts/wave-execution.md` to dispatch codebase-explorer agents in parallel with focused prompts:
 - **Implementation focus:** "Find source files that implement or relate to: [story description]."
 - **Test focus:** "Find test files, test utilities, and fixtures related to: [story description]."
 
@@ -325,12 +329,13 @@ Use this exact format at the TOP of the plan:
 
 workflow: story-cycle
 phase: "plan-approved — proceed to execution"
-stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 2-transition]
+stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d5-discovery-gate, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 1h-depth-check, 2-transition]
 remaining_steps:
   - "Run tests: use project test command from CLAUDE.md Commands"
   - "Update documentation if AC requires it"
   - "Generate UAT test case (if Feature/Bug Fix with user-visible behavior and UAT structure exists)"
   - "Sense check UAT case (if generated — trace steps through code)"
+  - "Capture learnings (if non-obvious patterns discovered — save to docs/solutions/)"
   - "Commit: conventional format <type>(<scope>): <description>"
   - "Do NOT merge or create PR — that is sprint-end"
   - "Print completion report: story, type, approach, files, tests, commit hash"
@@ -469,6 +474,8 @@ When errors occur during execution, consult `references/error-recovery.md` — s
 
 Read `references/self-review.md` and complete the full checklist honestly. Do NOT skip items.
 
+Then read `references/disaster-prevention.md` and apply the adversarial checklist — check for: wheel reinvention (did you rebuild something that already exists?), spec drift (does the implementation match the plan?), integration wiring (are all connections actually hooked up?), file structure (are files in the right place following project conventions?), regression surface (could this break existing functionality?).
+
 **If sub-agents are available (Claude Code with Task tool):** Dispatch quality agents (`/code-quality`, `/test-validator`) in forked context for independent review.
 
 **If sub-agents are NOT available:** Perform the self-review checklist manually — do not skip quality checks just because agents aren't available.
@@ -505,13 +512,13 @@ If any line cannot be checked off, do NOT proceed — go back to the incomplete 
 
 This allows `/sprint-end` to understand partial completion if the session ends unexpectedly.
 
-After execution is complete:
+After execution is complete, run the `quality-gate-sequence` micro-component from `.claude/prompts/quality-gate-sequence.md` (lint → typecheck → test, in order — skip any that aren't configured):
 
 <IF condition="test command exists in CLAUDE.md Commands">
-1. **Run tests:** Execute the project's test command. Verify all tests pass with zero failures.
+1. **Run quality gates:** Execute lint, typecheck, and test commands. Verify all pass with zero failures.
 </IF>
 <ELSE>
-1. **Tests:** No test command configured — skip test verification, note in completion report.
+1. **Quality gates:** Run any configured commands (lint, typecheck). No test command configured — skip test verification, note in completion report.
 </ELSE>
 
 2. **Update documentation** if the story's AC requires it (but only what's relevant)
