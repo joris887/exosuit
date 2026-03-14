@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-version: 2.10.0
+version: 2.11.0
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
@@ -350,6 +350,12 @@ Foundation work: infrastructure and tooling gaps identified by the Framework Rea
 ```
 
 If no foundation stories were generated (all principles Ready), still initialize BACKLOG_INDEX.md with an empty status table and point the user to `/ideate`.
+
+### A5.95. Scaffold Solutions Directory
+
+Create `docs/solutions/` with a `.gitkeep` file. This directory stores structured learnings from completed stories (see `capture-learnings` micro-component). Each solution document has searchable YAML frontmatter (title, tags, module, component) so future story-cycle Phase 1b can grep for prior learnings on affected modules.
+
+Also create `docs/brainstorms/` with a `.gitkeep` file. This directory stores design exploration documents from `/brainstorm` sessions for reference during `/ideate` and `/story-cycle`.
 
 ### A6. Clean Up
 

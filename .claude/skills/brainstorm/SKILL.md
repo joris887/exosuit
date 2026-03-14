@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-version: 2.5.0
+version: 2.6.0
 description: Use when the user has a complex idea that needs design exploration before story decomposition.
 trigger: manual
 depends-on: [ideate]
@@ -98,12 +98,27 @@ Summarize the recommended approach in a design brief:
 Do NOT invoke /ideate, write any stories, or begin implementation until the user has approved a design approach. The purpose of brainstorming is exploration, not execution.
 </HARD-GATE>
 
-## 6. Next Steps
+## 6. Persist Design Document
+
+After user approves the design, save the exploration to `docs/brainstorms/<topic-slug>.md` with frontmatter:
+
+```yaml
+---
+title: "<Idea Title>"
+date: <YYYY-MM-DD>
+status: decided  # explored | decided | abandoned
+decision: "<Chosen approach name>"
+---
+```
+
+Include the design brief (from Phase 5), the approaches explored (from Phase 3), and the risks identified (from Phase 4). This document is referenced by `/ideate` and `/story-cycle` when the idea becomes a story.
+
+## 7. Next Steps
 
 After user approves the design:
 
 - **For immediate implementation:** Invoke `/ideate` with the approved approach to decompose into stories
-- **For complex designs:** Save the design to `docs/plans/` for reference during implementation
+- **For complex designs:** The design doc in `docs/brainstorms/` serves as reference during implementation
 - **For unknowns:** Create spike stories to resolve open questions first
 
 ## Example

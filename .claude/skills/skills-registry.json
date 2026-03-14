@@ -5,286 +5,287 @@
     "description": "Execute a UAT test case — select, test, process findings, fix or log, and close the cycle.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/UAT-cycle/SKILL.md"
-  }
-,
+  },
   {
     "name": "architecture-check",
     "version": "2.7.0",
     "description": "Validate module boundaries, check for architectural drift, and suggest fitness function tests. Compares actual code structure against ARCHITECTURE.md.",
     "trigger": "conditional",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/architecture-check/SKILL.md"
-  }
-,
+  },
   {
     "name": "backlog-review",
     "version": "2.4.0",
     "description": "Execute comprehensive backlog review. Analyzes theme coverage, story quality, dependencies, and generates a backlog health report.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/backlog-review/SKILL.md"
-  }
-,
+  },
   {
     "name": "claude-sense-check",
     "version": "3.4.0",
     "description": "Incremental code logic verification of UAT test cases — pick batch, trace code, fix issues, update tracking.",
     "trigger": "manual",
     "depends_on": ["story-cycle"],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/claude-sense-check/SKILL.md"
-  }
-,
+  },
   {
     "name": "bootstrap",
-    "version": "2.8.0",
+    "version": "2.11.0",
     "description": "First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.",
     "trigger": "manual",
     "depends_on": ["skill-create"],
-    "references": ["references/stack-detection.md"," references/new-project.md"],
+    "calls": ["skill-create"],
+    "references": ["references/stack-detection.md", "references/new-project.md", "references/accuracy-safeguards.md", "references/coverage-assessment.md", "references/quality-tooling.md", "references/readiness-report.md", "references/foundation-backlog.md", "references/llm-readiness.md", "references/technical-debt-assessment.md"],
     "path": ".claude/skills/bootstrap/SKILL.md"
-  }
-,
+  },
   {
     "name": "brainstorm",
-    "version": "2.4.0",
+    "version": "2.6.0",
     "description": "Use when the user has a complex idea that needs design exploration before story decomposition.",
     "trigger": "manual",
     "depends_on": ["ideate"],
+    "calls": ["ideate"],
     "references": [],
     "path": ".claude/skills/brainstorm/SKILL.md"
-  }
-,
+  },
   {
     "name": "code-quality",
     "version": "2.4.0",
     "description": "Analyzes code quality, complexity, duplication, and architectural patterns. Use after implementing features, during code review, or when preparing for PR. Auto-invoke when user has completed significant code changes or asks to review code quality.",
     "trigger": "auto",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/code-quality/SKILL.md"
-  }
-,
+  },
   {
     "name": "commit",
     "version": "2.4.0",
     "description": "Create a well-formatted conventional commit with proper message structure. Use when ready to commit changes.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/commit/SKILL.md"
-  }
-,
+  },
   {
     "name": "continue",
     "version": "2.5.0",
     "description": "Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/continue/SKILL.md"
-  }
-,
+  },
   {
     "name": "debug-session",
     "version": "2.7.0",
     "description": "Use when the user reports a bug, error, or unexpected behavior that needs investigation.",
     "trigger": "manual",
     "depends_on": [],
-    "references": ["references/root-cause-tracing.md"," references/condition-based-waiting.md"," references/error-recovery.md"],
+    "calls": [],
+    "references": ["references/root-cause-tracing.md", "references/condition-based-waiting.md", "references/error-recovery.md"],
     "path": ".claude/skills/debug-session/SKILL.md"
-  }
-,
+  },
   {
     "name": "doctor",
-    "version": "2.9.0",
+    "version": "3.0.0",
     "description": "Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/doctor/SKILL.md"
-  }
-,
+  },
   {
     "name": "fix-issue",
     "version": "2.4.0",
     "description": "Fix a GitHub issue following project coding standards. Creates branch, implements fix with TDD, and prepares PR.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": ["story-cycle"],
     "references": [],
     "path": ".claude/skills/fix-issue/SKILL.md"
-  }
-,
+  },
   {
     "name": "handoff",
     "version": "2.4.0",
     "description": "Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/handoff/SKILL.md"
-  }
-,
+  },
   {
     "name": "ideate",
-    "version": "2.8.0",
+    "version": "2.9.0",
     "description": "Use when the user has an idea or requirement to decompose into backlog stories.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": ["references/story-template.md"],
     "path": ".claude/skills/ideate/SKILL.md"
-  }
-,
+  },
   {
     "name": "manual-test",
     "version": "2.4.0",
     "description": "Prepare for manual testing session with test plan based on known issues, recent changes, and acceptance criteria.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/manual-test/SKILL.md"
-  }
-,
+  },
   {
     "name": "parallel-work",
     "version": "2.4.0",
     "description": "Manage git worktrees for parallel Claude Code instances working on different stories. List, create, and clean up worktrees.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/parallel-work/SKILL.md"
-  }
-,
+  },
   {
     "name": "pr-status",
     "version": "2.4.0",
     "description": "Check status of open pull requests and provide options for next steps. Use to review PR status, handle feedback, or merge approved PRs.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/pr-status/SKILL.md"
-  }
-,
+  },
   {
     "name": "refine-loop",
     "version": "2.4.0",
     "description": "Use when the user wants iterative self-improvement on a deliverable (document, implementation, prompt, design) until completion criteria are met.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/refine-loop/SKILL.md"
-  }
-,
+  },
   {
     "name": "retrospective",
     "version": "2.4.0",
     "description": "Run a sprint or weekly retrospective using the 4Ls framework with metrics dashboard. Analyzes what worked, what was learned, what was lacking, and what we wish we had.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/retrospective/SKILL.md"
-  }
-,
+  },
   {
     "name": "security-audit",
     "version": "3.0.1",
     "description": "Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input.",
     "trigger": "conditional",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/security-audit/SKILL.md"
-  }
-,
+  },
   {
     "name": "skill-create",
     "version": "2.4.0",
     "description": "Analyze the repository's technology stack and generate appropriate skills, rules, and hook configurations.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/skill-create/SKILL.md"
-  }
-,
+  },
   {
     "name": "skill-eval",
     "version": "2.4.0",
     "description": "Use when you want to test, measure, or compare skill effectiveness. Supports eval (test against scenario), compare (A/B test two versions), and metrics (track execution data).",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/skill-eval/SKILL.md"
-  }
-,
+  },
   {
     "name": "sprint-end",
     "version": "2.8.0",
     "description": "Use when the user wants to ship a sprint's work to main via PR.",
     "trigger": "manual",
-    "depends_on": ["code-quality"," test-validator"," security-audit"],
-    "references": ["references/quality-gates.md"," references/error-recovery.md"],
+    "depends_on": ["code-quality", "test-validator", "security-audit"],
+    "calls": ["code-quality", "test-validator", "security-audit"],
+    "references": ["references/quality-gates.md", "references/error-recovery.md"],
     "path": ".claude/skills/sprint-end/SKILL.md"
-  }
-,
+  },
   {
     "name": "sprint-start",
     "version": "2.6.0",
     "description": "Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/sprint-start/SKILL.md"
-  }
-,
+  },
   {
     "name": "story-cycle",
-    "version": "2.9.0",
+    "version": "3.6.0",
     "description": "Use when the user wants to implement a single story or deliver a backlog item.",
     "trigger": "manual",
-    "depends_on": ["code-quality"," test-validator"," security-audit"],
-    "references": ["references/story-types.md"," references/self-review.md"," references/reasoning-tools.md"," references/error-recovery.md"," references/plan-template.md"," references/parallel-streams.md"],
+    "depends_on": ["code-quality", "test-validator", "security-audit"],
+    "calls": ["code-quality", "test-validator", "security-audit"],
+    "references": ["references/story-types.md", "references/self-review.md", "references/disaster-prevention.md", "references/reasoning-tools.md", "references/elicitation-techniques.md", "references/error-recovery.md", "references/plan-template.md", "references/parallel-streams.md"],
     "path": ".claude/skills/story-cycle/SKILL.md"
-  }
-,
+  },
   {
     "name": "test-validator",
     "version": "2.4.0",
     "description": "Validates test coverage, quality, and TDD compliance. Detects weakened assertions, deleted tests, and tautological patterns. Auto-invoke when user has written code and needs test validation.",
     "trigger": "auto",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/test-validator/SKILL.md"
-  }
-,
+  },
   {
     "name": "testing-cycle",
     "version": "2.4.0",
     "description": "Process a single user testing feedback item — classify, fix or log, verify, and report.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/testing-cycle/SKILL.md"
-  }
-,
+  },
   {
     "name": "undo-work",
     "version": "3.0.1",
     "description": "Safely discard or revert failed implementation attempts and restore a clean working state.",
     "trigger": "manual",
     "depends_on": [],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/undo-work/SKILL.md"
-  }
-,
+  },
   {
     "name": "weekly-maintenance",
     "version": "2.4.0",
     "description": "Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning.",
     "trigger": "manual",
     "depends_on": ["code-quality"],
+    "calls": ["code-quality", "doctor"],
     "references": [],
     "path": ".claude/skills/weekly-maintenance/SKILL.md"
   }

@@ -3,6 +3,8 @@ name: performance-engineer
 description: |
   Analyzes hot paths, N+1 queries, unbounded operations, memory leaks,
   and scaling behavior. Reports only findings with confidence >= 80.
+model: inherit
+temperature: 0.2
 color: green
 tools: Glob, Grep, Read, Bash
 ---

@@ -3,6 +3,8 @@ name: architecture-reviewer
 description: |
   Validates module boundaries, dependency direction, coupling, and layer
   violations against ARCHITECTURE.md. Reports only findings with confidence >= 80.
+model: inherit
+temperature: 0.1
 color: blue
 tools: Glob, Grep, Read
 ---

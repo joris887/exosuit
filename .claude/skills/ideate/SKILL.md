@@ -1,6 +1,6 @@
 ---
 name: ideate
-version: 2.8.0
+version: 2.9.0
 description: Use when the user has an idea or requirement to decompose into backlog stories.
 trigger: manual
 depends-on: []
@@ -26,6 +26,8 @@ Before starting, verify:
 If prerequisites fail, inform the user and stop — don't consume context on doomed work.
 
 ## 1. Gather Input
+
+**Check for prior brainstorm artifacts:** Search `docs/brainstorms/` for existing design documents matching the topic. If a brainstorm doc exists with `status: decided`, load it as context — the design exploration and key decisions have already been made.
 
 Understand the idea or requirement from `$ARGUMENTS` and any additional context the user provides.
 

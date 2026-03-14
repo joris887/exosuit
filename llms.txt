@@ -12,18 +12,20 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.4)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.5)
 - docs/reference/MCP_INTEGRATION.md: MCP server selection guide with categories, decision tree, and integration patterns
 - docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
+- docs/solutions/: Searchable solutions database — learnings from completed stories with YAML frontmatter (title, tags, module, component)
+- docs/brainstorms/: Persisted design exploration documents from /brainstorm with YAML frontmatter (title, date, status, decision)
 
 ## Skills (invoked via /skill-name in Claude Code)
-- .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack, generate project context knowledge base, optional MCP server detection
+- .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack, generate project context knowledge base, scaffold solutions/brainstorms directories, optional MCP server detection
   - references/stack-detection.md: Technology detection tables and commands
   - references/new-project.md: New project braindump and generation workflow
   - references/accuracy-safeguards.md: Anti-hallucination protocol for documentation creation
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
-- .claude/skills/story-cycle/SKILL.md: Universal story delivery with confidence gate, risk-calibrated depth, intent-based security activation, adaptive depth calibration, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, failure state persistence, control flow markers, error recovery, error learning, disaster prevention, parallel stream decomposition, wave execution, skill lifecycle metrics, cross-skill status, completion verification, micro-component composition, and handoff suggestions
+- .claude/skills/story-cycle/SKILL.md: Universal story delivery with confidence gate, risk-calibrated depth, grep-first exploration, research decision gate, solutions database integration, intent-based security activation, adaptive depth calibration, discovery gates, depth exploration, clarification scanning, WHAT/HOW plan separation, ground rules checks, intent decomposition, reasoning scaffolds, workflow state persistence, failure state persistence, control flow markers, error recovery, error learning, disaster prevention, parallel stream decomposition, wave execution, skill lifecycle metrics, cross-skill status, completion verification, micro-component composition, and handoff suggestions
   - references/story-types.md: Per-type execution details (TDD, bug fix, refactoring, etc.)
   - references/self-review.md: Self-review checklist with red flags + disaster prevention reference
   - references/disaster-prevention.md: Adversarial LLM failure mode checklist (wheel reinvention, spec drift, integration wiring, file structure, regression surface)
@@ -35,9 +37,9 @@
   - references/quality-gates.md: Detailed quality gate checks and recovery
   - references/error-recovery.md: Step-specific error/cause/recovery decision tables (18 error patterns)
   - scripts/test-count-delta.sh: Compare test counts between branch and main
-- .claude/skills/brainstorm/SKILL.md: Design exploration with alternative approaches and handoff suggestions
+- .claude/skills/brainstorm/SKILL.md: Design exploration with alternative approaches, persisted design documents in docs/brainstorms/, and handoff suggestions
   - assets/brainstorm-output.md: Structured brainstorm output template
-- .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories with story template, doc quality check, and handoff suggestions
+- .claude/skills/ideate/SKILL.md: Ideas → typed backlog stories with brainstorm artifact check, story template, doc quality check, and handoff suggestions
   - references/story-template.md: Story output template with user-centric framing (As a/I want/So that), Given/When/Then criteria, independent testability, and priority justification
   - assets/story-template.md: Structured story output template for /ideate
 - .claude/skills/continue/SKILL.md: Smart session resumption with failure state detection, project health scan, micro-component composition
@@ -55,7 +57,7 @@
 - .claude/skills/parallel-work/SKILL.md: Git worktree management
   - scripts/worktree-status.sh: Worktree status with merge info
 - .claude/skills/architecture-check/SKILL.md: Architecture validation
-- .claude/skills/doctor/SKILL.md: Framework health check — validates config, hooks, dependencies, rules, documentation freshness, skill conformance
+- .claude/skills/doctor/SKILL.md: Framework health check — validates config, hooks, dependencies, skill cross-references, rules, documentation freshness, skill conformance
   - scripts/validate-skills.sh: Skill conformance validator (frontmatter, line budget, references, registry)
 - .claude/skills/skill-eval/SKILL.md: Skill evaluation — test, A/B compare, metrics, baseline capture, regression detection
   - baselines/: Stored baseline outputs for regression detection
@@ -88,18 +90,20 @@
 - .claude/prompts/confidence-gate.md: Pre-implementation confidence assessment (5 dimensions, 0-100 scoring, threshold-gated)
 - .claude/prompts/record-failure.md: Cross-session error learning — records failure patterns, root causes, and prevention strategies
 - .claude/prompts/wave-execution.md: Wave → Checkpoint → Wave parallel execution pattern for independent operations
+- .claude/prompts/grep-first-explore.md: Grep-first codebase exploration — pre-filter files via targeted Grep before reading
+- .claude/prompts/capture-learnings.md: Solutions database — persist learnings from completed stories with searchable YAML frontmatter
 - .claude/prompts/select-tool.md: MCP server vs built-in tool selection guide with decision matrix
 
 ## Native Agents (.claude/agents/)
-- .claude/agents/code-reviewer.md: Code review with severity classification (correctness, conventions, security lenses)
-- .claude/agents/spec-reviewer.md: Spec compliance verification with file:line references (model: haiku)
-- .claude/agents/security-analyst.md: Security-focused analysis with attacker mindset, OWASP top 10, CWE references
-- .claude/agents/performance-engineer.md: Performance analysis with bottleneck identification, N+1 detection, and scaling assessment
-- .claude/agents/architecture-reviewer.md: Architecture validation with boundary enforcement, dependency direction, and coupling analysis
-- .claude/agents/codebase-explorer.md: Fast file discovery and codebase mapping (model: haiku)
+- .claude/agents/code-reviewer.md: Code review with severity classification (correctness, conventions, security lenses) — temperature: 0.1
+- .claude/agents/spec-reviewer.md: Spec compliance verification with file:line references (model: haiku) — temperature: 0.1
+- .claude/agents/security-analyst.md: Security-focused analysis with attacker mindset, OWASP top 10, CWE references — temperature: 0.1
+- .claude/agents/performance-engineer.md: Performance analysis with bottleneck identification, N+1 detection, and scaling assessment — temperature: 0.2
+- .claude/agents/architecture-reviewer.md: Architecture validation with boundary enforcement, dependency direction, and coupling analysis — temperature: 0.1
+- .claude/agents/codebase-explorer.md: Fast file discovery and codebase mapping (model: haiku) — temperature: 0.3
 
 ## Hooks
-- .claude/hooks/engine.py: Unified Python dispatch engine routing all hook events to handler modules with YAML rule configuration
+- .claude/hooks/engine.py: Unified Python dispatch engine routing all hook events to handler modules with YAML rule configuration and per-handler error isolation
 - .claude/hooks/rules/safety.yaml: PreToolUse blocking patterns (git force push, destructive ops, publishing, DB, process killing)
 - .claude/hooks/rules/quality.yaml: Stop quality gate rules (weak claims, completion evidence)
 - .claude/hooks/handlers/: Per-event handler modules (pre_tool_use, post_tool_use, stop, user_prompt, subagent_stop, session_start, worktree)

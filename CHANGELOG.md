@@ -1,5 +1,77 @@
 # Changelog
 
+## [3.5.0] - 2026-03-14
+
+### Context Efficiency & Knowledge Reuse (OPT-125 through OPT-132)
+
+#### OPT-125: Grep-First Codebase Exploration
+- **New:** `.claude/prompts/grep-first-explore.md` (micro-component for pre-filtering files via targeted Grep before reading)
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 1b replaced parallel agent-only exploration with grep-first pattern, added `grep-first-explore` to phase-1 micro-components, version bumped to 3.6.0)
+- **What:** Phase 1b now uses targeted Grep calls to identify relevant files before reading them, dramatically reducing context consumption. Exploration depth scales with story size: TRIVIAL skips exploration, SMALL uses grep-first only, STANDARD adds codebase-explorer agents, STANDARD + High-risk adds security-focused grep.
+- **Why:** The previous approach launched 3 parallel codebase-explorer agents that read broadly. For larger codebases, this consumed significant context budget on files that turned out to be irrelevant. Grep-first pre-filters candidates, reducing reads from O(n) to O(relevant).
+- **To test:** Run `/story-cycle` on a SMALL story. Verify Phase 1b uses grep-first exploration (parallel Grep calls, file ranking) rather than dispatching 3 agents. For STANDARD stories, verify grep-first runs first followed by 1-2 targeted agents.
+- **To revert:** Delete `.claude/prompts/grep-first-explore.md`. In story-cycle SKILL.md: restore the original Phase 1b section (3 parallel codebase-explorer agents), remove `grep-first-explore` from phase-1 micro-components. Revert story-cycle version to 3.5.0.
+
+#### OPT-126: Solutions Database & Learnings Capture
+- **New:** `.claude/prompts/capture-learnings.md` (micro-component for persisting learnings from completed stories)
+- **New:** `docs/solutions/` directory (searchable solutions database with YAML frontmatter)
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (added learnings capture step to Phase 4, added `capture-learnings` to phase-4 micro-components, Phase 1b now checks `docs/solutions/` for prior learnings)
+- **Modified:** `.claude/skills/bootstrap/SKILL.md` (added step A5.95 to scaffold `docs/solutions/` and `docs/brainstorms/`, version bumped to 2.11.0)
+- **What:** Completed stories can produce structured learnings documents in `docs/solutions/` with searchable YAML frontmatter (title, tags, module, component). During Phase 1b, the grep-first-explore pattern searches these documents for prior learnings on affected modules, preventing rediscovery of known patterns.
+- **Why:** Positive learnings (what worked, integration gotchas, architectural decisions) were lost after session handoff notes aged out. Error-patterns captured failures, but successful approaches had no persistence mechanism.
+- **To test:** Complete a `/story-cycle` on a story that involves a non-obvious approach. Verify a solution document is created in `docs/solutions/`. Start a new story touching the same module. Verify Phase 1b checks `docs/solutions/` for prior learnings.
+- **To revert:** Delete `.claude/prompts/capture-learnings.md` and `docs/solutions/`. In story-cycle SKILL.md: remove the "Capture learnings" step from Phase 4, remove `capture-learnings` from phase-4 micro-components, remove the "Prior learnings check" paragraph from Phase 1b. In bootstrap SKILL.md: remove step A5.95. Revert bootstrap version to 2.10.0.
+
+#### OPT-127: Research Decision Gate
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 1c.5 now has a three-signal decision gate before online verification)
+- **What:** Phase 1c.5 (Online Verification) is now conditional. A decision gate evaluates three signals — risk level, local context strength, and uncertainty level — before deciding whether external research is needed. The decision is announced transparently to the user.
+- **Why:** Previously, online verification ran for every non-trivial story. For well-understood internal changes with strong local patterns, this wasted context and time. High-risk changes (security, new APIs, unfamiliar libraries) still always get researched.
+- **To test:** Run `/story-cycle` on a low-risk internal refactoring with established patterns. Verify the research decision gate skips online verification with a note. Then run on a story touching a new external API — verify it proceeds with research.
+- **To revert:** In story-cycle SKILL.md: replace the Phase 1c.5 section with the original (always-on) version that starts with "Before planning, verify that the approach and APIs are current."
+
+#### OPT-128: Hook Error Isolation
+- **Modified:** `.claude/hooks/engine.py` (wrapped handler dispatch in try-except with error logging)
+- **What:** Individual hook handler failures are now isolated — a crash in one handler (e.g., YAML parsing failure, missing state file) no longer blocks the entire hook event pipeline. Errors are logged to stderr for visibility.
+- **Why:** If a handler threw an unexpected error, it crashed the entire hook dispatch, potentially blocking legitimate tool usage or silently disabling enforcement. Each handler should fail independently.
+- **To test:** Temporarily introduce a syntax error in one handler module. Verify that other hook events still work and the error is reported on stderr.
+- **To revert:** In engine.py: remove the try-except block around `handler.handle()`, restoring the direct `result = handler.handle(...)` call.
+
+#### OPT-129: Depth-Controlled Exploration
+- **Modified:** `.claude/skills/story-cycle/SKILL.md` (Phase 1b exploration depth now scales with story size classification)
+- **What:** The number of exploration streams in Phase 1b scales with story size: TRIVIAL skips entirely, SMALL uses a single grep-first pass, STANDARD uses grep-first plus 1-2 codebase-explorer agents, STANDARD + High-risk adds a security-focused grep stream.
+- **Why:** The one-size-fits-all dispatch of 3 parallel agents wasted context on small changes and didn't provide extra security focus for high-risk stories. Better resource allocation follows the existing risk calibration matrix.
+- **To test:** Run `/story-cycle` on a TRIVIAL story — verify Phase 1b is skipped. Run on a SMALL story — verify single grep-first pass. Run on a STANDARD story — verify grep-first plus agents.
+- **To revert:** This is integrated into the OPT-125 Phase 1b changes. Revert OPT-125 to restore the original 3-agent approach.
+
+#### OPT-130: Brainstorm Document Artifacts
+- **New:** `docs/brainstorms/` directory (persisted design exploration documents)
+- **Modified:** `.claude/skills/brainstorm/SKILL.md` (added Phase 6 to persist design documents with YAML frontmatter, renumbered Phase 7, version bumped to 2.6.0)
+- **Modified:** `.claude/skills/ideate/SKILL.md` (Phase 1 now checks `docs/brainstorms/` for prior design documents, version bumped to 2.9.0)
+- **What:** `/brainstorm` now saves approved designs to `docs/brainstorms/<topic-slug>.md` with YAML frontmatter (title, date, status, decision). `/ideate` checks for existing brainstorm artifacts before starting decomposition. `/bootstrap` scaffolds the directory.
+- **Why:** Brainstorm output was conversation-only, lost after the session. When a brainstormed idea became a story weeks later, all design exploration had to be redone.
+- **To test:** Run `/brainstorm` on an idea, approve a design. Verify a document is saved to `docs/brainstorms/`. Run `/ideate` on the same topic — verify it loads the brainstorm document as context.
+- **To revert:** Delete `docs/brainstorms/`. In brainstorm SKILL.md: remove Phase 6, renumber Phase 7 back to Phase 6. In ideate SKILL.md: remove the "Check for prior brainstorm artifacts" paragraph from Phase 1. Revert brainstorm version to 2.5.0, ideate to 2.8.0.
+
+#### OPT-131: Skill Cross-Reference Registry
+- **Modified:** `.claude/skills/skills-registry.json` (added `calls` field to each skill entry declaring which other skills it invokes)
+- **Modified:** `.claude/skills/doctor/SKILL.md` (added skill cross-reference validation to Section 4, version bumped to 3.0.0)
+- **What:** The skills registry now includes a `calls` field for each skill, creating a machine-readable dependency graph. `/doctor` validates that all referenced skills exist and reports broken references or orphaned skills.
+- **Why:** Skill dependencies were only discoverable by reading each SKILL.md. A machine-readable graph enables automated validation and impact assessment when modifying skills.
+- **To test:** Run `/doctor`. Verify the new "Skill Dependencies & Cross-References" section appears in the health report. Temporarily add a non-existent skill to a `calls` array — verify `/doctor` reports a broken reference.
+- **To revert:** Remove the `calls` field from all entries in skills-registry.json. In doctor SKILL.md: remove the "For each skill with `calls:`..." paragraph from Section 4. Revert doctor version to 2.9.0.
+
+#### OPT-132: Agent Temperature & Model Hints
+- **Modified:** `.claude/agents/code-reviewer.md` (added `model: inherit`, `temperature: 0.1`)
+- **Modified:** `.claude/agents/spec-reviewer.md` (added `temperature: 0.1`)
+- **Modified:** `.claude/agents/security-analyst.md` (added `model: inherit`, `temperature: 0.1`)
+- **Modified:** `.claude/agents/architecture-reviewer.md` (added `model: inherit`, `temperature: 0.1`)
+- **Modified:** `.claude/agents/performance-engineer.md` (added `model: inherit`, `temperature: 0.2`)
+- **Modified:** `.claude/agents/codebase-explorer.md` (added `temperature: 0.3`)
+- **What:** All 6 native agents now include explicit `temperature` hints in their YAML frontmatter. Conservative agents (code-reviewer, spec-reviewer, security-analyst, architecture-reviewer) use temperature 0.1 for deterministic analysis. Performance-engineer uses 0.2. Codebase-explorer uses 0.3 for flexible search strategies.
+- **Why:** Analysis agents benefit from low temperature (deterministic, conservative findings), while exploration agents can use slightly higher temperature for creative search strategies. The `model: inherit` field future-proofs for per-agent model selection.
+- **To test:** Read each agent file and verify the temperature and model fields are present in the frontmatter. Temperature values should match: code-reviewer=0.1, security-analyst=0.1, architecture-reviewer=0.1, spec-reviewer=0.1, performance-engineer=0.2, codebase-explorer=0.3.
+- **To revert:** Remove the `model:` and `temperature:` lines from each agent file. For spec-reviewer and codebase-explorer (which already had `model: haiku`), only remove the `temperature:` line.
+
 ## [3.4.0] - 2026-02-23
 
 ### Pre-Implementation Quality Gates (OPT-119, OPT-120)

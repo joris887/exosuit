@@ -1,6 +1,6 @@
 ---
 name: doctor
-version: 2.9.0
+version: 3.0.0
 description: Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup.
 trigger: manual
 depends-on: []
@@ -46,13 +46,19 @@ For each rule in `.claude/rules/`:
 - Check if any files in the project match those patterns
 - Report: ACTIVE (matches found) / DORMANT (no matches — rule will never trigger)
 
-## 4. Skill Dependencies
+## 4. Skill Dependencies & Cross-References
 
 For each skill with `depends-on:` in YAML frontmatter:
 
 - Verify each dependency skill exists in `.claude/skills/`
 - For skills with `requires:` — check binaries, commands, and files
 - Report: PASS/WARN (optional dependency missing)/FAIL (required dependency missing)
+
+For each skill with `calls:` in `skills-registry.json`:
+
+- Verify each called skill exists in `.claude/skills/`
+- Report any broken references (skill calls a non-existent skill)
+- Report orphaned skills (not called by any other skill AND not user-invocable) as INFO — may be intentionally standalone
 
 ## 5. Documentation Freshness
 

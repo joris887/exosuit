@@ -30,7 +30,12 @@
       "depends_on": {
         "type": "array",
         "items": { "type": "string" },
-        "description": "Skills this skill may invoke"
+        "description": "Skills this skill depends on (required for it to function)"
+      },
+      "calls": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Skills this skill invokes during execution (dependency graph for /doctor validation)"
       },
       "references": {
         "type": "array",

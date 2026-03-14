@@ -4,6 +4,8 @@ description: |
   Attacker-mindset security analysis. Covers OWASP top 10, input validation,
   secret handling, auth checks, injection, and dependency risks.
   Reports only findings with confidence >= 80.
+model: inherit
+temperature: 0.1
 color: yellow
 tools: Glob, Grep, Read
 ---
