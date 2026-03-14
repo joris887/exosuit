@@ -41,12 +41,12 @@
   },
   {
     "name": "bootstrap",
-    "version": "2.8.0",
+    "version": "2.11.0",
     "description": "First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.",
     "trigger": "manual",
     "depends_on": ["skill-create"],
     "calls": ["skill-create"],
-    "references": ["references/stack-detection.md", "references/new-project.md"],
+    "references": ["references/stack-detection.md", "references/new-project.md", "references/accuracy-safeguards.md", "references/coverage-assessment.md", "references/quality-tooling.md", "references/readiness-report.md", "references/foundation-backlog.md", "references/llm-readiness.md", "references/technical-debt-assessment.md"],
     "path": ".claude/skills/bootstrap/SKILL.md"
   },
   {
