@@ -4,6 +4,8 @@ description: |
   Reviews code changes for bugs, security vulnerabilities, and convention compliance.
   Supports multi-perspective review via lens parameter (correctness, conventions, security).
   Reports only findings with confidence >= 80.
+model: inherit
+temperature: 0.1
 color: red
 tools: Glob, Grep, Read
 ---

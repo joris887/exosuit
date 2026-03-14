@@ -4,6 +4,7 @@ description: |
   Fast file discovery and codebase mapping. Identifies the 5-10 most relevant
   files for a given story or task. Returns file paths with one-line explanations.
 model: haiku
+temperature: 0.3
 color: yellow
 tools: Glob, Grep, Read
 ---

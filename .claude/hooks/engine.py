@@ -224,9 +224,17 @@ def main():
         print(f"Hook engine: handler {module_name} not found: {e}", file=sys.stderr)
         sys.exit(0)
 
-    # Load state and dispatch
+    # Load state and dispatch with error isolation
     state = load_state()
-    result = handler.handle(input_data, event, state, load_rules)
+    try:
+        result = handler.handle(input_data, event, state, load_rules)
+    except Exception as handler_err:
+        # Individual handler failure should not block the user's workflow.
+        # Safety-critical handlers (PreToolUse) are the exception — if they fail,
+        # we still allow the action but warn, since a crashed safety check is
+        # better surfaced than silently swallowed.
+        print(f"Hook handler error ({module_name}): {handler_err}", file=sys.stderr)
+        result = None
     save_state(state)
 
     # Process result

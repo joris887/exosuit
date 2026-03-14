@@ -1,16 +1,16 @@
 ---
 name: story-cycle
-version: 3.5.0
+version: 3.6.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
 references: [references/story-types.md, references/self-review.md, references/disaster-prevention.md, references/reasoning-tools.md, references/elicitation-techniques.md, references/error-recovery.md, references/plan-template.md, references/parallel-streams.md]
 micro-components:
   phase-0: [context-prime]
-  phase-1: [discover-commands, verify-clean-git-state, wave-execution]
+  phase-1: [discover-commands, verify-clean-git-state, wave-execution, grep-first-explore]
   phase-2.5: [confidence-gate]
   phase-3.5: [record-failure]
-  phase-4: [quality-gate-sequence]
+  phase-4: [quality-gate-sequence, capture-learnings]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write
@@ -48,7 +48,7 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
       → Lightweight Phase 1 (skip 1f-1g) → Phase 2 → Phase 3 → Phase 4 → DONE
     → [STANDARD: everything else]
       → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
-        → Phase 1c.5: Online Verification (WebFetch/WebSearch for API currency)
+        → Phase 1c.5: Online Verification (conditional — research decision gate)
         → Phase 1d.7: Story Refinement & Forward Context (gap analysis, cross-story notes)
         → Phase 1f: Clarification Check (ambiguity_scan across 7 categories)
           → [Clarifications needed?]
@@ -180,19 +180,32 @@ If the story type is ambiguous after checking indicators, ask the user using Ask
 - **Performance** — description: "Baseline measurement required. Optimize, then benchmark."
 - **Skill/Tooling** — description: "Developer experience. Design, build, document pattern."
 
-### 1b. Parallel Codebase Exploration
+### 1b. Codebase Exploration (Grep-First)
 
-Launch 2-3 codebase-explorer agents in parallel, each with a different focus:
+Use the `grep-first-explore` micro-component from `.claude/prompts/grep-first-explore.md` to efficiently identify relevant files before reading them. The number of exploration streams scales with story size:
 
-1. **Architecture focus:** "Find files related to the module structure, boundaries, and dependencies for: [story description]. Check ARCHITECTURE.md and any .claude-context.md files first."
-2. **Implementation focus:** "Find source files that implement or relate to: [story description]. Focus on the primary implementation files and related utilities."
-3. **Test focus:** "Find test files, test utilities, and fixtures related to: [story description]. Include both unit and integration test locations."
+| Size | Exploration Strategy |
+|------|---------------------|
+| **TRIVIAL** | Skip Phase 1b entirely (already fast-tracked) |
+| **SMALL** | Single grep-first pass: extract terms from the story, run parallel Grep calls, read top 5-7 files |
+| **STANDARD** | Grep-first pass + 1-2 codebase-explorer agents for broader context (architecture focus, test focus) |
+| **STANDARD + High-risk** | Grep-first pass + 2 agents + security-focused grep (search for auth patterns, input validation, trust boundaries in affected modules) |
 
-Collect results from all agents. Deduplicate and synthesize into a single focused file list (10-15 files max). This list drives all subsequent phases.
+**Grep-first process:**
+1. Extract key terms from the story description (function names, module names, API endpoints, error messages)
+2. Run parallel Grep calls: imports/usage, definitions, and test references
+3. Rank files by match density, select top 5-10
+4. If fewer than 3 files match (greenfield or entirely new feature): fall back to codebase-explorer agents
 
-Read ONLY the files identified by the agents. If during implementation you need additional files, read them then — don't front-load.
+**If sub-agents are available (STANDARD stories):** Dispatch codebase-explorer agents with focused prompts:
+- **Implementation focus:** "Find source files that implement or relate to: [story description]."
+- **Test focus:** "Find test files, test utilities, and fixtures related to: [story description]."
 
-**If sub-agents are NOT available:** Explore manually, but be selective — read file listings and imports first to narrow down before reading full files.
+**Prior learnings check:** Search `docs/solutions/` for prior learnings on affected modules. Grep frontmatter fields (tags, module, component) for terms from the story. Read matching solution documents to avoid rediscovering known patterns or gotchas.
+
+Collect all results. Deduplicate and synthesize into a focused file list (10-15 files max). Read ONLY the files identified. If during implementation you need additional files, read them then — don't front-load.
+
+**If sub-agents are NOT available:** Use grep-first only — it's efficient enough for most stories without agent support.
 
 ### 1c. Research Codebase
 
@@ -201,17 +214,29 @@ Read ONLY the files identified by the agents. If during implementation you need 
 - Identify files to modify and files to create
 - Check for `.claude-context.md` files in the target directory and parent directories — these contain module-specific patterns and conventions that supplement global CLAUDE.md
 
-### 1c.5. Online Verification
+### 1c.5. Online Verification (Conditional)
 
-Before planning, verify that the approach and APIs are current. This prevents implementing outdated patterns or hallucinating API signatures.
+Before planning, decide whether external research is needed. This gate prevents wasting context on unnecessary research for routine stories while ensuring thorough verification when it matters.
 
-**Step 1 — Official documentation** (always do this when the story touches a framework/library):
+**Research Decision Gate — evaluate these three signals:**
+
+| Signal | Research needed | Skip research |
+|--------|----------------|---------------|
+| **Risk level** | High-risk topics: security, payments, auth, external APIs, new dependencies | Low-risk internal changes |
+| **Local context strength** | Weak: unfamiliar library, no existing patterns, no prior solutions in `docs/solutions/` | Strong: established patterns, existing tests, prior solution docs cover this area |
+| **Uncertainty level** | Approach is unclear, multiple valid strategies exist | Approach is obvious from codebase conventions |
+
+**Decision:** If ANY signal points to "research needed" → proceed with online verification. Otherwise → skip with a note: `"Online verification: skipped — [strong local patterns / low-risk internal logic / well-understood area]"`.
+
+Announce the decision to the user so it's transparent.
+
+**Step 1 — Official documentation** (when proceeding):
 
 - Use `WebFetch` to check the official docs for any framework/library APIs you plan to use
 - Focus on: current API signatures, deprecation notices, migration guides, changelog entries for the pinned version
 - Compare against what the codebase currently uses and what any technology-specific skill references recommend
 
-**Step 2 — Broader research** (do this when the story involves unfamiliar territory, new integrations, or complex patterns):
+**Step 2 — Broader research** (when the story involves unfamiliar territory, new integrations, or complex patterns):
 
 - Use `WebSearch` to find recent blog posts, GitHub issues, or Stack Overflow answers about the approach
 - Look for: known pitfalls, better alternatives, community-recommended patterns
@@ -222,8 +247,6 @@ Before planning, verify that the approach and APIs are current. This prevents im
 - If official docs reveal a deprecation or API change: note it in the plan as a "Doc Finding" and update relevant reference docs after implementation
 - If a better approach is found: incorporate it into the plan
 - If everything checks out: note "Online verification: APIs confirmed current" and move on
-
-**Skip when:** The story is purely internal logic with no framework/library API calls (e.g., pure business logic, documentation-only, config changes).
 
 ### 1d. Define Required Skills
 
@@ -494,11 +517,12 @@ After execution is complete:
 2. **Update documentation** if the story's AC requires it (but only what's relevant)
 3. **Generate UAT test case** (if applicable — see Phase 4a below)
 4. **Sense check UAT case** (if UAT case was generated — see Phase 4b below)
-5. **Commit:** Stage relevant files and commit with conventional format:
+5. **Capture learnings** (if applicable): Run the `capture-learnings` micro-component from `.claude/prompts/capture-learnings.md`. Skip for TRIVIAL stories or when no non-obvious patterns were discovered. Save to `docs/solutions/<topic-slug>.md`.
+6. **Commit:** Stage relevant files and commit with conventional format:
    ```
    <type>(<scope>): <description>
    ```
-6. **Do NOT merge or create PR** — that's `/sprint-end`'s job
+7. **Do NOT merge or create PR** — that's `/sprint-end`'s job
 
 ### Phase 4a: Generate UAT Test Case (Optional)
 
