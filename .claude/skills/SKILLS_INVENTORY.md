@@ -68,6 +68,7 @@ For technology skill generation: `/skill-create`
 | `/retrospective`      | Sprint-end | 4Ls framework with metrics dashboard |
 | `/backlog-review`     | As needed  | Backlog health analysis            |
 | `/doctor`             | As needed  | Framework health check + dependency validation |
+| `/framework-upgrade`  | As needed  | Upgrade framework to newer version, preserving project customizations |
 
 ### Parallel Development (Manual-only)
 

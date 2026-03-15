@@ -328,18 +328,35 @@ Use this exact format at the TOP of the plan:
 ## Story-Cycle Context
 
 workflow: story-cycle
-phase: "plan-approved — proceed to execution"
+storyType: "[from Phase 1a]"
+phase: "plan-approved — proceed to Phase 2.5 Confidence Gate"
 stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d5-discovery-gate, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 1h-depth-check, 2-transition]
 remaining_steps:
-  - "Run tests: use project test command from CLAUDE.md Commands"
-  - "Update documentation if AC requires it"
-  - "Generate UAT test case (if Feature/Bug Fix with user-visible behavior and UAT structure exists)"
-  - "Sense check UAT case (if generated — trace steps through code)"
-  - "Capture learnings (if non-obvious patterns discovered — save to docs/solutions/)"
-  - "Commit: conventional format <type>(<scope>): <description>"
-  - "Do NOT merge or create PR — that is sprint-end"
-  - "Print completion report: story, type, approach, files, tests, commit hash"
-error_recovery: "references/error-recovery.md"
+  - "Phase 2.5 — CONFIDENCE GATE (HARD-GATE): Read .claude/prompts/confidence-gate.md. Score 5 dimensions (ambiguity, architecture, patterns, test strategy, dependencies) 0-20 each. ≥85 proceed, 70-84 clarify with user, <70 return to planning. Output the score table."
+  - "Phase 3 — IMPLEMENT: Read .claude/skills/story-cycle/references/story-types.md for [storyType] execution steps. Load docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md. Re-read all target files from plan before editing. Follow story-type methodology (e.g., TDD: RED failing test → GREEN minimal impl → REFACTOR)."
+  - "Phase 3 — UPDATE STATE: Update docs/sessions/.failure-state.md with phase: 3. If plan saved to docs/plans/, update stepsCompleted."
+  - "Phase 3.5 — SELF-REVIEW (HARD-GATE): Read references/self-review.md — complete ALL checklist items (completeness, quality, testing, discipline). Read references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface. If ANY item fails → fix in Phase 3 before proceeding."
+  - "Phase 3.5 — PHASE COMPLETION TRACKER: Output table confirming phases 0, 1, 2, 2.5, 3, 3.5 all completed with evidence. Do NOT proceed to Phase 4 if any phase is unchecked."
+  - "Phase 4 — QUALITY GATES: Run lint → typecheck → test in order (stop on first failure). Use commands from CLAUDE.md."
+  - "Phase 4 — DOCS: Update docs/progress.md with story status. Update other documentation only if AC requires it."
+  - "Phase 4 — UAT (optional, Feature/Bug Fix only): Generate UAT test case if user-visible behavior changed and UAT directory exists. Sense check if generated — trace each step through code."
+  - "Phase 4 — LEARNINGS (optional): If non-obvious patterns discovered, save to docs/solutions/<topic-slug>.md."
+  - "Phase 4 — COMMIT: Stage relevant files. Conventional format: <type>(<scope>): <description>. Do NOT merge or create PR — that is sprint-end."
+  - "Phase 4.5 — COMPLETION VERIFICATION (HARD-GATE): Re-read original AC from plan. For EACH criterion, provide concrete evidence (test output, file:line, command output). Max 2 extra loop passes if gaps found. Do NOT print completion report until every AC has evidence."
+  - "COMPLETION REPORT: Print story, type, approach, files modified, test counts, commit hash, verification evidence."
+  - "CLEANUP: Delete docs/sessions/.failure-state.md on success."
+error_recovery: ".claude/skills/story-cycle/references/error-recovery.md"
+skill_file: ".claude/skills/story-cycle/SKILL.md"
+
+### Post-Plan Bootstrap
+
+When you encounter this Story-Cycle Context block (e.g., after Plan Mode
+exit or context compaction), you are mid-workflow in the story-cycle skill.
+Execute the remaining_steps list above in order — it is your authoritative
+checklist. For full details on any step, read the skill_file above starting
+from the relevant Phase section. Before implementation, load
+docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md.
+Re-read target files listed in the plan before editing them.
 
 ### File Context (accumulates across compactions)
 <files-read>
