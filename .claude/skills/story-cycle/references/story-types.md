@@ -27,7 +27,7 @@ Repeat RED-GREEN-REFACTOR for each behavior in the acceptance criteria.
 
 ## Bug Fix
 
-1. **Web research the error pattern (before coding):** Take the error message, stack trace, or reported behavior and `WebSearch` for: `"<library/framework> <error snippet>"`. Check for known issues, existing fixes, or version-specific bugs. This often reveals the root cause faster than code archaeology. Skip only if the bug is clearly internal logic (e.g., wrong variable name).
+1. **Web research the error pattern (before coding):** Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **QUICK** depth. Use the error message, stack trace, or reported behavior as the query. Sub-questions: (a) "What causes [error message] in [library/framework]?" (b) "Known fixes for [error pattern]". Output format: `evidence-check`. This often reveals the root cause faster than code archaeology. Skip only if the bug is clearly internal logic (e.g., wrong variable name).
 1. Write a test that reproduces the bug (must fail)
 1. Verify it fails for the right reason (matches the reported behavior)
 1. Implement the minimal fix (informed by web research findings if applicable)
@@ -46,9 +46,9 @@ Repeat RED-GREEN-REFACTOR for each behavior in the acceptance criteria.
 
 1. Define the questions to answer (from story or user)
 1. Time-box the exploration (ask user for budget if not defined)
-1. **Deep web research (mandatory):** Use `WebSearch` and `WebFetch` extensively to ground findings in real-world evidence. Research current state of reference technologies, recent publications, competitor products, and relevant UX/architecture patterns. Dispatch multiple research agents in parallel for thorough coverage. Training data is insufficient — spikes require verified, current information with source URLs.
+1. **Deep web research (mandatory):** Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **DEEP** depth. Generate sub-questions from the spike's questions. Research current state of reference technologies, recent publications, competitor products, and relevant UX/architecture patterns. The research engine handles parallel subagent dispatch, source quality evaluation, reflection-based compression, and iterative deepening. Output format: `research-report`. Training data is insufficient — spikes require verified, current information with source URLs.
 1. Explore, prototype, experiment — code may be thrown away
-1. Document findings: what was learned, what was decided, what's recommended. All claims must cite sources with URLs.
+1. Document findings: what was learned, what was decided, what's recommended. All claims must cite sources with URLs. Save the research report to `docs/research/<topic-slug>.md`.
 1. Output: decision document, ADR, or backlog stories for follow-up work
 1. **Backlog review (mandatory):** Before completing, review all stories that depend on or are informed by this spike's findings. For each: (a) check if acceptance criteria need updating based on research, (b) check if new stories are needed to cover gaps the research revealed, (c) check if any stories should be split, merged, or removed. Present proposed backlog changes to the user for approval.
 1. No production code required

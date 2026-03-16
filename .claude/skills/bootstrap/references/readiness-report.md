@@ -14,7 +14,7 @@ Each check maps a framework design principle to a concrete, verifiable project s
 |---|-----------|-------|-------------|----------------|
 | 1 | **TDD-first** | Test runner exists AND coverage tool available | A2 (commands) + A2.6 (coverage) | Test command works, coverage > 60% |
 | 2 | **Sprint-based** | Git repo with clean state | A1 (project state) | `.git/` exists, no merge conflicts |
-| 3 | **Git-disciplined** | Default branch exists, remote configured | A3.6 (default branch) | Default branch detected, remote set |
+| 3 | **Git-disciplined** | Default branch exists, remote configured | A3.7 (default branch) | Default branch detected, remote set |
 | 4 | **Verification-driven** | Test command works and produces output | A2 (commands) | Test command configured and passing |
 | 5 | **CI-enforced** | CI/CD pipeline exists with framework PR review | A5.7 (CI/CD assessment) | CI config found AND framework PR review workflow present |
 | 6 | **Secrets-aware** | Post-edit hook configured with secrets scan | A5.5 (hook config) | `post-edit-format.sh` registered in settings.json |

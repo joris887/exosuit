@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 3.4
+**Framework Version:** 3.6
 
 ## Core Workflow
 
@@ -45,6 +45,7 @@ For technology skill generation: `/skill-create`
 | `/brainstorm`   | `<idea-or-topic>`       | Design exploration with alternatives before story decomposition |
 | `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed stories (single context window sized) |
 | `/skill-create` | -                       | Generate tech skills, rules, and hook configs |
+| `/research`     | `<topic-or-question>`   | Deep online research with parallel sub-question investigation, source evaluation, and structured reports |
 
 ### Quality & Testing (Manual + Auto)
 
@@ -128,6 +129,13 @@ Lightweight, reusable prompt templates — simpler than full skills. See `.claud
 | `/explain-pattern`  | `<pattern> [file]`   | Explain a code pattern in this codebase |
 | `/suggest-tests`    | `<file-path>`        | Suggest test cases for a file        |
 
+Internal prompt snippets (composed by skills, not user-invocable):
+
+| Snippet              | Purpose                                                  |
+| -------------------- | -------------------------------------------------------- |
+| `deep-research`      | Research engine: decompose → parallel dispatch → reflect → synthesize → deepen |
+| `source-evaluator`   | Source quality scoring (0-10) with positive/negative signal criteria |
+
 ### Native Agents (`.claude/agents/`)
 
 Claude Code native agents with YAML frontmatter. Discoverable via `claude agents` CLI.
@@ -140,6 +148,7 @@ Claude Code native agents with YAML frontmatter. Discoverable via `claude agents
 | `performance-engineer` | inherit | Performance analysis with bottleneck identification  |
 | `architecture-reviewer`| inherit | Architecture validation with boundary enforcement    |
 | `codebase-explorer`    | haiku   | Fast file discovery and codebase mapping             |
+| `research-analyst`     | haiku   | Deep web research with source evaluation and reflection output |
 
 ### Technology Skills (Auto-invocable)
 
@@ -241,6 +250,7 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 3.6     | 2026-03-16 | Deep research capability: `/research` skill, `deep-research` engine snippet, `source-evaluator` snippet, `research-analyst` agent, research rule, depth-calibrated research in bootstrap/brainstorm/ideate/story-cycle, reflection-based context compression, parallel subagent dispatch for research, prior research caching |
 | 3.4     | 2026-02-23 | Confidence gate, four-question evidence protocol, cross-session error learning, wave execution pattern, MCP integration guide, domain-specific agent personas, completion evidence protocol |
 | 3.2     | 2026-02-23 | Worktree-aware bash hook, parallel stream decomposition, project context knowledge base, script delegation (status/standup/next-story), documentation accuracy safeguards, template repo safety check |
 | 3.0     | 2026-02-22 | CI PR review, PR template, session-start hook, activity logging, skill conformance validator, registry schema, story-cycle fast-track, dynamic quality scaling, agent tool restrictions, GitHub issue templates |

@@ -31,7 +31,7 @@ Before session recovery, assess project maturity by checking key artifacts:
 | Artifact | Check | If Missing/Incomplete |
 |----------|-------|----------------------|
 | `docs/architecture/ARCHITECTURE.md` | Exists and non-template | Suggest `/bootstrap` |
-| `docs/reference/GROUND_RULES.md` | Exists and has ≥3 rules | Suggest `/bootstrap` (A3.6 step) |
+| `docs/reference/GROUND_RULES.md` | Exists and has ≥3 rules | Suggest `/bootstrap` (A3.5b step) |
 | `docs/reference/CODING_STANDARDS.md` | Exists and non-template | Suggest `/bootstrap` |
 | `docs/reference/BACKLOG_INDEX.md` | Has ≥1 TODO story | Suggest `/ideate` |
 | Feature branch | `git branch --list 'feature/*' 'sprint-*'` | Suggest `/sprint-start` |

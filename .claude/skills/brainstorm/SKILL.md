@@ -1,13 +1,13 @@
 ---
 name: brainstorm
-version: 2.6.0
+version: 2.7.0
 description: Use when the user has a complex idea that needs design exploration before story decomposition.
 trigger: manual
 depends-on: [ideate]
 references: []
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Agent
 argument-hint: "<idea-or-topic>"
 ---
 ______________________________________________________________________
@@ -43,6 +43,25 @@ Investigate relevant existing code:
 - Related features that this idea connects to
 - Architecture constraints from `docs/architecture/ARCHITECTURE.md`
 - Technology limitations or capabilities
+
+## 2.5. Research Alternatives (Optional — Recommended)
+
+Before proposing alternatives, research them with web evidence. This step makes alternatives evidence-backed rather than relying solely on training data.
+
+Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **STANDARD** depth:
+
+- **Query:** Generated from the 2-3 potential approaches identified during problem exploration
+- **Sub-questions** (one per approach):
+  1. "Real-world implementations of [approach 1] for [problem domain]"
+  2. "Tradeoffs and pitfalls of [approach 2] in production"
+  3. "Libraries/tools commonly used for [approach 3] in [detected stack]"
+- **Output format:** `decision-input` (compact, one per approach)
+
+Research is dispatched in parallel — one subagent per approach.
+
+Integrate findings into Phase 3 alternatives: each approach's pros/cons now include real-world evidence and citations where applicable.
+
+**Skip when:** User says "no research" or "I know the approaches", or the brainstorm is about internal refactoring with no external technology choices.
 
 ## 3. Propose Alternative Approaches
 
