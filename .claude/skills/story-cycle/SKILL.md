@@ -357,12 +357,12 @@ remaining_steps:
   - "BOOTSTRAP (do this FIRST): Read .claude/skills/story-cycle/SKILL.md starting from '## Phase 2: Context Transition + Confidence Gate' to reload the full story-cycle workflow. You are mid-workflow — planning is done, implementation phases remain. Do NOT stop after reading the plan."
   - "Phase 2 — CONTEXT + CONFIDENCE GATE (HARD-GATE): Prune context (keep plan + paths + gotchas, discard bulk). Read .claude/prompts/confidence-gate.md. Score 5 dimensions 0-20 each. ≥85 proceed, 70-84 clarify, <70 return to planning. Output the score table."
   - "Phase 3 — IMPLEMENT: Read .claude/skills/story-cycle/references/story-types.md for [storyType] execution steps. Load docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md. Re-read all target files from plan before editing. Follow story-type methodology (e.g., TDD: RED failing test → GREEN minimal impl → REFACTOR)."
-  - "Phase 4a — SELF-REVIEW (HARD-GATE): Read references/self-review.md — complete ALL checklist items. Read references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface. If ANY item fails → fix in Phase 3 before proceeding."
-  - "Phase 4b — QUALITY GATES: Run the project's quality command (from CLAUDE.md Commands section: lint → typecheck → test). Stop on first failure, fix, re-run."
-  - "Phase 4c — UAT (optional, Feature/Bug Fix only): If project has UAT directory, generate UAT test case + sense check. Skip if no UAT structure exists."
+  - "Phase 4a — SELF-REVIEW (HARD-GATE): Read .claude/skills/story-cycle/references/self-review.md — complete ALL checklist items. Read .claude/skills/story-cycle/references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface. If ANY item fails → fix in Phase 3 before proceeding."
+  - "Phase 4b — QUALITY GATES: Run the project's quality command (from CLAUDE.md Commands section: lint → typecheck → test). Stop on first failure, fix, re-run. Show test output in the current turn — do NOT claim tests pass without evidence."
+  - "Phase 4c — UAT (optional, Feature/Bug Fix only): If project has UAT directory, generate UAT test case + sense check per Phase 4c/4c.1 in SKILL.md. Skip for Spike/Research, Infrastructure, Documentation, Testing, Refactoring, Performance, Skill/Tooling stories. Also skip if no UAT directory exists."
   - "Phase 4d — COMPLETION VERIFICATION (HARD-GATE): Re-read original AC from plan. For EACH criterion, provide concrete evidence (test output, file:line, command output). Max 2 extra loop passes if gaps found. Do NOT print completion report until every AC has evidence."
-  - "Phase 4e — DOCS + COMMIT: Update docs/progress.md. Invoke /commit skill. Do NOT merge or create PR — that is sprint-end."
-  - "COMPLETION REPORT: Print story, type, approach, files modified, test counts, commit hash, verification evidence."
+  - "Phase 4e — DOCS + COMMIT: (1) Update epic file (mark story DONE in heading, check all AC boxes). (2) Update BACKLOG_INDEX.md (increment Done, decrement TODO for epic row, update Total row). (3) Update docs/progress.md (current story status, test counts). (4) Update CLAUDE.md if it contains backlog counts or epic progress that changed. (5) Emit skill metrics event to docs/sessions/.activity-log.jsonl. (6) Invoke /commit skill. Do NOT merge or create PR — that is sprint-end."
+  - "COMPLETION REPORT: Print story, type, approach, files modified, test counts, commit hash, verification evidence. Include Next Steps (next story / sprint-end / handoff)."
 error_recovery: ".claude/skills/story-cycle/references/error-recovery.md"
 skill_file: ".claude/skills/story-cycle/SKILL.md"
 ```
@@ -580,10 +580,12 @@ Do NOT print the completion report until every acceptance criterion has been ver
 
 ### 4e. Docs + Commit
 
-1. **Update `docs/progress.md`** with story status (DONE)
-2. **Update documentation** only if the story's AC requires it
-3. **Capture learnings** (optional): If non-obvious patterns discovered, save to `docs/solutions/<topic-slug>.md`
-4. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.
+1. **Update epic file** (`docs/reference/backlog/E##-*.md`): Mark the story status as DONE in the heading (`— TODO` → `— DONE`). Check all acceptance criteria boxes (`- [ ]` → `- [x]`).
+2. **Update `docs/reference/BACKLOG_INDEX.md`**: Increment the Done count and decrement the TODO count for this epic's row in the status table.
+3. **Update `docs/progress.md`** with story status (DONE)
+4. **Update documentation** only if the story's AC requires it
+5. **Capture learnings** (optional): If non-obvious patterns discovered, save to `docs/solutions/<topic-slug>.md`
+6. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.
 
 **Skill metrics:** Emit a completion event:
 ```bash
