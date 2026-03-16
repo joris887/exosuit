@@ -1,13 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-hooks.json",
-  "_comment": "Declarative hook definitions for plugin distribution. Uses ${CLAUDE_PLUGIN_ROOT} for portable paths. In template mode, settings.json references these hooks with .claude/ relative paths instead.",
+  "_comment": "Declarative hook definitions for plugin distribution. Uses ${CLAUDE_PLUGIN_ROOT} for portable paths. In template mode, settings.json references these hooks with __PROJECT_ROOT__ placeholders instead.",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/engine.py SessionStart"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
           }
         ]
       }
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/engine.py PreToolUse"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use.sh"
           }
         ]
       },
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/engine.py PostToolUse"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.sh"
           }
         ]
       },
@@ -58,7 +58,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/engine.py Stop"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh"
           }
         ]
       }
@@ -68,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/engine.py UserPromptSubmit"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt.sh"
           }
         ]
       }
@@ -78,7 +78,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/engine.py WorktreeCreate"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree.sh WorktreeCreate"
           }
         ]
       }
@@ -88,7 +88,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/engine.py WorktreeRemove"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree.sh WorktreeRemove"
           }
         ]
       }
@@ -98,7 +98,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/engine.py SubagentStop"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.sh"
           }
         ]
       }

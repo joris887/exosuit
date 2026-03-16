@@ -4,39 +4,22 @@ How to merge framework updates with project-specific customizations for each com
 
 ## Hooks
 
-### engine.py
+All hooks are POSIX shell scripts — no Python or other runtime required.
 
-- **Strategy**: REPLACE (take new framework version)
-- **Reason**: Core dispatch logic, error isolation improvements benefit all projects
-- **Risk**: None — engine is generic
+### Shell hook scripts (pre-tool-use.sh, post-tool-use.sh, stop.sh, session-start.sh, user-prompt.sh, subagent-stop.sh, worktree.sh)
 
-### handlers/pre_tool_use.py
+- **Strategy**: REPLACE with new framework versions
+- **Reason**: Hook logic is generic; project customization is in rule files, not scripts
+- **Exception**: `session-start.sh` — if project added custom tool checks, MERGE
 
-- **Strategy**: REPLACE then verify
-- **Preserve**: None (project rules are in safety.yaml, not in handler code)
-- **Note**: Framework repo protection is generic and harmless
-
-### handlers/session_start.py
-
-- **Strategy**: MERGE
-- **From new framework**: Dynamic tool detection (parsing CLAUDE.md Commands section)
-- **From project**: Project-specific tool checks (e.g., language runtimes, package managers, custom CLIs)
-- **Pattern**: Add project tools as fallback after dynamic detection
-
-### handlers/stop.py, post_tool_use.py, user_prompt.py, subagent_stop.py, worktree.py
-
-- **Strategy**: Usually IDENTICAL — diff before replacing
-- **If identical**: Skip
-- **If different**: REPLACE (these handlers are generic)
-
-### rules/safety.yaml
+### rules/safety.patterns
 
 - **Strategy**: MERGE
 - **From new framework**: Base safety patterns (force push, rm -rf, package publish, etc.)
 - **From project**: Project-specific patterns (custom blocking rules, tool restrictions)
 - **Pattern**: Concatenate — new framework patterns first, project patterns after with comment separator
 
-### rules/workflow.yaml, intent.yaml, quality.yaml, subagent.yaml
+### rules/quality.conf, intent.patterns, subagent.patterns, subagent.conf
 
 - **Strategy**: Usually REPLACE
 - **Diff first**: These are typically unchanged between projects
@@ -47,7 +30,7 @@ How to merge framework updates with project-specific customizations for each com
 - **Reason**: More language support benefits future growth
 - **Note**: Project-specific formatters are auto-detected by file extension
 
-### lib/paths.py, lib/paths.sh
+### lib/paths.sh
 
 - **Strategy**: REPLACE (plugin mode support is backward-compatible)
 

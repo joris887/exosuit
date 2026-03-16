@@ -4,29 +4,31 @@ Hook system that enforces quality and safety automatically during Claude Code se
 
 ## Architecture
 
-All hooks are dispatched through a unified **Python engine** (`engine.py`) with YAML-based rule configuration. Two bash hooks are kept for POSIX-specific and file-type-specific tasks.
+All hooks are self-contained **POSIX shell scripts** — no Python or other runtime required. Each hook event maps to its own script. Rules are stored in simple text formats readable by shell tools.
 
 ```
 .claude/hooks/
-  engine.py              — Unified dispatch entry point
-  rules/                 — YAML rule configuration
-    safety.yaml          — PreToolUse blocking patterns
-    quality.yaml         — Stop quality gate rules
-    subagent.yaml        — SubagentStop validation rules
-    intent.yaml          — UserPromptSubmit intent rules
-  handlers/              — Per-event handler modules
-    pre_tool_use.py      — Block dangerous Bash commands
-    post_tool_use.py     — Activity logging
-    stop.py              — Auto-save + completion evidence validation
-    user_prompt.py       — Advisory intent classification
-    subagent_stop.py     — Subagent quality warnings
-    session_start.py     — Advisory environment checks
-    worktree.py          — Worktree init + cleanup
-  state/
-    session.json         — Per-session state (warnings, iterations)
-  worktree-bash-fix.sh   — Worktree directory fix (bash, apply_to_subagents)
-  post-edit-format.sh    — Auto-format after edits (bash)
+  pre-tool-use.sh        — Block dangerous Bash commands
+  post-tool-use.sh       — Activity logging
+  session-start.sh       — Advisory environment checks
+  stop.sh                — Auto-save + completion evidence validation
+  user-prompt.sh         — Advisory intent classification
+  subagent-stop.sh       — Subagent quality warnings
+  worktree.sh            — Worktree init + cleanup
+  worktree-bash-fix.sh   — Worktree directory fix (apply_to_subagents)
+  post-edit-format.sh    — Auto-format after edits (bash, not POSIX)
   status-line.sh         — Status bar output (not a hook)
+  rules/
+    safety.patterns      — PreToolUse blocking patterns (@@-delimited)
+    quality.conf         — Stop quality gate rules (key=value)
+    subagent.patterns    — SubagentStop validation patterns (@@-delimited)
+    subagent.conf        — SubagentStop configuration (key=value)
+    intent.patterns      — UserPromptSubmit intent patterns (@@-delimited)
+  state/
+    stop-iteration       — Stop hook iteration counter (plain number)
+    session-started      — Session start timestamp
+  lib/
+    paths.sh             — Path resolution helpers (sourced by bash hooks)
 ```
 
 ## Hook Events
@@ -36,10 +38,10 @@ Advisory environment checks (never blocks):
 - Tool existence from CLAUDE.md Commands
 - Stale session detection (auto-save >24h old)
 - Git state (on main, detached HEAD, uncommitted changes)
-- Initializes session state
+- Initializes session state files
 
 ### PreToolUse (Bash)
-Blocks dangerous commands via `rules/safety.yaml`:
+Blocks dangerous commands via `rules/safety.patterns`:
 - `git push --force` / `-f`, `git checkout .`, `git reset --hard`, `git clean -f`
 - `rm -rf /` / `..` / `~`
 - Package publishing, destructive DB operations, mass process killing
@@ -49,12 +51,12 @@ Blocks dangerous commands via `rules/safety.yaml`:
 Activity logging to `docs/sessions/.activity-log.jsonl`. Rotates at 200 entries. Used by `/retrospective` and `/handoff`.
 
 ### PostToolUse (Edit) — bash
-`post-edit-format.sh`: Auto-formats edited files using detected project formatter. Stays as bash for file-type switching.
+`post-edit-format.sh`: Auto-formats edited files using detected project formatter. Uses bash (not POSIX sh) for array support.
 
 ### Stop
-Auto-saves session state, then validates completion evidence via `rules/quality.yaml`:
-- Blocks weak claims ("should work", "I think")
+Auto-saves session state, then validates completion evidence via `rules/quality.conf`:
 - Blocks completion claims without test output
+- Safety valve: allows after 5 blocked attempts
 
 ### UserPromptSubmit
 Advisory warning for destructive-sounding requests. Never blocks.
@@ -65,19 +67,19 @@ Advisory quality check on subagent output. Warns on weak claims and missing file
 ### WorktreeCreate / WorktreeRemove
 Copies state files to new worktrees. Merges activity logs on cleanup.
 
-### PreToolUse (Bash) — bash
-`worktree-bash-fix.sh`: Transparent worktree directory fix. Stays as bash with `apply_to_subagents`.
+### PreToolUse (Bash) — worktree fix
+`worktree-bash-fix.sh`: Transparent worktree directory fix with `apply_to_subagents`.
 
 ## Customization
 
-- **Add safety rules:** Edit `rules/safety.yaml` — add patterns with id, regex, message
-- **Add quality checks:** Edit `rules/quality.yaml` — adjust regex patterns
+- **Add safety rules:** Edit `rules/safety.patterns` — add lines with `id@@regex@@message`
+- **Add quality checks:** Edit `rules/quality.conf` — adjust regex patterns
 - **Add formatters:** Edit `post-edit-format.sh` case statement
-- **Add intent warnings:** Edit `rules/intent.yaml`
+- **Add intent warnings:** Edit `rules/intent.patterns`
 
 ## Configuration
 
-Hooks are configured in `.claude/settings.json`. All hooks route through `python3 .claude/hooks/engine.py <event>` except the two kept bash hooks.
+Hooks are configured in `.claude/settings.json`. Each hook event points to its own shell script. No external runtime dependencies required.
 
 ## Disabling Hooks
 

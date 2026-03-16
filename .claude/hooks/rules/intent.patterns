@@ -1,0 +1,5 @@
+# UserPromptSubmit intent classification rules
+# Format: regex@@message (delimiter: @@)
+# Advisory warnings for potentially destructive user requests.
+# Lines starting with # are comments. Empty lines are skipped.
+delete (all|everything)|drop (table|database)|remove all files|wipe|nuke|destroy|format disk@@This request sounds potentially destructive. Proceed with caution.

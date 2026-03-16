@@ -3,8 +3,7 @@ set -euo pipefail
 
 # JD-LLM Development Framework — Drop-in Installer
 #
-# Prerequisites:
-#   Python 3.8+ (required for hook engine)
+# Prerequisites: None (POSIX shell + git only)
 #
 # Modes:
 #   --mode=template  (default) Clone repo and install everything (core + scaffold)
@@ -51,44 +50,7 @@ if [ ! -d ".git" ] && [ ! -f "package.json" ] && [ ! -f "pyproject.toml" ] && [ 
     fi
 fi
 
-# --- Python 3 detection (required for hook engine) ---
 if [ "$MODE" = "template" ]; then
-    PYTHON_PATH=$(command -v python3 2>/dev/null || true)
-    if [ -z "$PYTHON_PATH" ]; then
-        echo "ERROR: Python 3.8+ is required for the JD-LLM Framework hook engine."
-        echo ""
-        echo "The hook engine (engine.py) enforces quality gates, security checks,"
-        echo "and workflow rules. It runs regardless of your project's language."
-        echo ""
-        echo "Install Python 3:"
-        echo "  macOS:   brew install python3"
-        echo "  Ubuntu:  sudo apt install python3"
-        echo "  Fedora:  sudo dnf install python3"
-        echo "  Windows: https://www.python.org/downloads/"
-        echo ""
-        echo "Then re-run this installer."
-        exit 1
-    fi
-
-    # Check minimum version (3.8+)
-    PYTHON_VERSION=$("$PYTHON_PATH" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || echo "unknown")
-    if [ "$PYTHON_VERSION" != "unknown" ]; then
-        PYTHON_MAJOR=$("$PYTHON_PATH" -c 'import sys; print(sys.version_info.major)' 2>/dev/null || echo "0")
-        PYTHON_MINOR=$("$PYTHON_PATH" -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
-        if [ "$PYTHON_MAJOR" -lt 3 ] || { [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]; }; then
-            echo "WARNING: Python $PYTHON_VERSION detected at $PYTHON_PATH"
-            echo "The framework requires Python 3.8+. Some hook features may not work."
-            echo ""
-            read -p "Continue with Python $PYTHON_VERSION? [y/N] " -n 1 -r
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                echo "Aborted. Install Python 3.8+ and try again."
-                exit 1
-            fi
-        fi
-    fi
-
-    echo "  Python:       $PYTHON_PATH (version $PYTHON_VERSION)"
     echo "  Project root: $PROJECT_ROOT"
     echo ""
 fi
@@ -130,7 +92,7 @@ if [ "$MODE" = "template" ]; then
     # Replace placeholders with absolute paths for reliable hook resolution
     # Uses | delimiter since paths don't contain pipe characters
     tmp_settings=$(mktemp)
-    sed "s|__PROJECT_ROOT__|${PROJECT_ROOT}|g; s|__PYTHON_PATH__|${PYTHON_PATH}|g" ".claude/settings.json" > "$tmp_settings"
+    sed "s|__PROJECT_ROOT__|${PROJECT_ROOT}|g" ".claude/settings.json" > "$tmp_settings"
     mv "$tmp_settings" ".claude/settings.json"
     echo "  Hook paths configured for: $PROJECT_ROOT"
 fi

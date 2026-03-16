@@ -4,24 +4,22 @@ Exhaustive list of components to compare during a framework upgrade. Use this to
 
 ## .claude/hooks/
 
-- [ ] `engine.py` — Core dispatch logic
-- [ ] `handlers/pre_tool_use.py` — Safety pattern matching
-- [ ] `handlers/post_tool_use.py` — Activity logging
-- [ ] `handlers/stop.py` — Auto-save + completion evidence + workflow enforcement
-- [ ] `handlers/session_start.py` — Environment checks
-- [ ] `handlers/user_prompt.py` — Intent classification
-- [ ] `handlers/subagent_stop.py` — Subagent output validation
-- [ ] `handlers/worktree.py` — Worktree init/cleanup
-- [ ] `rules/safety.yaml` — Dangerous command patterns
-- [ ] `rules/workflow.yaml` — Workflow enforcement config
-- [ ] `rules/quality.yaml` — Completion evidence rules
-- [ ] `rules/intent.yaml` — Destructive request patterns
-- [ ] `rules/subagent.yaml` — Subagent quality checks
+- [ ] `pre-tool-use.sh` — Safety pattern matching
+- [ ] `post-tool-use.sh` — Activity logging
+- [ ] `stop.sh` — Auto-save + completion evidence validation
+- [ ] `session-start.sh` — Environment checks
+- [ ] `user-prompt.sh` — Intent classification
+- [ ] `subagent-stop.sh` — Subagent output validation
+- [ ] `worktree.sh` — Worktree init/cleanup
 - [ ] `post-edit-format.sh` — Auto-format after edits
 - [ ] `worktree-bash-fix.sh` — Worktree directory fix
 - [ ] `status-line.sh` — Status bar output
 - [ ] `hooks.json` — Plugin distribution definitions
-- [ ] `lib/paths.py` — Python path resolution
+- [ ] `rules/safety.patterns` — Dangerous command patterns
+- [ ] `rules/quality.conf` — Completion evidence rules
+- [ ] `rules/intent.patterns` — Destructive request patterns
+- [ ] `rules/subagent.patterns` — Subagent quality checks
+- [ ] `rules/subagent.conf` — Subagent configuration
 - [ ] `lib/paths.sh` — Bash path resolution
 - [ ] `README.md` — Hook architecture docs
 - [ ] `.claude-context.md` — Hook module context

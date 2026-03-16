@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py SessionStart"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/session-start.sh"
           }
         ]
       }
@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py PostToolUse"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/post-tool-use.sh"
           }
         ]
       },
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py PreToolUse"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/pre-tool-use.sh"
           }
         ]
       },
@@ -61,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py Stop"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/stop.sh"
           }
         ]
       }
@@ -71,7 +71,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py UserPromptSubmit"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/user-prompt.sh"
           }
         ]
       }
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py WorktreeCreate"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree.sh WorktreeCreate"
           }
         ]
       }
@@ -91,7 +91,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py WorktreeRemove"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree.sh WorktreeRemove"
           }
         ]
       }
@@ -101,7 +101,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__PYTHON_PATH__ __PROJECT_ROOT__/.claude/hooks/engine.py SubagentStop"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/subagent-stop.sh"
           }
         ]
       }
