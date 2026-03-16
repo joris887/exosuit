@@ -6,7 +6,7 @@ trigger: manual
 depends-on: [doctor]
 references: [references/upgrade-checklist.md, references/merge-strategy.md]
 requires:
-  binaries: [git, python3]
+  binaries: [git]
   files: [CLAUDE.md, .claude/skills/SKILLS_INVENTORY.md]
 disable-model-invocation: true
 user-invocable: true
@@ -46,7 +46,7 @@ Run 4 parallel exploration agents to build a complete diff inventory:
 - ONLY IN NEW → classify as `ADD`
 - ONLY IN CURRENT → classify as `PRESERVE` (project-specific)
 
-**Agent 2 — Hooks diff**: Compare `.claude/hooks/` (engine.py, handlers/*.py, rules/*.yaml, *.sh, *.json, lib/). Classify each file.
+**Agent 2 — Hooks diff**: Compare `.claude/hooks/` (*.sh, rules/*.patterns, rules/*.conf, *.json, lib/). Classify each file.
 
 **Agent 3 — Agents + Prompts + Commands diff**: Compare `.claude/agents/`, `.claude/prompts/`, `.claude/commands/`. Classify each file.
 

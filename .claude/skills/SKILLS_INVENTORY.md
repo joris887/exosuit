@@ -215,16 +215,19 @@ Path-scoped rules loaded automatically when matching files are edited:
 - `documentation.md` — Documentation discipline + reference file size budgets
 
 ### Hooks (`.claude/hooks/`)
-Unified Python engine (`engine.py`) with YAML rule configuration. Two bash hooks kept for POSIX/file-type tasks:
-- `engine.py` — Dispatch entry point routing to `handlers/` modules
-- `rules/safety.yaml` — PreToolUse blocking patterns (9 rules)
-- `rules/quality.yaml` — Stop quality gate rules
-- `rules/subagent.yaml` — SubagentStop validation rules
-- `rules/intent.yaml` — UserPromptSubmit intent rules
-- `handlers/` — Per-event handler modules (pre_tool_use, post_tool_use, stop, user_prompt, subagent_stop, session_start, worktree)
-- `state/session.json` — Per-session state (warnings, iterations)
+POSIX shell scripts — no Python or other runtime required. Each event has its own self-contained script:
+- `pre-tool-use.sh` — Block dangerous Bash commands (9 safety patterns)
+- `post-tool-use.sh` — Activity logging to `.activity-log.jsonl`
+- `session-start.sh` — Advisory environment checks
+- `stop.sh` — Auto-save + completion evidence validation
+- `user-prompt.sh` — Advisory intent classification
+- `subagent-stop.sh` — Subagent quality warnings
+- `worktree.sh` — Worktree init + cleanup
+- `worktree-bash-fix.sh` — Transparent worktree directory fix (applied to subagents)
 - `post-edit-format.sh` — Auto-format after edits + secrets detection (bash)
-- `worktree-bash-fix.sh` — Transparent worktree directory fix for Bash commands (bash, applied to subagents)
+- `rules/safety.patterns` — PreToolUse blocking patterns (@@-delimited)
+- `rules/quality.conf` — Stop quality gate rules (key=value)
+- `state/` — Session state (plain text files: counters, timestamps)
 
 ## References
 

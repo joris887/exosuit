@@ -1,0 +1,5 @@
+# SubagentStop validation rules
+# Format: regex@@message (delimiter: @@)
+# Advisory checks on subagent output quality.
+# Lines starting with # are comments. Empty lines are skipped.
+\b(should work|looks correct|I believe|I think)\b@@Subagent used unverified language
