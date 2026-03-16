@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 4.0.0
+version: 4.1.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -12,7 +12,7 @@ micro-components:
   phase-4: [record-failure, quality-gate-sequence, capture-learnings]
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent
 argument-hint: "<story-description-or-id>"
 ---
 ______________________________________________________________________
@@ -221,7 +221,7 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 
 Before planning, decide whether external research is needed. This gate prevents wasting context on unnecessary research for routine stories while ensuring thorough verification when it matters.
 
-**Spike/Research stories: ALWAYS proceed with online verification.** Spikes exist to gather external knowledge — skipping research defeats their purpose. Use deep, multi-agent parallel web research (see `references/story-types.md` step 3).
+**Spike/Research stories: ALWAYS proceed with online verification at DEEP depth.** Spikes exist to gather external knowledge — skipping research defeats their purpose. Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **DEEP** depth. See `references/story-types.md` Spike/Research section for the full flow.
 
 **Research Decision Gate (non-spike stories) — evaluate these three signals:**
 
@@ -235,23 +235,23 @@ Before planning, decide whether external research is needed. This gate prevents 
 
 Announce the decision to the user so it's transparent.
 
-**Step 1 — Official documentation** (when proceeding):
+**When proceeding with research**, compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) with depth auto-selected by risk:
 
-- Use `WebFetch` to check the official docs for any framework/library APIs you plan to use
-- Focus on: current API signatures, deprecation notices, migration guides, changelog entries for the pinned version
-- Compare against what the codebase currently uses and what any technology-specific skill references recommend
+| Story context | Research depth |
+|---------------|---------------|
+| High-risk (security, payments, auth, new deps) | **STANDARD** |
+| Standard story with research signals | **QUICK** |
 
-**Step 2 — Broader research** (when the story involves unfamiliar territory, new integrations, or complex patterns):
+**The research engine handles:** query decomposition, parallel subagent dispatch, source evaluation, reflection-based compression, and structured output. See `.claude/prompts/deep-research.md` for the full methodology.
 
-- Use `WebSearch` to find recent blog posts, GitHub issues, or Stack Overflow answers about the approach
-- Look for: known pitfalls, better alternatives, community-recommended patterns
-- Search for the specific error patterns or edge cases others have encountered
+**Output format:** `plan-context` — findings integrate directly into the story plan.
 
-**Step 3 — Record findings:**
+**Record findings:**
 
 - If official docs reveal a deprecation or API change: note it in the plan as a "Doc Finding" and update relevant reference docs after implementation
 - If a better approach is found: incorporate it into the plan
 - If everything checks out: note "Online verification: APIs confirmed current" and move on
+- Research confidence scores feed into the confidence-gate scoring (Phase 2b)
 
 ### 1c.5+. Dependency Freshness Check (Always-On for External Deps)
 
@@ -468,16 +468,17 @@ When errors occur during execution, consult `references/error-recovery.md` — s
 
 ### Web-Assisted Error Recovery (Phase 3)
 
-When a build error, test failure, or runtime exception involves an **external library** (not internal logic), search before guessing:
+When a build error, test failure, or runtime exception involves an **external library** (not internal logic), use the research engine before guessing:
 
 **Trigger:** Error message contains a library name, unfamiliar API, or stack trace pointing outside the project's source tree. Does NOT trigger for purely internal logic errors (wrong variable, missing import of own module, etc.).
 
-**Protocol:**
+**Protocol:** Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **QUICK** depth:
 
-1. Extract the key error: library name + version + error message (first meaningful line)
-2. `WebSearch`: `"<library> <version> <error-message-snippet>"` — look for GitHub issues, Stack Overflow answers, changelog entries
-3. If a promising result: `WebFetch` the page, extract the fix or workaround
-4. Apply the fix. If no results: fall back to normal error recovery (re-read code, check types, etc.)
+- **Sub-questions** (1-2, generated from the error):
+  1. "What does [error message snippet] mean in [library/framework] [version]?"
+  2. "How to fix [error pattern] in [library] [version]?"
+- **Output format:** `evidence-check` (fix or workaround with source citation)
+- Apply the fix if found. If no results: fall back to normal error recovery (re-read code, check types, etc.)
 
 **Time budget:** Max 60 seconds of web research per error. If nothing useful surfaces, move on — don't spiral.
 

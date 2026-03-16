@@ -1,13 +1,13 @@
 ---
 name: bootstrap
-version: 2.11.0
+version: 2.12.0
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
 references: [references/stack-detection.md, references/new-project.md, references/accuracy-safeguards.md, references/coverage-assessment.md, references/quality-tooling.md, references/readiness-report.md, references/foundation-backlog.md, references/llm-readiness.md, references/technical-debt-assessment.md]
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent
 ---
 ______________________________________________________________________
 
@@ -27,14 +27,19 @@ START → 0. Detect Installation Mode
       → YES: Path A (Existing Repository)
         → A1-A3: Detect stack, commands, assess docs/coverage/architecture, measure codebase
           → A2.8: Assess type checking → A2.85: Offer quality tooling installation
-            → A3.1: LLM-readiness assessment → A3.2: Technical debt assessment
-              → A3.5: Generate architecture → A3.6: Establish ground rules
-                → A4: Generate config + populate TESTING_STRATEGY.md
-                  → A5: Run /skill-create → A5.5-A5.6: Configure hooks/rules + assess pre-commit + CI/CD
-                    → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
-                      → A6: Clean up → A7: Present summary → DONE
+            → A2.9: Stack best practices research (optional, quick depth)
+              → A3.1: LLM-readiness assessment → A3.2: Technical debt assessment
+                → A3.5: Generate architecture → A3.5b: Establish ground rules
+                  → A3.7: Detect default branch
+                    → A4: Generate config + populate TESTING_STRATEGY.md
+                      → A5: Run /skill-create → A5.5-A5.6: Configure hooks/rules + assess pre-commit + CI/CD
+                        → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
+                          → A6: Clean up → A7: Present summary → DONE
       → NO: Path B (New Project)
-        → Read references/new-project.md and follow B1-B4 → DONE
+        → Read references/new-project.md and follow B1-B4
+          → B1: Check vision → B2: Guide braindump (if empty)
+            → B2.7: Domain research (optional, standard depth)
+              → B3: Generate from vision → B4: Present summary → DONE
 ```
 
 ## 0. Detect Installation Mode
@@ -80,7 +85,7 @@ find . -type f \
 ```
 
 **If source files exist:** → Path A (Existing Repository)
-**If no source files (or only framework files):** → Path B — Read `references/new-project.md` and follow its steps.
+**If no source files (or only framework files):** → Path B — Read `references/new-project.md` and follow its steps. Path B now includes a domain research step (B2.7) — see `references/new-project.md`.
 
 ---
 
@@ -124,6 +129,24 @@ Read `references/quality-tooling.md` for the complete flow. After detecting the 
 
 **For stacks with built-in tools** (Go, Rust, Dart): note as available, skip the offer for those categories.
 
+### A2.9. Stack Best Practices Research (Optional)
+
+After detecting the stack, perform a quick research pass to identify current best practices for comparison with the project's actual state.
+
+Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **QUICK** depth:
+
+- **Query:** "Current best practices for [detected primary language] + [detected framework] projects"
+- **Sub-questions** (auto-generated from detected stack):
+  1. "Recommended testing practices for [framework]"
+  2. "Common architecture patterns for [framework] in [current year]"
+- **Output format:** `plan-context` (compact, feeds into readiness report)
+
+Integrate findings into the Readiness Report (A5.8) as a "Best Practices Comparison" — informational, not blocking.
+
+**Skip when:** User explicitly requests fast bootstrap (`--skip-research` or answers "skip" when asked), or no internet access is available.
+
+**Allowed tools for this step:** WebSearch, WebFetch, Agent (add to skill-level allowed-tools when composing deep-research).
+
 ### A3.1. LLM-Readiness Assessment
 
 Read `references/llm-readiness.md` for the complete assessment flow. Using the codebase metrics from A3, assess whether the code structure supports effective LLM-assisted development:
@@ -166,7 +189,7 @@ Populate `docs/context/` files by analyzing the codebase. Apply accuracy safegua
 
 Each file: ≤200 lines, evidence-based claims only, update YAML frontmatter timestamps.
 
-### A3.6. Establish Project Ground Rules
+### A3.5b. Establish Project Ground Rules
 
 Prompt the user for 3-7 non-negotiable architectural principles. Populate `docs/reference/GROUND_RULES.md`:
 
@@ -175,7 +198,7 @@ Prompt the user for 3-7 non-negotiable architectural principles. Populate `docs/
 - If the user has no strong preferences, suggest 3-5 principles based on detected stack and architecture
 - The ground rules are checked during `/story-cycle` planning (Phase 1e) and `/sprint-end` quality gates
 
-### A3.6. Detect Default Branch
+### A3.7. Detect Default Branch
 
 Detect the repository's default branch name and store it in CLAUDE.md so all skills can reference it without guessing:
 
@@ -207,7 +230,7 @@ Update CLAUDE.md's Git Workflow section: replace the `<!-- Detected by /bootstra
 
 Update these files with detected information:
 
-1. **`CLAUDE.md`** — Fill in Project Overview, Commands, Architecture one-liner, **Default branch** (from A3.6)
+1. **`CLAUDE.md`** — Fill in Project Overview, Commands, Architecture one-liner, **Default branch** (from A3.7)
 2. **`docs/reference/CODING_STANDARDS.md`** — Fill in language-specific sections
 3. **`docs/progress.md`** — Initialize with baseline metrics (including LLM-readiness metrics from A3.1)
 4. **`docs/reference/TESTING_STRATEGY.md`** — Populate the "Test Infrastructure" section with detected test tooling:
@@ -303,7 +326,7 @@ Review findings. Fix genuine gaps before presenting the summary to the user.
 
 Read `references/readiness-report.md` for the complete check definitions and classification rules.
 
-Using data collected in earlier steps (A1-A3, A2.6, A2.8, A3.1, A3.2, A3.6, A4, A5.5, A5.65, A5.7), assess each framework principle against the project's actual state. For each principle, classify as `✓ Ready`, `⚠️ Risk`, or `✗ Missing` with a brief explanation.
+Using data collected in earlier steps (A1-A3, A2.6, A2.8, A2.9, A3.1, A3.2, A3.5b, A3.7, A4, A5.5, A5.65, A5.7), assess each framework principle against the project's actual state. For each principle, classify as `✓ Ready`, `⚠️ Risk`, or `✗ Missing` with a brief explanation.
 
 **Output:**
 1. Display the readiness report table in the A7 summary
@@ -357,6 +380,8 @@ Create `docs/solutions/` with a `.gitkeep` file. This directory stores structure
 
 Also create `docs/brainstorms/` with a `.gitkeep` file. This directory stores design exploration documents from `/brainstorm` sessions for reference during `/ideate` and `/story-cycle`.
 
+Also create `docs/research/` with a `.gitkeep` file. This directory stores structured research reports from `/research` sessions and spike stories. Reports have searchable YAML frontmatter (title, tags, confidence, date) so future research and story-cycle Phase 1 can check for prior findings.
+
 ### A6. Clean Up
 
 - Delete `vision/` directory (not needed for existing repos)
@@ -392,6 +417,8 @@ Also create `docs/brainstorms/` with a `.gitkeep` file. This directory stores de
 - Largest file: [path] ([N] LOC)
 - Files over 500 LOC: [N]
 - Technical debt items: [N] high / [N] medium / [N] low
+
+**Stack Research:** [summary of best practices findings from A2.9, or "Skipped" if not run]
 
 **Framework Readiness Report:**
 | Principle | Status | Detail |
@@ -433,6 +460,7 @@ Also create `docs/brainstorms/` with a `.gitkeep` file. This directory stores de
 | Type checker     | Offer installation (A2.85) → if declined, flag Type-safe as Missing in Readiness Report |
 | CI/CD            | Offer GitHub Actions install (A5.7) → if declined, flag CI-enforced as Missing, generate foundation story |
 | Pre-commit hooks | Note gap in Readiness Report (A5.65), generate low-priority foundation story |
+| Internet/WebSearch | Skip A2.9 (stack research) silently, note "Research: skipped (no internet)" in summary. All other steps work offline |
 
 ## Rules
 

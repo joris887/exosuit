@@ -1,13 +1,13 @@
 ---
 name: ideate
-version: 2.9.0
+version: 2.10.0
 description: Use when the user has an idea or requirement to decompose into backlog stories.
 trigger: manual
 depends-on: []
 references: [references/story-template.md]
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent
 argument-hint: "<idea-or-requirement>"
 ---
 ______________________________________________________________________
@@ -47,6 +47,22 @@ Explore the codebase to understand:
 - What already exists vs what needs to be built
 - Testing patterns in the relevant area
 - Dependencies on existing code
+
+## 2.5. Feasibility Research (Conditional)
+
+If the idea involves external dependencies, unfamiliar technology, or integration with third-party services, perform a quick feasibility check before decomposition.
+
+Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **QUICK** depth:
+
+- **Query:** Generated from the idea's key technical requirements
+- **Sub-questions** (1-2, focused on feasibility):
+  1. "Does [key library/API] support [required capability]?"
+  2. "Are there breaking changes or deprecations in [dependency] for [use case]?"
+- **Output format:** `evidence-check` (yes/no/maybe with evidence)
+
+**If feasibility is uncertain:** Add a Spike/Research story to the decomposition to resolve the uncertainty before implementation stories begin.
+
+**Skip when:** The idea uses only well-understood, established technologies already present in the codebase, or when a prior brainstorm/research doc already covers feasibility.
 
 ## 3. Decompose into Stories
 

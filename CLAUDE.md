@@ -34,7 +34,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v3.5
+## Skills — JD-LLM Development Framework v3.6
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow
@@ -50,6 +50,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | Deliver story          | `/story-cycle <description>`   |
 | Plan work              | `/ideate <idea>`               |
 | Explore design         | `/brainstorm <idea>`           |
+| Deep research          | `/research <topic>`            |
 | End sprint             | `/sprint-end`                  |
 | End session            | `/handoff`                     |
 | Debug an issue         | `/debug-session <error>`       |
