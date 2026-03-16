@@ -5,9 +5,11 @@
 completion_regex: '\b(complete|done|finished|implemented|delivered|ready for review)\b'
 
 # Regex to detect actual test evidence
-evidence_regex: '(\d+ tests?.*pass|PASS\b|Tests:\s+\d+|test result:.*ok|pytest.*passed|All \d+ tests passed)'
+# Note: \d+ passed added to catch common test output format (e.g., "3 passed")
+evidence_regex: '(\d+ tests?.*pass|PASS\b|Tests:\s+\d+|test result:.*ok|pytest.*passed|All \d+ tests passed|\d+ passed)'
 
-# Weak claim language that should be flagged
-weak_claims:
-  - regex: '\b(should work|looks correct|I believe|I think|probably works|seems fine)\b'
-    message: "Unverified claims detected"
+# Note: weak_claims detection was removed. It caused false positives on
+# discussion text that merely mentioned phrases like "should work" or
+# "looks correct" — e.g., when discussing WHY weak claims are problematic.
+# The completion-evidence check above already handles the real concern:
+# if you claim "done", you must show test output.

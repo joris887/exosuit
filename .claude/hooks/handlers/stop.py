@@ -1,12 +1,16 @@
-"""Stop handler: auto-save + completion evidence + workflow enforcement.
+"""Stop handler: auto-save + completion evidence validation.
 
 1. Always auto-saves session state (safety net for /continue).
-2. Checks .failure-state.md for active (incomplete) workflows — blocks
-   exit with continuation prompt if workflow is still in progress.
-3. Validates last assistant message for unverified completion claims.
+2. Validates last assistant message for unverified completion claims.
 
 Safety valve: max iterations per session (default 5), then allows stop.
-Stale detection: failure state older than configured hours = treat as stale.
+
+Note: Workflow enforcement via .failure-state.md was removed — it caused
+tight coupling between story-cycle, stop hook, and /continue with fragile
+stale detection. The auto-save already captures git state for /continue.
+Weak-claims detection was also removed — it caused false positives on
+discussion text that merely mentioned common phrases. The completion-
+evidence check already covers this (claims completion → must show output).
 """
 
 import os
@@ -16,28 +20,28 @@ from datetime import datetime, timezone
 
 from lib.paths import project_path
 
-FAILURE_STATE_PATH = project_path("docs", "sessions", ".failure-state.md")
-
 
 def handle(input_data, event, state, load_rules):
     # Always auto-save first (safety net)
     _auto_save()
 
+    # Safety valve: max iterations before unconditional allow
+    quality_rules = load_rules("quality")
+    max_iterations = quality_rules.get("max_iterations", 5)
+    iteration = state.get("stop_iteration", 0)
+    if iteration >= max_iterations:
+        return None  # Allow stop unconditionally
+
     last_message = input_data.get("last_assistant_message", "")
     issues = []
 
-    # --- Workflow enforcement (Ralph Loop) ---
-    workflow_rules = load_rules("workflow")
-    workflow_issues = _check_workflow(state, workflow_rules)
-    issues.extend(workflow_issues)
-
     # --- Completion evidence checks ---
     if last_message:
-        quality_rules = load_rules("quality")
         evidence_issues = _check_evidence(last_message, quality_rules)
         issues.extend(evidence_issues)
 
     if issues:
+        state["stop_iteration"] = iteration + 1
         msg = "Quality check before completion:\n" + "\n".join(
             f"  - {i}" for i in issues
         )
@@ -46,73 +50,9 @@ def handle(input_data, event, state, load_rules):
     return None
 
 
-def _check_workflow(state, rules):
-    """Ralph Loop: detect incomplete workflows and block exit."""
-    issues = []
-
-    # Safety valve: max iterations before unconditional allow
-    max_iterations = rules.get("max_iterations", 5)
-    iteration = state.get("stop_iteration", 0)
-    if iteration >= max_iterations:
-        return []  # Allow stop unconditionally
-
-    if not os.path.isfile(FAILURE_STATE_PATH):
-        return []
-
-    try:
-        with open(FAILURE_STATE_PATH) as f:
-            content = f.read()
-    except OSError:
-        return []
-
-    # Parse YAML frontmatter
-    frontmatter = _parse_frontmatter(content)
-    if not frontmatter or frontmatter.get("status") != "active":
-        return []
-
-    # Stale detection
-    stale_hours = rules.get("stale_hours", 4)
-    started = frontmatter.get("started_at", "")
-    if started:
-        try:
-            start_time = datetime.fromisoformat(
-                started.replace("Z", "+00:00")
-            )
-            age_hours = (
-                datetime.now(timezone.utc) - start_time
-            ).total_seconds() / 3600
-            if age_hours > stale_hours:
-                return []  # Stale — allow stop
-        except (ValueError, TypeError):
-            pass
-
-    # Active workflow detected — block exit
-    skill = frontmatter.get("skill", "unknown")
-    phase = frontmatter.get("phase", "?")
-    phase_name = frontmatter.get("phase_name", "")
-    next_action = frontmatter.get("next_action", "continue work")
-
-    phase_display = f"{phase} ({phase_name})" if phase_name else phase
-    issues.append(
-        f"Incomplete workflow: {skill} Phase {phase_display} — {next_action}"
-    )
-
-    # Increment iteration counter
-    state["stop_iteration"] = iteration + 1
-
-    return issues
-
-
 def _check_evidence(message, rules):
     """Check for unverified completion claims per quality rules."""
     issues = []
-
-    # Check weak claim patterns
-    for pattern in rules.get("weak_claims", []):
-        matches = re.findall(pattern["regex"], message, re.IGNORECASE)
-        if matches:
-            unique = set(m.lower() for m in matches)
-            issues.append(f"{pattern['message']}: {', '.join(unique)}")
 
     # Check completion without evidence
     completion_re = rules.get(
@@ -121,7 +61,7 @@ def _check_evidence(message, rules):
     )
     evidence_re = rules.get(
         "evidence_regex",
-        r"(\d+ tests?.*pass|PASS\b|Tests:\s+\d+|test result:.*ok|pytest.*passed|All \d+ tests passed)",
+        r"(\d+ tests?.*pass|PASS\b|Tests:\s+\d+|test result:.*ok|pytest.*passed|All \d+ tests passed|\d+ passed)",
     )
     claims_completion = bool(re.search(completion_re, message, re.IGNORECASE))
     has_evidence = bool(re.search(evidence_re, message, re.IGNORECASE))
@@ -132,34 +72,6 @@ def _check_evidence(message, rules):
         )
 
     return issues
-
-
-def _parse_frontmatter(content):
-    """Extract YAML frontmatter from a file with --- delimiters."""
-    if not content.startswith("---"):
-        return None
-    try:
-        end = content.index("---", 3)
-    except ValueError:
-        return None
-
-    fm_text = content[3:end].strip()
-    result = {}
-    for line in fm_text.split("\n"):
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if ":" in line:
-            key, _, val = line.partition(":")
-            key = key.strip()
-            val = val.strip()
-            # Strip quotes
-            if val and ((val[0] == '"' and val[-1] == '"') or
-                        (val[0] == "'" and val[-1] == "'")):
-                val = val[1:-1]
-            # Handle list values (simplified — just store as string)
-            result[key] = val if val else None
-    return result
 
 
 def _auto_save():
