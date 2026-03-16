@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 3.6.0
+version: 4.0.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -8,9 +8,8 @@ references: [references/story-types.md, references/self-review.md, references/di
 micro-components:
   phase-0: [context-prime]
   phase-1: [discover-commands, verify-clean-git-state, wave-execution, grep-first-explore]
-  phase-2.5: [confidence-gate]
-  phase-3.5: [record-failure]
-  phase-4: [quality-gate-sequence, capture-learnings]
+  phase-2: [confidence-gate]
+  phase-4: [record-failure, quality-gate-sequence, capture-learnings]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write
@@ -29,11 +28,10 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"story-cycle\",\"story\
 
 **Progress tracking:** At the start, create a task list for phase tracking:
 
-1. "Decompose intent and classify story" — activeForm: "Classifying story..."
-2. "Plan implementation approach" — activeForm: "Planning..." — blockedBy: [1]
-3. "Execute implementation" — activeForm: "Implementing..." — blockedBy: [2]
-4. "Self-review and quality gates" — activeForm: "Running quality checks..." — blockedBy: [3]
-5. "Verify completion and wrap up" — activeForm: "Verifying completion..." — blockedBy: [4]
+1. "Phase 0+1: Decompose intent, research, plan" — activeForm: "Planning..."
+2. "Phase 2: Context transition + confidence gate" — activeForm: "Preparing..." — blockedBy: [1]
+3. "Phase 3: Implement by story type" — activeForm: "Implementing..." — blockedBy: [2]
+4. "Phase 4: Verify, quality gates, commit" — activeForm: "Verifying..." — blockedBy: [3]
 
 At each phase boundary, mark the current task completed and the next task in_progress.
 
@@ -49,26 +47,24 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
     → [STANDARD: everything else]
       → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
         → Phase 1c.5: Online Verification (conditional — research decision gate)
+          → 1c.5+: Dependency Freshness Check (always, if story touches external deps)
         → Phase 1d.7: Story Refinement & Forward Context (gap analysis, cross-story notes)
         → Phase 1f: Clarification Check (ambiguity_scan across 7 categories)
-          → [Clarifications needed?]
-            → YES: Present questions → integrate answers → update plan
-            → NO: Continue
         → Phase 1g: Plan Completeness (verify spec/implementation sections)
-        → [User approved?]
-          → NO: Revise plan → back to approval
-          → YES: Phase 2: Context Transition (keep insights, discard bulk)
-            → Phase 2.5: Confidence Gate (score 5 dimensions, ≥85 proceed, 70-84 clarify, <70 stop)
-            → Phase 3a: Parallel Stream Analysis (optional, STANDARD + low/medium risk only)
-              → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
-              → Phase 3.5: Self-Review (completeness, quality, testing, discipline)
-                → [Review passes?]
-                  → NO: Fix issues → back to Phase 3
-                  → YES: Phase 4: Wrap Up (tests, docs, commit)
-                    → Phase 4.5: Completion Verification (re-check ALL acceptance criteria)
-                      → [All criteria met with evidence?]
-                        → NO: Loop back to Phase 3 for gaps (max 2 extra passes)
-                        → YES: Report → DONE
+        → [User approved?] → NO: Revise → YES: Continue
+      → Phase 2: Context Transition + Confidence Gate
+        → (prune context, score 5 dimensions, ≥85 proceed, 70-84 clarify, <70 return to Phase 1)
+      → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
+        → Web-Assisted Error Recovery (on build/test failure involving external libraries)
+        → Bug Fix Web Research (always for bug fix stories — search error patterns first)
+      → Phase 4: Verify + Wrap Up
+        → Self-review + disaster prevention
+        → Security web verification (security-scoped stories — CWE + CVE check)
+        → Quality gates (project quality command from CLAUDE.md)
+        → UAT generation + sense check (optional — Feature/Bug Fix only)
+        → Completion verification (evidence for every AC)
+        → Docs + commit
+        → [All criteria met?] → NO: Fix + re-verify (max 2 passes) → YES: Report → DONE
 ```
 
 ## Plan Mode for Phases 0-2 (Optional)
@@ -77,7 +73,13 @@ For STANDARD stories, consider entering Plan Mode at the start of Phase 0 and re
 
 **When to use:** Complex stories, high-risk changes, or when the user requests careful planning.
 
-**How:** Enter Plan Mode before Phase 0. The existing Phase 1 already operates in Plan Mode. Remain in Plan Mode through Phase 2, exiting after plan approval and context transition — just before Phase 2.5 (Confidence Gate) and Phase 3 (Execution).
+**How:** Enter Plan Mode before Phase 0. The existing Phase 1 already operates in Plan Mode. Exit Plan Mode after plan approval — just before Phase 2 (Context Transition + Confidence Gate) and Phase 3 (Execution).
+
+**CRITICAL — After ExitPlanMode:** Plan Mode exit wipes the story-cycle skill from context. After ExitPlanMode, you MUST immediately:
+
+1. Read the plan file's `remaining_steps` list — it is your execution checklist
+2. The first step (BOOTSTRAP) tells you to re-read this skill file from Phase 2 onwards
+3. Continue executing all remaining phases (2 → 3 → 4) — do NOT stop
 
 ## Phase 0: Intent Decomposition
 
@@ -131,12 +133,9 @@ All other phases are **REQUIRED** — do NOT skip them because the story feels s
 
 - [ ] Phase 0: Intent decomposition
 - [ ] Phase 1: Lightweight analysis + plan (includes 1c.5 online verification if APIs involved) → `*** HARD GATE: user approval ***`
-- [ ] Phase 2: Context transition
-- [ ] Phase 2.5: Confidence gate (score ≥85) → `*** HARD GATE ***`
+- [ ] Phase 2: Context transition + confidence gate (score ≥85) → `*** HARD GATE ***`
 - [ ] Phase 3: Implementation (TDD by story type)
-- [ ] Phase 3.5: Self-review + disaster prevention → `*** HARD GATE ***`
-- [ ] Phase 4: Quality gates + optional UAT generation/sense check + commit
-- [ ] Phase 4.5: Completion verification with evidence → `*** HARD GATE ***`
+- [ ] Phase 4: Self-review + quality gates + completion verification with evidence → `*** HARD GATE ***`
 
 **Why this matters:** Testing proved that SMALL stories get their quality gates skipped when the agent optimizes for speed. The code may be fine, but the process guarantees are missing. Every gate exists for a reason.
 
@@ -158,18 +157,18 @@ Enter plan mode to research and design the approach.
 
 Determine the story type from the description, backlog entry, or user input:
 
-| Type               | Indicators                                         | Approach                                   |
-| ------------------ | -------------------------------------------------- | ------------------------------------------ |
-| **Feature**        | New user-facing capability, "As a user..."         | TDD: RED-GREEN-REFACTOR                    |
-| **Bug Fix**        | Defect, "fix", error report, reproduction steps    | Reproduce → Test → Fix → Verify            |
-| **Refactoring**    | "Refactor", "restructure", no behavior change      | Characterization tests → Refactor → Verify |
-| **Spike/Research** | "Investigate", "evaluate", "prototype", time-boxed | Explore → Document → Decide                |
-| **Infrastructure** | CI/CD, tooling, build, config, environment         | Plan → Implement → Smoke Test              |
-| **Testing**        | "Add tests", "coverage", "E2E tests"               | Design strategy → Generate → Validate      |
-| **Documentation**  | "Document", "write docs", "update README"          | Gather → Generate → Review                 |
-| **Security**       | "Harden", "audit", "vulnerability", "encrypt"      | Threat model → Implement → Audit           |
-| **Performance**    | "Optimize", "benchmark", "speed up", "latency"     | Baseline → Optimize → Benchmark            |
-| **Skill/Tooling**  | "Create skill", "add tool", "developer experience" | Design → Build → Document                  |
+| Type | Indicators | Approach |
+|------|-----------|----------|
+| **Feature** | New user-facing capability, "As a user..." | TDD: RED-GREEN-REFACTOR |
+| **Bug Fix** | Defect, "fix", error report, reproduction steps | Reproduce → Test → Fix → Verify |
+| **Refactoring** | "Refactor", "restructure", no behavior change | Characterization tests → Refactor → Verify |
+| **Spike/Research** | "Investigate", "evaluate", "prototype", time-boxed | Explore → Document → Decide |
+| **Infrastructure** | CI/CD, tooling, build, config, environment | Plan → Implement → Smoke Test |
+| **Testing** | "Add tests", "coverage", "E2E tests" | Design strategy → Generate → Validate |
+| **Documentation** | "Document", "write docs", "update README" | Gather → Generate → Review |
+| **Security** | "Harden", "audit", "vulnerability", "encrypt" | Threat model → Implement → Audit |
+| **Performance** | "Optimize", "benchmark", "speed up", "latency" | Baseline → Optimize → Benchmark |
+| **Skill/Tooling** | "Create skill", "add tool", "developer experience" | Design → Build → Document |
 
 If the story type is ambiguous after checking indicators, ask the user using AskUserQuestion with `description` fields explaining workflow implications:
 
@@ -222,7 +221,9 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 
 Before planning, decide whether external research is needed. This gate prevents wasting context on unnecessary research for routine stories while ensuring thorough verification when it matters.
 
-**Research Decision Gate — evaluate these three signals:**
+**Spike/Research stories: ALWAYS proceed with online verification.** Spikes exist to gather external knowledge — skipping research defeats their purpose. Use deep, multi-agent parallel web research (see `references/story-types.md` step 3).
+
+**Research Decision Gate (non-spike stories) — evaluate these three signals:**
 
 | Signal | Research needed | Skip research |
 |--------|----------------|---------------|
@@ -252,15 +253,36 @@ Announce the decision to the user so it's transparent.
 - If a better approach is found: incorporate it into the plan
 - If everything checks out: note "Online verification: APIs confirmed current" and move on
 
+### 1c.5+. Dependency Freshness Check (Always-On for External Deps)
+
+**Trigger:** The story creates, modifies, or directly calls any external dependency (not internal modules). This runs even when the main 1c.5 research gate was skipped.
+
+**Quick check (~30 seconds):**
+
+1. Identify the external libraries the story will use (from plan or codebase grep)
+2. For each, `WebSearch` for: `"<library> <pinned-version> deprecation OR breaking change OR CVE"` (batch into 1-2 searches)
+3. If a result looks relevant, `WebFetch` the specific page to confirm
+
+**Outcomes:**
+
+| Finding | Action |
+|---------|--------|
+| No issues | Note `"Dep freshness: all clear"` in plan, move on |
+| Deprecation notice | Note in plan, use recommended replacement API |
+| Known CVE | Flag to user immediately — may change story scope |
+| Breaking change in newer version | Note in plan for awareness; no action if pinned version is stable |
+
+**Skip when:** Story only touches internal code with no external library calls.
+
 ### 1d. Define Required Skills
 
 Determine which skills benefit this story. If the story metadata already defines skills, use those. Otherwise select from:
 
-| Skill               | Load When                                             |
-| ------------------- | ----------------------------------------------------- |
-| `/code-quality`     | Feature, refactoring, infrastructure stories          |
-| `/test-validator`   | Feature, bug fix, testing stories                     |
-| `/security-audit`   | Security stories, code touching auth/credentials/data |
+| Skill | Load When |
+|-------|-----------|
+| `/code-quality` | Feature, refactoring, infrastructure stories |
+| `/test-validator` | Feature, bug fix, testing stories |
+| `/security-audit` | Security stories, code touching auth/credentials/data |
 
 **Intent-based security activation:** If the story touches user input, API endpoints, database queries, file uploads, sessions, or network calls, treat the security rule as active for ALL files in this story — not just files matching security path patterns. Note this in the plan: `Security scope: story-wide (intent-based)`.
 
@@ -329,45 +351,48 @@ Use this exact format at the TOP of the plan:
 
 workflow: story-cycle
 storyType: "[from Phase 1a]"
-phase: "plan-approved — proceed to Phase 2.5 Confidence Gate"
-stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d5-discovery-gate, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 1h-depth-check, 2-transition]
+phase: "plan-approved — proceed to Phase 2 Context Transition + Confidence Gate"
+stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d5-discovery-gate, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 1h-depth-check]
 remaining_steps:
-  - "Phase 2.5 — CONFIDENCE GATE (HARD-GATE): Read .claude/prompts/confidence-gate.md. Score 5 dimensions (ambiguity, architecture, patterns, test strategy, dependencies) 0-20 each. ≥85 proceed, 70-84 clarify with user, <70 return to planning. Output the score table."
+  - "BOOTSTRAP (do this FIRST): Read .claude/skills/story-cycle/SKILL.md starting from '## Phase 2: Context Transition + Confidence Gate' to reload the full story-cycle workflow. You are mid-workflow — planning is done, implementation phases remain. Do NOT stop after reading the plan."
+  - "Phase 2 — CONTEXT + CONFIDENCE GATE (HARD-GATE): Prune context (keep plan + paths + gotchas, discard bulk). Read .claude/prompts/confidence-gate.md. Score 5 dimensions 0-20 each. ≥85 proceed, 70-84 clarify, <70 return to planning. Output the score table."
   - "Phase 3 — IMPLEMENT: Read .claude/skills/story-cycle/references/story-types.md for [storyType] execution steps. Load docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md. Re-read all target files from plan before editing. Follow story-type methodology (e.g., TDD: RED failing test → GREEN minimal impl → REFACTOR)."
-  - "Phase 3 — UPDATE STATE: Update docs/sessions/.failure-state.md with phase: 3. If plan saved to docs/plans/, update stepsCompleted."
-  - "Phase 3.5 — SELF-REVIEW (HARD-GATE): Read references/self-review.md — complete ALL checklist items (completeness, quality, testing, discipline). Read references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface. If ANY item fails → fix in Phase 3 before proceeding."
-  - "Phase 3.5 — PHASE COMPLETION TRACKER: Output table confirming phases 0, 1, 2, 2.5, 3, 3.5 all completed with evidence. Do NOT proceed to Phase 4 if any phase is unchecked."
-  - "Phase 4 — QUALITY GATES: Run lint → typecheck → test in order (stop on first failure). Use commands from CLAUDE.md."
-  - "Phase 4 — DOCS: Update docs/progress.md with story status. Update other documentation only if AC requires it."
-  - "Phase 4 — UAT (optional, Feature/Bug Fix only): Generate UAT test case if user-visible behavior changed and UAT directory exists. Sense check if generated — trace each step through code."
-  - "Phase 4 — LEARNINGS (optional): If non-obvious patterns discovered, save to docs/solutions/<topic-slug>.md."
-  - "Phase 4 — COMMIT: Stage relevant files. Conventional format: <type>(<scope>): <description>. Do NOT merge or create PR — that is sprint-end."
-  - "Phase 4.5 — COMPLETION VERIFICATION (HARD-GATE): Re-read original AC from plan. For EACH criterion, provide concrete evidence (test output, file:line, command output). Max 2 extra loop passes if gaps found. Do NOT print completion report until every AC has evidence."
+  - "Phase 4a — SELF-REVIEW (HARD-GATE): Read references/self-review.md — complete ALL checklist items. Read references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface. If ANY item fails → fix in Phase 3 before proceeding."
+  - "Phase 4b — QUALITY GATES: Run the project's quality command (from CLAUDE.md Commands section: lint → typecheck → test). Stop on first failure, fix, re-run."
+  - "Phase 4c — UAT (optional, Feature/Bug Fix only): If project has UAT directory, generate UAT test case + sense check. Skip if no UAT structure exists."
+  - "Phase 4d — COMPLETION VERIFICATION (HARD-GATE): Re-read original AC from plan. For EACH criterion, provide concrete evidence (test output, file:line, command output). Max 2 extra loop passes if gaps found. Do NOT print completion report until every AC has evidence."
+  - "Phase 4e — DOCS + COMMIT: Update docs/progress.md. Invoke /commit skill. Do NOT merge or create PR — that is sprint-end."
   - "COMPLETION REPORT: Print story, type, approach, files modified, test counts, commit hash, verification evidence."
-  - "CLEANUP: Delete docs/sessions/.failure-state.md on success."
 error_recovery: ".claude/skills/story-cycle/references/error-recovery.md"
 skill_file: ".claude/skills/story-cycle/SKILL.md"
-
-### Post-Plan Bootstrap
-
-When you encounter this Story-Cycle Context block (e.g., after Plan Mode
-exit or context compaction), you are mid-workflow in the story-cycle skill.
-Execute the remaining_steps list above in order — it is your authoritative
-checklist. For full details on any step, read the skill_file above starting
-from the relevant Phase section. Before implementation, load
-docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md.
-Re-read target files listed in the plan before editing them.
+```
 
 ### File Context (accumulates across compactions)
+
+```
 <files-read>
 [List all files read during planning — one path per line]
 </files-read>
 <files-modified>
 [Update as files are modified during execution — one path per line]
 </files-modified>
+```
 
 When context compacts, MERGE new file paths into these lists — never discard previous entries.
-```
+
+<HARD-GATE>
+**POST-PLAN-MODE EXECUTION — THIS IS NOT OPTIONAL**
+
+When you exit Plan Mode (ExitPlanMode) during a story-cycle, you are NOT done.
+Planning is only Phase 1 of 4. After Plan Mode exits, you MUST:
+
+1. Read `.claude/skills/story-cycle/SKILL.md` starting from `## Phase 2: Context Transition + Confidence Gate`
+2. Execute the `remaining_steps` from the plan's Story-Cycle Context block IN ORDER
+3. Do NOT report completion until Phase 4d passes with evidence for every acceptance criterion
+
+The plan approval is a checkpoint, not the finish line. If you stop after Plan Mode,
+the story is incomplete — no code was written, no tests were run, nothing was committed.
+</HARD-GATE>
 
 For complex stories, use `ultrathink` to reason through architectural decisions before writing the plan.
 
@@ -387,41 +412,22 @@ Present the plan for user approval.
 Do NOT write any implementation code, edit source files, or take any implementation action until the plan has been presented and the user has explicitly approved it. "I already know what to do" is NOT approval. Wait for the user.
 </HARD-GATE>
 
-## Phase 2: Context Transition
+## Phase 2: Context Transition + Confidence Gate
 
-After plan approval, selectively prune the context — keep discovery metadata, discard bulk content.
+After plan approval, prune context and score confidence in a single pass.
 
-**KEEP (low token cost, high value):**
-1. The approved plan (with Story-Cycle Context header and file tracking tags)
-2. File paths discovered during research (as a list, not full file contents)
-3. Edge cases or gotchas noted during exploration
-4. Pattern examples found in existing code (brief snippets only, not full files)
+### 2a. Context Pruning
 
-**DISCARD (high token cost, low ongoing value):**
-- Full file contents from exploration reads
-- Dead-end investigation paths
-- Irrelevant code discovered during broad searches
-- Search results that didn't lead anywhere
+**KEEP:** The approved plan (with Story-Cycle Context header), file paths from research, edge cases/gotchas, pattern snippets.
+**DISCARD:** Full file contents from exploration, dead-end investigations, irrelevant search results.
+**RELOAD for Phase 3:** `docs/reference/CODING_STANDARDS.md`, `docs/reference/TESTING_STRATEGY.md`, target files from plan.
+**SKIP until Phase 4:** `docs/progress.md`, `docs/architecture/ARCHITECTURE.md`, backlog files, `docs/reference/GROUND_RULES.md` (already checked in Phase 1e).
 
-**RELOAD for Phase 3** (prescriptive — load these, skip the rest):
-1. `docs/reference/CODING_STANDARDS.md` — coding conventions for implementation
-2. `docs/reference/TESTING_STRATEGY.md` — TDD workflow and test quality criteria
-3. Files identified in the plan's Implementation Approach as targets (re-read for fresh content)
-4. Skill-specific context (if skills were defined in Phase 1d)
+Re-read target files before editing — context may have changed since Phase 1.
 
-**SKIP until Phase 4:** `docs/progress.md`, `docs/architecture/ARCHITECTURE.md` (decisions already captured in plan), backlog files, `docs/reference/GROUND_RULES.md` (already checked in Phase 1e)
+### 2b. Confidence Gate
 
-The goal: preserve the *insights* from Phase 1 without the *bulk*. A list of 20 file paths costs ~200 tokens; the contents of those 20 files costs ~20,000.
-
-**DO / DON'T:**
-- DO reload coding standards and relevant files fresh after context transition.
-- DON'T carry over full file contents from Phase 1 — keep only paths, edge cases, and patterns.
-- DO re-read files from the plan's file list before editing them.
-- DON'T assume you remember file contents from Phase 1 — context may have changed.
-
-## Phase 2.5: Confidence Gate
-
-Before writing any implementation code, run the `confidence-gate` micro-component from `.claude/prompts/confidence-gate.md`. Score 5 dimensions (ambiguity, architecture, patterns, test strategy, dependencies) on a 0–20 scale each.
+Run the `confidence-gate` micro-component from `.claude/prompts/confidence-gate.md`. Score 5 dimensions (ambiguity, architecture, patterns, test strategy, dependencies) on a 0–20 scale each.
 
 | Total Score | Action |
 |-------------|--------|
@@ -429,10 +435,8 @@ Before writing any implementation code, run the `confidence-gate` micro-componen
 | **70–84** | Flag low-scoring dimensions, ask user for clarification before proceeding |
 | **< 70** | Return to Phase 1 for additional research on the weakest dimensions |
 
-This gate prevents wrong-direction implementations that waste the entire Phase 3 execution budget. A few tokens spent on confidence assessment saves thousands on rework.
-
 <HARD-GATE>
-Do NOT skip the confidence gate for ANY story size. SMALL stories require this gate. Output the 5-dimension score table before proceeding to Phase 3.
+Do NOT skip the confidence gate for ANY story size. Output the 5-dimension score table before proceeding to Phase 3.
 </HARD-GATE>
 
 ## Phase 3a: Parallel Stream Analysis (Optional)
@@ -450,36 +454,11 @@ Analyze the approved plan for parallel execution opportunities. Read `references
 Skip — proceed directly to Phase 3.
 </ELSE>
 
-## Failure State Persistence
+## Session Recovery
 
-At each phase transition, write `docs/sessions/.failure-state.md` with YAML frontmatter so the Stop hook and `/continue` can programmatically detect incomplete workflows.
-
-**At workflow start** (after Phase 0, before main work):
-
-```yaml
----
-status: active
-skill: story-cycle
-phase: "0"
-phase_name: "Intent Decomposition"
-started_at: "[ISO-8601 timestamp from date -u +%Y-%m-%dT%H:%M:%SZ]"
-story: "[from $ARGUMENTS]"
-branch: "[from git branch --show-current]"
-next_action: "Classify story type and begin planning"
-files_modified: []
----
-
-## Context
-[Free-form notes about current state — what has been done, what remains]
-```
-
-**At each phase transition:** Update the frontmatter fields: `phase`, `phase_name`, `next_action`, and append to `files_modified`. Update the Context section with current progress.
-
-**On successful completion (Phase 4.5 passes):** Delete `.failure-state.md` — clean state means no failure to recover from.
+The Stop hook auto-saves git state to `docs/sessions/.auto-save.md` (branch, recent commits, uncommitted files). The `/continue` skill uses this plus git state to resume interrupted workflows. No manual state file management needed.
 
 ## Phase 3: Execute by Story Type
-
-**State update:** If the plan is saved to `docs/plans/`, update the Story-Cycle Context: `phase: "3-executing"`, append `3-started` to `stepsCompleted`. Also update `docs/sessions/.failure-state.md` with Phase 3 entry.
 
 In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 
@@ -487,68 +466,55 @@ Before writing the first test, apply the `test_strategy_selection` reasoning too
 
 When errors occur during execution, consult `references/error-recovery.md` — search for `## Phase 3` for the recovery table.
 
-## Phase 3.5: Self-Review Before Wrap-Up
+### Web-Assisted Error Recovery (Phase 3)
 
-Read `references/self-review.md` and complete the full checklist honestly. Do NOT skip items.
+When a build error, test failure, or runtime exception involves an **external library** (not internal logic), search before guessing:
 
-Then read `references/disaster-prevention.md` and apply the adversarial checklist — check for: wheel reinvention (did you rebuild something that already exists?), spec drift (does the implementation match the plan?), integration wiring (are all connections actually hooked up?), file structure (are files in the right place following project conventions?), regression surface (could this break existing functionality?).
+**Trigger:** Error message contains a library name, unfamiliar API, or stack trace pointing outside the project's source tree. Does NOT trigger for purely internal logic errors (wrong variable, missing import of own module, etc.).
 
-**If sub-agents are available (Claude Code with Task tool):** Dispatch quality agents (`/code-quality`, `/test-validator`) in forked context for independent review.
+**Protocol:**
 
-**If sub-agents are NOT available:** Perform the self-review checklist manually — do not skip quality checks just because agents aren't available.
+1. Extract the key error: library name + version + error message (first meaningful line)
+2. `WebSearch`: `"<library> <version> <error-message-snippet>"` — look for GitHub issues, Stack Overflow answers, changelog entries
+3. If a promising result: `WebFetch` the page, extract the fix or workaround
+4. Apply the fix. If no results: fall back to normal error recovery (re-read code, check types, etc.)
+
+**Time budget:** Max 60 seconds of web research per error. If nothing useful surfaces, move on — don't spiral.
+
+**Bug fix stories — proactive search:** For bug fix story types, search the error pattern at the START of Phase 3 (before attempting a fix), not just after failure. The error message is the most valuable search query you have — use it early. See `references/story-types.md` for the updated Bug Fix workflow.
+
+## Phase 4: Verify + Wrap Up
+
+This phase combines self-review, quality gates, UAT, and completion verification into a single pass. All checks are mandatory — none are skipped because the story feels simple.
+
+### 4a. Self-Review + Disaster Prevention
+
+Read `references/self-review.md` and complete the checklist (completeness, quality, testing, discipline).
+
+Then read `references/disaster-prevention.md` — check for: wheel reinvention, spec drift, integration wiring, file structure, regression surface.
+
+**Security web verification (security-scoped stories only):** If the story was tagged with intent-based security activation (Phase 1d) or is a Security story type, perform a targeted web check before quality gates. See `references/self-review.md` → "Security Web Verification" section for the protocol.
 
 <HARD-GATE>
-Do NOT skip self-review for ANY story size. SMALL stories require this gate. If any checklist item fails, go back to Phase 3 and fix the issue before proceeding.
+Do NOT skip self-review for ANY story size. If any checklist item fails, go back to Phase 3 and fix before continuing.
 </HARD-GATE>
 
-**Error learning:** If self-review caught a wrong approach that required significant rework (not routine TDD cycles), invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md` to record the pattern in `docs/context/error-patterns.md`. This builds a cross-session knowledge base of mistakes to avoid.
+**If sub-agents are available:** Dispatch quality agents (`/code-quality`, `/test-validator`) in forked context.
 
-### Phase Completion Tracker
+**Error learning:** If self-review caught a wrong approach requiring significant rework, invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md`.
 
-Before proceeding to Phase 4, output this tracker to confirm all required phases completed:
+### 4b. Quality Gates
 
-```
-Phase Completion:
-✓ Phase 0: Intent decomposed — [N] deliverables identified
-✓ Phase 1: Plan approved by user (includes 1c.5 online verification, 1d.7 refinement)
-✓ Phase 2: Context transitioned
-✓ Phase 2.5: Confidence score: [score]/100
-✓ Phase 3: Implementation complete, tests passing
-✓ Phase 3.5: Self-review clean, disaster check passed
-→ Proceeding to Phase 4: Quality gates + wrap up (includes optional UAT generation + sense check)
-```
-
-If any line cannot be checked off, do NOT proceed — go back to the incomplete phase.
-
-## Phase 4: Wrap Up
-
-**Cross-skill status:** Update `docs/progress.md` with the current story status at each phase gate:
-- Phase 3 complete: `- **Status**: Phase 3 — implementation complete, self-review pending`
-- Phase 3.5 complete: `- **Status**: Phase 4 — tests pass, wrapping up`
-- Phase 4.5 complete: `- **Status**: DONE`
-
-This allows `/sprint-end` to understand partial completion if the session ends unexpectedly.
-
-After execution is complete, run the `quality-gate-sequence` micro-component from `.claude/prompts/quality-gate-sequence.md` (lint → typecheck → test, in order — skip any that aren't configured):
+Run the project's quality command (from CLAUDE.md Commands section). This typically runs lint → typecheck → test in order. Stop on first failure, fix, and re-run.
 
 <IF condition="test command exists in CLAUDE.md Commands">
-1. **Run quality gates:** Execute lint, typecheck, and test commands. Verify all pass with zero failures.
+Execute the configured quality commands. Verify all pass with zero failures.
 </IF>
 <ELSE>
-1. **Quality gates:** Run any configured commands (lint, typecheck). No test command configured — skip test verification, note in completion report.
+Run any configured commands (lint, typecheck). No test command configured — skip test verification, note in completion report.
 </ELSE>
 
-2. **Update documentation** if the story's AC requires it (but only what's relevant)
-3. **Generate UAT test case** (if applicable — see Phase 4a below)
-4. **Sense check UAT case** (if UAT case was generated — see Phase 4b below)
-5. **Capture learnings** (if applicable): Run the `capture-learnings` micro-component from `.claude/prompts/capture-learnings.md`. Skip for TRIVIAL stories or when no non-obvious patterns were discovered. Save to `docs/solutions/<topic-slug>.md`.
-6. **Commit:** Stage relevant files and commit with conventional format:
-   ```
-   <type>(<scope>): <description>
-   ```
-7. **Do NOT merge or create PR** — that's `/sprint-end`'s job
-
-### Phase 4a: Generate UAT Test Case (Optional)
+### 4c. Generate UAT Test Case (Optional)
 
 **Applies to:** Feature and Bug Fix stories that affect user-visible behavior, AND the project has a UAT structure (e.g., `docs/testing/uat/` or `tests/uat/`).
 **Skip for:** Spike/Research, Infrastructure, Documentation, Testing, Refactoring, Performance, Skill/Tooling stories. Also skip if no UAT directory exists in the project.
@@ -573,9 +539,9 @@ After execution is complete, run the `quality-gate-sequence` micro-component fro
    - [ ] Notes:
    ```
 
-### Phase 4b: Sense Check UAT Case (Optional)
+### 4c.1. Sense Check UAT Case (Optional)
 
-**Applies when:** A UAT test case was generated in Phase 4a.
+**Applies when:** A UAT test case was generated in Phase 4c.
 **Skip when:** No UAT case was generated.
 
 Since the implementation code is fresh in context, immediately verify the UAT case logic:
@@ -595,27 +561,28 @@ Since the implementation code is fresh in context, immediately verify the UAT ca
    - Check the box: `- [x] Logic verified from code perspective`
    - Fill in Notes with verdict and what was checked
 
-## Phase 4.5: Completion Verification
+### 4d. Completion Verification
 
-Before reporting done, re-check ALL acceptance criteria from the original request and Phase 0 decomposition:
-
-1. Re-read the original acceptance criteria (from the plan or user request)
-2. For each criterion, provide evidence: test output, code reference (file:line), or command output
+Re-read the original acceptance criteria from the plan. For each criterion, provide concrete evidence: test output, code reference (file:line), or command output.
 
 <LOOP max="2" until="all acceptance criteria have evidence">
-3. If any criterion lacks evidence: identify the gap, loop back to Phase 3 for that specific item
-4. Re-verify all criteria after each fix pass
+If any criterion lacks evidence: identify the gap, loop back to Phase 3 for that specific item, re-verify.
 </LOOP>
 
 <HALT reason="max verification loops exhausted">
-If 2 extra passes are exhausted: report what IS complete with evidence, list remaining gaps, suggest continuing in next session.
+Report what IS complete with evidence, list remaining gaps, suggest continuing in next session.
 </HALT>
 
-5. Only report completion when ALL criteria have evidence
-
 <HARD-GATE>
-Do NOT print the completion report until every acceptance criterion has been verified with evidence. "I believe it works" is not evidence — show test output or code references.
+Do NOT print the completion report until every acceptance criterion has been verified with evidence. Show test output or code references — not assertions.
 </HARD-GATE>
+
+### 4e. Docs + Commit
+
+1. **Update `docs/progress.md`** with story status (DONE)
+2. **Update documentation** only if the story's AC requires it
+3. **Capture learnings** (optional): If non-obvious patterns discovered, save to `docs/solutions/<topic-slug>.md`
+4. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.
 
 **Skill metrics:** Emit a completion event:
 ```bash

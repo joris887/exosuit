@@ -2,7 +2,7 @@
 
 Phase-specific recovery tables for story-cycle. When an error occurs, find the current phase and look up the recovery action.
 
----
+______________________________________________________________________
 
 ## Phase 0: Intent Decomposition Errors
 
@@ -39,8 +39,10 @@ Phase-specific recovery tables for story-cycle. When an error occurs, find the c
 | Test passes but behavior is wrong | Test is tautological or testing the mock | Re-read test against self-review checklist; ensure it tests real behavior |
 | Build/compile error | Missing dependency or wrong syntax | Read the full error; check package.json/requirements.txt; do NOT add phantom packages |
 | Pre-existing test breaks | Unintended side effect of new code | Understand WHY it broke; fix the root cause, don't patch the symptom |
+| External library error (any type) | Version mismatch, deprecated API, known bug | **Web search first:** `WebSearch` for `"<library> <version> <error snippet>"`. Check GitHub issues and changelogs before guessing at a fix. 60s max. |
+| Unfamiliar framework behavior | Assumed behavior from training data | **Web search:** Fetch the official docs for the pinned version. Training data may be stale — verify the actual API contract. |
 
-## Phase 3.5: Self-Review Errors
+## Phase 4a: Self-Review Errors
 
 | Error | Cause | Recovery |
 |-------|-------|----------|
@@ -48,7 +50,7 @@ Phase-specific recovery tables for story-cycle. When an error occurs, find the c
 | Quality agent unavailable | Sub-agents not supported in environment | Complete self-review checklist manually; do NOT skip quality checks |
 | Checklist item fails | Incomplete or incorrect implementation | Loop back to Phase 3 for the specific failing item |
 
-## Phase 4: Wrap-Up Errors
+## Phase 4b: Quality Gate Errors
 
 | Error | Cause | Recovery |
 |-------|-------|----------|
@@ -57,7 +59,7 @@ Phase-specific recovery tables for story-cycle. When an error occurs, find the c
 | Commit message rejected | Wrong conventional format | Check `.claude/rules/git.md` for format; regenerate message |
 | Test suite fails on final run | Regression introduced during implementation | Re-read failing test output; trace to the specific change that broke it |
 
-## Phase 4.5: Completion Verification Errors
+## Phase 4d: Completion Verification Errors
 
 | Error | Cause | Recovery |
 |-------|-------|----------|

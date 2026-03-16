@@ -1,8 +1,8 @@
-Record a failure pattern for cross-session learning. Invoke when self-review catches issues (story-cycle Phase 3.5), when debug-session identifies a root cause (Phase 4), or when a fix attempt fails and the correct approach is found.
+Record a failure pattern for cross-session learning. Invoke when self-review catches issues (story-cycle Phase 4a), when debug-session identifies a root cause (Phase 4), or when a fix attempt fails and the correct approach is found.
 
 ## When to Record
 
-- Self-review (Phase 3.5) catches a wrong approach that required rework
+- Self-review (Phase 4a) catches a wrong approach that required rework
 - Debug-session identifies a root cause that was initially misdiagnosed
 - A fix attempt fails and investigation reveals the correct approach
 - An architectural decision is reversed after implementation

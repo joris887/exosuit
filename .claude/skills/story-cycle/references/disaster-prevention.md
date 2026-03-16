@@ -1,6 +1,6 @@
 # Disaster Prevention Checklist
 
-Reference loaded by `/story-cycle` Phase 3.5 after the standard self-review. Targets specific categories of LLM-typical implementation failures.
+Reference loaded by `/story-cycle` Phase 4a after the standard self-review. Targets specific categories of LLM-typical implementation failures.
 
 For each category, actively search for the anti-pattern — don't just check a box.
 
