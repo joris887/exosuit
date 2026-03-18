@@ -4,9 +4,13 @@
     "type": "command",
     "command": "bash __PROJECT_ROOT__/.claude/hooks/status-line.sh"
   },
+  "attribution": "Co-Authored-By: Claude <noreply@anthropic.com>",
+  "plansDirectory": "docs/plans",
+  "includeGitInstructions": false,
   "hooks": {
     "SessionStart": [
       {
+        "once": true,
         "hooks": [
           {
             "type": "command",
@@ -66,6 +70,36 @@
         ]
       }
     ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/pre-compact.sh"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/post-compact.sh"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/stop-failure.sh"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -102,6 +136,57 @@
           {
             "type": "command",
             "command": "sh __PROJECT_ROOT__/.claude/hooks/subagent-stop.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/session-end.sh"
+          }
+        ]
+      }
+    ],
+    "Setup": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/setup.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/post-tool-failure.sh"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/permission-request.sh"
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/config-change.sh"
           }
         ]
       }

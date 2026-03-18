@@ -1,10 +1,12 @@
 #!/bin/sh
-# PreToolUse handler: block dangerous Bash commands.
+# PreToolUse handler: block dangerous commands, sanitize fixable ones, inject context.
 # Loads patterns from rules/safety.patterns. Blocks matching commands (exit 2).
+# Can rewrite commands via updatedInput (e.g., --force → --force-with-lease).
+# Can inject additionalContext before tool execution.
 # POSIX-compliant — no bash required.
 #
 # Input:  JSON on stdin (tool_input.command)
-# Output: exit 0 = allow, exit 2 = block (message on stderr)
+# Output: exit 0 = allow, exit 2 = block, JSON stdout = rewrite or context
 
 HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 RULES_DIR="$HOOKS_DIR/rules"
@@ -51,6 +53,15 @@ if [ -f "$SAFETY_FILE" ]; then
     done < "$SAFETY_FILE"
 fi
 
+# --- Command sanitization (updatedInput) ---
+# Rewrite dangerous-but-fixable commands instead of blocking
+if printf '%s' "$COMMAND" | grep -qE 'git push (--force|-f)\b'; then
+    # Rewrite --force to --force-with-lease (safer)
+    SAFE_CMD=$(printf '%s' "$COMMAND" | sed 's/--force\b/--force-with-lease/g; s/-f\b/--force-with-lease/g')
+    printf '{"decision":"allow","updatedInput":{"command":"%s"},"systemMessage":"Rewrote --force to --force-with-lease for safety."}\n' "$SAFE_CMD"
+    exit 0
+fi
+
 # --- Framework template repo protection ---
 if printf '%s' "$COMMAND" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+push)'; then
     FRAMEWORK_REPO="${JD_FRAMEWORK_REPO:-joris887/JD-LLM-Development_framework}"
@@ -63,6 +74,18 @@ if printf '%s' "$COMMAND" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+push)'; th
                 ;;
         esac
     fi
+fi
+
+# --- Context injection (additionalContext) ---
+# Inject reminders before specific command types
+if printf '%s' "$COMMAND" | grep -qE '(pytest|npm test|go test|cargo test|bundle exec rspec|dart test|dotnet test)\b'; then
+    printf '{"additionalContext":"Capture the full test output — this is verification evidence needed for completion."}\n'
+    exit 0
+fi
+
+if printf '%s' "$COMMAND" | grep -qE 'git push\b'; then
+    printf '{"additionalContext":"After push, create a PR with gh pr create if one does not exist yet."}\n'
+    exit 0
 fi
 
 exit 0

@@ -70,6 +70,7 @@ For technology skill generation: `/skill-create`
 | `/backlog-review`     | As needed  | Backlog health analysis            |
 | `/doctor`             | As needed  | Framework health check + dependency validation |
 | `/framework-upgrade`  | As needed  | Upgrade framework to newer version, preserving project customizations |
+| `/upstream-updates`   | After Claude Code updates | Analyze Claude Code features → gap analysis → generate upgrade plan |
 
 ### Parallel Development (Manual-only)
 

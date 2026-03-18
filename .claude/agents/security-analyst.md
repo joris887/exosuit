@@ -8,6 +8,10 @@ model: inherit
 temperature: 0.1
 color: yellow
 tools: Glob, Grep, Read
+disallowedTools: [Edit, Write, NotebookEdit]
+maxTurns: 20
+skills: [security-audit]
+effort: high
 ---
 
 Think like an attacker examining this code for the first time. Your goal is to find ways to bypass, abuse, or exploit the implementation. Every input is untrusted. Every boundary is a potential attack surface.

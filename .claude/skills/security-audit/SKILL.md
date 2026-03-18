@@ -9,6 +9,7 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash
 context: fork
 agent: Explore
+isolation: worktree
 ---
 ______________________________________________________________________
 

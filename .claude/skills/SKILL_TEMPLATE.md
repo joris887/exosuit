@@ -19,12 +19,48 @@ Every SKILL.md starts with a YAML frontmatter block for machine-readable metadat
 
 ```yaml
 ---
+# === REQUIRED ===
 name: skill-name
 version: 2.4.0
 description: Brief one-line description of the skill
 trigger: manual|auto|conditional
 depends-on: [other-skill-1, other-skill-2]
 references: [references/file1.md, references/file2.md]
+
+# === EXECUTION CONTROL (all optional) ===
+user-invocable: true                # show in / menu (default: true)
+disable-model-invocation: false     # prevent Claude auto-loading
+argument-hint: "<description>"      # shown in autocomplete
+allowed-tools:                      # tools allowed without permission
+  - Read
+  - Glob
+  - Grep
+disallowedTools: [Edit, Write]      # tools explicitly blocked (deterministic)
+
+# === EXECUTION CONTEXT (all optional) ===
+context: fork                       # run in forked sub-agent
+agent: Explore                      # subagent type: Explore, Plan, general-purpose, custom
+model: opus                         # model override: opus, sonnet, haiku, full model ID
+effort: high                        # effort level: low, medium, high
+background: true                    # always run as background task
+isolation: worktree                 # git worktree isolation
+once: true                          # fire only once per session
+memory: project                     # persistent memory: user, project, local
+
+# === SCOPED HOOKS (optional) ===
+hooks:
+  Stop:
+    - hooks:
+        - type: prompt
+          prompt: "Check if tests were run"
+
+# === SUBAGENT AUTO-LOADING (optional) ===
+skills: [code-quality, research]    # skills preloaded for subagents
+
+# === COMPOSITION (optional) ===
+micro-components:
+  phase-0: [context-prime]
+  phase-4: [quality-gate-sequence]
 ---
 ```
 
@@ -36,6 +72,21 @@ references: [references/file1.md, references/file2.md]
 | `trigger` | Yes | `manual`, `auto`, `conditional` | How the skill is invoked |
 | `depends-on` | Yes | list of skill names | Skills this may invoke |
 | `references` | Yes | list of file paths | Supporting reference files |
+| `user-invocable` | No | boolean | Show in `/` menu (default: true) |
+| `disable-model-invocation` | No | boolean | Prevent auto-loading |
+| `argument-hint` | No | string | Autocomplete hint |
+| `allowed-tools` | No | list or comma-separated | Tools allowed without permission |
+| `disallowedTools` | No | list | Tools blocked deterministically |
+| `context` | No | `fork` | Run in forked sub-agent context |
+| `agent` | No | `Explore`, `Plan`, `general-purpose`, custom | Subagent type (with `context: fork`) |
+| `model` | No | `opus`, `sonnet`, `haiku`, full ID | Model override |
+| `effort` | No | `low`, `medium`, `high` | Model effort level |
+| `background` | No | boolean | Always run as background task |
+| `isolation` | No | `worktree` | Git worktree isolation |
+| `once` | No | boolean | Fire only once per session |
+| `memory` | No | `user`, `project`, `local` | Persistent memory scope |
+| `hooks` | No | hook config object | Scoped hooks for this skill's lifecycle |
+| `skills` | No | list of skill names | Auto-loaded for subagents |
 | `micro-components` | No | map of phase → list | Micro-components to load per phase |
 
 ### Micro-Components in Frontmatter
@@ -140,18 +191,19 @@ Use for: code-quality, test-validator, security-audit, architecture-check
 
 ### Tool Restrictions for Subagents
 
-Analysis agents (forked context) should declare explicit tool restrictions in their skill body to prevent accidental writes:
+Use `disallowedTools` in frontmatter for deterministic enforcement — the model physically cannot use blocked tools. This replaces advisory prose instructions which can be skipped (T01-015).
 
-```markdown
-**Tool restriction:** This agent MUST only use Read, Glob, and Grep tools. Do NOT use Edit or Write. This is a read-only analysis agent.
+```yaml
+# In skill frontmatter or agent frontmatter:
+disallowedTools: [Edit, Write, NotebookEdit]
 ```
 
-| Agent Type | Allowed Tools | Rationale |
-|------------|---------------|-----------|
-| Code quality | Read, Glob, Grep | Read-only analysis |
-| Security audit | Read, Glob, Grep, Bash (scanners) | Needs to run security tools |
-| Test validator | Read, Glob, Grep, Bash (test runner) | Needs to run tests |
-| Code reviewer | Read, Glob, Grep | Read-only review |
+| Agent Type | disallowedTools | Rationale |
+|------------|-----------------|-----------|
+| Code quality | Edit, Write, NotebookEdit | Read-only analysis |
+| Security audit | Edit, Write, NotebookEdit | Read-only + scanners via Bash |
+| Test validator | Edit, Write, NotebookEdit | Read-only + test runner via Bash |
+| Code reviewer | Edit, Write, NotebookEdit | Read-only review |
 
 ### Specifying Context Mode
 
@@ -204,11 +256,19 @@ This saves significant context: a 50-line script produces 5-10 lines of output.
 
 ## Reference Navigation Pattern
 
-When referencing supporting docs, include section-level grep hints:
-- BAD: "See `references/api.md` for details"
-- GOOD: "In `references/api.md`, search for `## Authentication` — load only that section"
+When referencing supporting docs, use `${CLAUDE_SKILL_DIR}` for portable paths:
+- BAD: "See `.claude/skills/my-skill/references/api.md`"
+- GOOD: "In `${CLAUDE_SKILL_DIR}/references/api.md`, search for `## Authentication`"
 
-This lets Claude load one section instead of the full file.
+Include section-level grep hints to load one section instead of the full file.
+
+### String Substitutions Available in Skill Body
+- `$ARGUMENTS` — all arguments passed to skill
+- `$ARGUMENTS[0]`, `$ARGUMENTS[1]` — positional arguments (indexed)
+- `$1`, `$2` — shorthand for positional arguments
+- `${CLAUDE_SKILL_DIR}` — the skill's own directory path
+- `${CLAUDE_SESSION_ID}` — current session ID
+- `` !`command` `` — inline shell command execution (output injected into prompt)
 
 ## Story Skill Metadata
 

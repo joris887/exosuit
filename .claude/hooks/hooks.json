@@ -4,6 +4,7 @@
   "hooks": {
     "SessionStart": [
       {
+        "once": true,
         "hooks": [
           {
             "type": "command",
@@ -63,6 +64,36 @@
         ]
       }
     ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/post-compact.sh"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/stop-failure.sh"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -99,6 +130,57 @@
           {
             "type": "command",
             "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/session-end.sh"
+          }
+        ]
+      }
+    ],
+    "Setup": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/setup.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-failure.sh"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/permission-request.sh"
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/config-change.sh"
           }
         ]
       }

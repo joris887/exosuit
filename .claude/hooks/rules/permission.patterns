@@ -1,0 +1,27 @@
+# Permission patterns for PermissionRequest hook.
+# Format: action@@tool_regex@@command_regex@@reason
+# Actions: allow (auto-approve), deny (auto-deny)
+# Lines starting with # are comments.
+# If no pattern matches, falls through to user prompt.
+
+# --- Auto-approve: read-only tools ---
+allow@@^(Read|Glob|Grep|WebSearch|WebFetch|LSP)$@@.*@@Read-only tool
+allow@@^Agent$@@.*@@Subagent dispatch
+
+# --- Auto-approve: safe bash commands ---
+allow@@^Bash$@@^(cat|head|tail|less|wc|ls|find|tree|file|which|type|command|echo|printf)\b@@Read-only command
+allow@@^Bash$@@^git (status|log|diff|branch|show|remote|tag|describe|rev-parse|ls-files|shortlog)\b@@Read-only git
+allow@@^Bash$@@^(pytest|python -m pytest|npm test|npx jest|go test|cargo test|bundle exec rspec|php artisan test|dart test|dotnet test)\b@@Test execution
+allow@@^Bash$@@^(ruff|black|prettier|biome|gofmt|rustfmt|rubocop|ktfmt|swift-format|php-cs-fixer|dart format|dotnet format|clang-format)\b@@Code formatting
+allow@@^Bash$@@^(ruff check|eslint|golangci-lint|mypy|pyright|tsc --noEmit|npx tsc)\b@@Linting/typechecking
+allow@@^Bash$@@^(gh pr |gh issue |gh run )\b@@GitHub CLI (read operations)
+allow@@^Bash$@@^(node|python3?|ruby|go run|cargo run|php|dart run|dotnet run)\b.*--help@@Help commands
+
+# --- Auto-deny: dangerous commands (mirrors safety.patterns) ---
+deny@@^Bash$@@git push (--force|-f)\b@@Force push blocked (use --force-with-lease)
+deny@@^Bash$@@git reset --hard@@Destructive reset blocked
+deny@@^Bash$@@git checkout \.\s*$@@Discard all changes blocked
+deny@@^Bash$@@git clean -f@@Delete untracked files blocked
+deny@@^Bash$@@rm -rf [/~.]@@Dangerous recursive delete blocked
+deny@@^Bash$@@(npm publish|cargo publish|twine upload|gem push)\b@@Package publish blocked
+deny@@^Bash$@@(DROP TABLE|DROP DATABASE|TRUNCATE TABLE)@@Destructive DB operation blocked

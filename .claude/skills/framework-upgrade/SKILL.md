@@ -141,7 +141,7 @@ Work through the approved plan in dependency order:
 
 ### Merge Strategy Reference
 
-For detailed merge patterns (which sections to preserve, which to replace), consult `references/merge-strategy.md` — search for the relevant component type.
+For detailed merge patterns (which sections to preserve, which to replace), consult `${CLAUDE_SKILL_DIR}/references/merge-strategy.md` — search for the relevant component type.
 
 ### Recovery
 

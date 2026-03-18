@@ -62,6 +62,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | Architecture check     | `/architecture-check`          |
 | Framework health check | `/doctor`                      |
 | Upgrade framework      | `/framework-upgrade`           |
+| Check for CC updates   | `/upstream-updates`            |
 | Evaluate a skill       | `/skill-eval <mode> <skill>`   |
 | Undo failed work       | `/undo-work`                   |
 | Iterative refinement   | `/refine-loop "<task>"`        |
