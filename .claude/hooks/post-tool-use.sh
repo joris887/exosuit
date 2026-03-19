@@ -36,8 +36,9 @@ if [ -z "$TARGET" ]; then
 fi
 [ -z "$TARGET" ] && exit 0
 
-# Resolve project log directory
-LOG_DIR="docs/sessions"
+# Resolve project log directory (use git root to avoid CWD issues)
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+LOG_DIR="$PROJECT_ROOT/docs/sessions"
 LOG_FILE="$LOG_DIR/.activity-log.jsonl"
 mkdir -p "$LOG_DIR" 2>/dev/null || exit 0
 

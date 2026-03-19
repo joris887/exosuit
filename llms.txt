@@ -12,7 +12,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.5)
+- CHANGELOG.md: Comprehensive change log with per-optimization entries
 - docs/reference/MCP_INTEGRATION.md: MCP server selection guide with categories, decision tree, and integration patterns
 - docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
 - docs/solutions/: Searchable solutions database — learnings from completed stories with YAML frontmatter (title, tags, module, component)
@@ -103,13 +103,27 @@
 - .claude/agents/codebase-explorer.md: Fast file discovery and codebase mapping (model: haiku) — temperature: 0.3
 
 ## Hooks
-- .claude/hooks/engine.py: Unified Python dispatch engine routing all hook events to handler modules with YAML rule configuration and per-handler error isolation
-- .claude/hooks/rules/safety.yaml: PreToolUse blocking patterns (git force push, destructive ops, publishing, DB, process killing)
-- .claude/hooks/rules/quality.yaml: Stop quality gate rules (weak claims, completion evidence)
-- .claude/hooks/handlers/: Per-event handler modules (pre_tool_use, post_tool_use, stop, user_prompt, subagent_stop, session_start, worktree)
-- .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits + automated secrets detection (bash, kept for file-type switching)
+- .claude/hooks/pre-tool-use.sh: PreToolUse safety checks — blocks dangerous commands via rules/safety.patterns
+- .claude/hooks/post-tool-use.sh: PostToolUse activity logging to docs/sessions/.activity-log.jsonl
+- .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits + automated secrets detection (bash)
+- .claude/hooks/stop.sh: Stop quality gate — validates completion evidence via rules/quality.conf
+- .claude/hooks/session-start.sh: SessionStart advisory checks — tool availability, stale sessions, git state
+- .claude/hooks/session-end.sh: SessionEnd final auto-save and cleanup
+- .claude/hooks/pre-compact.sh: PreCompact auto-save session state before context compaction
+- .claude/hooks/post-compact.sh: PostCompact context recovery after compaction
+- .claude/hooks/user-prompt.sh: UserPromptSubmit destructive intent warnings via rules/intent.patterns
+- .claude/hooks/subagent-stop.sh: SubagentStop weak claim detection via rules/subagent.patterns
+- .claude/hooks/permission-request.sh: PermissionRequest auto-decisions via rules/permission.patterns
 - .claude/hooks/worktree-bash-fix.sh: Transparent worktree directory fix for Bash commands (bash, apply_to_subagents)
-- Engine falls back gracefully if Python unavailable
+- .claude/hooks/worktree.sh: WorktreeCreate/WorktreeRemove state copying
+- .claude/hooks/setup.sh: Setup hook validates framework installation health
+- .claude/hooks/config-change.sh: ConfigChange settings.json validation
+- .claude/hooks/status-line.sh: StatusLine custom status display (bash)
+- .claude/hooks/stop-failure.sh: StopFailure escalation handling
+- .claude/hooks/post-tool-failure.sh: PostToolUseFailure error tracking
+- .claude/hooks/lib/paths.sh: Path resolution helpers for plugin/template mode
+- .claude/hooks/rules/: Text-based rule files (safety.patterns, quality.conf, permission.patterns, intent.patterns, subagent.patterns, subagent.conf)
+- All hooks are POSIX shell (no Python dependency) with optional jq for JSON parsing
 
 ## GitHub Templates
 - .github/workflows/claude-pr-review.yml: CI-based Claude Code PR review with tiered access

@@ -145,6 +145,18 @@ Present:
 
 Do NOT implement any changes. Wait for user to approve the plan and direct which sprint to start.
 
+## Error Recovery
+
+| Error | Cause | Recovery |
+|-------|-------|----------|
+| WebFetch returns 404 | Documentation URL changed | Try the docs landing page `https://docs.anthropic.com/en/docs/claude-code/overview`, navigate from there |
+| WebFetch times out | Network or rate limiting | Retry once, then skip that page and note the gap |
+| `claude --version` fails | Claude Code not installed or not in PATH | Ask user for version manually, continue with web research only |
+| Git clone fails (--deep mode) | Repo access denied or not found | Skip Phase 1c, rely on web docs only |
+| No new features found | Framework already up to date | Report "no upgrade needed" with evidence, skip Phases 4-5 |
+| FRAMEWORK_DEEP_DIVE.md not found | Wrong workspace or missing file | Ask user for framework reference location |
+| Backlog file not found | First run or different structure | Create new epic file, ask user for epic numbering |
+
 ## Reference: Documentation URLs
 
 These URLs should be fetched in Phase 1b. If any fail, note the failure and continue with remaining pages.
