@@ -6,7 +6,6 @@
 
 HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 STATE_DIR="$HOOKS_DIR/state"
-PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 WARNINGS=""
 
 # --- Helper: append warning ---
@@ -20,9 +19,9 @@ warn() {
 }
 
 # --- 1. Check project tool availability from CLAUDE.md ---
-if [ -f "$PROJECT_ROOT/CLAUDE.md" ]; then
+if [ -f "CLAUDE.md" ]; then
     for key in "test:" "lint:" "format:" "build:" "typecheck:"; do
-        CMD=$(grep "$key" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null | sed "s/.*$key//" | awk '{print $1}' | head -1)
+        CMD=$(grep "$key" CLAUDE.md 2>/dev/null | sed "s/.*$key//" | awk '{print $1}' | head -1)
         if [ -n "$CMD" ]; then
             case "$CMD" in
                 '<'*|'#'*|'') continue ;;
@@ -35,7 +34,7 @@ if [ -f "$PROJECT_ROOT/CLAUDE.md" ]; then
 fi
 
 # --- 2. Stale session detection ---
-AUTO_SAVE="$PROJECT_ROOT/docs/sessions/.auto-save.md"
+AUTO_SAVE="docs/sessions/.auto-save.md"
 if [ -f "$AUTO_SAVE" ]; then
     if command -v stat >/dev/null 2>&1; then
         # macOS stat vs GNU stat

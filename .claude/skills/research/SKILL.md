@@ -10,7 +10,7 @@ user-invocable: true
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 argument-hint: "<topic-or-question>"
 context: fork
-agent: research-analyst
+agent: general-purpose
 ---
 ______________________________________________________________________
 

@@ -10,8 +10,7 @@ HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Auto-save git state if in a git repo
 if [ -d ".git" ] || [ -f ".git" ]; then
-    PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-    SESSIONS_DIR="$PROJECT_ROOT/docs/sessions"
+    SESSIONS_DIR="docs/sessions"
     mkdir -p "$SESSIONS_DIR" 2>/dev/null
 
     BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")

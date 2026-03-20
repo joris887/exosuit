@@ -22,7 +22,7 @@ This framework turns Claude Code into a structured development partner. Instead 
 - [Claude Code](https://claude.com/claude-code) installed and working
 - [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated
 - Git configured with your identity
-- Optional: `jq` for enhanced JSON validation in hooks (falls back to sed if unavailable)
+- Python 3.8+ (required for the hook engine — runs regardless of your project's language)
 
 ## Quick Start
 
@@ -38,6 +38,7 @@ cp -rn /tmp/jd-framework/.claude .
 cp -rn /tmp/jd-framework/docs .
 cp -rn /tmp/jd-framework/vision .
 cp -n /tmp/jd-framework/CLAUDE.md .
+cp -n /tmp/jd-framework/.gitignore .
 rm -rf /tmp/jd-framework
 ```
 

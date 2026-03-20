@@ -10,8 +10,7 @@ HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # --- 1. Final auto-save (same logic as pre-compact.sh) ---
 if [ -d ".git" ] || [ -f ".git" ]; then
-    PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-    SESSIONS_DIR="$PROJECT_ROOT/docs/sessions"
+    SESSIONS_DIR="docs/sessions"
     mkdir -p "$SESSIONS_DIR" 2>/dev/null
 
     BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
@@ -50,7 +49,7 @@ ITER_FILE="$HOOKS_DIR/state/stop-iteration"
 [ -f "$ITER_FILE" ] && rm -f "$ITER_FILE" 2>/dev/null
 
 # --- 3. Activity log rotation (keep last 200 entries) ---
-LOG_FILE="$PROJECT_ROOT/docs/sessions/.activity-log.jsonl"
+LOG_FILE="docs/sessions/.activity-log.jsonl"
 if [ -f "$LOG_FILE" ]; then
     LINE_COUNT=$(wc -l < "$LOG_FILE" 2>/dev/null | tr -d '[:space:]')
     if [ "$LINE_COUNT" -gt 200 ]; then
