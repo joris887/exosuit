@@ -36,7 +36,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash __PROJECT_ROOT__/.claude/hooks/status-line.sh"
+    "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && bash .claude/hooks/status-line.sh"
   },
   "hooks": {
     "SessionStart": [
@@ -44,7 +44,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/session-start.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/session-start.sh",
             "once": true,
             "statusMessage": "Checking project environment..."
           }
@@ -57,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/pre-tool-use.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/pre-tool-use.sh",
             "statusMessage": "Safety check..."
           }
         ]
@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree-bash-fix.sh"
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/worktree-bash-fix.sh"
           }
         ],
         "apply_to_subagents": true
@@ -79,7 +79,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/post-tool-use.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/post-tool-use.sh",
             "statusMessage": "Logging activity..."
           }
         ]
@@ -89,7 +89,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash __PROJECT_ROOT__/.claude/hooks/post-edit-format.sh \"$FILE_PATH\"",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && bash .claude/hooks/post-edit-format.sh \"$FILE_PATH\"",
             "statusMessage": "Auto-formatting..."
           }
         ]
@@ -100,7 +100,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/stop.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/stop.sh",
             "statusMessage": "Quality gate..."
           }
         ]
@@ -111,7 +111,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/user-prompt.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/user-prompt.sh",
             "statusMessage": "Analyzing request..."
           }
         ]
@@ -122,7 +122,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree.sh WorktreeCreate",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/worktree.sh WorktreeCreate",
             "statusMessage": "Setting up worktree..."
           }
         ]
@@ -133,7 +133,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree.sh WorktreeRemove",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/worktree.sh WorktreeRemove",
             "statusMessage": "Cleaning up worktree..."
           }
         ]
@@ -144,7 +144,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/subagent-stop.sh"
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/subagent-stop.sh"
           }
         ]
       }
