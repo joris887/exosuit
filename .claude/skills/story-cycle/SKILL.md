@@ -46,7 +46,7 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
       → Lightweight Phase 1 (skip 1f-1g) → Phase 2 → Phase 3 → Phase 4 → DONE
     → [STANDARD: everything else]
       → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
-        → Phase 1c.5: Online Verification (conditional — research decision gate)
+        → Phase 1c.5: Online Verification → `*** HARD GATE: must print Research Decision block ***`
           → 1c.5+: Dependency Freshness Check (always, if story touches external deps)
         → Phase 1d.7: Story Refinement & Forward Context (gap analysis, cross-story notes)
         → Phase 1f: Clarification Check (ambiguity_scan across 7 categories)
@@ -132,7 +132,7 @@ SMALL stories skip Phase 1f (clarification check) and 1g (plan completeness) **o
 All other phases are **REQUIRED** — do NOT skip them because the story feels simple:
 
 - [ ] Phase 0: Intent decomposition
-- [ ] Phase 1: Lightweight analysis + plan (includes 1c.5 online verification if APIs involved) → `*** HARD GATE: user approval ***`
+- [ ] Phase 1: Lightweight analysis + plan (includes 1c.5 Research Decision — MANDATORY output) → `*** HARD GATE: user approval ***`
 - [ ] Phase 2: Context transition + confidence gate (score ≥85) → `*** HARD GATE ***`
 - [ ] Phase 3: Implementation (TDD by story type)
 - [ ] Phase 4: Self-review + quality gates + completion verification with evidence → `*** HARD GATE ***`
@@ -217,13 +217,22 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 - Identify files to modify and files to create
 - Check for `.claude-context.md` files in the target directory and parent directories — these contain module-specific patterns and conventions that supplement global CLAUDE.md
 
-### 1c.5. Online Verification (Conditional)
+### 1c.5. Online Verification
 
-Before planning, decide whether external research is needed. This gate prevents wasting context on unnecessary research for routine stories while ensuring thorough verification when it matters.
+<HARD-GATE>
+**This phase produces MANDATORY output.** You MUST print a `## Research Decision` block (format below) before proceeding to Phase 1d. The plan CANNOT be written without this block. Skipping this phase silently is a workflow violation.
+</HARD-GATE>
 
-**Spike/Research stories: ALWAYS proceed with online verification at DEEP depth.** Spikes exist to gather external knowledge — skipping research defeats their purpose. Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **DEEP** depth. See `references/story-types.md` Spike/Research section for the full flow.
+**Step 1 — Classify research requirement:**
 
-**Research Decision Gate (non-spike stories) — evaluate these three signals:**
+| Story type | Research requirement | Depth |
+|---|---|---|
+| **Spike/Research** | **MANDATORY** | **DEEP** |
+| **Security** | **MANDATORY** | **STANDARD** |
+| **Bug Fix** | **MANDATORY** (error pattern search) | **QUICK** |
+| All other types | Conditional (evaluate 3 signals below) | Auto-select |
+
+**Step 2 — For conditional stories, evaluate these three signals:**
 
 | Signal | Research needed | Skip research |
 |--------|----------------|---------------|
@@ -231,27 +240,48 @@ Before planning, decide whether external research is needed. This gate prevents 
 | **Local context strength** | Weak: unfamiliar library, no existing patterns, no prior solutions in `docs/solutions/` | Strong: established patterns, existing tests, prior solution docs cover this area |
 | **Uncertainty level** | Approach is unclear, multiple valid strategies exist | Approach is obvious from codebase conventions |
 
-**Decision:** If ANY signal points to "research needed" → proceed with online verification. Otherwise → skip with a note: `"Online verification: skipped — [strong local patterns / low-risk internal logic / well-understood area]"`.
+**Decision:** If ANY signal points to "research needed" → proceed. Otherwise → skip with justification.
 
-Announce the decision to the user so it's transparent.
+**Step 3 — Execute research (when proceeding):**
 
-**When proceeding with research**, compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) with depth auto-selected by risk:
+Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at the depth from Step 1:
 
 | Story context | Research depth |
-|---------------|---------------|
-| High-risk (security, payments, auth, new deps) | **STANDARD** |
-| Standard story with research signals | **QUICK** |
+|---|---|
+| Spike/Research | **DEEP** |
+| Security, new external dependencies | **STANDARD** |
+| Bug fix, standard story with research signals | **QUICK** |
 
-**The research engine handles:** query decomposition, parallel subagent dispatch, source evaluation, reflection-based compression, and structured output. See `.claude/prompts/deep-research.md` for the full methodology.
+The research engine handles: query decomposition, parallel subagent dispatch, source evaluation, reflection-based compression. See `.claude/prompts/deep-research.md`.
 
-**Output format:** `plan-context` — findings integrate directly into the story plan.
+**For Spike/Research stories specifically:** Generate sub-questions from the spike's questions. Research current state of reference technologies, recent publications, competitor approaches, and relevant patterns. All claims MUST cite sources with URLs. Training data alone is NEVER sufficient for spikes.
+
+**Step 4 — Print the Research Decision block (MANDATORY):**
+
+```markdown
+## Research Decision
+
+**Story type:** [type from 1a]
+**Research requirement:** [MANDATORY / Conditional]
+**Decision:** [PERFORMED at [depth] / SKIPPED]
+**Justification:** [why — for skips: which signals were evaluated and why all pointed to skip]
+
+### Findings (if research was performed)
+- [Key finding 1 with source URL]
+- [Key finding 2 with source URL]
+- [Finding N...]
+
+**Research confidence:** [score]/100
+**Impact on plan:** [how findings affect the approach — or "No findings that change approach"]
+```
+
+This block is included in the plan and feeds into Phase 2b confidence scoring.
 
 **Record findings:**
 
 - If official docs reveal a deprecation or API change: note it in the plan as a "Doc Finding" and update relevant reference docs after implementation
 - If a better approach is found: incorporate it into the plan
 - If everything checks out: note "Online verification: APIs confirmed current" and move on
-- Research confidence scores feed into the confidence-gate scoring (Phase 2b)
 
 ### 1c.5+. Dependency Freshness Check (Always-On for External Deps)
 
@@ -339,6 +369,7 @@ Apply the `plan_completeness` reasoning tool from `references/reasoning-tools.md
 - All acceptance criteria have verification approaches
 - Specification section contains zero implementation details
 - Implementation section traces to every acceptance criterion
+- **Research Decision block is present** (from Phase 1c.5) — if missing, HALT and go back to 1c.5
 
 **CRITICAL — Story-Cycle Context Preservation:**
 
