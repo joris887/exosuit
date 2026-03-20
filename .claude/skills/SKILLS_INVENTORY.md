@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 3.6
+**Framework Version:** 3.7
 
 ## Core Workflow
 
@@ -108,6 +108,7 @@ For structured UAT with tracked test cases:
 | ---------------- | ------------------------------------------------------ | ---------------------------------------------------- |
 | `/skill-eval`    | `<mode> [skill-name] [--scenario <desc>]`              | Test, measure, or A/B compare skill effectiveness    |
 | `/refine-loop`   | `"<task>" --until "<criteria>" [--max <N>]`            | Iterative self-improvement until completion criteria met |
+| `/optimize`      | `"<goal>" --metric "<cmd>" --target <N> [--direction min\|max]` | Autonomous metric-driven optimization with git checkpointing and automatic rollback |
 
 ### Utility (Manual-only)
 
@@ -250,6 +251,7 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 3.7     | 2026-03-20 | Metric-driven optimization: `/optimize` skill with git checkpointing and automatic rollback, story-cycle git checkpoint + auto-rollback on verification failure, story-scoped file boundaries, simplicity assessment in `/code-quality`, `capture-outcome` micro-component for structured story outcome tracking, `/refine-loop` autonomous mode with TSV logging and diminishing-returns detection |
 | 3.6     | 2026-03-16 | Deep research capability: `/research` skill, `deep-research` engine snippet, `source-evaluator` snippet, `research-analyst` agent, research rule, depth-calibrated research in bootstrap/brainstorm/ideate/story-cycle, reflection-based context compression, parallel subagent dispatch for research, prior research caching |
 | 3.4     | 2026-02-23 | Confidence gate, four-question evidence protocol, cross-session error learning, wave execution pattern, MCP integration guide, domain-specific agent personas, completion evidence protocol |
 | 3.2     | 2026-02-23 | Worktree-aware bash hook, parallel stream decomposition, project context knowledge base, script delegation (status/standup/next-story), documentation accuracy safeguards, template repo safety check |

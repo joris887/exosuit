@@ -73,7 +73,37 @@ Each check produces one of three statuses:
 | Type-safe | {status} | {detail} |
 
 **Summary:** {ready_count}/12 ready, {risk_count} at risk, {missing_count} missing
+
+### Optimization Metrics
+
+For principles with measurable gaps, record the metric command so foundation stories can recommend `/optimize`:
+
+| Principle | Metric Command | Target | Direction |
+|-----------|---------------|--------|-----------|
+| TDD-first (coverage) | `{coverage_metric}` | 60 | max |
+| Quality gates (lint) | `{lint_metric}` | 0 | min |
+| Quality gates (typecheck) | `{typecheck_metric}` | 0 | min |
+| Context-efficient (files) | `{file_size_metric}` | 0 | min |
+
+_Only include rows for principles that are Risk or Missing. Omit rows for principles that are Ready._
 ```
+
+### Stack-Specific Metric Commands
+
+Substitute the metric command placeholders with the actual detected commands for the project's stack:
+
+| Stack | Coverage metric | Lint metric | Typecheck metric |
+|-------|----------------|-------------|-----------------|
+| **Python (pytest)** | `pytest --cov={pkg} --cov-report=term 2>&1 \| grep TOTAL \| awk '{print $4}' \| tr -d '%'` | `ruff check . 2>&1 \| tail -1 \| grep -oE '[0-9]+ (error\|warning)' \| awk '{s+=$1} END {print s+0}'` | `mypy . 2>&1 \| grep -cE '^.*: error:'` |
+| **TypeScript (Jest)** | `npx jest --coverage --silent 2>&1 \| grep 'All files' \| awk '{print $10}' \| tr -d '%'` | `npx eslint . 2>&1 \| tail -1 \| grep -oE '[0-9]+ problems' \| grep -oE '[0-9]+'` | `npx tsc --noEmit 2>&1 \| grep -c 'error TS'` |
+| **TypeScript (Vitest)** | `npx vitest run --coverage 2>&1 \| grep 'All files' \| awk '{print $4}'` | Same as Jest | Same as Jest |
+| **Go** | `go test -cover ./... 2>&1 \| grep -oE '[0-9]+\.[0-9]+%' \| awk -F% '{s+=$1; n++} END {print s/n}'` | `golangci-lint run ./... 2>&1 \| grep -c '^'` | Built-in (always 0) |
+| **Rust** | `cargo tarpaulin --skip-clean -o stdout 2>&1 \| grep -oE '[0-9]+\.[0-9]+%' \| tail -1 \| tr -d '%'` | `cargo clippy 2>&1 \| grep -c 'warning\[' ` | Built-in (always 0) |
+| **Ruby (RSpec)** | `bundle exec rspec 2>&1 \| grep -oE '[0-9]+\.[0-9]+%' \| head -1 \| tr -d '%'` | `rubocop . 2>&1 \| tail -1 \| grep -oE '[0-9]+ offenses'  \| grep -oE '[0-9]+'` | `srb tc 2>&1 \| grep -c 'error'` |
+| **Java (Maven)** | `mvn test jacoco:report 2>&1 \| grep -oE 'Total[^%]*%' \| grep -oE '[0-9]+'` | `mvn checkstyle:check 2>&1 \| grep -c 'violation'` | Built-in (always 0) |
+| **All stacks (file size)** | `find . -type f \( -name '*.py' -o -name '*.ts' -o -name '*.js' -o -name '*.go' -o -name '*.rs' -o -name '*.rb' -o -name '*.java' \) -not -path '*/node_modules/*' -not -path '*/.git/*' \| xargs wc -l 2>/dev/null \| awk '$1>500 && !/total$/' \| wc -l` | — | — |
+
+These commands are recorded in the saved `READINESS_REPORT.md` so they can be referenced by foundation stories and `/optimize` invocations. If the exact command doesn't parse cleanly for a project, users should adjust the grep/awk pattern to match their tool's output format.
 
 ## Output
 

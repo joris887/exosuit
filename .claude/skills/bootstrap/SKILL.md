@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-version: 2.12.0
+version: 2.13.0
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
@@ -337,7 +337,16 @@ Using data collected in earlier steps (A1-A3, A2.6, A2.8, A2.9, A3.1, A3.2, A3.5
 
 Read `references/foundation-backlog.md` for story generation templates.
 
-Based on the Readiness Report (A5.8), auto-generate foundation stories for Risk and Missing items. Each story has a type, priority, description, and acceptance criteria. Present to the user for review — they can accept, modify, or discard stories. Write accepted stories to `docs/reference/backlog/E00-foundation.md`.
+Based on the Readiness Report (A5.8), auto-generate **dependency-ordered** foundation stories for Risk and Missing items. Stories are organized into four dependency levels:
+
+- **Level 0:** Install missing tools (test framework, formatter, linter, coverage, type checker)
+- **Level 1:** Configure commands and fix baselines (CLAUDE.md commands, failing tests, type checker config)
+- **Level 2:** Measurable improvements (coverage ≥60%, lint warnings→0, type errors→0, ground rules, pre-commit)
+- **Level 3:** Structural improvements (split oversized files, break circular deps, CI pipeline) — optional for starting features
+
+Stories at Level N require all Level N-1 stories to be complete. Level 2+ stories with measurable targets include an `/optimize` execution method with metric command, target, and direction from the Readiness Report's Optimization Metrics section. A **Framework Ready Gate** is inserted between Levels 2 and 3, defining minimum thresholds for starting feature development.
+
+Each story has a type, priority, level, description, execution method, and acceptance criteria. Present to the user for review — they can accept, modify, or discard stories. Write accepted stories to `docs/reference/backlog/E00-foundation.md`.
 
 **Initialize BACKLOG_INDEX.md** — remove template comments and populate with actual content:
 
@@ -428,7 +437,7 @@ Also create `docs/research/` with a `.gitkeep` file. This directory stores struc
 
 **Summary:** [N]/12 ready, [N] at risk, [N] missing
 
-**Foundation Backlog:** [N] stories generated in E00-foundation (or "No gaps found — project is ready")
+**Foundation Backlog:** [N] stories across [L] levels in E00-foundation (Framework Ready Gate after Level 2: [N] checks) — or "No gaps found — project is ready"
 
 **Files Updated:**
 - CLAUDE.md (project overview, commands, architecture)
@@ -445,7 +454,7 @@ Also create `docs/research/` with a `.gitkeep` file. This directory stores struc
 **Technology Skills Generated:** [count]
 
 **Next Steps:**
-- Foundation work needed? → Run `/sprint-start` to begin with E00-foundation stories
+- Foundation work needed? → Run `/sprint-start` to begin with E00-foundation Level 0 stories, then work through levels in order. Use `/optimize` for Level 2+ measurable improvement stories. After passing the Framework Ready Gate, you can start feature work while completing optional Level 3 stories in parallel.
 - No foundation work? → Run `/ideate` to plan your next feature, then `/sprint-start`
 ```
 

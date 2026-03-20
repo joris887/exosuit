@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 4.1.0
+version: 4.2.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -9,7 +9,7 @@ micro-components:
   phase-0: [context-prime]
   phase-1: [discover-commands, verify-clean-git-state, wave-execution, grep-first-explore]
   phase-2: [confidence-gate]
-  phase-4: [record-failure, quality-gate-sequence, capture-learnings]
+  phase-4: [record-failure, quality-gate-sequence, capture-learnings, capture-outcome]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent
@@ -491,6 +491,21 @@ The Stop hook auto-saves git state to `docs/sessions/.auto-save.md` (branch, rec
 
 ## Phase 3: Execute by Story Type
 
+### 3.pre. Git Checkpoint
+
+Before writing any implementation code, create a checkpoint so the entire implementation can be cleanly rolled back if verification fails:
+
+```bash
+git tag "story-checkpoint-$(date +%s)" HEAD
+```
+
+Record the tag name in `.failure-state.md` under a `checkpoint_tag` field. This tag is used by Phase 4 if verification fails — see "Checkpoint Rollback" in Phase 4d.
+
+On successful story completion (Phase 4e commit), delete the checkpoint tag:
+```bash
+git tag -d "story-checkpoint-*"  # Clean up
+```
+
 In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 
 Before writing the first test, apply the `test_strategy_selection` reasoning tool from `references/reasoning-tools.md`.
@@ -602,7 +617,20 @@ If any criterion lacks evidence: identify the gap, loop back to Phase 3 for that
 </LOOP>
 
 <HALT reason="max verification loops exhausted">
-Report what IS complete with evidence, list remaining gaps, suggest continuing in next session.
+Report what IS complete with evidence, list remaining gaps.
+
+**Checkpoint Rollback Option:** If verification has failed after 2 loop passes and the implementation appears fundamentally flawed (not just minor gaps), offer the user a rollback:
+
+```
+Verification failed after 2 passes. Options:
+[R] Rollback — restore to pre-implementation checkpoint (git tag from Phase 3.pre) and re-plan
+[C] Continue — keep current code and address remaining gaps in next session
+[F] Force complete — mark as done with known gaps documented
+```
+
+If [R]: `git reset --hard <checkpoint-tag> && git tag -d <checkpoint-tag>`. Clear `.failure-state.md`. Suggest re-entering Phase 1 with lessons learned.
+If [C]: Save state to `.failure-state.md` for `/continue` pickup.
+If [F]: Document gaps in completion report, proceed to Phase 4e.
 </HALT>
 
 <HARD-GATE>
@@ -611,12 +639,14 @@ Do NOT print the completion report until every acceptance criterion has been ver
 
 ### 4e. Docs + Commit
 
-1. **Update epic file** (`docs/reference/backlog/E##-*.md`): Mark the story status as DONE in the heading (`— TODO` → `— DONE`). Check all acceptance criteria boxes (`- [ ]` → `- [x]`).
-2. **Update `docs/reference/BACKLOG_INDEX.md`**: Increment the Done count and decrement the TODO count for this epic's row in the status table.
-3. **Update `docs/progress.md`** with story status (DONE)
-4. **Update documentation** only if the story's AC requires it
-5. **Capture learnings** (optional): If non-obvious patterns discovered, save to `docs/solutions/<topic-slug>.md`
-6. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.
+1. **Capture story outcome:** Run the `capture-outcome` micro-component from `.claude/prompts/capture-outcome.md` to record measurable deltas (lines added/removed, test count, coverage, new deps) to `docs/sessions/.story-outcomes.tsv`. Skip for Spike/Research and Documentation stories.
+2. **Update epic file** (`docs/reference/backlog/E##-*.md`): Mark the story status as DONE in the heading (`— TODO` → `— DONE`). Check all acceptance criteria boxes (`- [ ]` → `- [x]`).
+3. **Update `docs/reference/BACKLOG_INDEX.md`**: Increment the Done count and decrement the TODO count for this epic's row in the status table.
+4. **Update `docs/progress.md`** with story status (DONE)
+5. **Update documentation** only if the story's AC requires it
+6. **Capture learnings** (optional): If non-obvious patterns discovered, save to `docs/solutions/<topic-slug>.md`
+7. **Clean up checkpoint:** Delete the git checkpoint tag from Phase 3.pre: `git tag -l 'story-checkpoint-*' | xargs -r git tag -d`
+8. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.
 
 **Skill metrics:** Emit a completion event:
 ```bash
@@ -653,6 +683,7 @@ General recovery:
 - **Context exhaustion:** Save current progress to `docs/plans/`, commit work-in-progress, inform user to start a new session with `/continue`.
 - **Git conflict:** Show conflict to user. Do NOT auto-resolve without approval.
 - **Skill not found:** If a required skill (e.g., `/code-quality`) is not available, skip it and note in the completion report.
+- **Implementation fundamentally wrong:** If Phase 4 reveals the approach is flawed, use the checkpoint rollback option (Phase 4d) to cleanly revert to pre-implementation state.
 
 ## Rules
 

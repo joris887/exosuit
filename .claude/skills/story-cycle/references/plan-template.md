@@ -77,6 +77,12 @@ When `/continue` or story-cycle is re-invoked, check `docs/plans/` for an existi
 **Technical approach:**
 [Strategy with rationale — reference CODING_STANDARDS.md patterns]
 
+**Scope boundary:**
+- **IN-SCOPE** (may modify): [list directories/files that this story should touch]
+- **OFF-LIMITS** (read-only): [list directories/files that must NOT be modified — prevents scope creep]
+
+_The scope boundary is advisory. Phase 4a self-review checks `git diff --name-only` against this boundary and flags any out-of-scope modifications._
+
 ## Architectural Violations (if any)
 
 | Principle Violated | Why Needed | Rejected Alternative |

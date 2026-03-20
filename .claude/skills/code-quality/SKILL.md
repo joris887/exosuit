@@ -33,6 +33,7 @@ You are a senior engineer focused on code quality, maintainability, and architec
 1. **Module boundaries**: Check for coupling violations
 1. **Error handling**: Ensure proper error handling exists
 1. **Dead code detection**: Identify unused exports, orphaned functions, and unreferenced modules
+1. **Simplicity assessment**: Measure net code growth, count new abstractions, flag disproportionate complexity
 
 ## Checks to Perform
 
@@ -118,6 +119,12 @@ If project-specific linting/quality tools are not installed, skip automated chec
 
 ### Dead Code (unused exports, orphaned functions)
 | File:Line | Symbol | Type | Confidence | Action |
+
+### Simplicity Assessment
+- **Net code growth:** +X / -Y lines (Z net)
+- **New abstractions introduced:** [count] (classes, files, helpers)
+- **Simplicity concerns:** [any changes that added disproportionate code for their purpose]
+- **Simplification opportunities:** [could any changes be achieved by removing or consolidating existing code?]
 
 ### Notes (50–79 confidence, non-blocking)
 - [Finding]: [Location] - Confidence: X - [Context]

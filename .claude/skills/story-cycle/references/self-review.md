@@ -26,6 +26,19 @@ Reference loaded by `/story-cycle` Phase 4a. Complete before running quality gat
 - [ ] Did not add dependencies without noting them
 - [ ] Implementation matches the approved plan
 
+## Scope Boundary Check
+
+If the plan includes a **Scope boundary** section (IN-SCOPE / OFF-LIMITS):
+
+1. Run `git diff --name-only` to list all modified files
+2. Check each modified file against the declared boundary
+3. Any file outside IN-SCOPE directories requires explicit justification:
+   - Was the change necessary for the story to work? (e.g., shared config, type definitions)
+   - Or was it scope creep? (e.g., "while I was here, I also fixed...")
+4. If scope creep: revert the out-of-scope change before proceeding
+
+- [ ] All modified files are within declared scope boundary (or justified)
+
 ## Spec Compliance (for stories with 4+ acceptance criteria)
 
 For each acceptance criterion:

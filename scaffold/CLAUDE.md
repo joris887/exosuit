@@ -34,7 +34,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v3.6
+## Skills — JD-LLM Development Framework v3.7
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow
@@ -65,6 +65,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | Evaluate a skill       | `/skill-eval <mode> <skill>`   |
 | Undo failed work       | `/undo-work`                   |
 | Iterative refinement   | `/refine-loop "<task>"`        |
+| Optimize a metric      | `/optimize "<goal>"`           |
 
 ## Important Files
 - `docs/reference/CODING_STANDARDS.md` — Code conventions
