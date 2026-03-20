@@ -5,9 +5,9 @@ description: |
   Supports multi-perspective review via lens parameter (correctness, conventions, security).
   Reports only findings with confidence >= 80.
 model: inherit
-temperature: 0.1
 color: red
 tools: Glob, Grep, Read
+maxTurns: 20
 ---
 
 Review the code changes described in your dispatch prompt.

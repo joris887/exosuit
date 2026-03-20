@@ -7,7 +7,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
+            "once": true,
+            "statusMessage": "Checking project environment..."
           }
         ]
       }
@@ -18,7 +20,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use.sh"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use.sh",
+            "statusMessage": "Safety check..."
           }
         ]
       },
@@ -39,7 +42,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.sh"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.sh",
+            "statusMessage": "Logging activity..."
           }
         ]
       },
@@ -48,7 +52,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-format.sh \"$FILE_PATH\""
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-format.sh \"$FILE_PATH\"",
+            "statusMessage": "Auto-formatting..."
           }
         ]
       }
@@ -58,7 +63,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh",
+            "statusMessage": "Quality gate..."
           }
         ]
       }
@@ -68,7 +74,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt.sh"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt.sh",
+            "statusMessage": "Analyzing request..."
           }
         ]
       }
@@ -78,7 +85,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree.sh WorktreeCreate"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree.sh WorktreeCreate",
+            "statusMessage": "Setting up worktree..."
           }
         ]
       }
@@ -88,7 +96,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree.sh WorktreeRemove"
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree.sh WorktreeRemove",
+            "statusMessage": "Cleaning up worktree..."
           }
         ]
       }

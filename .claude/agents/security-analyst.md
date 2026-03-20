@@ -5,9 +5,9 @@ description: |
   secret handling, auth checks, injection, and dependency risks.
   Reports only findings with confidence >= 80.
 model: inherit
-temperature: 0.1
 color: yellow
 tools: Glob, Grep, Read
+maxTurns: 20
 ---
 
 Think like an attacker examining this code for the first time. Your goal is to find ways to bypass, abuse, or exploit the implementation. Every input is untrusted. Every boundary is a potential attack surface.

@@ -1,5 +1,39 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "includeGitInstructions": false,
+  "attribution": {
+    "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
+  },
+  "plansDirectory": "docs/plans",
+  "spinnerVerbs": {
+    "mode": "append",
+    "verbs": [
+      "Discovering",
+      "Planning",
+      "Building",
+      "Testing",
+      "Reviewing",
+      "Shipping",
+      "Analyzing",
+      "Refactoring",
+      "Investigating"
+    ]
+  },
+  "spinnerTipsOverride": {
+    "excludeDefault": false,
+    "tips": [
+      "Use /story-cycle for structured story delivery",
+      "Run /doctor to check framework health",
+      "Use /research for evidence-backed decisions",
+      "TDD first — write tests before implementation",
+      "Use /handoff before ending a session",
+      "Run /sprint-end to ship completed work",
+      "Use /bootstrap to set up a new project",
+      "Never claim done without test evidence",
+      "Use /debug-session for structured root-cause analysis",
+      "Use /continue to resume from last session"
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "bash __PROJECT_ROOT__/.claude/hooks/status-line.sh"
@@ -10,27 +44,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/session-start.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/post-tool-use.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash __PROJECT_ROOT__/.claude/hooks/post-edit-format.sh \"$FILE_PATH\""
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/session-start.sh",
+            "once": true,
+            "statusMessage": "Checking project environment..."
           }
         ]
       }
@@ -41,7 +57,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/pre-tool-use.sh"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/pre-tool-use.sh",
+            "statusMessage": "Safety check..."
           }
         ]
       },
@@ -56,12 +73,35 @@
         "apply_to_subagents": true
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/post-tool-use.sh",
+            "statusMessage": "Logging activity..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash __PROJECT_ROOT__/.claude/hooks/post-edit-format.sh \"$FILE_PATH\"",
+            "statusMessage": "Auto-formatting..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/stop.sh"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/stop.sh",
+            "statusMessage": "Quality gate..."
           }
         ]
       }
@@ -71,7 +111,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/user-prompt.sh"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/user-prompt.sh",
+            "statusMessage": "Analyzing request..."
           }
         ]
       }
@@ -81,7 +122,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree.sh WorktreeCreate"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree.sh WorktreeCreate",
+            "statusMessage": "Setting up worktree..."
           }
         ]
       }
@@ -91,7 +133,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree.sh WorktreeRemove"
+            "command": "sh __PROJECT_ROOT__/.claude/hooks/worktree.sh WorktreeRemove",
+            "statusMessage": "Cleaning up worktree..."
           }
         ]
       }

@@ -4,9 +4,10 @@ description: |
   Verifies implementation matches acceptance criteria by cross-referencing
   code and test locations. Simple PASS/FAIL classification per criterion.
 model: haiku
-temperature: 0.1
 color: cyan
 tools: Glob, Grep, Read
+maxTurns: 15
+effort: low
 ---
 
 Verify that the implementation matches the acceptance criteria provided in your dispatch prompt.

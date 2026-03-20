@@ -101,10 +101,11 @@ All operational attributes are in the YAML frontmatter — not on the header lin
 | -------------------------- | ------------------------------------ | ------------------------------------------ |
 | `disable-model-invocation` | `true`                               | Workflow skills with side effects          |
 | `user-invocable`           | `true`                               | Can be manually invoked with `/name`       |
-| `allowed-tools`            | comma-separated                      | Restrict tool access                       |
+| `allowed-tools`            | comma-separated                      | Auto-approve these tools when skill active |
 | `argument-hint`            | `"<description>"`                    | Skill accepts arguments                    |
 | `context`                  | `fork`                               | Analysis agents (keeps main context clean) |
 | `agent`                    | `Explore`, `general-purpose`, `Plan` | Delegate to subagent                       |
+| `model`                    | `sonnet`, `opus`, `haiku`, `inherit` | Override model for this skill              |
 
 ## Context Patterns
 
@@ -140,18 +141,19 @@ Use for: code-quality, test-validator, security-audit, architecture-check
 
 ### Tool Restrictions for Subagents
 
-Analysis agents (forked context) should declare explicit tool restrictions in their skill body to prevent accidental writes:
+Agent tool restrictions are enforced via native Claude Code frontmatter fields — do NOT use prose instructions for this:
 
-```markdown
-**Tool restriction:** This agent MUST only use Read, Glob, and Grep tools. Do NOT use Edit or Write. This is a read-only analysis agent.
-```
+- **`tools`** (allowlist): Only these tools are available. Strongest restriction.
+- **`disallowedTools`** (denylist): These tools are blocked. Use when the allowlist is too broad.
 
-| Agent Type | Allowed Tools | Rationale |
-|------------|---------------|-----------|
-| Code quality | Read, Glob, Grep | Read-only analysis |
-| Security audit | Read, Glob, Grep, Bash (scanners) | Needs to run security tools |
-| Test validator | Read, Glob, Grep, Bash (test runner) | Needs to run tests |
-| Code reviewer | Read, Glob, Grep | Read-only review |
+The framework's native agents already use `tools` allowlist in their frontmatter (e.g., `tools: Glob, Grep, Read`). This is deterministic enforcement — no prose needed.
+
+| Agent Type | `tools` allowlist | Rationale |
+|------------|-------------------|-----------|
+| Code quality | Glob, Grep, Read | Read-only analysis |
+| Security audit | Glob, Grep, Read, Bash | Needs to run security scanners |
+| Test validator | Glob, Grep, Read, Bash | Needs to run test commands |
+| Code reviewer | Glob, Grep, Read | Read-only review |
 
 ### Specifying Context Mode
 
@@ -204,11 +206,12 @@ This saves significant context: a 50-line script produces 5-10 lines of output.
 
 ## Reference Navigation Pattern
 
-When referencing supporting docs, include section-level grep hints:
+Use `${CLAUDE_SKILL_DIR}` for portable reference paths. This variable resolves to the skill's directory in both template and plugin mode:
 - BAD: "See `references/api.md` for details"
-- GOOD: "In `references/api.md`, search for `## Authentication` — load only that section"
+- BETTER: "In `references/api.md`, search for `## Authentication` — load only that section"
+- BEST: "In `${CLAUDE_SKILL_DIR}/references/api.md`, search for `## Authentication`"
 
-This lets Claude load one section instead of the full file.
+This lets Claude load one section instead of the full file, and works regardless of install mode.
 
 ## Story Skill Metadata
 

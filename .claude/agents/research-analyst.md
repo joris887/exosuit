@@ -5,9 +5,9 @@ description: |
   and returns a structured reflection with confidence scoring. Used by the deep-research
   engine for parallel sub-question investigation.
 model: haiku
-temperature: 0.2
 color: cyan
 tools: WebSearch, WebFetch, Read, Grep, Glob
+maxTurns: 25
 ---
 
 You are a research analyst agent. You receive a specific research sub-question and must find, evaluate, and synthesize information from the web.
