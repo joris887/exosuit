@@ -1,10 +1,13 @@
 #!/bin/sh
-# PostToolUse handler: log tool invocations to activity log.
-# Appends timestamped JSON lines for Edit, Write, and Bash tool use.
-# Rotates at 200 entries. Advisory only (always exit 0).
-# POSIX-compliant — no bash required.
+# PostToolUse handler: log tool invocations + track test execution.
+# 1. Appends timestamped JSON lines for Edit, Write, and Bash tool use.
+#    Rotates at 200 entries.
+# 2. Detects successful test runs and sets session state so the Stop
+#    handler doesn't redundantly require test evidence in the last message.
+# Advisory only (always exit 0). POSIX-compliant — no bash required.
 
 HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+STATE_DIR="$HOOKS_DIR/state"
 MAX_ENTRIES=200
 
 # --- JSON field extraction ---
@@ -55,6 +58,32 @@ if [ -f "$LOG_FILE" ]; then
     if [ "$LINE_COUNT" -gt "$MAX_ENTRIES" ]; then
         TMPFILE="$LOG_FILE.tmp"
         tail -n "$MAX_ENTRIES" "$LOG_FILE" > "$TMPFILE" 2>/dev/null && mv "$TMPFILE" "$LOG_FILE" 2>/dev/null
+    fi
+fi
+
+# --- Track successful test runs in session state ---
+# When a Bash command runs tests and they pass, record it so the Stop
+# handler can skip redundant evidence checks. Requires jq for reliable
+# extraction of tool_output (multi-line, special chars). Without jq,
+# skip tracking gracefully — the stop hook still works, just may ask
+# for evidence even when tests passed earlier.
+if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
+    COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
+    TOOL_OUTPUT=$(printf '%s' "$INPUT" | jq -r '.tool_output // empty' 2>/dev/null)
+
+    # Generic test command patterns (project-specific commands are also caught
+    # if they contain these common runners)
+    TEST_CMD_MATCH=false
+    case "$COMMAND" in
+        *pytest*|*"npm test"*|*"npm run test"*|*"cargo test"*|*"go test"*|*jest*|*vitest*|*"dotnet test"*|*rspec*|*"gradle test"*|*"mvn test"*|*"make test"*|*"swift test"*) TEST_CMD_MATCH=true ;;
+    esac
+
+    if [ "$TEST_CMD_MATCH" = "true" ] && [ -n "$TOOL_OUTPUT" ]; then
+        # Check for pass patterns in output
+        if printf '%s' "$TOOL_OUTPUT" | grep -qEi '([0-9]+ passed|All tests passed|tests? (in [0-9]+ suites? )?passed|test run with [0-9]+ tests.*passed|BUILD SUCCEEDED|ok \(|Tests:.*[0-9]+ passed)'; then
+            mkdir -p "$STATE_DIR" 2>/dev/null
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/tests-passed" 2>/dev/null
+        fi
     fi
 fi
 

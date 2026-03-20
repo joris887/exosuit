@@ -36,6 +36,20 @@ When `/continue` or story-cycle is re-invoked, check `docs/plans/` for an existi
 ## Plan Structure
 
 ```markdown
+## Research Decision
+
+**Story type:** [type from Phase 1a]
+**Research requirement:** [MANDATORY / Conditional]
+**Decision:** [PERFORMED at [QUICK/STANDARD/DEEP] depth / SKIPPED]
+**Justification:** [why — for skips: which signals were evaluated and why all pointed to skip]
+
+### Findings (if research was performed)
+- [Key finding 1 with source URL]
+- [Key finding 2 with source URL]
+
+**Research confidence:** [score]/100
+**Impact on plan:** [how findings affect the approach — or "No findings that change approach"]
+
 ## Specification (WHAT/WHY)
 
 **Story:** [user-facing title — NO technical terms]
@@ -72,6 +86,8 @@ When `/continue` or story-cycle is re-invoked, check `docs/plans/` for an existi
 
 ## Anti-Patterns
 
+- **Missing Research Decision section** — every plan MUST start with this block (from Phase 1c.5). If absent, the plan is incomplete.
+- **Research Decision says "SKIPPED" for Spike/Research/Security/Bug Fix stories** — these types require mandatory research. Go back to Phase 1c.5.
 - **Specification section mentions file paths** — move to Implementation
 - **Implementation section lacks traceability** — every acceptance criterion should map to a file change
 - **No non-goals stated** — always list at least one to anchor scope

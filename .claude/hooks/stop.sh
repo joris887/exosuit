@@ -2,6 +2,9 @@
 # Stop handler: auto-save session state + completion evidence validation.
 # 1. Always auto-saves git state (safety net for /continue).
 # 2. Validates last assistant message for unverified completion claims.
+#    Evidence check is skipped when post-tool-use.sh has already recorded
+#    a successful test run (state/tests-passed). This prevents redundant
+#    re-runs when story-cycle Phase 4b already verified tests.
 # Safety valve: max iterations (default 5), then allows stop unconditionally.
 # POSIX-compliant — no bash required.
 #
@@ -95,11 +98,17 @@ if [ "$ITERATION" -ge "$MAX_ITER" ]; then
 fi
 
 # --- 3. Completion evidence check ---
+# Skip if tests already passed this session (tracked by post-tool-use.sh)
+TESTS_PASSED_FILE="$STATE_DIR/tests-passed"
+if [ -f "$TESTS_PASSED_FILE" ]; then
+    exit 0
+fi
+
 LAST_MESSAGE=$(printf '%s' "$INPUT" | extract_json_string "last_assistant_message")
 
 if [ -n "$LAST_MESSAGE" ]; then
-    COMPLETION_RE=$(read_conf "completion_regex" '\b(complete|done|finished|implemented|delivered|ready for review)\b')
-    EVIDENCE_RE=$(read_conf "evidence_regex" '(\d+ tests?.*pass|PASS\b|Tests:\s+\d+|test result:.*ok|pytest.*passed|All \d+ tests passed|\d+ passed)')
+    COMPLETION_RE=$(read_conf "completion_regex" '(complete|done|finished|implemented|delivered|ready for review)')
+    EVIDENCE_RE=$(read_conf "evidence_regex" '([0-9]+ tests?.*pass|PASS\b|Tests:[[:space:]]+[0-9]+|test result:.*ok|pytest.*passed|All [0-9]+ tests passed|[0-9]+ passed)')
 
     CLAIMS_COMPLETION=false
     HAS_EVIDENCE=false
