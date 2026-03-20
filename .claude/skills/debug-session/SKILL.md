@@ -92,7 +92,7 @@ Apply the `failure_diagnosis` reasoning tool from `.claude/skills/story-cycle/re
 
 For multi-component systems, trace across component boundaries — check API calls, database queries, event handlers.
 
-See `${CLAUDE_SKILL_DIR}/references/root-cause-tracing.md` — search for `## Steps` for the detailed backward trace procedure.
+See `references/root-cause-tracing.md` — search for `## Steps` for the detailed backward trace procedure.
 
 <HARD-GATE>
 Do NOT attempt any fix until the root cause is identified with evidence. "I think it might be X" without evidence is NOT identification. Show: where the bug is, why it happens, and what incorrect state or logic causes it.
@@ -150,7 +150,7 @@ Based on evidence from Phases 1-2, state:
 After 3 failed fix attempts: STOP. Return to Phase 1 and re-trace from scratch. The root cause identification was likely wrong. Consult `references/error-recovery.md` — search for `## Phase 3`.
 </HALT>
 
-See `${CLAUDE_SKILL_DIR}/references/condition-based-waiting.md` — search for `## Patterns by Language` and load only your language's section.
+See `references/condition-based-waiting.md` — search for `## Patterns by Language` and load only your language's section.
 
 ## Phase 4: Fix Implementation (TDD)
 
@@ -204,7 +204,7 @@ General recovery:
 - **Cannot reproduce:** Gather more context. Check environment differences. Ask user for exact reproduction steps.
 - **Root cause unclear after investigation:** Document findings so far. Ask user for additional context. Do NOT guess.
 - **Fix introduces new failures:** Revert the fix. The original bug is better than two bugs.
-- **Timing/race condition:** See `${CLAUDE_SKILL_DIR}/references/condition-based-waiting.md`. Replace arbitrary sleeps with condition polling.
+- **Timing/race condition:** See `references/condition-based-waiting.md`. Replace arbitrary sleeps with condition polling.
 
 ## Rules
 

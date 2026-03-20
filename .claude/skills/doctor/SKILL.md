@@ -1,6 +1,6 @@
 ---
 name: doctor
-version: 3.1.0
+version: 3.0.0
 description: Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup.
 trigger: manual
 depends-on: []
@@ -36,11 +36,7 @@ For each hook in `.claude/settings.json`:
 - For shell hook scripts: verify git is available (used by stop.sh, session-start.sh)
 - Optional: check if jq is available (hooks fall back to sed without it)
 
-**Expected hook events (16):** SessionStart, PreToolUse, PostToolUse, PostToolUseFailure, Stop, StopFailure, PreCompact, PostCompact, SessionEnd, Setup, PermissionRequest, ConfigChange, UserPromptSubmit, WorktreeCreate, WorktreeRemove, SubagentStop
-
-Flag any missing hook events as WARN.
-
-Report: PASS/WARN (missing optional tools or events)/FAIL (missing required tools)
+Report: PASS/WARN (missing optional tools)/FAIL (missing required tools)
 
 ## 3. Rule Relevance
 
@@ -63,29 +59,6 @@ For each skill with `calls:` in `skills-registry.json`:
 - Verify each called skill exists in `.claude/skills/`
 - Report any broken references (skill calls a non-existent skill)
 - Report orphaned skills (not called by any other skill AND not user-invocable) as INFO — may be intentionally standalone
-
-## 4b. Agent Frontmatter Validation
-
-For each agent in `.claude/agents/`:
-
-- Verify `disallowedTools` field exists (deterministic tool enforcement)
-- Verify `maxTurns` field exists (prevents runaway agents)
-- If model is `haiku`, verify `effort` is set (right-sizing)
-- If agent has `skills` field, verify referenced skills exist
-- If agent has `memory` field, verify value is `user`, `project`, or `local`
-- Report: PASS/WARN per agent
-
-## 4c. Settings Validation
-
-Verify key settings in `.claude/settings.json`:
-
-| Setting | Expected | Check |
-|---------|----------|-------|
-| `attribution` | Non-empty string | PASS if present |
-| `plansDirectory` | Valid path | PASS if directory exists or can be created |
-| `includeGitInstructions` | `false` | PASS if false (framework provides its own git rules) |
-
-Report: PASS/WARN/MISSING per setting
 
 ## 5. Documentation Freshness
 
@@ -143,18 +116,6 @@ Reports per-skill conformance: YAML frontmatter, line budget, required sections,
 |-------|--------|---------|
 | Dependency resolution | PASS/WARN | [details] |
 | Prerequisites | PASS/WARN | [details] |
-
-### Agents
-| Agent | disallowedTools | maxTurns | effort | skills | memory |
-|-------|----------------|----------|--------|--------|--------|
-| [name] | PASS/MISSING | PASS/MISSING | OK/N/A | OK/N/A | OK/N/A |
-
-### Settings
-| Setting | Status | Value |
-|---------|--------|-------|
-| attribution | PASS/MISSING | [value] |
-| plansDirectory | PASS/MISSING | [value] |
-| includeGitInstructions | PASS/WARN | [value] |
 
 ### Documentation
 | File | Status | Last Updated |

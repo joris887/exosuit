@@ -36,7 +36,7 @@ START → 0. Detect Installation Mode
                         → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
                           → A6: Clean up → A7: Present summary → DONE
       → NO: Path B (New Project)
-        → Read ${CLAUDE_SKILL_DIR}/references/new-project.md and follow B1-B4
+        → Read references/new-project.md and follow B1-B4
           → B1: Check vision → B2: Guide braindump (if empty)
             → B2.7: Domain research (optional, standard depth)
               → B3: Generate from vision → B4: Present summary → DONE
@@ -85,7 +85,7 @@ find . -type f \
 ```
 
 **If source files exist:** → Path A (Existing Repository)
-**If no source files (or only framework files):** → Path B — Read `${CLAUDE_SKILL_DIR}/references/new-project.md` and follow its steps. Path B now includes a domain research step (B2.7) — see `references/new-project.md`.
+**If no source files (or only framework files):** → Path B — Read `references/new-project.md` and follow its steps. Path B now includes a domain research step (B2.7) — see `references/new-project.md`.
 
 ---
 
@@ -95,11 +95,11 @@ find . -type f \
 
 Run `scripts/detect-stack.sh` — execute directly, do NOT read source first.
 
-Read `${CLAUDE_SKILL_DIR}/references/stack-detection.md` for detailed detection tables and commands. This covers:
+Read `references/stack-detection.md` for detailed detection tables and commands. This covers:
 - Technology stack detection (A1)
 - Command detection (A2)
 - Documentation state assessment (A2.5)
-- **Test coverage assessment (A2.6)** — Read `${CLAUDE_SKILL_DIR}/references/coverage-assessment.md` for the full flow: detect coverage tool → offer installation if missing → run coverage → record baseline → flag zero-coverage areas. This data feeds into the Readiness Report (A5.8).
+- **Test coverage assessment (A2.6)** — Read `references/coverage-assessment.md` for the full flow: detect coverage tool → offer installation if missing → run coverage → record baseline → flag zero-coverage areas. This data feeds into the Readiness Report (A5.8).
 - Architecture assessment (A2.7)
 - Codebase metrics (A3)
 
@@ -125,7 +125,7 @@ Detect whether a type checker is configured for the detected stack:
 
 ### A2.85. Offer Quality Tooling Installation
 
-Read `${CLAUDE_SKILL_DIR}/references/quality-tooling.md` for the complete flow. After detecting the stack and its available tools (including type checker from A2.8), present missing-but-recommended quality tools (formatter, linter, coverage, type checker) with correct install commands for the detected package manager. The user can select which tools to install or decline all. Declined tools are recorded for the Readiness Report and foundation backlog.
+Read `references/quality-tooling.md` for the complete flow. After detecting the stack and its available tools (including type checker from A2.8), present missing-but-recommended quality tools (formatter, linter, coverage, type checker) with correct install commands for the detected package manager. The user can select which tools to install or decline all. Declined tools are recorded for the Readiness Report and foundation backlog.
 
 **For stacks with built-in tools** (Go, Rust, Dart): note as available, skip the offer for those categories.
 
@@ -149,7 +149,7 @@ Integrate findings into the Readiness Report (A5.8) as a "Best Practices Compari
 
 ### A3.1. LLM-Readiness Assessment
 
-Read `${CLAUDE_SKILL_DIR}/references/llm-readiness.md` for the complete assessment flow. Using the codebase metrics from A3, assess whether the code structure supports effective LLM-assisted development:
+Read `references/llm-readiness.md` for the complete assessment flow. Using the codebase metrics from A3, assess whether the code structure supports effective LLM-assisted development:
 
 1. **File size analysis** — flag files exceeding 500 LOC
 2. **Fan-out analysis** — identify high-coupling modules (imported by >5 others)
@@ -159,7 +159,7 @@ Record metrics in `docs/progress.md` (codebase size, average file size, largest 
 
 ### A3.2. Technical Debt Assessment
 
-Read `${CLAUDE_SKILL_DIR}/references/technical-debt-assessment.md` for the complete assessment flow. Scan the codebase for common technical debt indicators:
+Read `references/technical-debt-assessment.md` for the complete assessment flow. Scan the codebase for common technical debt indicators:
 
 1. **Stale markers** — count TODO, FIXME, HACK, XXX comments
 2. **Missing types** — detect untyped code (stack-specific: Python functions without hints, TypeScript `any` usage)
@@ -324,7 +324,7 @@ Review findings. Fix genuine gaps before presenting the summary to the user.
 
 ### A5.8. Framework Readiness Report
 
-Read `${CLAUDE_SKILL_DIR}/references/readiness-report.md` for the complete check definitions and classification rules.
+Read `references/readiness-report.md` for the complete check definitions and classification rules.
 
 Using data collected in earlier steps (A1-A3, A2.6, A2.8, A2.9, A3.1, A3.2, A3.5b, A3.7, A4, A5.5, A5.65, A5.7), assess each framework principle against the project's actual state. For each principle, classify as `✓ Ready`, `⚠️ Risk`, or `✗ Missing` with a brief explanation.
 
@@ -335,7 +335,7 @@ Using data collected in earlier steps (A1-A3, A2.6, A2.8, A2.9, A3.1, A3.2, A3.5
 
 ### A5.9. Generate Foundation Backlog & Initialize BACKLOG_INDEX.md
 
-Read `${CLAUDE_SKILL_DIR}/references/foundation-backlog.md` for story generation templates.
+Read `references/foundation-backlog.md` for story generation templates.
 
 Based on the Readiness Report (A5.8), auto-generate foundation stories for Risk and Missing items. Each story has a type, priority, description, and acceptance criteria. Present to the user for review — they can accept, modify, or discard stories. Write accepted stories to `docs/reference/backlog/E00-foundation.md`.
 

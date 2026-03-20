@@ -1,8 +1,7 @@
 #!/bin/sh
-# Stop handler: completion evidence validation.
-# Validates last assistant message for unverified completion claims.
-# Auto-save has been moved to session-end.sh (fires at actual session end)
-# and pre-compact.sh (fires before compaction).
+# Stop handler: auto-save session state + completion evidence validation.
+# 1. Always auto-saves git state (safety net for /continue).
+# 2. Validates last assistant message for unverified completion claims.
 # Safety valve: max iterations (default 5), then allows stop unconditionally.
 # POSIX-compliant — no bash required.
 #
@@ -34,6 +33,8 @@ extract_json_string() {
     if command -v jq >/dev/null 2>&1; then
         jq -r ".$_field // empty"
     else
+        # For long fields like last_assistant_message, sed may truncate.
+        # Use grep -o for a safer extraction of the value.
         sed -n 's/.*"'"$_field"'"[[:space:]]*:[[:space:]]*"\(.*\)".*/\1/p' | head -1
     fi
 }
@@ -41,7 +42,42 @@ extract_json_string() {
 # Read stdin once
 INPUT=$(cat)
 
-# --- 1. Safety valve: max iterations ---
+# --- 1. Always auto-save first (safety net) ---
+if [ -d ".git" ]; then
+    SESSIONS_DIR="docs/sessions"
+    mkdir -p "$SESSIONS_DIR" 2>/dev/null
+
+    BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+    COMMITS=$(git log --oneline -5 2>/dev/null || echo "no commits")
+    UNCOMMITTED=$(git diff --name-only 2>/dev/null)
+    STAGED=$(git diff --cached --name-only 2>/dev/null)
+    NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
+
+    UNCOMMITTED_BLOCK="None"
+    [ -n "$UNCOMMITTED" ] && UNCOMMITTED_BLOCK=$(printf '```\n%s\n```' "$UNCOMMITTED")
+    STAGED_BLOCK="None"
+    [ -n "$STAGED" ] && STAGED_BLOCK=$(printf '```\n%s\n```' "$STAGED")
+
+    cat > "$SESSIONS_DIR/.auto-save.md" 2>/dev/null <<AUTOSAVE_EOF
+# Auto-Save Session State
+
+**Generated:** $NOW
+**Branch:** $BRANCH
+
+## Recent Commits
+\`\`\`
+$COMMITS
+\`\`\`
+
+## Uncommitted Changes
+$UNCOMMITTED_BLOCK
+
+## Staged Changes
+$STAGED_BLOCK
+AUTOSAVE_EOF
+fi
+
+# --- 2. Safety valve: max iterations ---
 MAX_ITER=$(read_conf "max_iterations" "5")
 mkdir -p "$STATE_DIR" 2>/dev/null
 ITER_FILE="$STATE_DIR/stop-iteration"
@@ -58,7 +94,7 @@ if [ "$ITERATION" -ge "$MAX_ITER" ]; then
     exit 0
 fi
 
-# --- 2. Completion evidence check ---
+# --- 3. Completion evidence check ---
 LAST_MESSAGE=$(printf '%s' "$INPUT" | extract_json_string "last_assistant_message")
 
 if [ -n "$LAST_MESSAGE" ]; then

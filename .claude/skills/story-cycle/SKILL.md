@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 4.2.0
+version: 4.1.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -14,19 +14,6 @@ disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent
 argument-hint: "<story-description-or-id>"
-hooks:
-  Stop:
-    - hooks:
-        - type: agent
-          prompt: >
-            You are a story-cycle quality gate verifier. Before allowing the story to complete, check:
-            1. Were tests run? Search the conversation transcript for test command output (pytest, npm test, go test, cargo test, jest, rspec, etc.)
-            2. Did the tests pass? Look for "passed", "ok", "0 failed", "all tests passed" in the output.
-            3. Were acceptance criteria addressed? If the story description mentions specific criteria, verify they were met.
-            You have access to Read, Glob, and Grep tools to verify claims if needed.
-            If test output exists and tests passed, respond with {"decision": "approve"}.
-            If no test output was found or tests failed, respond with {"decision": "block", "reason": "Story completion requires test evidence. Run the test suite and show output before completing."}.
-            For TRIVIAL stories (typo, config tweak, documentation) where no tests apply, approve.
 ---
 ______________________________________________________________________
 
@@ -98,7 +85,7 @@ For STANDARD stories, consider entering Plan Mode at the start of Phase 0 and re
 
 Run the `context-prime` micro-component from `.claude/prompts/context-prime.md` to load project context (intent-aware ordering based on the story description).
 
-Before any exploration, decompose the user's request. Apply the `scope_analysis` reasoning tool from `${CLAUDE_SKILL_DIR}/references/reasoning-tools.md`:
+Before any exploration, decompose the user's request. Apply the `scope_analysis` reasoning tool from `references/reasoning-tools.md`:
 
 1. List ALL distinct outcomes the user expects (implementation, tests, docs, PR, etc.)
 2. For each: identify type, files likely affected, complexity (1-5), and dependencies
@@ -125,7 +112,7 @@ After Phase 0 decomposition, classify by **size** then **risk**:
 - If STANDARD stories in this area consistently completed without issues → note as candidate for lightweight treatment
 - Log calibration adjustment in plan for transparency: `Depth calibration: [escalated/standard/downgraded] based on [N] prior executions`
 
-**Risk classification** (apply `risk_classification` reasoning tool from `${CLAUDE_SKILL_DIR}/references/reasoning-tools.md`):
+**Risk classification** (apply `risk_classification` reasoning tool from `references/reasoning-tools.md`):
 
 Score domain risk, integration surface, and reversibility (1-3 each). Sum determines risk level:
 
@@ -234,7 +221,7 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 
 Before planning, decide whether external research is needed. This gate prevents wasting context on unnecessary research for routine stories while ensuring thorough verification when it matters.
 
-**Spike/Research stories: ALWAYS proceed with online verification at DEEP depth.** Spikes exist to gather external knowledge — skipping research defeats their purpose. Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **DEEP** depth. See `${CLAUDE_SKILL_DIR}/references/story-types.md` Spike/Research section for the full flow.
+**Spike/Research stories: ALWAYS proceed with online verification at DEEP depth.** Spikes exist to gather external knowledge — skipping research defeats their purpose. Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **DEEP** depth. See `references/story-types.md` Spike/Research section for the full flow.
 
 **Research Decision Gate (non-spike stories) — evaluate these three signals:**
 
@@ -324,7 +311,7 @@ Summarize: what was refined, what gaps were found, what forward context was adde
 
 Keep the plan concise — **under 50 lines**. Save complex plans to `docs/plans/` for persistence across compaction. Reference files by path rather than inlining content.
 
-Follow the plan template structure in `${CLAUDE_SKILL_DIR}/references/plan-template.md`. The plan MUST have two distinct sections:
+Follow the plan template structure in `references/plan-template.md`. The plan MUST have two distinct sections:
 
 1. **Specification (WHAT/WHY)** — User-visible behavior changes, acceptance criteria in Given/When/Then format. NO file paths, NO function names, NO framework references.
 2. **Implementation Approach (HOW)** — Files to modify/create, patterns to follow, technical strategy with rationale.
@@ -339,7 +326,7 @@ Check the plan against `docs/reference/GROUND_RULES.md`. Any MUST violation → 
 
 ### 1f. Clarification Check
 
-Apply the `ambiguity_scan` reasoning tool from `${CLAUDE_SKILL_DIR}/references/reasoning-tools.md`. Scan the plan for assumptions across 7 categories (scope, data model, UX, non-functional, integration, edge cases, constraints).
+Apply the `ambiguity_scan` reasoning tool from `references/reasoning-tools.md`. Scan the plan for assumptions across 7 categories (scope, data model, UX, non-functional, integration, edge cases, constraints).
 
 <IF condition="ambiguity_scan produces questions OR plan contains [NEEDS CLARIFICATION] markers">
 Present questions to user. Integrate answers into the plan. Remove resolved `[NEEDS CLARIFICATION]` markers.
@@ -347,7 +334,7 @@ Present questions to user. Integrate answers into the plan. Remove resolved `[NE
 
 ### 1g. Plan Completeness
 
-Apply the `plan_completeness` reasoning tool from `${CLAUDE_SKILL_DIR}/references/reasoning-tools.md` to verify:
+Apply the `plan_completeness` reasoning tool from `references/reasoning-tools.md` to verify:
 - All deliverables from Phase 0 have implementation steps
 - All acceptance criteria have verification approaches
 - Specification section contains zero implementation details
@@ -413,7 +400,7 @@ For complex stories, use `ultrathink` to reason through architectural decisions 
 
 Before presenting for approval, offer the user a depth option if the plan contains areas with complexity ≥4 or unresolved uncertainties:
 
-- **[D] Deep dive** — Explore design alternatives for uncertain areas using the `depth_exploration` reasoning tool and elicitation techniques from `${CLAUDE_SKILL_DIR}/references/elicitation-techniques.md`
+- **[D] Deep dive** — Explore design alternatives for uncertain areas using the `depth_exploration` reasoning tool and elicitation techniques from `references/elicitation-techniques.md`
 - **[C] Continue** — Plan is ready for approval as-is
 
 If [D]: apply the most relevant elicitation technique, integrate findings into the plan, then present for approval.
@@ -475,7 +462,7 @@ The Stop hook auto-saves git state to `docs/sessions/.auto-save.md` (branch, rec
 
 In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 
-Before writing the first test, apply the `test_strategy_selection` reasoning tool from `${CLAUDE_SKILL_DIR}/references/reasoning-tools.md`.
+Before writing the first test, apply the `test_strategy_selection` reasoning tool from `references/reasoning-tools.md`.
 
 When errors occur during execution, consult `references/error-recovery.md` — search for `## Phase 3` for the recovery table.
 
@@ -495,7 +482,7 @@ When a build error, test failure, or runtime exception involves an **external li
 
 **Time budget:** Max 60 seconds of web research per error. If nothing useful surfaces, move on — don't spiral.
 
-**Bug fix stories — proactive search:** For bug fix story types, search the error pattern at the START of Phase 3 (before attempting a fix), not just after failure. The error message is the most valuable search query you have — use it early. See `${CLAUDE_SKILL_DIR}/references/story-types.md` for the updated Bug Fix workflow.
+**Bug fix stories — proactive search:** For bug fix story types, search the error pattern at the START of Phase 3 (before attempting a fix), not just after failure. The error message is the most valuable search query you have — use it early. See `references/story-types.md` for the updated Bug Fix workflow.
 
 ## Phase 4: Verify + Wrap Up
 
@@ -507,7 +494,7 @@ Read `references/self-review.md` and complete the checklist (completeness, quali
 
 Then read `references/disaster-prevention.md` — check for: wheel reinvention, spec drift, integration wiring, file structure, regression surface.
 
-**Security web verification (security-scoped stories only):** If the story was tagged with intent-based security activation (Phase 1d) or is a Security story type, perform a targeted web check before quality gates. See `${CLAUDE_SKILL_DIR}/references/self-review.md` → "Security Web Verification" section for the protocol.
+**Security web verification (security-scoped stories only):** If the story was tagged with intent-based security activation (Phase 1d) or is a Security story type, perform a targeted web check before quality gates. See `references/self-review.md` → "Security Web Verification" section for the protocol.
 
 <HARD-GATE>
 Do NOT skip self-review for ANY story size. If any checklist item fails, go back to Phase 3 and fix before continuing.

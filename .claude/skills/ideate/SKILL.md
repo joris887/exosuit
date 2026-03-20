@@ -94,7 +94,7 @@ If a story feels too large, split it further. Prefer many small stories over few
 
 ### Story Structure
 
-Follow the story template in `${CLAUDE_SKILL_DIR}/references/story-template.md`. For each story, define:
+Follow the story template in `references/story-template.md`. For each story, define:
 
 ```markdown
 ### <Story-ID>: <Brief user-facing title — NO technical terms> [<Type>]

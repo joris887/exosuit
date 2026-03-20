@@ -8,10 +8,6 @@ model: inherit
 temperature: 0.1
 color: red
 tools: Glob, Grep, Read
-disallowedTools: [Edit, Write, NotebookEdit]
-maxTurns: 20
-memory: project
-skills: [code-quality]
 ---
 
 Review the code changes described in your dispatch prompt.

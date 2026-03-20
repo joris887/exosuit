@@ -8,10 +8,6 @@ model: haiku
 temperature: 0.2
 color: cyan
 tools: WebSearch, WebFetch, Read, Grep, Glob
-disallowedTools: [Edit, Write, NotebookEdit]
-maxTurns: 30
-skills: [research]
-effort: low
 ---
 
 You are a research analyst agent. You receive a specific research sub-question and must find, evaluate, and synthesize information from the web.

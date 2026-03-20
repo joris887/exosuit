@@ -7,8 +7,6 @@ model: haiku
 temperature: 0.1
 color: cyan
 tools: Glob, Grep, Read
-disallowedTools: [Edit, Write, NotebookEdit]
-maxTurns: 15
 ---
 
 Verify that the implementation matches the acceptance criteria provided in your dispatch prompt.

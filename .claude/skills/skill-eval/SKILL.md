@@ -13,9 +13,11 @@ ______________________________________________________________________
 
 ## skill-eval
 
-Mode: **$ARGUMENTS[0]** | Skill: **$ARGUMENTS[1]**
+Evaluating skill: **$ARGUMENTS**
 
 ## Modes
+
+Parse the first argument to determine mode:
 
 | Mode | Syntax | Purpose |
 |------|--------|---------|

@@ -7,8 +7,6 @@ model: inherit
 temperature: 0.2
 color: green
 tools: Glob, Grep, Read, Bash
-disallowedTools: [Edit, Write, NotebookEdit]
-maxTurns: 20
 ---
 
 Think like a systems engineer profiling a production workload. Every allocation, every I/O call, every loop iteration has a cost. Focus on the hot paths — the 20% of code that handles 80% of the load.

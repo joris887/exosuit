@@ -1,6 +1,6 @@
 ---
 name: research
-version: 1.1.0
+version: 1.0.0
 description: Deep online research on any topic. Produces structured reports with citations and confidence scores. Three depth modes — quick scan, standard investigation, or deep dive.
 trigger: manual
 depends-on: []
@@ -9,8 +9,6 @@ disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 argument-hint: "<topic-or-question>"
-context: fork
-agent: general-purpose
 ---
 ______________________________________________________________________
 
@@ -102,7 +100,7 @@ Apply Phase 3 (Synthesize) from the deep-research methodology:
 
 ## Phase 6: Output & Persist
 
-1. **Generate report** using the `research-report` format from `${CLAUDE_SKILL_DIR}/references/research-report-template.md`
+1. **Generate report** using the `research-report` format from `references/research-report-template.md`
 2. **Save to** `docs/research/<topic-slug>.md` with full YAML frontmatter
 3. **Present key findings** to the user — don't just say "report saved", show the executive summary and top findings inline
 
