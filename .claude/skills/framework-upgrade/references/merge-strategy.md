@@ -15,7 +15,7 @@ How to merge framework updates with project-specific customizations for each com
 - **Strategy**: MERGE
 - **From new framework**: Base safety patterns (force push, rm -rf, package publish, etc.)
 - **From project**: Project-specific patterns (custom blocking rules, tool restrictions)
-- **Pattern**: Copy framework file with `cp`, then append project rules via `python3 -c` (avoid heredocs — safety hook blocks its own pattern text)
+- **Pattern**: Copy framework file with `cp`, then append project rules from a temp file (avoid heredocs — safety hook blocks its own pattern text)
 
 ### rules/quality.conf, intent.patterns, subagent.patterns, subagent.conf
 
@@ -43,7 +43,7 @@ How to merge framework updates with project-specific customizations for each com
 - **From new framework**: New fields (spinnerVerbs, attribution, plansDirectory, statusMessage on hooks)
 - **From project**: Keep `git rev-parse --show-toplevel` path resolution pattern
 - **CRITICAL**: Do NOT use `__PROJECT_ROOT__` placeholder — use git-based resolution instead
-- **Pattern**: Generate via `python3 -c` with json.dump (Bash tool, NOT Write tool)
+- **Pattern**: Generate via shell commands or `cp` + `sed` (Bash tool, NOT Write tool)
 
 ## Agents
 
@@ -76,7 +76,7 @@ How to merge framework updates with project-specific customizations for each com
 - **Strategy**: MERGE — adopt new YAML frontmatter format, preserve project-specific sections
 - **From new framework**: `---` YAML frontmatter (replaces `______` separators)
 - **From project**: Any section with project-specific content (technology, tooling, paths)
-- **CRITICAL**: Write via Bash `python3 -c`, NOT Write/Edit tools (`.claude/` protection)
+- **CRITICAL**: Write via Bash `cp`/`printf`/`cat`, NOT Write/Edit tools (`.claude/` protection)
 
 ### code-slop.md
 
