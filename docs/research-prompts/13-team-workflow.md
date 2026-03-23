@@ -3,55 +3,37 @@
 ## Research Prompt
 
 ```
-I need comprehensive deep research on team development workflows — specifically how teams collaborate effectively when using AI-assisted development tools. The goal is a team workflow documentation that works for small teams (2-5) to medium teams (5-15) using AI coding assistants alongside human developers.
+I need deep research on team development workflows — specifically how teams collaborate effectively when using AI-assisted development tools. The goal is to determine the best possible approach for team workflow documentation that works for small teams (2-5) to medium teams (5-15) using AI coding assistants alongside human developers.
 
-Research these specific areas:
+**Framework context:** This template is part of the JD-LLM Development Framework — a language-agnostic AI development framework for Claude Code. Team workflow:
+- Is referenced by /bootstrap (team detection) and /sprint-end (human review step)
+- Must integrate with the framework's sprint-based workflow
+- Must address coordination between multiple AI-assisted developers working on the same codebase
+- The framework already enforces: feature branches, squash merge, conventional commits, PR workflow
+- AI sessions create knowledge silos (each session has its own context) — handoff is critical
+The template must be practical, not theoretical agile advice.
 
-1. **Team Development Models**
-   - InnerSource practices — how open-source collaboration works inside companies
-   - Trunk-based development — research on benefits vs feature branches for AI-assisted work
-   - GitHub Flow vs GitFlow vs trunk-based — which is best for AI + human teams?
-   - Pair programming with AI — how does it change team dynamics?
-   - Code ownership models: strong ownership, weak ownership, collective ownership
+**Research areas** (starting points — include anything significant you discover beyond these):
 
-2. **Code Review in AI-Assisted Teams**
-   - How should humans review AI-generated code? (different from human-authored code review)
-   - Research on optimal review batch size — PRs from AI sessions tend to be larger
-   - Review checklists specific to AI-generated code (phantom packages, weakened tests, over-engineering)
-   - Auto-review vs human review — what should each catch?
-   - CODEOWNERS patterns that work — research on which files need human eyes
+1. **Team Development Models** — InnerSource, trunk-based development, GitHub Flow vs GitFlow. Pair programming with AI. Code ownership models (strong, weak, collective). What changes when AI is in the mix?
 
-3. **Team Coordination Patterns**
-   - How to prevent merge conflicts when multiple AI sessions work on the same codebase
-   - Story assignment and locking — preventing duplicate work
-   - Communication patterns for AI-assisted teams (async-first?)
-   - Shared decision-making — ADRs, RFCs, design docs in AI-assisted context
-   - Sprint coordination when different team members use different AI tools
+2. **Code Review in AI-Assisted Teams** — How to review AI-generated code (different from human-authored). Optimal review batch size for AI PRs. Review checklists for AI code. Auto-review vs human review responsibilities. CODEOWNERS patterns.
 
-4. **Knowledge Sharing**
-   - How AI sessions create knowledge silos (each session has its own context)
-   - Effective handoff patterns between developers
-   - Shared learnings database — how to compound knowledge across team members
-   - Onboarding new team members into an AI-assisted workflow
-   - Ground rules as team alignment mechanism
+3. **Team Coordination Patterns** — Preventing merge conflicts from parallel AI sessions. Story assignment and locking. Communication patterns (async-first?). Shared decision-making. Sprint coordination across different AI tools.
 
-5. **Quality & Consistency**
-   - How to maintain code consistency across multiple AI-assisted developers
-   - Shared coding standards enforcement with AI
-   - Architecture governance in AI-assisted teams
-   - Test quality consistency — preventing "race to the bottom"
-   - Security standards across team members
+4. **Knowledge Sharing** — How AI sessions create knowledge silos. Handoff patterns between developers. Shared learnings. Onboarding new team members into AI-assisted workflow. Ground rules as alignment mechanism.
 
-6. **Scaling AI-Assisted Development**
-   - Research on team productivity with AI tools (GitHub Copilot studies, Cursor studies)
-   - When does AI assistance break down at team scale?
-   - Tooling standardization — should all team members use the same AI tool?
-   - Cost management — AI API costs at team scale
-   - Measuring team effectiveness (DORA + SPACE for AI-assisted teams)
+5. **Quality & Consistency** — Code consistency across multiple AI developers. Shared standards enforcement. Architecture governance in teams. Test quality consistency. Security standards.
 
-For each finding, include sources, team size applicability, and practical implementation guidance.
+6. **Scaling AI-Assisted Development** — Team productivity research (Copilot studies, Cursor studies). When AI breaks down at scale. Tooling standardization. Cost management. Measuring team effectiveness.
 
-Output a structured research report with: recommended team workflow structure, coordination patterns, review process, and knowledge sharing mechanisms.
+**Required output format:**
+1. Executive summary
+2. Per-topic findings with citations
+3. **Recommended team workflow structure** — propose the specific coordination patterns, review process, and knowledge sharing mechanisms, with justification
+4. **Recommended code review process** — AI + human review, who catches what
+5. **Recommended scaling guidance** — what changes as team grows from 2 to 15
+6. Knowledge gaps
 ```
 
 ## Implementation Prompt
@@ -59,29 +41,28 @@ Output a structured research report with: recommended team workflow structure, c
 ```
 I have completed deep research on team workflows for AI-assisted development. The research findings are saved in docs/research/team-workflow.md (or I will paste them below).
 
-Your task: Update the framework's TEAM_WORKFLOW.md to be the definitive guide for team collaboration with AI assistance.
+Your task: Update the framework's TEAM_WORKFLOW.md to be the definitive guide for team collaboration with AI assistance, guided by the research findings.
 
-**Context:** The template lives at docs/reference/TEAM_WORKFLOW.md (and scaffold/docs/reference/TEAM_WORKFLOW.md). It's referenced by /bootstrap (team detection) and /sprint-end (human review). It must:
-- Work for teams of 2-15 developers
-- Address coordination between multiple AI-assisted developers
-- Cover code review, backlog coordination, knowledge sharing
-- Integrate with the framework's existing sprint-based workflow
-- Be practical — not theoretical agile advice
+**Hard constraints (non-negotiable):**
+- File locations: docs/reference/TEAM_WORKFLOW.md AND scaffold/docs/reference/TEAM_WORKFLOW.md
+- Must work for teams of 2-15 developers
+- Must address coordination between multiple AI-assisted developers
+- Must cover code review, backlog coordination, knowledge sharing
+- Must integrate with the framework's existing sprint-based workflow
+- Referenced by /bootstrap (team detection) and /sprint-end (human review)
 
 **Instructions:**
 1. Read the current docs/reference/TEAM_WORKFLOW.md
-2. Read the research findings
-3. Update the document:
-   - Branch strategy for teams (concurrent sprints, merge order)
-   - Code review workflow (AI review + human review — who catches what)
-   - Story assignment and conflict prevention
-   - Knowledge sharing (handoffs between developers, shared learnings)
-   - Onboarding guide (how to introduce new team members to the framework)
-   - Quality consistency patterns (shared standards, shared ground rules)
-   - Communication patterns (when to sync, async workflows)
+2. Read the research findings thoroughly
+3. Implement the team workflow structure, review process, and scaling guidance the research recommends — trust the research over your own defaults
 4. Update scaffold version to match
-5. Verify /sprint-end human review integration aligns with the workflow
-6. Verify .github/CODEOWNERS aligns with the review recommendations
+5. Verify /sprint-end human review integration aligns with the new workflow
+6. Verify .github/CODEOWNERS recommendations align
 
-Make this the guide that enables any team to use AI-assisted development without the coordination overhead destroying the productivity gains.
+**Outcome criteria (how to evaluate the result):**
+- Any team can adopt AI-assisted development without coordination overhead destroying productivity gains
+- Code review catches AI-specific issues (phantom packages, weakened tests, over-engineering)
+- Knowledge doesn't stay siloed in individual AI sessions
+- New team members can onboard into the workflow within a day
+- Works for a 2-person team and a 15-person team with appropriate scaling
 ```

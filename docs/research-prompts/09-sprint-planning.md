@@ -3,46 +3,37 @@
 ## Research Prompt
 
 ```
-I need comprehensive deep research on sprint planning documentation for AI-assisted development. The goal is a sprint specification template that captures everything needed to execute a sprint effectively — with both human developers and AI assistants — while minimizing documentation overhead.
+I need deep research on sprint planning documentation for AI-assisted development. The goal is to determine the best possible approach for a sprint specification template that captures everything needed to execute a sprint effectively — with both human developers and AI assistants — while minimizing documentation overhead.
 
-Research these specific areas:
+**Framework context:** This template is part of the JD-LLM Development Framework — a language-agnostic AI development framework for Claude Code. Sprints:
+- Are created by /sprint-start, completed by /sprint-end, reviewed by /retrospective
+- Represent bounded units of work (typically 3-8 stories)
+- Span multiple AI sessions (each session = one or more stories, with /continue for session continuity)
+- Context window is a real capacity constraint — sessions can't hold unlimited context
+- progress.md is loaded every session (must be lean)
+The template must work for solo developers and teams.
 
-1. **Sprint Planning Approaches**
-   - Scrum sprint planning (two-part) — what survives from formal Scrum in modern practice?
-   - Kanban continuous flow vs fixed sprints — research on which works better with AI
-   - Shape Up's "6-week cycles with 2-week cooldown" — applicable to AI-assisted work?
-   - Sprint goals research — do sprint goals improve outcomes? (SAFe, Scrum.org data)
-   - Sprint capacity planning — how AI changes capacity calculations
+**Research areas** (starting points — include anything significant you discover beyond these):
 
-2. **Sprint Documentation That Works**
-   - What information does a sprint spec actually need? (minimalist research)
-   - Sprint board vs sprint document — when each is appropriate
-   - Sprint scope documentation — how to capture "done" for the sprint
-   - Sprint notes — what's worth capturing during a sprint?
-   - Sprint retrospective data — what to track for useful retrospectives?
+1. **Sprint Planning Approaches** — Scrum sprint planning, Kanban continuous flow, Shape Up cycles. Sprint goals — do they improve outcomes? How AI changes capacity calculations.
 
-3. **Metrics for Sprint Tracking**
-   - Velocity tracking with AI assistance — does it still make sense?
-   - Burndown/burnup charts — do they help or hinder with AI?
-   - Cycle time per story type — research on predictability patterns
-   - Sprint quality metrics: test delta, coverage delta, complexity delta
-   - Which metrics drive improvement vs which are vanity metrics?
+2. **Sprint Documentation That Works** — Minimum viable sprint spec. Sprint board vs document. Scope documentation. Sprint notes. Retrospective data worth capturing.
 
-4. **Sprint Boundaries & Decisions**
-   - How to handle stories that span sprints (carry-over patterns)
-   - Sprint scope protection — research on mid-sprint scope changes
-   - When to end a sprint early (criteria and process)
-   - Bug handling during sprints — planned vs unplanned work tracking
+3. **Metrics for Sprint Tracking** — Velocity with AI. Burndown/burnup charts. Cycle time per story type. Quality metrics (test delta, coverage delta, complexity delta). Which metrics drive improvement vs vanity?
 
-5. **AI-Specific Sprint Considerations**
-   - Context window as a sprint capacity constraint
-   - Session-to-sprint mapping — how many sessions per sprint?
-   - Sprint continuity with AI — handoff patterns between sessions
-   - How AI changes the definition of "sprint-sized" work
+4. **Sprint Boundaries & Decisions** — Carry-over patterns. Mid-sprint scope protection. When to end early. Planned vs unplanned work.
 
-For each finding, include sources and practical recommendations. Focus on what's PROVEN to work over what's theoretically ideal.
+5. **AI-Specific Sprint Considerations** — Context window as capacity constraint. Session-to-sprint mapping. Handoff patterns between sessions. How AI changes what "sprint-sized" means.
 
-Output a structured research report with: recommended sprint spec format, metrics guidance, and AI-specific sprint management patterns.
+Focus on what's PROVEN to work over what's theoretically ideal.
+
+**Required output format:**
+1. Executive summary
+2. Per-topic findings with citations
+3. **Recommended sprint spec format** — propose the specific sections and level of detail, with justification
+4. **Recommended metrics** — which to track and which to avoid, with evidence
+5. **Recommended AI-specific sprint patterns** — session management, capacity, continuity
+6. Knowledge gaps
 ```
 
 ## Implementation Prompt
@@ -50,34 +41,31 @@ Output a structured research report with: recommended sprint spec format, metric
 ```
 I have completed deep research on sprint planning documentation. The research findings are saved in docs/research/sprint-planning.md (or I will paste them below).
 
-Your task: Update the framework's sprint template and progress tracking to be the most effective sprint management format.
+Your task: Update the framework's sprint template and progress tracking to be the most effective sprint management format, guided by the research findings.
 
-**Context:** Templates live at:
-- docs/sprints/_TEMPLATE.md (and scaffold/) — per-sprint specification
-- docs/progress.md (and scaffold/) — sprint history and metrics
-
-Used by /sprint-start (creates sprint), /sprint-end (completes sprint), /retrospective (reviews sprint). They must:
-- Capture sprint scope, goals, and outcomes efficiently
-- Track metrics that enable useful retrospectives
-- Support session continuity (/continue reads progress.md)
-- Be maintainable with minimal overhead during active development
+**Hard constraints (non-negotiable):**
+- File locations:
+  - docs/sprints/_TEMPLATE.md (and scaffold/) — per-sprint specification
+  - docs/progress.md (and scaffold/) — sprint history and metrics
+- Used by /sprint-start (creates), /sprint-end (completes), /retrospective (reviews)
+- Must capture sprint scope, goals, and outcomes efficiently
+- Must track metrics that enable useful retrospectives
+- Must support session continuity (/continue reads progress.md)
+- progress.md is auto-loaded every session — must be lean
+- Must be maintainable with minimal overhead during active development
 
 **Instructions:**
-1. Read the current templates (docs/sprints/_TEMPLATE.md and docs/progress.md)
-2. Read the research findings
-3. Update sprint template:
-   - Sprint goal (one-sentence purpose)
-   - Story list with status tracking
-   - Key decisions made during sprint
-   - Metrics (tests, coverage, quality indicators)
-   - Sprint outcome summary
-4. Update progress.md structure:
-   - Sprint-over-sprint trends table (if research suggests improvements)
-   - Quality indicators section
-   - AI-specific metrics (if research validates their usefulness)
-5. Update scaffold versions to match
-6. Verify /sprint-end populates the templates correctly
-7. Verify /retrospective reads the metrics it needs
+1. Read current docs/sprints/_TEMPLATE.md and docs/progress.md
+2. Read the research findings thoroughly
+3. Implement the sprint format, metrics, and AI-specific patterns the research recommends — trust the research over your own defaults
+4. Update scaffold versions to match
+5. Verify /sprint-end populates the templates correctly
+6. Verify /retrospective can read the metrics it needs
 
-Make these the sprint documents that capture exactly what matters — nothing more, nothing less.
+**Outcome criteria (how to evaluate the result):**
+- Sprint documents capture exactly what matters — nothing more, nothing less
+- Metrics enable useful retrospectives and predict future sprint capacity
+- progress.md gives a 30-second understanding of project trajectory
+- Session continuity works — /continue can resume from progress.md state
+- Zero documentation overhead during active development (metrics auto-populated by /sprint-end)
 ```

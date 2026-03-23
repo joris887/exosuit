@@ -3,57 +3,37 @@
 ## Research Prompt
 
 ```
-I need comprehensive deep research on API documentation best practices. The goal is a generic API documentation template that works for REST, GraphQL, gRPC, WebSocket, and event-driven APIs — optimized for AI-assisted development where the AI reads this document to implement correct API interactions.
+I need deep research on API documentation best practices. The goal is to determine the best possible approach for a generic API documentation template that works for REST, GraphQL, gRPC, WebSocket, and event-driven APIs — optimized for AI-assisted development where the AI reads this document to implement correct API interactions.
 
-Research these specific areas:
+**Framework context:** This template is part of the JD-LLM Development Framework — a language-agnostic AI development framework for Claude Code. The API docs:
+- Are populated by /bootstrap or manually by developers
+- Must be readable by AI for implementing correct API integrations
+- Must support both internal APIs (module boundaries) and external APIs (public endpoints)
+- Should integrate with the framework's contract testing strategy
+The template must be maintainable — ideally verifiable from code/specs.
 
-1. **Industry-Leading API Documentation**
-   - Stripe API docs — why they're considered the gold standard, structure analysis
-   - Twilio API docs — developer experience innovations
-   - GitHub REST and GraphQL API docs — dual-API documentation approach
-   - AWS API documentation — how they handle massive API surface areas
-   - Postman/Stoplight research on what makes API docs effective
-   - What percentage of developer time is spent reading API docs? (studies)
+**Research areas** (starting points — include anything significant you discover beyond these):
 
-2. **API Documentation Formats & Standards**
-   - OpenAPI/Swagger 3.1 — structure, what to specify, what to skip
-   - AsyncAPI — for event-driven and WebSocket APIs
-   - GraphQL schema documentation — introspection-based vs manual
-   - gRPC/Protobuf documentation — proto comments vs separate docs
-   - API Blueprint vs RAML — lessons learned from alternative formats
-   - Contract-first vs code-first documentation — which produces better docs?
+1. **Industry-Leading API Documentation** — Stripe (gold standard), Twilio, GitHub REST/GraphQL, AWS. What makes API docs effective? What percentage of developer time is spent reading API docs?
 
-3. **Documentation Sections That Matter**
-   - Authentication/authorization documentation patterns
-   - Endpoint documentation structure (method, path, parameters, body, response, errors)
-   - Error handling documentation — standardized error formats, error code catalogs
-   - Rate limiting documentation — headers, quotas, retry strategies
-   - Pagination documentation — cursor vs offset, consistent patterns
-   - Versioning documentation — URL vs header, deprecation policies
-   - Webhook/event documentation — payloads, delivery guarantees, retry policies
+2. **API Documentation Formats & Standards** — OpenAPI/Swagger 3.1, AsyncAPI, GraphQL schema docs, gRPC/Protobuf docs. Contract-first vs code-first. Lessons from API Blueprint and RAML.
 
-4. **API Documentation for AI**
-   - How should APIs be documented so AI generates correct integration code?
-   - Type information format — what helps AI get types right?
-   - Request/response example formats — what level of detail prevents hallucination?
-   - How to document API boundaries so AI doesn't create non-existent endpoints?
-   - Error handling documentation that AI can implement correctly
+3. **Documentation Sections That Matter** — Authentication, endpoint structure, error handling, rate limiting, pagination, versioning, webhooks/events. Which sections are essential vs nice-to-have?
 
-5. **Interactive & Living API Docs**
-   - API playgrounds and sandboxes — tools and approaches
-   - Doc-as-tests — keeping examples verified and current
-   - Changelog/migration guides — documenting breaking changes
-   - SDKs vs raw API docs — when to generate client documentation
+4. **API Documentation for AI** — How should APIs be documented so AI generates correct integration code? Type information format. Request/response examples that prevent hallucination. Preventing AI from creating non-existent endpoints.
 
-6. **Internal API Documentation**
-   - Documentation for internal/private APIs (different from public API docs)
-   - Module-to-module API contracts in monoliths
-   - Documentation for shared libraries and utilities
-   - When to document an API vs when it's self-documenting (types + naming)
+5. **Interactive & Living API Docs** — Doc-as-tests, changelog/migration guides, SDK generation. Keeping examples verified and current.
 
-For each finding, include source URLs, specific examples of excellent API docs, and assessment of which approaches work for small projects vs. large API surfaces.
+6. **Internal API Documentation** — Internal/private API docs vs public. Module-to-module contracts. When to document vs when it's self-documenting (types + naming).
 
-Output a structured research report with: recommended template structure, per-section content guidance, format comparisons, and tool recommendations.
+**Required output format:**
+1. Executive summary
+2. Per-topic findings with citations
+3. **Recommended template structure** — propose the specific sections, their format, and ordering for maximum AI utility, with justification
+4. **Recommended endpoint documentation format** — adaptable across REST/GraphQL/gRPC
+5. **Recommended approach for internal vs external APIs** — how to handle both in one template
+6. Tool recommendations
+7. Knowledge gaps
 ```
 
 ## Implementation Prompt
@@ -61,31 +41,27 @@ Output a structured research report with: recommended template structure, per-se
 ```
 I have completed deep research on API documentation best practices. The research findings are saved in docs/research/api-documentation.md (or I will paste them below).
 
-Your task: Update the framework's API_DOCUMENTATION.md template to be the best possible API documentation format.
+Your task: Update the framework's API_DOCUMENTATION.md template to be the best possible API documentation format, guided by the research findings.
 
-**Context:** This template lives at docs/reference/API_DOCUMENTATION.md (and scaffold/docs/reference/API_DOCUMENTATION.md). It's populated by /bootstrap or manually by developers. It must:
-- Work for REST, GraphQL, gRPC, WebSocket, and event-driven APIs
-- Be readable by AI for implementing correct API integrations
-- Include authentication, endpoints, errors, rate limits, versioning, webhooks
-- Support both internal APIs (module boundaries) and external APIs (public endpoints)
-- Be maintainable — ideally generated or verified from code/specs
-- Integrate with the framework's contract testing strategy
+**Hard constraints (non-negotiable):**
+- File locations: docs/reference/API_DOCUMENTATION.md AND scaffold/docs/reference/API_DOCUMENTATION.md
+- Must work for REST, GraphQL, gRPC, WebSocket, and event-driven APIs
+- Must be readable by AI for implementing correct API integrations
+- Must support both internal APIs (module boundaries) and external APIs (public endpoints)
+- Must be maintainable — ideally generated or verified from code/specs
+- Must integrate with the framework's contract testing strategy (see TESTING_STRATEGY.md)
 
 **Instructions:**
 1. Read the current API_DOCUMENTATION.md at docs/reference/API_DOCUMENTATION.md
-2. Read the research findings
-3. Redesign the template:
-   - Authentication section (multiple auth patterns)
-   - Endpoint documentation format (adaptable to REST/GraphQL/gRPC)
-   - Request/response schemas with examples
-   - Error catalog with codes, messages, and retry guidance
-   - Rate limiting and quotas
-   - Versioning and deprecation
-   - Webhook/event documentation
-   - Internal API contracts section
-4. Use a format that AI can read to generate correct integration code
-5. Update scaffold version to match
-6. Verify contract testing section in TESTING_STRATEGY.md aligns with API doc format
+2. Read the research findings thoroughly
+3. Implement the template structure, endpoint format, and internal/external approach the research recommends — trust the research over your own defaults
+4. Update scaffold/docs/reference/API_DOCUMENTATION.md to match
+5. Verify the contract testing section in TESTING_STRATEGY.md aligns with the API doc format
 
-Make this the API documentation that prevents every AI integration mistake — wrong endpoints, missing auth, incorrect error handling, or hallucinated API methods.
+**Outcome criteria (how to evaluate the result):**
+- An AI reading this generates correct integration code on the first attempt — right endpoints, right auth, right error handling
+- The document prevents AI from hallucinating non-existent API methods
+- Both internal module boundaries and external endpoints are clearly documented
+- The format can be generated or verified from OpenAPI/AsyncAPI specs where available
+- Works equally well for a REST API, a GraphQL API, and an event-driven system
 ```

@@ -3,53 +3,37 @@
 ## Research Prompt
 
 ```
-I need comprehensive deep research on coding standards documentation best practices. The goal is to create the ultimate generic coding standards template that works for ANY programming language and is specifically optimized for AI-assisted development — where an AI reads these standards to write code that follows project conventions.
+I need deep research on coding standards documentation best practices. The goal is to determine the best possible approach for a generic coding standards template that works for ANY programming language and is specifically optimized for AI-assisted development — where an AI reads these standards to write code that follows project conventions.
 
-Research these specific areas:
+**Framework context:** This template is part of the JD-LLM Development Framework — a language-agnostic AI development framework for Claude Code. The template is populated by a bootstrap process that detects the project's stack and configures standards accordingly. It must:
+- Work for ANY language (Python, TypeScript, Go, Rust, Java, Ruby, Swift, C#, PHP, Dart, Kotlin, C/C++)
+- Be actionable for AI — every standard should be followable without ambiguity
+- Support multi-language projects (shared conventions + per-language sections)
+- Stay under 200 lines per language section (strict context budget)
+- Distinguish what formatters/linters handle vs what needs AI judgment
 
-1. **Industry-Leading Style Guides**
-   - Google's style guides (Python, Java, C++, Go, TypeScript) — structure, specificity, enforcement
-   - Airbnb JavaScript Style Guide — why it became the most popular, what makes it effective
-   - Microsoft's .NET coding conventions — how they structure multi-concern standards
-   - Rust's official style guide — how a language-level standard works
-   - PEP 8 and PEP 257 — Python's approach to conventions + documentation
-   - What level of specificity actually helps? When does it become noise?
+**Research areas** (starting points — include anything significant you discover beyond these):
 
-2. **Standards That AI Can Enforce**
-   - Which coding standards can be verified by linters/formatters? (format vs. semantic)
-   - Which require human judgment? (naming quality, abstraction decisions)
-   - How should standards be written so that an AI follows them consistently?
-   - Research on AI compliance with coding conventions — what phrasings work best?
-   - How do you encode "follow nearby patterns" without listing every pattern?
+1. **Industry-Leading Style Guides** — Google's guides, Airbnb JS, Microsoft .NET, Rust's official guide, PEP 8/257. What level of specificity actually helps? When does it become noise?
 
-3. **Structure & Organization**
-   - How to organize standards for multi-language projects (shared vs. language-specific)
-   - Naming convention formats (tables vs. prose vs. examples)
-   - Error handling convention documentation — patterns that prevent silent failures
-   - Import ordering standards — what actually matters
-   - When to prescribe vs. when to defer to the formatter
+2. **Standards That AI Can Enforce** — Which standards can be verified by tooling? Which require judgment? How should standards be written so AI follows them consistently? Research on AI compliance with coding conventions — what phrasings work best?
 
-4. **Testing Standards (as part of coding)**
-   - Test naming conventions that communicate intent
-   - Assertion style standards (specific vs. flexible)
-   - Test organization standards (file naming, directory structure, fixture patterns)
-   - What test quality rules can be expressed as standards?
+3. **Structure & Organization** — How to organize for multi-language projects. Naming conventions (tables vs prose vs examples). Error handling patterns. When to prescribe vs defer to the formatter.
 
-5. **AI-Specific Coding Anti-Patterns**
-   - Patterns AI commonly generates that violate good standards (over-abstraction, phantom packages, obvious comments)
-   - How to document "don't do this" effectively for AI consumption
-   - Standards that prevent code slop without being overly restrictive
-   - How to balance "follow standards" with "use judgment"
+4. **Testing Standards (as part of coding)** — Test naming, assertion styles, organization, quality criteria expressed as standards.
 
-6. **Keeping Standards Alive**
-   - How to prevent standards rot (standards that nobody follows)
-   - Automated enforcement vs. manual review — the right balance
-   - When to update standards based on team evolution
-   - How companies evolve their standards over time
+5. **AI-Specific Coding Anti-Patterns** — Patterns AI commonly generates that violate good standards. How to document "don't do this" effectively. Standards that prevent code slop without being restrictive.
 
-For each finding, include source URLs, credibility assessment, specific examples, and whether it's universally applicable or language-specific. Focus on what makes standards EFFECTIVE (actually followed) rather than COMPREHENSIVE (covers everything).
+6. **Keeping Standards Alive** — Preventing standards rot. Automated enforcement vs manual review balance. How companies evolve standards.
 
-Output a structured research report with recommendations for the optimal coding standards template structure.
+Focus on what makes standards EFFECTIVE (actually followed) rather than COMPREHENSIVE (covers everything).
+
+**Required output format:**
+1. Executive summary
+2. Per-topic findings with citations
+3. **Recommended template structure** — propose the specific organization, section hierarchy, and format (tables? examples? prose?) that produces the highest AI compliance, with justification
+4. **Recommended enforcement strategy** — what to automate vs what to express as standards
+5. Knowledge gaps
 ```
 
 ## Implementation Prompt
@@ -57,28 +41,26 @@ Output a structured research report with recommendations for the optimal coding 
 ```
 I have completed deep research on coding standards best practices. The research findings are saved in docs/research/coding-standards.md (or I will paste them below).
 
-Your task: Update the framework's CODING_STANDARDS.md template to be the best possible generic coding standards format.
+Your task: Update the framework's CODING_STANDARDS.md template to be the best possible generic coding standards format, guided by the research findings.
 
-**Context:** This template lives at docs/reference/CODING_STANDARDS.md (and scaffold/docs/reference/CODING_STANDARDS.md). It's populated by /bootstrap based on detected stack. It must:
-- Work for ANY language (Python, TypeScript, Go, Rust, Java, Ruby, Swift, C#, PHP, Dart, Kotlin, C/C++)
-- Be actionable for AI — every standard should be followable without ambiguity
-- Support multi-language projects (shared conventions + per-language sections)
-- Stay under 200 lines per language section (the framework's documentation rule budget)
-- Include both "do this" and "don't do this" with examples
-- Be enforceable — distinguish what formatters/linters handle vs. what needs AI judgment
+**Hard constraints (non-negotiable):**
+- File locations: docs/reference/CODING_STANDARDS.md AND scaffold/docs/reference/CODING_STANDARDS.md
+- Budget: ≤200 lines for universal section + ~50 per language section
+- Must work for ANY language
+- Must support multi-language projects
+- Populated by /bootstrap based on detected stack — include <!-- guidance comments --> for bootstrap
 
 **Instructions:**
 1. Read the current CODING_STANDARDS.md at docs/reference/CODING_STANDARDS.md
-2. Read the research findings
-3. Redesign the template:
-   - Universal Conventions section (all languages): file organization, naming, error handling, imports, configuration, API design
-   - Per-Language section template: version, tools, formatting, naming overrides, idioms, common pitfalls
-   - Testing Standards section: naming, assertions, organization, quality criteria
-   - AI-Specific section: anti-patterns to avoid, slop detection, pattern following
-4. Use tables and code examples — prose paragraphs are harder for AI to follow
-5. Include <!-- guidance comments --> for bootstrap
-6. Update scaffold version to match
-7. Verify total stays within context budget (200 lines for universal + ~50 per language section)
+2. Read the research findings thoroughly
+3. Implement the template structure, format, and enforcement strategy the research recommends — trust the research over your own defaults
+4. Update scaffold/docs/reference/CODING_STANDARDS.md to match
+5. If the research recommends changes to how rules enforce standards (e.g., .claude/rules/code-slop.md), note them but don't change rules without verification
 
-Make this the coding standards document that, when read by an AI, produces code indistinguishable from a senior developer on the team.
+**Outcome criteria (how to evaluate the result):**
+- An AI reading this document produces code indistinguishable from a senior developer on the team
+- Every standard is unambiguous — no room for AI interpretation drift
+- Clear separation between tool-enforced standards and AI-judgment standards
+- Bootstrap can populate language-specific sections from stack detection
+- Under context budget
 ```
