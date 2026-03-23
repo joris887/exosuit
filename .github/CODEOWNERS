@@ -1,31 +1,54 @@
-# CODEOWNERS — Require human review for critical files
-# Customize with your GitHub usernames after /bootstrap
+# CODEOWNERS — Require human review on critical paths
+#
+# This file works with GitHub branch protection rules:
+# 1. Enable "Require a pull request before merging" in repo settings
+# 2. Enable "Require review from Code Owners"
+# 3. Add team members below
+#
+# Format: <pattern> <@owner1> <@owner2>
+# Patterns match files in the PR diff
+# More specific patterns override less specific ones
 
-# Test files — prevent AI from degrading test quality
-*.test.* @TEAM_LEAD
-*.spec.* @TEAM_LEAD
-**/test_* @TEAM_LEAD
-**/tests/** @TEAM_LEAD
-**/conftest.py @TEAM_LEAD
-**/__tests__/** @TEAM_LEAD
-**/fixtures/** @TEAM_LEAD
-**/testutils/** @TEAM_LEAD
-**/test-utils/** @TEAM_LEAD
+# Default owner (all files not matched by other rules)
+# * @your-team
 
-# CI/CD configuration
-.github/workflows/** @TEAM_LEAD
-.gitlab-ci.yml @TEAM_LEAD
-Jenkinsfile @TEAM_LEAD
+# Test infrastructure — changes here affect all test reliability
+*.test.* @your-team
+*.spec.* @your-team
+**/test_* @your-team
+**/tests/** @your-team
+**/conftest.py @your-team
+**/__tests__/** @your-team
+**/fixtures/** @your-team
+**/testutils/** @your-team
+**/test-utils/** @your-team
+**/jest.config.* @your-team
 
 # Security-sensitive files
-**/*.env* @TEAM_LEAD
-**/auth/** @TEAM_LEAD
-**/security/** @TEAM_LEAD
+**/auth/** @your-team
+**/security/** @your-team
+**/.env* @your-team
 
-# Dependency files
-package.json @TEAM_LEAD
-package-lock.json @TEAM_LEAD
-pyproject.toml @TEAM_LEAD
-Cargo.toml @TEAM_LEAD
-go.mod @TEAM_LEAD
-Gemfile @TEAM_LEAD
+# Dependency manifests — supply chain risk
+package.json @your-team
+package-lock.json @your-team
+pyproject.toml @your-team
+requirements*.txt @your-team
+Cargo.toml @your-team
+go.mod @your-team
+Gemfile @your-team
+
+# CI/CD — affects deployment pipeline
+.github/workflows/** @your-team
+.gitlab-ci.yml @your-team
+Jenkinsfile @your-team
+
+# Framework configuration — affects all developers
+.claude/settings.json @your-team
+.claude/hooks/** @your-team
+.claude/rules/** @your-team
+
+# Architecture — affects system design
+docs/architecture/** @your-team
+docs/adr/** @your-team
+docs/reference/GROUND_RULES.md @your-team

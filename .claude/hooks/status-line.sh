@@ -63,9 +63,27 @@ fmt_k() {
 # --- Build output ---
 OUT=""
 
+# --- Active skill from failure state ---
+FAILURE_STATE="docs/sessions/.failure-state.md"
+ACTIVE_SKILL=""
+if [[ -f "$FAILURE_STATE" ]]; then
+  SKILL_NAME=$(grep -m1 '^skill:' "$FAILURE_STATE" 2>/dev/null | sed 's/skill: *//')
+  SKILL_PHASE=$(grep -m1 '^phase_name:' "$FAILURE_STATE" 2>/dev/null | sed 's/phase_name: *"//;s/"//')
+  if [[ -n "$SKILL_NAME" ]]; then
+    ACTIVE_SKILL="${SKILL_NAME}"
+    [[ -n "$SKILL_PHASE" ]] && ACTIVE_SKILL="${ACTIVE_SKILL}:${SKILL_PHASE}"
+  fi
+fi
+
 # Sprint prefix (cyan)
 if [[ -n "$SPRINT" && "$SPRINT" != "<!--"* ]]; then
   OUT="${CYN}S${SPRINT}${RST} "
+fi
+
+# Active skill (magenta)
+MAG='\033[35m'
+if [[ -n "$ACTIVE_SKILL" ]]; then
+  OUT="${OUT}${MAG}[${ACTIVE_SKILL}]${RST} "
 fi
 
 # Branch with status indicator

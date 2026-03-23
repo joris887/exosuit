@@ -29,7 +29,7 @@ Exhaustive list of components to compare during a framework upgrade. Use this to
 - [ ] `hooks.json` — Plugin distribution definitions (update LAST)
 - [ ] `lib/paths.sh` — Bash path resolution
 - [ ] `README.md` — Hook architecture docs
-- [ ] `.claude-context.md` — Hook module context
+- [ ] `CLAUDE.md` — Hook module context
 
 ## .claude/settings.json
 

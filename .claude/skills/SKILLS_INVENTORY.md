@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 3.7
+**Framework Version:** 3.8
 
 ## Core Workflow
 
@@ -251,6 +251,7 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 3.8     | 2026-03-23 | Comprehensive upgrade: `/quickstart`, `/help-me`, `/dashboard`, `/custom-hooks`, `/uninstall`, `/performance-check` skills, centralized error recovery, standardized argument validation, framework test suite for hooks, team workflow support (human review, CODEOWNERS, TEAM_WORKFLOW.md), security enhancements (SBOM, .env template, secret rotation), architecture documentation (C4+Mermaid templates, MADR ADRs, API docs), developer experience (status line skill indicator, keybindings), framework versioning (MANIFEST.md, machine-parseable CHANGELOG), CLAUDE.md lazy-loading (renamed .claude-context.md to CLAUDE.md), skill lifecycle events for metrics, coverage tool reference table, universal coding standards, lightweight story template |
 | 3.7     | 2026-03-20 | Metric-driven optimization: `/optimize` skill with git checkpointing and automatic rollback, story-cycle git checkpoint + auto-rollback on verification failure, story-scoped file boundaries, simplicity assessment in `/code-quality`, `capture-outcome` micro-component for structured story outcome tracking, `/refine-loop` autonomous mode with TSV logging and diminishing-returns detection |
 | 3.6     | 2026-03-16 | Deep research capability: `/research` skill, `deep-research` engine snippet, `source-evaluator` snippet, `research-analyst` agent, research rule, depth-calibrated research in bootstrap/brainstorm/ideate/story-cycle, reflection-based context compression, parallel subagent dispatch for research, prior research caching |
 | 3.4     | 2026-02-23 | Confidence gate, four-question evidence protocol, cross-session error learning, wave execution pattern, MCP integration guide, domain-specific agent personas, completion evidence protocol |

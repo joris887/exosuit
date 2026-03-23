@@ -1,9 +1,11 @@
 ---
 name: story-cycle
-version: 4.2.0
+version: 4.3.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
+requires: [git]
+optional-requires: [test-command, lint-command, typecheck-command]
 references: [references/story-types.md, references/self-review.md, references/disaster-prevention.md, references/reasoning-tools.md, references/elicitation-techniques.md, references/error-recovery.md, references/plan-template.md, references/parallel-streams.md]
 micro-components:
   phase-0: [context-prime]
@@ -54,13 +56,15 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
         → [User approved?] → NO: Revise → YES: Continue
       → Phase 2: Context Transition + Confidence Gate
         → (prune context, score 5 dimensions, ≥85 proceed, 70-84 clarify, <70 return to Phase 1)
-      → Phase 3: Execute by Story Type (TDD/reproduce/characterize/etc.)
+      → Phase 3: Execute by Story Type
+        → `*** HARD GATE: TDD ordering — tests BEFORE implementation (Feature/Bug Fix/Refactoring) ***`
         → Web-Assisted Error Recovery (on build/test failure involving external libraries)
         → Bug Fix Web Research (always for bug fix stories — search error patterns first)
       → Phase 4: Verify + Wrap Up
-        → Self-review + disaster prevention
+        → Self-review + disaster prevention + ground rules re-check
+        → Quality agents dispatched per risk level
         → Security web verification (security-scoped stories — CWE + CVE check)
-        → Quality gates (project quality command from CLAUDE.md)
+        → Quality gates `*** HARD GATE: all configured gates must pass ***`
         → UAT generation + sense check (optional — Feature/Bug Fix only)
         → Completion verification (evidence for every AC)
         → Docs + commit
@@ -215,7 +219,7 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 - Deep-read the files identified in step 1b
 - Understand patterns, conventions, and existing tests in the area
 - Identify files to modify and files to create
-- Check for `.claude-context.md` files in the target directory and parent directories — these contain module-specific patterns and conventions that supplement global CLAUDE.md
+- Check for `CLAUDE.md` files in the target directory and parent directories — these contain module-specific patterns and conventions that supplement global CLAUDE.md
 
 ### 1c.5. Online Verification
 
@@ -311,7 +315,7 @@ Determine which skills benefit this story. If the story metadata already defines
 | Skill | Load When |
 |-------|-----------|
 | `/code-quality` | Feature, refactoring, infrastructure stories |
-| `/test-validator` | Feature, bug fix, testing stories |
+| `/test-validator` | Feature, bug fix, refactoring, testing stories |
 | `/security-audit` | Security stories, code touching auth/credentials/data |
 
 **Intent-based security activation:** If the story touches user input, API endpoints, database queries, file uploads, sessions, or network calls, treat the security rule as active for ALL files in this story — not just files matching security path patterns. Note this in the plan: `Security scope: story-wide (intent-based)`.
@@ -387,9 +391,9 @@ stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify
 remaining_steps:
   - "BOOTSTRAP (do this FIRST): Read .claude/skills/story-cycle/SKILL.md starting from '## Phase 2: Context Transition + Confidence Gate' to reload the full story-cycle workflow. You are mid-workflow — planning is done, implementation phases remain. Do NOT stop after reading the plan."
   - "Phase 2 — CONTEXT + CONFIDENCE GATE (HARD-GATE): Prune context (keep plan + paths + gotchas, discard bulk). Read .claude/prompts/confidence-gate.md. Score 5 dimensions 0-20 each. ≥85 proceed, 70-84 clarify, <70 return to planning. Output the score table."
-  - "Phase 3 — IMPLEMENT: Read .claude/skills/story-cycle/references/story-types.md for [storyType] execution steps. Load docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md. Re-read all target files from plan before editing. Follow story-type methodology (e.g., TDD: RED failing test → GREEN minimal impl → REFACTOR)."
-  - "Phase 4a — SELF-REVIEW (HARD-GATE): Read .claude/skills/story-cycle/references/self-review.md — complete ALL checklist items. Read .claude/skills/story-cycle/references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface. If ANY item fails → fix in Phase 3 before proceeding."
-  - "Phase 4b — QUALITY GATES: Run the project's quality command (from CLAUDE.md Commands section: lint → typecheck → test). Stop on first failure, fix, re-run. Show test output in the current turn — do NOT claim tests pass without evidence."
+  - "Phase 3 — IMPLEMENT (TDD HARD-GATE for Feature/Bug Fix/Refactoring): Read .claude/skills/story-cycle/references/story-types.md for [storyType] execution steps. Load relevant sections of docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md. Re-read all target files from plan before editing. CRITICAL: For Feature/Bug Fix/Refactoring stories, write and run a failing test BEFORE writing implementation code. Show test failure output. Only then write implementation. Follow story-type methodology (TDD: RED → GREEN → REFACTOR)."
+  - "Phase 4a — SELF-REVIEW (HARD-GATE): Read .claude/skills/story-cycle/references/self-review.md — complete ALL checklist items including ground rules re-check. Read .claude/skills/story-cycle/references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface, architecture doc staleness. Dispatch quality agents per risk level (Low: code-quality+test-validator, Medium: +security-audit, High: +architecture-check). If ANY item fails → fix in Phase 3 before proceeding."
+  - "Phase 4b — QUALITY GATES (HARD-GATE): Run the project's quality command (from CLAUDE.md Commands section: lint → typecheck → test). Stop on first failure, fix, re-run. Show passing output in the current turn — do NOT claim tests pass without evidence. Do NOT proceed until all gates pass."
   - "Phase 4c — UAT (optional, Feature/Bug Fix only): If project has UAT directory, generate UAT test case + sense check per Phase 4c/4c.1 in SKILL.md. Skip for Spike/Research, Infrastructure, Documentation, Testing, Refactoring, Performance, Skill/Tooling stories. Also skip if no UAT directory exists."
   - "Phase 4d — COMPLETION VERIFICATION (HARD-GATE): Re-read original AC from plan. For EACH criterion, provide concrete evidence (test output, file:line, command output). Max 2 extra loop passes if gaps found. Do NOT print completion report until every AC has evidence."
   - "Phase 4e — DOCS + COMMIT: (1) Update epic file (mark story DONE in heading, check all AC boxes). (2) Update BACKLOG_INDEX.md (increment Done, decrement TODO for epic row, update Total row). (3) Update docs/progress.md (current story status, test counts). (4) Update CLAUDE.md if it contains backlog counts or epic progress that changed. (5) Emit skill metrics event to docs/sessions/.activity-log.jsonl. (6) Invoke /commit skill. Do NOT merge or create PR — that is sprint-end."
@@ -451,7 +455,10 @@ After plan approval, prune context and score confidence in a single pass.
 
 **KEEP:** The approved plan (with Story-Cycle Context header), file paths from research, edge cases/gotchas, pattern snippets.
 **DISCARD:** Full file contents from exploration, dead-end investigations, irrelevant search results.
-**RELOAD for Phase 3:** `docs/reference/CODING_STANDARDS.md`, `docs/reference/TESTING_STRATEGY.md`, target files from plan.
+**RELOAD for Phase 3 (section-specific to save context):**
+- `docs/reference/CODING_STANDARDS.md` — load ONLY the section for the story's language/stack (e.g., `## Python` or `## TypeScript`), plus the `## Shared Conventions` section. Skip other language sections.
+- `docs/reference/TESTING_STRATEGY.md` — load ONLY the `## Test Infrastructure` section (project-specific commands) and the section matching the story type (e.g., `## Feature Story` or `## Bug Fix`). Skip unrelated story-type sections.
+- Target source/test files from the plan.
 **SKIP until Phase 4:** `docs/progress.md`, `docs/architecture/ARCHITECTURE.md`, backlog files, `docs/reference/GROUND_RULES.md` (already checked in Phase 1e).
 
 Re-read target files before editing — context may have changed since Phase 1.
@@ -510,6 +517,32 @@ In `references/story-types.md`, search for the `## [Your Story Type]` heading ma
 
 Before writing the first test, apply the `test_strategy_selection` reasoning tool from `references/reasoning-tools.md`.
 
+<HARD-GATE>
+**TDD Ordering Enforcement (Feature, Bug Fix, Refactoring stories):**
+
+For story types that require tests (Feature, Bug Fix, Refactoring), you MUST write and run test code BEFORE writing implementation code. This is not optional — it is the framework's #1 principle.
+
+**Feature stories (RED-GREEN-REFACTOR):**
+1. Write a failing test for the first behavior (RED) — run it, show the failure output
+2. Only THEN write the minimum implementation to make it pass (GREEN)
+3. Refactor while keeping tests green
+4. Repeat for each behavior in the acceptance criteria
+
+**Bug Fix stories:**
+1. Write a reproduction test that captures the bug (must FAIL) — run it, show the failure output
+2. Only THEN implement the fix
+3. Verify the reproduction test now passes
+
+**Refactoring stories:**
+1. Write characterization tests that capture current behavior (must PASS) — run them, show the output
+2. Only THEN perform the refactoring
+3. Verify characterization tests still pass after each step
+
+**What "before" means concretely:** The first `Edit` or `Write` call to a source file (non-test) MUST be preceded by at least one `Edit` or `Write` call to a test file, AND a `Bash` call that ran the test and showed output. If you find yourself about to edit a source file without having written and run a test first, STOP and write the test.
+
+**Exceptions:** Spike/Research, Infrastructure, Documentation, Testing, Performance, Security, Skill/Tooling stories follow their own methodology from `references/story-types.md` and are not subject to this gate.
+</HARD-GATE>
+
 When errors occur during execution, consult `references/error-recovery.md` — search for `## Phase 3` for the recovery table.
 
 ### Web-Assisted Error Recovery (Phase 3)
@@ -546,13 +579,25 @@ Then read `references/disaster-prevention.md` — check for: wheel reinvention, 
 Do NOT skip self-review for ANY story size. If any checklist item fails, go back to Phase 3 and fix before continuing.
 </HARD-GATE>
 
-**If sub-agents are available:** Dispatch quality agents (`/code-quality`, `/test-validator`) in forked context.
+**Ground rules re-check:** If `docs/reference/GROUND_RULES.md` exists, re-read it and verify the IMPLEMENTATION (not just the plan) complies. Plans can comply while implementation drifts. Check `git diff --name-only` against ground rules — any MUST violation requires fixing before proceeding.
+
+**If sub-agents are available:** Dispatch quality agents in forked context based on the risk matrix from Size & Risk Classification:
+
+| Risk Level | Agents to Dispatch |
+|---|---|
+| **Low (3-4)** | `/code-quality`, `/test-validator` |
+| **Medium (5-6)** | `/code-quality`, `/test-validator`, `/security-audit` (if security-scoped) |
+| **High (7-9)** | `/code-quality`, `/test-validator`, `/security-audit`, `/architecture-check` |
+
+For medium-risk STANDARD stories, the risk matrix promises "all quality agents" — dispatch accordingly. For high-risk, add `/architecture-check` as the risk matrix specifies "all agents + architecture-check."
+
+**If sub-agents are NOT available:** Complete self-review checklist manually. Do NOT skip quality checks.
 
 **Error learning:** If self-review caught a wrong approach requiring significant rework, invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md`.
 
 ### 4b. Quality Gates
 
-Run the project's quality command (from CLAUDE.md Commands section). This typically runs lint → typecheck → test in order. Stop on first failure, fix, and re-run.
+Run the `quality-gate-sequence` micro-component from `.claude/prompts/quality-gate-sequence.md`: execute the project's quality commands (from CLAUDE.md Commands section) in order: lint → typecheck → test. Stop on first failure, fix, and re-run.
 
 <IF condition="test command exists in CLAUDE.md Commands">
 Execute the configured quality commands. Verify all pass with zero failures.
@@ -560,6 +605,10 @@ Execute the configured quality commands. Verify all pass with zero failures.
 <ELSE>
 Run any configured commands (lint, typecheck). No test command configured — skip test verification, note in completion report.
 </ELSE>
+
+<HARD-GATE>
+Do NOT proceed to Phase 4c/4d until ALL configured quality gates pass with zero failures. Show the passing output in the current turn. "It passed earlier" is not evidence — re-run if any code changed since the last run.
+</HARD-GATE>
 
 ### 4c. Generate UAT Test Case (Optional)
 
@@ -644,9 +693,10 @@ Do NOT print the completion report until every acceptance criterion has been ver
 3. **Update `docs/reference/BACKLOG_INDEX.md`**: Increment the Done count and decrement the TODO count for this epic's row in the status table.
 4. **Update `docs/progress.md`** with story status (DONE)
 5. **Update documentation** only if the story's AC requires it
-6. **Capture learnings** (optional): If non-obvious patterns discovered, save to `docs/solutions/<topic-slug>.md`
-7. **Clean up checkpoint:** Delete the git checkpoint tag from Phase 3.pre: `git tag -l 'story-checkpoint-*' | xargs -r git tag -d`
-8. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.
+6. **Architecture documentation check:** If this story added, removed, or significantly restructured components, modules, services, or data flows, update `docs/architecture/ARCHITECTURE.md` to reflect the change. Check: did the story add a new service/module? Change a data flow? Add a new external dependency or integration? If yes to any, update the architecture doc. If no architectural change, skip.
+7. **Capture learnings** (optional): If non-obvious patterns discovered, run the `capture-learnings` micro-component from `.claude/prompts/capture-learnings.md` to save to `docs/solutions/<topic-slug>.md`
+8. **Clean up checkpoint:** Delete the git checkpoint tag from Phase 3.pre: `git tag -l 'story-checkpoint-*' | xargs -r git tag -d`
+9. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.
 
 **Skill metrics:** Emit a completion event:
 ```bash

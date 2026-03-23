@@ -13,6 +13,11 @@ ______________________________________________________________________
 
 ## handoff
 
+**Skill metrics:** Emit a start event to the activity log:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"handoff\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
 Generate a comprehensive handoff for ending a development session:
 
 ## Phase 0: Validate Prerequisites

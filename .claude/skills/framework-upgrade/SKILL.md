@@ -1,6 +1,6 @@
 ---
 name: framework-upgrade
-version: 1.0.0
+version: 1.1.0
 description: Upgrade JD-LLM Development Framework to a newer version while preserving project customizations.
 trigger: manual
 depends-on: [doctor]
@@ -34,6 +34,33 @@ Upgrades the JD-LLM Development Framework to a newer version while preserving al
 1. **New version** — Read `<source>/CHANGELOG.md` or `<source>/.claude/skills/SKILLS_INVENTORY.md` for version. Record as `NEW_VERSION`.
 1. **Git safety** — Verify working tree is clean (`git status --porcelain`). If dirty, HALT: "Commit or stash changes before upgrading."
 1. **Report**: "Upgrading framework: v{CURRENT} → v{NEW}. Source: {GitHub main | GitHub branch | local path}. Branch: {branch}."
+1. **Parse Version Log:**
+
+   Read `CHANGELOG.md` from the new framework version. Find all version entries between `CURRENT_VERSION` and `NEW_VERSION`.
+
+   For each version entry, collect:
+   - `CORE_REPLACE` files — will be replaced automatically
+   - `CORE_MERGE` files — will be merged (preserve project-specific sections)
+   - `PROJECT_UPDATE_INSTRUCTIONS` — manual steps for project-specific files
+
+   Also read `core/MANIFEST.md` from the new framework version for file classification reference.
+
+   Present a targeted upgrade plan based on the changelog:
+
+   ```markdown
+   ## Targeted Upgrade: v{CURRENT} → v{NEW}
+
+   ### Automatic (CORE files to replace/add)
+   - [file]: [new/changed] (from version X.Y.Z)
+
+   ### Merge Required (CORE files with project sections)
+   - [file]: [what to merge] (from version X.Y.Z)
+
+   ### Manual Steps (project-specific updates)
+   - [instruction from PROJECT_UPDATE_INSTRUCTIONS] (from version X.Y.Z)
+   ```
+
+   This targeted plan supplements the full inventory in Phase 1. If `CHANGELOG.md` does not contain the structured `CORE_REPLACE`/`CORE_MERGE` blocks (older versions), fall back to Phase 1's full diff-based inventory.
 1. **Cleanup note**: If a temp directory was created, delete it at the end of Phase 3 (after verification).
 
 ### Phase 1: Inventory & Classify

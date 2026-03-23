@@ -16,6 +16,11 @@ ______________________________________________________________________
 
 ## sprint-end
 
+**Skill metrics:** Emit a start event to the activity log:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"sprint-end\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
 Ending the sprint. Discovering and wrapping up all work on the current branch.
 
 **Progress tracking:** Create step-level tasks:
@@ -249,6 +254,36 @@ If CI fails, diagnose and fix. Commit fixes and push.
 <ELSE>
 No CI detected — the local quality gates in step 2 serve as verification. Proceed to merge.
 </ELSE>
+
+### Human Review Handling
+
+<IF condition="CODEOWNERS exists or PR requires human reviewers">
+After CI passes, check for required human reviewers:
+
+```bash
+gh pr view --json reviewRequests,reviews
+```
+
+**If human review is required:**
+1. List required reviewers from CODEOWNERS or branch protection rules
+2. Request reviews if not already requested:
+   ```bash
+   gh pr edit --add-reviewer <reviewer>
+   ```
+3. Present to user:
+   ```markdown
+   **Human review required before merge.**
+   - Reviewer(s): [list]
+   - Status: [Pending / Approved / Changes Requested]
+
+   Options:
+   → Wait for review (recommended)
+   → Continue to other work while waiting (`/story-cycle` or `/sprint-start --worktree`)
+   ```
+4. If "Changes Requested": guide user through addressing feedback, pushing updates, and re-requesting review
+
+**If no human review required:** Proceed to merge.
+</IF>
 
 ## 6. Merge and Clean Up
 

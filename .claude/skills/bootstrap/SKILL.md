@@ -198,6 +198,26 @@ Prompt the user for 3-7 non-negotiable architectural principles. Populate `docs/
 - If the user has no strong preferences, suggest 3-5 principles based on detected stack and architecture
 - The ground rules are checked during `/story-cycle` planning (Phase 1e) and `/sprint-end` quality gates
 
+
+### A3.5c. Team Detection
+
+Check for team indicators:
+- `.github/CODEOWNERS` exists → team project
+- Multiple contributors in git log → team project
+- Branch protection rules configured → team project
+
+```bash
+CONTRIBUTORS=$(git log --format="%aE" | sort -u | wc -l | tr -d ' ')
+if [ "$CONTRIBUTORS" -gt 1 ] || [ -f ".github/CODEOWNERS" ]; then
+    echo "Team project detected ($CONTRIBUTORS contributors)"
+fi
+```
+
+**If team detected:**
+- Suggest configuring CODEOWNERS if it doesn't exist
+- Mention `docs/reference/TEAM_WORKFLOW.md` in the summary
+- Add "Team coordination" to the readiness report
+
 ### A3.7. Detect Default Branch
 
 Detect the repository's default branch name and store it in CLAUDE.md so all skills can reference it without guessing:
@@ -276,6 +296,29 @@ Generate path-scoped rules for detected file types:
 - If detected language has specific patterns, add to existing rules or create new ones
 - Ensure `.claude/rules/testing.md` paths match the project's test file patterns
 - Ensure `.claude/rules/dependencies.md` paths match the project's dependency files
+
+### A5.62. Environment Variable Template
+
+Check for `.env` usage and manage the template:
+
+1. **Detect .env usage:**
+```bash
+# Check for .env references in code
+grep -rl 'process\.env\.\|os\.environ\|os\.getenv\|ENV\[' --include='*.py' --include='*.ts' --include='*.js' --include='*.rb' --include='*.go' . 2>/dev/null | head -5
+# Check for existing .env files
+ls .env .env.* 2>/dev/null
+```
+
+2. **If .env is used but .env.example doesn't exist:**
+   - Parse `.env` (if exists) to extract variable names (NOT values)
+   - Generate `.env.example` with variable names and placeholder values
+   - Add `.env` to `.gitignore` if not already present
+   - Report: "Created .env.example with [N] variables. Review and customize."
+
+3. **If .env.example exists:** Verify it covers all variables used in code.
+   Report gaps if any.
+
+4. **If no .env usage detected:** Skip silently.
 
 ### A5.65. Assess Pre-Commit Hook Readiness
 

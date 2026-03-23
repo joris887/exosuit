@@ -13,7 +13,7 @@ paths:
 - Archive or remove stale content rather than letting it accumulate
 - Documentation in CLAUDE.md, progress.md, and BACKLOG_INDEX.md is loaded every session — keep these files lean
 - Reference other docs by path rather than inlining their content
-- `.claude-context.md` files in directories provide module-specific context — read the nearest one when working in a directory, but never create them proactively
+- Subdirectory `CLAUDE.md` files provide module-specific context — Claude Code lazy-loads them when you read or edit files in that directory. Keep them under 20 lines.
 
 ## Reference File Size Budgets
 
@@ -27,7 +27,7 @@ On-demand reference files are loaded into context when skills request them. With
 | CODING_STANDARDS.md | ≤200 lines | Split by language if multi-language project |
 | TESTING_STRATEGY.md | ≤250 lines | Keep core workflow; move examples to reference |
 | GROUND_RULES.md | ≤100 lines | Principles only; tracked violations in separate section |
-| ARCHITECTURE.md | ≤200 lines | Overview only; module details in .claude-context.md files |
+| ARCHITECTURE.md | ≤200 lines | Overview only; module details in subdirectory CLAUDE.md files |
 
 When loading a reference file, load only the section relevant to the current task — use grep hints (search for `## Section Name`) rather than reading the entire file.
 

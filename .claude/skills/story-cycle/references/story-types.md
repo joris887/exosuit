@@ -6,6 +6,8 @@ Reference loaded by `/story-cycle` Phase 3. Execute based on identified story ty
 
 Write tests without implementation knowledge when possible. This prevents the "testing the mock" anti-pattern.
 
+**TDD ordering is enforced by a hard gate in Phase 3.** You MUST complete RED (write and run a failing test, show failure output) before starting GREEN (writing implementation). This is not advisory — the story-cycle SKILL.md contains a HARD-GATE that requires test files to be written and executed before source files are edited.
+
 **RED:**
 
 1. Write a focused failing test for one behavior
@@ -28,6 +30,9 @@ Repeat RED-GREEN-REFACTOR for each behavior in the acceptance criteria.
 ## Bug Fix
 
 1. **Web research the error pattern (before coding):** Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **QUICK** depth. Use the error message, stack trace, or reported behavior as the query. Sub-questions: (a) "What causes [error message] in [library/framework]?" (b) "Known fixes for [error pattern]". Output format: `evidence-check`. This often reveals the root cause faster than code archaeology. Skip only if the bug is clearly internal logic (e.g., wrong variable name).
+
+**Reproduction test ordering is enforced by a hard gate in Phase 3.** You MUST write and run the reproduction test (must fail) before implementing the fix.
+
 1. Write a test that reproduces the bug (must fail)
 1. Verify it fails for the right reason (matches the reported behavior)
 1. Implement the minimal fix (informed by web research findings if applicable)
@@ -37,6 +42,9 @@ Repeat RED-GREEN-REFACTOR for each behavior in the acceptance criteria.
 ## Refactoring
 
 1. Write characterization tests that capture current behavior (if not already covered)
+
+**Characterization test ordering is enforced by a hard gate in Phase 3.** You MUST write and run characterization tests (must pass) before performing any refactoring.
+
 1. Verify all characterization tests pass
 1. Perform the refactoring in small steps
 1. Run tests after each step — never break them
@@ -75,6 +83,8 @@ Repeat RED-GREEN-REFACTOR for each behavior in the acceptance criteria.
 1. Verify accuracy: links work, code references are correct
 1. Keep concise — document what's needed, not everything possible
 1. **Document quality check:** Dispatch a fresh sub-agent (Explore, forked) with ONLY the generated document — no conversation history. Ask it to identify gaps, ambiguities, and assumed context. Fix genuine issues before marking complete.
+
+**If sub-agents are NOT available:** Perform the quality check manually — re-read the generated document from scratch, pretending you have no prior context. Identify gaps, ambiguities, and assumed context. Fix genuine issues before marking complete.
 
 ## Security
 

@@ -16,6 +16,11 @@ ______________________________________________________________________
 
 ## debug-session
 
+**Skill metrics:** Emit a start event to the activity log:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"debug-session\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
 Debug session for: **$ARGUMENTS**
 
 ## Failure State Persistence

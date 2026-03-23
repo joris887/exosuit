@@ -45,8 +45,8 @@ extract_json_string() {
 # Read stdin once
 INPUT=$(cat)
 
-# --- 1. Always auto-save first (safety net) ---
-if [ -d ".git" ]; then
+# --- 1. Auto-save if there are uncommitted changes (safety net) ---
+if [ -d ".git" ] && [ -n "$(git status --porcelain 2>/dev/null)" ]; then
     SESSIONS_DIR="docs/sessions"
     mkdir -p "$SESSIONS_DIR" 2>/dev/null
 

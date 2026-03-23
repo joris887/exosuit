@@ -40,6 +40,15 @@ For each category, actively search for the anti-pattern — don't just check a b
 - [ ] Are there implicit contracts (environment variables, file paths, config keys) that changed?
 - [ ] If a function's behavior changed: do all callers expect the new behavior?
 
+## Architecture Documentation Staleness
+
+- [ ] Did this story add, remove, or significantly restructure any components, modules, services, or data flows?
+- [ ] If yes: flag `docs/architecture/ARCHITECTURE.md` for update in Phase 4e
+- [ ] Did this story add a new external dependency or integration?
+- [ ] If yes: verify it's reflected in the architecture doc's Dependencies section
+
+Quick check: run `git diff --name-only` — if new directories were created or top-level modules added/removed, architecture likely changed.
+
 ## Red Flags — Stop If You Find:
 
 | Finding | Severity | Action |

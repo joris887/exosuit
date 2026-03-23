@@ -26,6 +26,6 @@ Return a markdown list:
 ## Rules
 - Do NOT read entire files — just identify them by searching
 - Prioritize: source files implementing the feature > test files > config files > documentation
-- If architecture docs exist (ARCHITECTURE.md, .claude-context.md), check them first for module layout
+- If architecture docs exist (ARCHITECTURE.md, CLAUDE.md), check them first for module layout
 - Finish quickly — this is a discovery phase, not deep analysis
 - If unsure about relevance, include the file with a note "possibly relevant"

@@ -26,6 +26,17 @@ Reference loaded by `/story-cycle` Phase 4a. Complete before running quality gat
 - [ ] Did not add dependencies without noting them
 - [ ] Implementation matches the approved plan
 
+## Ground Rules Re-Check
+
+<IF condition="docs/reference/GROUND_RULES.md exists">
+Re-read `docs/reference/GROUND_RULES.md`. The plan was checked against ground rules in Phase 1e, but implementation can drift from the plan.
+
+- [ ] Re-read all MUST rules — does the implementation comply?
+- [ ] Re-read all SHOULD rules — any new violations introduced during implementation?
+- [ ] If a MUST rule is violated: HALT — fix before proceeding
+- [ ] If a SHOULD rule is violated: document justification (was it necessary for the story to work?)
+</IF>
+
 ## Scope Boundary Check
 
 If the plan includes a **Scope boundary** section (IN-SCOPE / OFF-LIMITS):

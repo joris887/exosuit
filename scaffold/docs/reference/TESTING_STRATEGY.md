@@ -166,6 +166,22 @@ For multi-story features, build the test skeleton first:
 
 ______________________________________________________________________
 
+## Contract Conformance Testing
+
+For projects with component boundaries (API ↔ client, backend ↔ frontend, service ↔ service), add contract tests that verify both sides agree on the interface. Skip for single-component projects.
+
+**What to test:** Request/response schemas match on both sides, error codes handled consistently, serialization round-trips correctly.
+
+**Pattern:**
+1. Define the contract (OpenAPI spec, JSON schema, Protocol Buffers, or shared type definition)
+2. Write tests on BOTH sides that validate against the contract
+3. Run contract tests in CI — a schema change that breaks the other side fails the build
+4. When modifying a boundary, update contract + both sides' tests in the same PR
+
+**Why this matters with LLMs:** AI-generated code often silently drifts from contracts (wrong field names, mismatched types). Contract tests catch this at build time.
+
+______________________________________________________________________
+
 ## Guard Rails
 
 Automated protections that prevent LLMs from degrading test quality:
@@ -210,6 +226,29 @@ ______________________________________________________________________
 - Focus on **critical paths**, error handling, and security-sensitive code
 - Never increase coverage with tautological or assertion-free tests
 - Track **per-module** coverage to prevent high-coverage utilities from masking low-coverage logic
+
+______________________________________________________________________
+
+## Coverage Tool Quick Reference
+
+Bootstrap configures the appropriate tools for your detected stack. Common coverage commands:
+
+| Language | Tool | Command | Report Flag |
+|----------|------|---------|-------------|
+| Python | pytest-cov | `pytest --cov=src` | `--cov-report=term-missing` |
+| TypeScript/JS | c8/istanbul | `npx jest --coverage` | Built-in HTML report |
+| Go | built-in | `go test -cover ./...` | `-coverprofile=cover.out` |
+| Rust | tarpaulin | `cargo tarpaulin` | `--out Html` |
+| Ruby | simplecov | `bundle exec rspec` | Auto-generates HTML |
+| Java | JaCoCo | `mvn test` | Built-in with Maven |
+| Swift | built-in | `swift test --enable-code-coverage` | `llvm-cov` |
+| C# | coverlet | `dotnet test --collect:"XPlat Code Coverage"` | ReportGenerator |
+| PHP | phpunit | `phpunit --coverage-text` | `--coverage-html` |
+| Dart | built-in | `dart test --coverage` | `lcov` |
+| Kotlin | Kover | `gradle koverReport` | HTML report |
+| C/C++ | gcov/lcov | `make test && gcov *.c` | `lcov` |
+
+**Note:** This table is a starting reference. Bootstrap detects your specific project's tools and configures CLAUDE.md Commands accordingly. The project-specific test command is always authoritative.
 
 ______________________________________________________________________
 

@@ -4,6 +4,15 @@ Pre-implementation confidence assessment. Run this AFTER plan approval and BEFOR
 
 Score each dimension 0–20. Sum for total confidence (0–100).
 
+### Story-Type Adjustments for Dimension 4
+
+Dimension 4 adapts based on story type. The scoring weight (0–20) stays the same — only the criteria change:
+
+- **Spike / Research stories:** Score based on "exploration strategy clear" — score 20 if the spike has clear questions to answer, defined information sources, and a time-box.
+- **Documentation stories:** Score based on "review strategy clear" — score 20 if there is a clear plan for verifying accuracy (e.g., subject-matter review, cross-referencing sources, testing code examples).
+- **Infrastructure stories:** Score based on "smoke test / verification strategy clear" — score 20 if there is a defined way to verify the infrastructure change works (health check, deployment test, rollback verification) even without full TDD coverage.
+- **All other story types (feature, bug fix, refactoring):** Dimension 4 remains as defined below — full test strategy.
+
 ### 1. No Ambiguity Remaining (0–20)
 
 - All Phase 1f clarification questions answered?
@@ -17,6 +26,8 @@ Score each dimension 0–20. Sum for total confidence (0–100).
 - No cross-layer violations identified?
 - Dependency direction is correct (no circular imports introduced)?
 - Module boundaries respected per `docs/architecture/ARCHITECTURE.md`?
+
+> **Note:** If `docs/reference/GROUND_RULES.md` and `docs/architecture/ARCHITECTURE.md` do not exist (e.g., new project without bootstrap), score based on general best practices. Do NOT penalize for missing docs that haven't been created yet.
 
 ### 3. Existing Pattern Match (0–20)
 
@@ -38,6 +49,15 @@ Score each dimension 0–20. Sum for total confidence (0–100).
 - Version compatibility checked for any new dependencies?
 - No phantom packages (verified against registry if new)?
 - Internal module interfaces confirmed (function signatures, types)?
+
+## Risk Awareness (not scored — advisory)
+
+This is NOT a 6th dimension. The score remains 0–100 across the 5 dimensions above. However, before proceeding, consider:
+
+- Do you understand the **blast radius** of this change? (Which users, services, or systems are affected?)
+- Is there a **rollback plan** if this doesn't work? (Checkpoint tag, feature flag, reversible migration?)
+
+If the answer to either question is unclear, flag to the user before proceeding — even if the total score is >=85.
 
 ## Scoring Thresholds
 

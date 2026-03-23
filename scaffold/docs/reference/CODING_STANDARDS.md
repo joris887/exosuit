@@ -4,6 +4,44 @@ Authoritative reference for all coding conventions, testing standards, and quali
 
 <!-- Language-specific sections are filled by /bootstrap based on detected stack -->
 
+## Universal Conventions
+
+### File Organization
+- One module/class per file (exceptions: tightly coupled types, constants)
+- File names match their primary export: `user_service.py`, `UserService.ts`
+- Group by feature/domain, not by type: `auth/login.ts` not `controllers/login.ts`
+- Maximum file size: 500 LOC (flag for splitting if exceeded)
+
+### Naming Conventions
+- **Files:** snake_case (Python, Ruby, PHP), kebab-case or camelCase (JS/TS, per project convention)
+- **Directories:** lowercase, hyphenated for multi-word: `user-management/`
+- **Branches:** `sprint-<number>` for sprint branches
+- **Commits:** Conventional format: `<type>(<scope>): <description>`
+- **Environment files:** `.env`, `.env.example`, `.env.test`
+
+### Error Handling
+- Fail fast at system boundaries — validate inputs early
+- Use typed errors/exceptions — never catch-all without re-throwing
+- Error messages for users: clear, actionable, no internal details
+- Error messages for logs: include context (request ID, user ID, operation)
+- Never silently swallow errors — log at minimum
+
+### API Design (when applicable)
+- Use consistent response envelope: `{ data, error, meta }`
+- HTTP status codes must match semantics (don't return 200 for errors)
+- Version APIs from day one: `/api/v1/`
+- Document all endpoints in `docs/reference/API_DOCUMENTATION.md`
+
+### Import Organization
+- Standard library → third-party → local (with blank line separators)
+- Absolute imports preferred over relative (except within a module)
+- No circular imports — extract shared types to a separate file
+
+### Configuration
+- Environment variables for secrets and deployment-specific values
+- Configuration files for application behavior (with defaults)
+- Never commit `.env` — commit `.env.example` with placeholder values
+
 ## Language: [Language 1]
 
 <!-- Filled by /bootstrap. Example:
@@ -17,6 +55,15 @@ Authoritative reference for all coding conventions, testing standards, and quali
 ## Language: [Language 2]
 
 <!-- Filled by /bootstrap if multiple languages detected -->
+
+## Multi-Language Projects
+
+For monorepos or projects with multiple languages:
+- Each language gets its own section in this file
+- Shared conventions (above) apply to all languages
+- Language-specific overrides go in their respective sections
+- Per-language formatting is enforced by the post-edit-format hook (auto-detects by extension)
+- Run `/bootstrap` at the project root to detect all languages
 
 ## Shared Conventions
 

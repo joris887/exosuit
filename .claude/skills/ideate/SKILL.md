@@ -14,6 +14,11 @@ ______________________________________________________________________
 
 ## ideate
 
+**Skill metrics:** Emit a start event to the activity log:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"ideate\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
 Transforming idea into backlog stories: **$ARGUMENTS**
 
 ## Phase 0: Validate Prerequisites

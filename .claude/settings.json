@@ -5,6 +5,7 @@
     "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
   },
   "plansDirectory": "docs/plans",
+  "outputStyle": ".claude/output-styles/framework.md",
   "spinnerVerbs": {
     "mode": "append",
     "verbs": [

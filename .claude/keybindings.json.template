@@ -1,7 +1,29 @@
 {
-  "ctrl+shift+s": "chat:send:/story-cycle ",
-  "ctrl+shift+c": "chat:send:/continue",
-  "ctrl+shift+e": "chat:send:/sprint-end",
-  "ctrl+shift+h": "chat:send:/handoff",
-  "ctrl+shift+d": "chat:send:/doctor"
+  "_comment": "Copy this file to ~/.claude/keybindings.json and customize. See /quickstart for key framework commands.",
+  "bindings": [
+    {
+      "key": "ctrl+shift+s",
+      "command": "sendPrompt",
+      "args": { "prompt": "/dashboard" },
+      "description": "Show sprint dashboard"
+    },
+    {
+      "key": "ctrl+shift+c",
+      "command": "sendPrompt",
+      "args": { "prompt": "/commit" },
+      "description": "Quick commit"
+    },
+    {
+      "key": "ctrl+shift+h",
+      "command": "sendPrompt",
+      "args": { "prompt": "/handoff" },
+      "description": "End session with handoff"
+    },
+    {
+      "key": "ctrl+shift+d",
+      "command": "sendPrompt",
+      "args": { "prompt": "/doctor" },
+      "description": "Framework health check"
+    }
+  ]
 }

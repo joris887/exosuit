@@ -16,6 +16,11 @@ ______________________________________________________________________
 
 ## continue
 
+**Skill metrics:** Emit a start event to the activity log:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"continue\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
 Resume development. Execute this smart continuation workflow:
 
 ## Current Git State (auto-fetched)

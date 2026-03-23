@@ -44,7 +44,7 @@ Format:
 
 <detailed body if needed>
 
-Co-Authored-By: Claude <model> <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 Arguments provided: **$ARGUMENTS**
@@ -57,7 +57,7 @@ git commit -m "$(cat <<'EOF'
 
 <body>
 
-Co-Authored-By: Claude <model> <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```

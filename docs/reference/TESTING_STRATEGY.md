@@ -229,6 +229,29 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## Coverage Tool Quick Reference
+
+Bootstrap configures the appropriate tools for your detected stack. Common coverage commands:
+
+| Language | Tool | Command | Report Flag |
+|----------|------|---------|-------------|
+| Python | pytest-cov | `pytest --cov=src` | `--cov-report=term-missing` |
+| TypeScript/JS | c8/istanbul | `npx jest --coverage` | Built-in HTML report |
+| Go | built-in | `go test -cover ./...` | `-coverprofile=cover.out` |
+| Rust | tarpaulin | `cargo tarpaulin` | `--out Html` |
+| Ruby | simplecov | `bundle exec rspec` | Auto-generates HTML |
+| Java | JaCoCo | `mvn test` | Built-in with Maven |
+| Swift | built-in | `swift test --enable-code-coverage` | `llvm-cov` |
+| C# | coverlet | `dotnet test --collect:"XPlat Code Coverage"` | ReportGenerator |
+| PHP | phpunit | `phpunit --coverage-text` | `--coverage-html` |
+| Dart | built-in | `dart test --coverage` | `lcov` |
+| Kotlin | Kover | `gradle koverReport` | HTML report |
+| C/C++ | gcov/lcov | `make test && gcov *.c` | `lcov` |
+
+**Note:** This table is a starting reference. Bootstrap detects your specific project's tools and configures CLAUDE.md Commands accordingly. The project-specific test command is always authoritative.
+
+______________________________________________________________________
+
 ## Characterization Tests
 
 For locking behavior before refactoring (especially important with LLMs):

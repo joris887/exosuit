@@ -22,7 +22,7 @@ This framework turns Claude Code into a structured development partner. Instead 
 - [Claude Code](https://claude.com/claude-code) installed and working
 - [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated
 - Git configured with your identity
-- Python 3.8+ (required for the hook engine — runs regardless of your project's language)
+- No language runtimes required — the framework itself is pure POSIX shell and markdown
 
 ## Quick Start
 
@@ -259,7 +259,7 @@ The framework includes hooks that run automatically — you don't need to invoke
 
 ```
 .claude/
-  skills/               # 29 skills, each with YAML frontmatter + optional micro-components
+  skills/               # 33 skills, each with YAML frontmatter + optional micro-components
     <skill>/
       SKILL.md          # Lean entry point (<150 lines)
       references/       # Detailed docs loaded on demand (elicitation techniques, disaster prevention, etc.)
@@ -271,10 +271,10 @@ The framework includes hooks that run automatically — you don't need to invoke
     SKILL_TEMPLATE.md             # Skill creation guidelines
   commands/
     review-pr-ci.md     # Non-interactive CI PR review command
-  prompts/              # Prompt snippets and micro-components
-    agents/             # Subagent dispatch templates (code-reviewer, spec-reviewer, security-analyst, performance-engineer, architecture-reviewer)
-  rules/                # Path-scoped enforcement rules (8 rules)
-  hooks/                # Hook scripts (6 hooks) — format, safety, quality, logging, worktree fix
+  agents/               # 7 native agent personas (architecture-reviewer, code-reviewer, codebase-explorer, performance-engineer, research-analyst, security-analyst, spec-reviewer)
+  prompts/              # 17 prompt snippets and micro-components
+  rules/                # Path-scoped enforcement rules (9 rules)
+  hooks/                # Hook scripts (10 hooks) — format, safety, quality, logging, worktree fix, session, status
   settings.json         # Claude Code hook configuration
 .github/
   workflows/

@@ -30,11 +30,24 @@ gh issue view $ARGUMENTS
 
 ## 3. Create Feature Branch
 
+Detect the default branch dynamically:
+
 ```bash
-git checkout main
-git pull origin main
+DEFAULT_BRANCH=$(grep -oP '^\- \*\*Default branch:\*\* \K\S+' CLAUDE.md 2>/dev/null)
+if [ -z "$DEFAULT_BRANCH" ]; then
+    DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+fi
+if [ -z "$DEFAULT_BRANCH" ]; then
+    for branch in main master develop; do
+        if git show-ref --verify --quiet "refs/heads/$branch"; then DEFAULT_BRANCH="$branch"; break; fi
+    done
+fi
+git checkout $DEFAULT_BRANCH
+git pull origin $DEFAULT_BRANCH
 git checkout -b fix/issue-$ARGUMENTS
 ```
+
+**Note:** This skill is a standalone quick-fix flow (issue → branch → TDD fix → PR). For fixes that are part of an active sprint, use `/story-cycle` instead — it integrates with the sprint branch and quality gates.
 
 ## 4. Search for Relevant Code
 
@@ -66,7 +79,7 @@ fix: resolve issue #$ARGUMENTS
 
 Closes #$ARGUMENTS
 
-Co-Authored-By: Claude <model> <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 git push -u origin fix/issue-$ARGUMENTS

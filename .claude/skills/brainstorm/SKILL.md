@@ -14,6 +14,11 @@ ______________________________________________________________________
 
 ## brainstorm
 
+**Skill metrics:** Emit a start event to the activity log:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"brainstorm\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
 Brainstorming: **$ARGUMENTS**
 
 ## Plan Mode (Optional)

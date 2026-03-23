@@ -70,6 +70,34 @@ Check that all imported/required packages actually exist:
    - Was published < 30 days ago
    - Has a name similar to a popular package (typosquatting)
 
+## Software Bill of Materials (SBOM)
+
+Generate or verify a software bill of materials for the project:
+
+### Check for Existing SBOM
+```bash
+ls sbom.json bom.json cyclonedx.json spdx.json 2>/dev/null
+```
+
+### Generate SBOM (if tools available)
+```bash
+# Node.js: cyclonedx-npm
+npx @cyclonedx/cyclonedx-npm --output-file sbom.json 2>/dev/null
+
+# Python: cyclonedx-bom
+cyclonedx-py requirements -o sbom.json 2>/dev/null
+
+# Go: cyclonedx-gomod
+cyclonedx-gomod mod -json -output sbom.json 2>/dev/null
+
+# Rust: cargo-sbom
+cargo sbom --output-format cyclonedx-json > sbom.json 2>/dev/null
+```
+
+If no SBOM tool is available, note as informational: "No SBOM generation tool found. Consider installing cyclonedx tools for supply chain visibility."
+
+Report: SBOM exists (yes/no), format, dependency count, last generated date.
+
 ## Hardcoded Secret Patterns
 
 Scan for these patterns in changed files:

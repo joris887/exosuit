@@ -69,3 +69,17 @@ Fix, commit with `fix(security): <description>`, then continue your original tas
 | Overly permissive CORS | `Access-Control-Allow-Origin: *` in production code | Restrict to specific allowed origins |
 | Logging sensitive data | `console.log(user)` or `logger.info(request.body)` where body contains credentials | Sanitize before logging — redact passwords, tokens, PII |
 | Disabled SSL verification | `verify=False`, `rejectUnauthorized: false` | Never disable SSL in production — fix the certificate issue |
+
+## Secret Rotation Awareness
+
+When reviewing code that handles secrets or credentials:
+
+- **Flag hardcoded expiry dates** — credentials with hardcoded expiration should use environment variables
+- **Check for rotation-friendly patterns:**
+  - Secrets loaded at runtime (not cached permanently)
+  - Connection pools that can refresh credentials
+  - Token refresh flows that handle expiry gracefully
+- **During /weekly-maintenance:** If `docs/reference/SECRETS_INVENTORY.md` exists, review for:
+  - Secrets not rotated in >90 days (flag as warning)
+  - Secrets without documented rotation procedures
+

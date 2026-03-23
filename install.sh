@@ -80,6 +80,9 @@ cp -n "$SCAFFOLD_SRC/CLAUDE.md" . 2>/dev/null || true
 cp -n "$SCAFFOLD_SRC/llms.txt" . 2>/dev/null || true
 cp -n "$SCAFFOLD_SRC/CLAUDE.local.md.template" . 2>/dev/null || true
 
+# GitHub integration files (won't overwrite existing)
+cp -rn "$FRAMEWORK_DIR/.github" . 2>/dev/null || true
+
 if [ "$MODE" = "template" ]; then
     echo "Copying core framework files..."
     # Core: hooks, skills, rules, agents, prompts (won't overwrite existing)
@@ -123,7 +126,7 @@ else
 fi
 
 # Create directories
-mkdir -p docs/sessions docs/plans
+mkdir -p docs/sessions docs/plans docs/research docs/solutions docs/brainstorms docs/adr docs/sprints
 
 echo ""
 echo "=== Installation Complete ==="
@@ -137,6 +140,7 @@ if [ "$MODE" = "template" ]; then
     echo "  .claude/agents/    — Expert agent personas"
     echo "  .claude/prompts/   — Prompt templates"
     echo "  docs/              — Documentation templates"
+    echo "  .github/           — PR template, CI workflow, issue templates"
     echo "  vision/            — New project braindump flow"
     echo "  CLAUDE.md          — Framework entry point"
     echo "  AGENTS.md          — Cross-tool compatibility"
@@ -144,6 +148,7 @@ if [ "$MODE" = "template" ]; then
 else
     echo "Files installed (plugin mode — core via Claude Code plugin):"
     echo "  docs/              — Documentation templates"
+    echo "  .github/           — PR template, CI workflow, issue templates"
     echo "  vision/            — New project braindump flow"
     echo "  CLAUDE.md          — Framework entry point"
     echo "  AGENTS.md          — Cross-tool compatibility"

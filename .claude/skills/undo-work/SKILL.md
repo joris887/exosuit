@@ -72,14 +72,29 @@ git clean -fd            # Remove untracked files
 
 ### Story (reset branch to before story commits)
 
-1. Identify the commit where the story started:
+1. **Check for story-cycle checkpoint tags first:**
+```bash
+git tag -l 'story-checkpoint-*'
+```
+
+If a checkpoint tag exists, prefer it as the rollback target — it was set by story-cycle Phase 3.pre at the exact point before implementation began.
+
+2. If no checkpoint tag exists, identify the commit where the story started:
 ```bash
 git log --oneline main..HEAD
 ```
 
-2. Show the user exactly which commits will be removed.
+3. Show the user exactly which commits will be removed (or that a checkpoint tag was found).
 
-3. After confirmation:
+4. After confirmation:
+
+**If checkpoint tag exists:**
+```bash
+git reset --hard <checkpoint-tag>
+git tag -d <checkpoint-tag>
+```
+
+**If no checkpoint tag (fall back to commit-based):**
 ```bash
 git reset --soft <commit-before-story>    # Keep changes staged (safest)
 ```

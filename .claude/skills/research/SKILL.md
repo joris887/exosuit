@@ -14,6 +14,11 @@ ______________________________________________________________________
 
 ## research
 
+**Skill metrics:** Emit a start event to the activity log:
+```bash
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"research\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
 Researching: **$ARGUMENTS**
 
 ## Phase 1: Clarification Gate

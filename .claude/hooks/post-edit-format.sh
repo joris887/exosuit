@@ -195,4 +195,42 @@ if [ ! -f "$SECRETS_STATE" ]; then
     secrets_check "$FILE"
 fi
 
+# Code slop detection: scan for AI-typical filler comments (advisory only)
+# Checks patterns from .claude/rules/code-slop.md — warns once per file per session
+SLOP_STATE="$HOOK_STATE_DIR/slop-$(echo "$FILE" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "nomd5")"
+
+slop_check() {
+    local file="$1"
+    # Only check source code files
+    case "$file" in
+        *.py|*.ts|*.tsx|*.js|*.jsx|*.go|*.rs|*.rb|*.java|*.kt|*.kts|*.php|*.dart|*.cs|*.c|*.cpp|*.cc|*.h|*.hpp|*.swift) ;;
+        *) return ;;
+    esac
+
+    local found=0
+    # Self-evident comment patterns (the comment just restates the code)
+    if grep -nE '^\s*(#|//|/\*)\s*(Initialize|Set up|Create|Define|Import|Return|Export|Handle|Process|Update|Check|Validate|Get|Set|Add|Remove|Delete|Call|Send|Receive|Start|Stop|Open|Close|Read|Write|Save|Load)\s+(the\s+)?\w+' "$file" 2>/dev/null | head -3 | grep -q .; then
+        found=1
+    fi
+    # "This function/class/method does X" pattern
+    if grep -nE '^\s*(#|//|/\*)\s*This\s+(function|class|method|module|file|component|hook|handler|service|controller|middleware)\s' "$file" 2>/dev/null | head -1 | grep -q .; then
+        found=1
+    fi
+    # Obvious section dividers with labels
+    if grep -nE '^\s*(#|//)\s*[-=]{3,}\s*(Helper|Utility|Main|Setup|Config|Constants|Types|Interfaces|Exports|Imports)\s*([-=]{3,})?\s*$' "$file" 2>/dev/null | head -1 | grep -q .; then
+        found=1
+    fi
+
+    if [ "$found" -eq 1 ]; then
+        echo "⚠ SLOP: Possible filler comments detected in $file"
+        echo "  Review for self-evident comments. See .claude/rules/code-slop.md"
+        touch "$SLOP_STATE"
+    fi
+}
+
+# Only check if we haven't already flagged this file this session
+if [ ! -f "$SLOP_STATE" ]; then
+    slop_check "$FILE"
+fi
+
 exit 0
