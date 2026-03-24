@@ -59,14 +59,16 @@ Steps:
 **Apply when:** architecture-check, or story-cycle Phase 1 for stories touching multiple modules.
 
 Steps:
-1. Identify all modules/layers the change touches (read ARCHITECTURE.md if available)
+1. Identify all modules/layers the change touches (read ARCHITECTURE.md Module Map if available)
 2. For each touched module: what is its documented responsibility?
 3. Does the proposed change stay within those responsibilities, or does it extend them?
-4. Check import direction: will new imports flow in the documented dependency direction?
-5. Identify any new cross-module dependencies the change introduces
-6. If responsibilities are extended or new dependencies cross layer boundaries: flag for ADR consideration
+4. Check Dependency Rules: will the change violate any MUST/NEVER rules in the Module Map?
+5. Check import direction: will new imports flow in the documented dependency direction?
+6. Identify any new cross-module dependencies the change introduces
+7. Check Known Landmines: does the change touch any documented gotchas?
+8. If responsibilities are extended, rules violated, or new dependencies cross layer boundaries: flag for ADR consideration
 
-**Output:** Module impact list with dependency direction assessment and boundary violation flags.
+**Output:** Module impact list with dependency direction assessment, rule compliance check, landmine warnings, and boundary violation flags.
 
 ---
 

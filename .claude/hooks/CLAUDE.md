@@ -14,3 +14,9 @@ POSIX shell hook scripts with text-based rule configuration. No Python or other 
 4. Document in README.md
 
 See README.md for full hook documentation.
+
+## Performance
+- Pre-edit and post-edit hooks MUST complete in <5 seconds — slow hooks get disabled
+- Use staged-only file checks, not full repo scans
+- Format only the edited file, not the entire project
+- If a hook consistently exceeds 5s, split into fast (local hook) and comprehensive (CI) checks

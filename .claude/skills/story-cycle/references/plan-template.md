@@ -87,7 +87,7 @@ _The scope boundary is advisory. Phase 4a self-review checks `git diff --name-on
 
 | Principle Violated | Why Needed | Rejected Alternative |
 |-------------------|------------|---------------------|
-| [from GROUND_RULES.md] | [justification] | [what was considered and rejected] |
+| [from GROUND_RULES.md or ARCHITECTURE.md Dependency Rules/Constraints] | [justification] | [what was considered and rejected] |
 ```
 
 ## Anti-Patterns

@@ -21,8 +21,8 @@ For each Readiness Report item classified as `⚠️ Risk` or `✗ Missing`, gen
 | CI-enforced (no CI) | `[Infrastructure]` Set up CI/CD pipeline with framework PR review | `[Infrastructure]` Add framework PR review workflow to existing CI | 3 |
 | Secrets-aware | `[Infrastructure]` Configure post-edit secrets scanning hook | — | 1 |
 | Anti-slop | — (framework provides this) | — | — |
-| Quality gates (no formatter) | `[Infrastructure]` Install and configure {formatter} | — | 0 |
-| Quality gates (no linter) | `[Infrastructure]` Install and configure {linter} | — | 0 |
+| Quality gates (no formatter) | `[Infrastructure]` Install and configure {formatter} with project config file | — | 0 |
+| Quality gates (no linter) | `[Infrastructure]` Install and configure {linter} with project config file | — | 0 |
 | Quality gates (no coverage) | See TDD-first coverage row | See TDD-first coverage row | 0 |
 | Quality gates (no type checker) | `[Infrastructure]` Install and configure type checker ({tool}) | — | 0 |
 | Quality gates (lint warnings) | — | `[Testing]` Eliminate lint warnings | 2 |
@@ -44,7 +44,7 @@ Foundation stories are organized into dependency levels. Stories at Level N requ
 
 Stories that install missing tools. These have no prerequisites — they add capabilities the rest of the foundation depends on.
 
-**Typical stories:** Install test framework, formatter, linter, coverage tool, type checker, configure git remote, clean git state.
+**Typical stories:** Install test framework, formatter (with config), linter (with config), coverage tool, type checker, configure git remote, clean git state.
 
 **Execution method:** `/story-cycle` — these are one-shot installation tasks.
 

@@ -32,6 +32,8 @@ Apply the `architectural_impact` reasoning tool from `.claude/skills/story-cycle
 
 For each documented module/layer:
 
+If the Module Map section contains explicit Dependency Rules (MUST/NEVER statements), use those as the primary validation criteria rather than inferring boundaries from the diagram alone.
+
 ### Import Analysis
 
 Scan imports to check for violations:
@@ -62,6 +64,37 @@ Compare the actual code structure against ARCHITECTURE.md:
 - **Missing modules** — documented modules that don't exist (yet or anymore)
 - **Changed responsibilities** — modules doing things outside their documented scope
 - **Undocumented dependencies** — imports between modules not shown in the architecture
+
+### 3.5. Validate Dependency Rules
+
+If the Module Map section contains Dependency Rules (MUST/NEVER/MAY statements):
+
+For each rule:
+1. Parse the rule into: `[subject] [MUST/NEVER/MAY] [action] [target]`
+2. Verify with import analysis: scan actual imports in the subject modules
+3. Report violations with file:line evidence
+
+Example: Rule "Controllers MUST only call services" → grep controller directory for imports outside the services layer.
+
+### 3.7. Check Update Triggers
+
+Read the Update Triggers section. For each trigger, check if recent changes match:
+
+```bash
+LAST_VERIFIED=$(grep -oP 'Last Verified: \K[\d-]+' docs/architecture/ARCHITECTURE.md 2>/dev/null)
+if [ -n "$LAST_VERIFIED" ]; then
+    git log --since="$LAST_VERIFIED" --name-only --pretty=format: | sort -u | head -30
+fi
+```
+
+Compare changed files against trigger conditions (new top-level directories, new data stores, changed API boundaries). Flag any matches as "Architecture doc may be stale."
+
+### 3.8. Validate Known Landmines
+
+For each entry in the Known Landmines section:
+- If it references a file: verify the file still exists and the described condition is still present
+- If it references a pattern: grep for it
+- Flag entries that appear to be resolved (file removed, pattern no longer present)
 
 ## 4. Auto-Generate ADR (if drift detected)
 

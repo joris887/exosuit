@@ -178,6 +178,7 @@ Based on what was done in the sprint, update relevant documentation:
 - **progress.md**: Add sprint entry, update metrics
 - **CLAUDE.md**: Update Current Focus if epic status changed
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
+- **Architecture doc** (`docs/architecture/ARCHITECTURE.md`): If any story in this sprint changed architecture (check the Update Triggers section), verify the doc was updated during story-cycle Phase 4e. If not, update it now and set `Last Verified` date to today.
 
 ## 3.5 Commit Documentation Artifacts
 

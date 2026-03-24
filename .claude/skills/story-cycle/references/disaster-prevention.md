@@ -45,7 +45,11 @@ For each category, actively search for the anti-pattern — don't just check a b
 - [ ] Did this story add, remove, or significantly restructure any components, modules, services, or data flows?
 - [ ] If yes: flag `docs/architecture/ARCHITECTURE.md` for update in Phase 4e
 - [ ] Did this story add a new external dependency or integration?
-- [ ] If yes: verify it's reflected in the architecture doc's Dependencies section
+- [ ] If yes: verify it's reflected in the architecture diagram and Module Map
+- [ ] Read the Update Triggers section of `docs/architecture/ARCHITECTURE.md` — does this story match any listed trigger?
+- [ ] If yes: the architecture doc MUST be updated in Phase 4e — this is not optional
+- [ ] Did you discover a non-obvious gotcha during implementation?
+- [ ] If yes: add it to the Known Landmines section
 
 Quick check: run `git diff --name-only` — if new directories were created or top-level modules added/removed, architecture likely changed.
 

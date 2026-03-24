@@ -209,9 +209,9 @@ ______________________________________________________________________
 
 ### Targets
 
-- **Overall:** Must not decrease sprint-over-sprint
-- **New code:** Must be covered by tests before merging
-- **Critical modules:** Flag if below 80%
+- **Overall:** Must not decrease sprint-over-sprint; CI warns if below 70%
+- **New code:** ≥80% line coverage (CI-enforced on touched files)
+- **Critical business logic:** ≥90% branch coverage
 
 ### What Coverage Means and Doesn't Mean
 

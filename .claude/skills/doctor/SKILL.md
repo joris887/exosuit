@@ -45,6 +45,9 @@ For each rule in `.claude/rules/`:
 - Read the YAML frontmatter `paths:` field
 - Check if any files in the project match those patterns
 - Report: ACTIVE (matches found) / DORMANT (no matches — rule will never trigger)
+- Check `docs/sessions/.activity-log.jsonl` for rule trigger frequency over the last 5 sessions
+- Rules that are ACTIVE but have zero trigger events in 5+ sessions: report as REVIEW (candidate for retirement)
+- The "pull their weight" test: if a rule never changes AI behavior, it wastes context budget
 
 ## 4. Skill Dependencies & Cross-References
 

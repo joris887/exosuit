@@ -1,137 +1,223 @@
 # Coding Standards
 
-Authoritative reference for all coding conventions, testing standards, and quality requirements. Referenced by all skills.
+<!-- This file is the authoritative reference for code conventions. Loaded on demand by skills.
+     /bootstrap fills language sections and quality gates based on detected stack.
+     Budget: ≤200 lines universal + ~50 per language section. Keep it tight. -->
 
-<!-- Language-specific sections are filled by /bootstrap based on detected stack -->
+## Critical Rules
+
+<!-- These go first — LLMs pay most attention to the start and end of documents. -->
+
+- **NEVER** hardcode secrets, API keys, or credentials — use environment variables
+- **NEVER** use `any`/`object`/`interface{}` types without explicit justification in a comment
+- **NEVER** write tests that can't fail when the code-under-test breaks
+- **NEVER** swallow errors silently — handle, re-throw with context, or log with structured context
+- **NEVER** use string concatenation for SQL/database queries — parameterized only
+- **NEVER** commit commented-out code — use version control
+
+## What This Document Covers
+
+Tools handle formatting and simple linting — those rules are NOT documented here.
+
+| Tier | Handled By | Examples | Documented Here? |
+|------|-----------|----------|-----------------|
+| **Formatting** | Formatter (Prettier, Black, gofmt, rustfmt) | Indentation, whitespace, line length, brace placement | No — configure once, never discuss |
+| **Linting** | Linter (ESLint, Ruff, clippy, golangci-lint) | Unused vars, deprecated APIs, import ordering | No — linter config is the standard |
+| **Judgment** | This document + code review | Naming intent, error strategy, code organization, API design | **Yes** |
+
+<!-- /bootstrap guidance: When populating language sections, list the project's formatter and
+     linter in the Tooling subsection. Do NOT add rules that the formatter/linter already enforces. -->
 
 ## Universal Conventions
 
-### File Organization
-- One module/class per file (exceptions: tightly coupled types, constants)
-- File names match their primary export: `user_service.py`, `UserService.ts`
-- Group by feature/domain, not by type: `auth/login.ts` not `controllers/login.ts`
-- Maximum file size: 500 LOC (flag for splitting if exceeded)
+### Philosophy
 
-### Naming Conventions
-- **Files:** snake_case (Python, Ruby, PHP), kebab-case or camelCase (JS/TS, per project convention)
-- **Directories:** lowercase, hyphenated for multi-word: `user-management/`
-- **Branches:** `sprint-<number>` for sprint branches
-- **Commits:** Conventional format: `<type>(<scope>): <description>`
-- **Environment files:** `.env`, `.env.example`, `.env.test`
+Clarity over cleverness. Code is read 10x more than written. Every name, function, and module
+should be understandable without reading its implementation.
+
+### Naming
+
+Names communicate intent — not type, not implementation detail.
+
+| What | Rule | Example |
+|------|------|---------|
+| Functions/methods | Verb + noun, describes the action | `parse_email`, `fetchUser`, `BuildConfig` |
+| Booleans | Reads as a yes/no question | `is_valid`, `hasPermission`, `CanRetry` |
+| Collections | Plural noun | `users`, `error_codes`, `pendingTasks` |
+| Constants | Describes the value's meaning, not its content | `MAX_RETRY_ATTEMPTS` not `THREE` |
+| Interfaces/traits | Capability or contract, not `IFoo` prefixes | `Serializable`, `AuthProvider` |
+| Files | Match primary export | `user_service.py`, `UserService.ts`, `config.go` |
+
+<!-- /bootstrap guidance: Add a row for language-specific conventions (e.g., receiver names in Go,
+     Self in Rust) to the language section's naming table. -->
 
 ### Error Handling
-- Fail fast at system boundaries — validate inputs early
-- Use typed errors/exceptions — never catch-all without re-throwing
-- Error messages for users: clear, actionable, no internal details
-- Error messages for logs: include context (request ID, user ID, operation)
-- Never silently swallow errors — log at minimum
 
-### API Design (when applicable)
-- Use consistent response envelope: `{ data, error, meta }`
-- HTTP status codes must match semantics (don't return 200 for errors)
-- Version APIs from day one: `/api/v1/`
-- Document all endpoints in `docs/reference/API_DOCUMENTATION.md`
+Categorize errors at design time, not at catch time:
 
-### Import Organization
-- Standard library → third-party → local (with blank line separators)
-- Absolute imports preferred over relative (except within a module)
-- No circular imports — extract shared types to a separate file
+- **Recoverable** (retry, fallback, user message): Handle explicitly with structured error types
+- **Unrecoverable** (config missing, invariant violated): Fail fast with descriptive panic/throw
+- **Expected** (validation failure, not found): Return as values, not exceptions where the language supports it
 
-### Configuration
-- Environment variables for secrets and deployment-specific values
-- Configuration files for application behavior (with defaults)
-- Never commit `.env` — commit `.env.example` with placeholder values
+Rules:
+- Wrap errors with context when re-throwing: what operation failed and why
+- Error messages for users: clear, actionable, no stack traces or internal IDs
+- Error messages for logs: include request ID, user ID, operation, and root cause
+- Empty catch/except blocks are banned — handle it or let it propagate
 
-## Language: [Language 1]
+### Code Organization
 
-<!-- Filled by /bootstrap. Example:
-- **Version:** Python 3.12+
-- **Package Manager:** uv
-- **Formatter/Linter:** ruff
-- **Testing:** pytest with pytest-asyncio
-- **Type Hints:** Required (mypy strict mode)
+- One module/class per file (exceptions: tightly coupled types, constants)
+- Group by feature/domain, not by type: `auth/login.ts` not `controllers/login.ts`
+- Maximum file size: 300 LOC — flag for splitting if exceeded
+- Functions do one thing. Maximum 40 lines per function, cyclomatic complexity < 10.
+- Extract a helper only when it's called from 2+ places — premature abstraction is worse than repetition
+
+### Comments
+
+Comments explain WHY, not WHAT. Full anti-patterns in `.claude/rules/code-slop.md`.
+
+- **Required:** Edge cases, business logic rationale, workarounds (with ticket link), non-obvious algorithm choices
+- **Prohibited:** Restating the code, parameter descriptions that repeat the type, "this file contains..." headers
+- **Test:** If deleting the comment loses zero information, delete it
+
+### Security Baseline
+
+- All external input validated at system boundaries
+- Database queries: parameterized only, never string interpolation
+- Authentication tokens: short-lived, stored securely, never logged
+- Dependencies: pinned versions, audited regularly (`npm audit`, `pip-audit`, `cargo audit`)
+
+### API Design
+
+<!-- Only applies to projects with APIs. /bootstrap: remove this section if not applicable. -->
+
+- Consistent response envelope: `{ data, error, meta }`
+- HTTP status codes match semantics — never 200 for errors
+- Version from day one: `/api/v1/`
+- Idempotency keys for mutating operations
+
+## AI-Specific Anti-Patterns
+
+<!-- These address documented AI code quality issues. See research/02-coding-standards.md §5. -->
+
+**Do not generate these patterns:**
+
+```
+❌ Unnecessary defensive code:
+if (items !== null && items !== undefined && Array.isArray(items) && items.length > 0)
+✅ Trust internal contracts:
+if (items.length > 0)
+Why: Internal code has type guarantees. Validate only at system boundaries.
+
+❌ Verbose wrapper that adds nothing:
+function getUserById(id: string): User {
+  const user = db.users.findById(id)
+  return user
+}
+✅ Use the underlying API directly unless adding logic:
+const user = db.users.findById(id)
+Why: Wrappers without behavior are indirection without value.
+
+❌ Hallucinated API — using methods/flags that don't exist:
+response.json(data, { status: 200 })
+✅ Verify APIs exist before using them. When uncertain, check docs or types.
+Why: LLMs mix API versions. Pin versions in the language section below.
+```
+
+## Language: [Language]
+
+<!-- /bootstrap guidance: Create one section per detected language. Use this structure exactly.
+     Reference an authoritative external guide as the base. Document ONLY project-specific
+     deviations and version-pinned technology choices.
+     Target: ~50 lines per language section. -->
+
+<!--
+### Base Standard
+Follow [authoritative guide, e.g., PEP 8, Effective Go, Airbnb JS] with these project-specific exceptions:
+
+### Version Pins
+Pin versions to prevent AI from mixing incompatible APIs:
+- **Language:** [language] [version]
+- **Framework:** [framework] [version]
+- **Key libraries:** [lib] [version], [lib] [version]
+
+### Naming
+
+| Construct | Convention | Example |
+|-----------|-----------|---------|
+| Variables | [convention] | `user_name` |
+| Functions | [convention] | `get_user` |
+| Classes/Types | [convention] | `UserService` |
+| Constants | [convention] | `MAX_RETRIES` |
+| Test files | [convention] | `test_user.py` |
+| Test functions | [convention] | `test_parse_email_returns_none_when_missing_at` |
+
+### Patterns We Use
+[2-3 do/don't code pairs for project-specific conventions]
+❌ [bad pattern]
+✅ [good pattern]
+Why: [one line]
+
+### Patterns to Avoid
+[2-3 explicit anti-patterns with alternatives]
+❌ [anti-pattern]
+✅ [preferred approach]
+Why: [one line]
+
+### Tooling
+- **Formatter:** [tool] — handles spacing, line length, imports (don't fight it)
+- **Linter:** [tool] with config at [path]
+- **Type checker:** [tool] ([strict/basic] mode)
+- **Test runner:** [tool] — `[test command]`
 -->
-
-## Language: [Language 2]
-
-<!-- Filled by /bootstrap if multiple languages detected -->
 
 ## Multi-Language Projects
 
-For monorepos or projects with multiple languages:
-- Each language gets its own section in this file
-- Shared conventions (above) apply to all languages
-- Language-specific overrides go in their respective sections
-- Per-language formatting is enforced by the post-edit-format hook (auto-detects by extension)
-- Run `/bootstrap` at the project root to detect all languages
+<!-- /bootstrap guidance: If multiple languages detected, add a language section for each.
+     Shared conventions above apply to all. Language sections document deviations only. -->
 
-## Shared Conventions
+- Each language gets its own section above with version pins and patterns
+- Shared conventions apply to all languages — language sections add or override
+- Post-edit-format hook auto-detects language by file extension
+- Cross-language boundaries (API contracts, shared types) documented in `docs/architecture/ARCHITECTURE.md`
 
-### Git
+## Quality Gates
 
-- **Workflow:** GitHub Flow (feature branches, squash merge)
-- **Branch Naming:** `feature/<description>` or `feature/<story-id>-<description>`
-- **Commit Format:** Conventional commits: `<type>(<scope>): <description>`
-  - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-  - Footer: `Co-Authored-By: Claude <model> <noreply@anthropic.com>`
-- **Never:** Push directly to main, force push, skip hooks
+<!-- /bootstrap guidance: Fill with detected tools and thresholds.
+     Format as a table. Only include gates the project can actually enforce. -->
 
-### Testing
-
-**Full testing strategy:** `docs/reference/TESTING_STRATEGY.md` — read this for comprehensive guidelines.
-
-Key rules:
-
-- **TDD:** Mandatory for feature, bug fix, and refactoring stories (human owns RED, AI assists GREEN/REFACTOR)
-- **Never:** Let the AI write both the test AND the implementation in the same prompt
-- **Coverage:** Must not decrease sprint-over-sprint; tracked per-module
-- **Isolation:** Tests should run without external dependencies where possible
-- **Guard rails:** Test count and assertion count must never decrease on a PR
-- **Quality:** Every test must have meaningful assertions; no tautological or mock-only tests
-
-### Quality Gates
-
-<!-- Filled by /bootstrap with detected tools. Example:
-- **Complexity:** All functions CCN < 10 (monitored with lizard)
-- **Duplication:** < 5% (monitored with jscpd)
-- **Security:** No hardcoded secrets, parameterized SQL, encryption at rest
-- **Pre-commit:** ruff, mypy, eslint, etc.
+<!--
+| Gate | Threshold | Tool | Enforced By |
+|------|-----------|------|-------------|
+| Tests pass | 100% | [test runner] | CI + pre-push hook |
+| Coverage (new code) | ≥ 80% | [coverage tool] | CI |
+| Coverage (critical paths) | ≥ 90% branch | [coverage tool] | CI |
+| Complexity | CCN < 10 per function | [tool] | Linter |
+| Lint | Zero errors | [linter] | Pre-commit hook |
+| Format | Auto-applied | [formatter] | Pre-commit hook |
+| Security | No new vulnerabilities | [scanner] | CI |
+| Duplication | < 5% | [tool] | CI (if available) |
 -->
-
-### Comment Quality
-
-Comments explain WHY, not WHAT. Detailed patterns in `.claude/rules/code-slop.md`.
-
-- **Required:** Edge cases, business logic rationale, workarounds with ticket links, non-obvious algorithm choices
-- **Prohibited:** Restating the code, explaining standard library functions, parameter descriptions that repeat the type, file-level "this file contains..." comments
-- **Rule of thumb:** If deleting the comment loses zero information, delete it
-
-### Documentation
-
-- **When to create:** Only when explicitly required or when a story's AC demands it
-- **When to update:** Epic file status, BACKLOG_INDEX counts, progress.md after sprint completion
-- **When NOT to create:** No proactive READMEs, no extra markdown files, no docstrings on unchanged code
-- **Architecture docs:** ADRs for decisions, ARCHITECTURE.md for overview — update only when architecture changes
-
-### Security
-
-- **Secrets:** Never hardcode credentials; use environment variables or secure stores
-- **Scanning:** Use available tools (detect-secrets, npm audit, pip-audit, cargo audit, etc.)
-- **Input validation:** Sanitize all user input at system boundaries
-- **SQL:** Always use parameterized queries
 
 ## Key Commands
 
-<!-- Filled by /bootstrap. Example:
-| Command        | Purpose                          |
-| -------------- | -------------------------------- |
-| `npm test`     | Run all tests                    |
-| `npm run lint` | Run linter                       |
-| `npm run build`| Build project                    |
+<!-- /bootstrap guidance: Fill with actual detected commands. -->
+
+<!--
+| Command | Purpose |
+|---------|---------|
+| `[test cmd]` | Run all tests |
+| `[lint cmd]` | Run linter |
+| `[format cmd]` | Auto-format code |
+| `[build cmd]` | Build project |
+| `[typecheck cmd]` | Run type checker |
 -->
 
 ## References
 
-- Testing Strategy: `docs/reference/TESTING_STRATEGY.md`
+- Testing strategy: `docs/reference/TESTING_STRATEGY.md`
+- Git workflow: `docs/reference/GIT_WORKFLOW.md`
 - Architecture: `docs/architecture/ARCHITECTURE.md`
-- ADRs: `docs/adr/README.md`
+- Anti-slop patterns: `.claude/rules/code-slop.md`
+- Ground rules: `docs/reference/GROUND_RULES.md`

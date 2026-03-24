@@ -129,6 +129,8 @@ Read `references/quality-tooling.md` for the complete flow. After detecting the 
 
 **For stacks with built-in tools** (Go, Rust, Dart): note as available, skip the offer for those categories.
 
+Also check for architecture enforcement tools per `references/quality-tooling.md` — Architecture Enforcement Tools section. If the project has clear layered architecture (detected in A2.7) but no enforcement tool, mention it as an informational recommendation (not blocking).
+
 ### A2.9. Stack Best Practices Research (Optional)
 
 After detecting the stack, perform a quick research pass to identify current best practices for comparison with the project's actual state.
@@ -170,12 +172,40 @@ Record detected items in `docs/technical-debt.md` with category and severity. Hi
 
 ### A3.5. Generate Architecture Overview
 
-Auto-populate `docs/architecture/ARCHITECTURE.md` from code structure. Apply accuracy safeguards from `references/accuracy-safeguards.md` — every claim must reference actual files:
+Auto-populate `docs/architecture/ARCHITECTURE.md` from code structure. Apply accuracy safeguards from `references/accuracy-safeguards.md` — every claim must reference actual files. Generate all sections of the template:
 
-- List top-level modules and their responsibilities
-- Identify module boundaries and dependencies
-- Note entry points and data flow direction
-- Keep it brief — a starting point for the developer to refine
+**Header:** Set project name, one-line purpose, `Last Verified` date to today.
+
+**Tech Stack:** Populate from A1 detection results. Only include non-obvious entries — skip what AI can discover from package files.
+
+**Architecture Overview (Mermaid `flowchart TD`):** Generate a diagram showing:
+- Detected entry points as top-level nodes
+- Major modules/services as labeled boxes (include technology: `[API Server<br/>Python FastAPI]`)
+- Data stores with cylinder notation `[(PostgreSQL)]`
+- External integrations and communication protocols on edges (`-->|REST|`, `-->|gRPC|`)
+- Use `subgraph` for monorepos with multiple packages/services
+
+**Module Map:** Map top-level source directories to responsibilities. List key entry point files.
+
+**Dependency Rules:** Derive imperative rules from the actual import graph:
+1. For each top-level module, identify what it imports from other modules
+2. Identify the dependency direction (which modules depend on which)
+3. Express as MUST/NEVER/MAY rules: "Controllers MUST only call services. Services NEVER import controllers."
+4. If no clear layering exists, note: "No strict layer boundaries detected — consider establishing rules in GROUND_RULES.md"
+
+**Key Data Flow (Mermaid `sequenceDiagram`):** Identify the primary user-facing operation and trace it through the system. For APIs: the most common endpoint. For CLIs: the main command flow. For libraries: the primary public API usage.
+
+**Constraints:** Populate from CI config (timeout values → performance constraints), compliance markers in code (GDPR, SOC2, HIPAA references), version constraints (`engines`, minimum runtime versions). If nothing detected, leave with a guidance comment.
+
+**Key Decisions:** If `docs/adr/` contains ADRs, summarize top 3-5 with trade-offs. Otherwise, infer major technology choices from config (ORM, auth library, test framework).
+
+**Quality Attributes:** Seed from Readiness Report data (A5.8): coverage baseline, CI requirements, type safety status.
+
+**Cross-cutting Concerns:** Detect from codebase patterns — grep for error handling (try/catch, error middleware), logging (logging/winston/structlog/slog), authentication (auth middleware, JWT, sessions), validation (zod, pydantic, joi), configuration (dotenv, config loaders). One line per concern detected.
+
+**Known Landmines:** Seed from A3.2 (Technical Debt) and A3.1 (LLM-readiness) data: files with high TODO/FIXME/HACK counts, circular dependencies, files > 500 LOC, `@deprecated` markers. If nothing detected, leave empty with guidance comment.
+
+**Update Triggers:** Pre-populated (generic, applies to all projects): new modules/services added, data stores changed, API boundaries changed, dependency rules violated intentionally, deployment topology changed.
 
 ### A3.55. Generate Project Context Knowledge Base
 
@@ -250,8 +280,15 @@ Update CLAUDE.md's Git Workflow section: replace the `<!-- Detected by /bootstra
 
 Update these files with detected information:
 
-1. **`CLAUDE.md`** — Fill in Project Overview, Commands, Architecture one-liner, **Default branch** (from A3.7)
-2. **`docs/reference/CODING_STANDARDS.md`** — Fill in language-specific sections
+1. **`CLAUDE.md`** — Fill in Project Overview, Commands, Architecture one-liner, **Default branch** (from A3.7), **Tech Stack** (language + framework + key library versions from lockfiles), **Critical Rules** (promote 3-5 most damaging violations from CODING_STANDARDS.md)
+2. **`docs/reference/CODING_STANDARDS.md`** — Fill in language-specific sections following the `<!-- /bootstrap guidance -->` comments in the template. For each detected language:
+   - Reference the authoritative base standard (see `references/language-standards.md`)
+   - Extract version pins from lockfiles/config (package.json, pyproject.toml, go.mod, Cargo.toml)
+   - Fill the naming convention table with language-specific constructs
+   - Add 2-3 do/don't code pairs from patterns observed in the existing codebase
+   - List detected formatter, linter, and type checker in the Tooling subsection
+   - Fill Quality Gates table with thresholds the project can actually enforce
+   - Fill Key Commands table from A2 detected commands
 3. **`docs/progress.md`** — Initialize with baseline metrics (including LLM-readiness metrics from A3.1)
 4. **`docs/reference/TESTING_STRATEGY.md`** — Populate the "Test Infrastructure" section with detected test tooling:
 
