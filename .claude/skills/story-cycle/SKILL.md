@@ -214,6 +214,8 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 
 **If sub-agents are NOT available:** Use grep-first only — it's efficient enough for most stories without agent support.
 
+**Architecture rules check:** If `docs/architecture/ARCHITECTURE.md` exists and is non-template, read ONLY the Module Map (Dependency Rules subsection) and Known Landmines sections. For each module this story touches, note any applicable rules or landmines in the exploration summary. This avoids wrong-direction implementations and repeat mistakes.
+
 ### 1c. Research Codebase
 
 - Deep-read the files identified in step 1b
@@ -456,7 +458,7 @@ After plan approval, prune context and score confidence in a single pass.
 **KEEP:** The approved plan (with Story-Cycle Context header), file paths from research, edge cases/gotchas, pattern snippets.
 **DISCARD:** Full file contents from exploration, dead-end investigations, irrelevant search results.
 **RELOAD for Phase 3 (section-specific to save context):**
-- `docs/reference/CODING_STANDARDS.md` — load ONLY the section for the story's language/stack (e.g., `## Python` or `## TypeScript`), plus the `## Shared Conventions` section. Skip other language sections.
+- `docs/reference/CODING_STANDARDS.md` — load ONLY the section for the story's language/stack (e.g., `## Python` or `## TypeScript`), plus the `## Universal Conventions` and `## AI-Specific Anti-Patterns` sections. Skip other language sections.
 - `docs/reference/TESTING_STRATEGY.md` — load ONLY the `## Test Infrastructure` section (project-specific commands) and the section matching the story type (e.g., `## Feature Story` or `## Bug Fix`). Skip unrelated story-type sections.
 - Target source/test files from the plan.
 **SKIP until Phase 4:** `docs/progress.md`, `docs/architecture/ARCHITECTURE.md`, backlog files, `docs/reference/GROUND_RULES.md` (already checked in Phase 1e).
@@ -693,7 +695,10 @@ Do NOT print the completion report until every acceptance criterion has been ver
 3. **Update `docs/reference/BACKLOG_INDEX.md`**: Increment the Done count and decrement the TODO count for this epic's row in the status table.
 4. **Update `docs/progress.md`** with story status (DONE)
 5. **Update documentation** only if the story's AC requires it
-6. **Architecture documentation check:** If this story added, removed, or significantly restructured components, modules, services, or data flows, update `docs/architecture/ARCHITECTURE.md` to reflect the change. Check: did the story add a new service/module? Change a data flow? Add a new external dependency or integration? If yes to any, update the architecture doc. If no architectural change, skip.
+6. **Architecture documentation check:** Read the Update Triggers section of `docs/architecture/ARCHITECTURE.md`. If ANY trigger matches changes in this story (`git diff --name-only`), update the relevant sections and set `Last Verified` date to today. Also:
+   - If a non-obvious gotcha was discovered during implementation → add to Known Landmines
+   - If a significant architectural choice was made → add to Key Decisions with trade-off
+   - If no Update Trigger matches, skip
 7. **Capture learnings** (optional): If non-obvious patterns discovered, run the `capture-learnings` micro-component from `.claude/prompts/capture-learnings.md` to save to `docs/solutions/<topic-slug>.md`
 8. **Clean up checkpoint:** Delete the git checkpoint tag from Phase 3.pre: `git tag -l 'story-checkpoint-*' | xargs -r git tag -d`
 9. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.

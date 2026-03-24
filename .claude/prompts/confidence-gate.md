@@ -26,6 +26,8 @@ Dimension 4 adapts based on story type. The scoring weight (0–20) stays the sa
 - No cross-layer violations identified?
 - Dependency direction is correct (no circular imports introduced)?
 - Module boundaries respected per `docs/architecture/ARCHITECTURE.md`?
+- Plan respects Dependency Rules (MUST/NEVER statements) in the Module Map section?
+- If the story touches modules listed in Known Landmines: does the plan account for the documented gotchas?
 
 > **Note:** If `docs/reference/GROUND_RULES.md` and `docs/architecture/ARCHITECTURE.md` do not exist (e.g., new project without bootstrap), score based on general best practices. Do NOT penalize for missing docs that haven't been created yet.
 

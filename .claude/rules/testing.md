@@ -18,6 +18,8 @@ paths:
 - Mocks should mock external services only, never internal logic
 - Every test must have at least one meaningful assertion
 - Test names must describe the behavior being tested: `test_[action]_[condition]_[expected]`
+- Structure tests as Arrange/Act/Assert (or Given/When/Then), separated by blank lines
+- Act section: 1-3 lines — if longer, the test is testing too much
 - Follow patterns in `docs/reference/TESTING_STRATEGY.md`
 
 ## Anti-Patterns

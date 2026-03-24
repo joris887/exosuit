@@ -35,7 +35,7 @@ Before session recovery, assess project maturity by checking key artifacts:
 
 | Artifact | Check | If Missing/Incomplete |
 |----------|-------|----------------------|
-| `docs/architecture/ARCHITECTURE.md` | Exists and non-template | Suggest `/bootstrap` |
+| `docs/architecture/ARCHITECTURE.md` | Exists, non-template, Last Verified < 30 days | Suggest `/bootstrap` if missing; `/architecture-check` if stale |
 | `docs/reference/GROUND_RULES.md` | Exists and has ≥3 rules | Suggest `/bootstrap` (A3.5b step) |
 | `docs/reference/CODING_STANDARDS.md` | Exists and non-template | Suggest `/bootstrap` |
 | `docs/reference/BACKLOG_INDEX.md` | Has ≥1 TODO story | Suggest `/ideate` |
@@ -49,6 +49,7 @@ Present as a health dashboard before the session state:
 - ✅ Architecture documented
 - ✅ Ground rules established (5 rules)
 - ⚠️ No backlog stories — consider `/ideate`
+- ⚠️ Architecture doc stale (Last Verified: 45 days ago) — consider `/architecture-check`
 - ❌ Test command not configured
 ```
 

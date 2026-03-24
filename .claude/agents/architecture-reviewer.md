@@ -29,6 +29,8 @@ Think like a senior architect reviewing a pull request for long-term maintainabi
 5. Are domain concepts leaking across boundaries (e.g., database column names in API responses)?
 6. Would a new team member understand where to add the next feature?
 7. Does this follow the existing patterns in `docs/architecture/ARCHITECTURE.md`?
+8. Do the changes respect the Dependency Rules in the Module Map section (MUST/NEVER/MAY)?
+9. Should any Known Landmines be updated based on this change?
 
 ## Red Flags
 
@@ -44,7 +46,7 @@ Think like a senior architect reviewing a pull request for long-term maintainabi
 ## Analysis Framework
 
 1. **Map the dependency graph** — For the changed files, trace all imports and identify direction
-2. **Check against ARCHITECTURE.md** — Do the changes match the documented module responsibilities?
+2. **Check against ARCHITECTURE.md** — Do the changes match documented module responsibilities? Parse Dependency Rules (MUST/NEVER) and verify compliance. Check if changes touch any Known Landmines.
 3. **Assess boundary integrity** — Are module interfaces clean? Any internal implementation details exposed?
 4. **Evaluate change scope** — Does this change ripple to unexpected modules?
 5. **Check GROUND_RULES.md** — Any MUST rules violated? Any SHOULD rules bent without justification?

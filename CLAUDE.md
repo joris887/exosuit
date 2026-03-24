@@ -3,6 +3,19 @@
 ## Project Overview
 <!-- Filled by /bootstrap -->
 
+## Tech Stack
+<!-- /bootstrap: Fill with detected versions. Prevents AI from mixing incompatible API versions. -->
+<!-- Example: Python 3.12 / FastAPI 0.109 / SQLAlchemy 2.0 / Pydantic 2.5 -->
+
+## Critical Rules
+<!-- /bootstrap: Promote the 3-5 most project-damaging violations from CODING_STANDARDS.md -->
+<!-- These load every session. Only rules where violation causes real damage belong here. -->
+<!-- Example:
+- NEVER hardcode secrets — use environment variables
+- NEVER use `any` types without justification comment
+- NEVER weaken test assertions to make tests pass
+-->
+
 ## Commands
 ```bash
 # Filled by /bootstrap with detected commands:

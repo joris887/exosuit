@@ -76,9 +76,45 @@ Install selected tools now? [Select tools / Skip all]
   ```
 - Declined tools become foundation stories in E00 (see E8-S03)
 
+## Architecture Enforcement Tools (Optional)
+
+Architecture enforcement tools make Dependency Rules in ARCHITECTURE.md executable — violations break the build instead of silently accumulating. These are optional but high-value for projects with clear layered architectures.
+
+| Stack | Tool | What It Enforces |
+|-------|------|-----------------|
+| JavaScript/TypeScript | dependency-cruiser | Import rules, dependency graphs, circular dep detection |
+| Python | import-linter | Layer boundaries via declarative config |
+| Java | ArchUnit | Layered/onion/hexagonal architecture rules |
+| .NET | NetArchTest | Architecture rules as unit tests |
+| Go | go-arch-lint | Dependency direction enforcement |
+| Rust | Built-in (`pub`, `pub(crate)`) | Module visibility (no additional tool needed) |
+
+**Detection:** Check for existing config files:
+```bash
+ls .dependency-cruiser.cjs .dependency-cruiser.js .dependency-cruiser.json 2>/dev/null  # JS/TS
+ls .importlinter 2>/dev/null; grep -l 'import.linter' pyproject.toml setup.cfg 2>/dev/null  # Python
+grep -rl 'ArchUnit\|archunit' --include='*.java' src/ test/ 2>/dev/null | head -1  # Java
+grep -rl 'NetArchTest' --include='*.cs' 2>/dev/null | head -1  # .NET
+ls .go-arch-lint.yml 2>/dev/null  # Go
+```
+
+**Offer flow:** Same pattern as formatter/linter/coverage tools. If the project has Dependency Rules in ARCHITECTURE.md but no enforcement tool, mention it as a recommendation in the Readiness Report (informational, not blocking).
+
+**Do NOT auto-install** — these tools require configuration specific to the project's architecture. Instead, note the recommendation and generate a low-priority Level 3 foundation story if the user is interested.
+
 ## Integration Points
 
 - **Post-edit hook** (`post-edit-format.sh`): uses formatter + linter — quality depends on these being installed
 - **Quality gates** (`/sprint-end`): uses linter + type checker + test runner — gates can't function without them
 - **Readiness Report** (A5.8): uses tool availability data for the "Quality gates" principle check
 - **Coverage assessment** (`references/coverage-assessment.md`): coverage tool offer is part of this same pattern
+- **Architecture enforcement** (optional): architecture enforcement tools make ARCHITECTURE.md Dependency Rules executable in CI
+
+## Optional: CI Slop Detection
+
+For JavaScript/TypeScript projects, `deslop` (npm) can detect AI-generated comment slop in CI:
+```bash
+npx deslop --check src/
+```
+
+For other stacks, the framework's `code-slop.md` rule provides advisory enforcement during development. CI-level slop detection is a lower-priority enhancement — the rule + code review catches most issues. If a project wants CI enforcement, add a lint step that greps for banned comment patterns from `.claude/rules/code-slop.md`.
