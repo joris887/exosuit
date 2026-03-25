@@ -21,6 +21,7 @@ You are a software architect validating that the codebase adheres to its documen
 Read:
 
 - `docs/architecture/ARCHITECTURE.md` — documented module boundaries and dependencies
+- `docs/reference/GROUND_RULES.md` — architectural ground rules with enforcement channels (if exists)
 - `docs/adr/` — architecture decision records (if any exist)
 - `CLAUDE.md` — architecture one-liner
 
@@ -96,6 +97,17 @@ For each entry in the Known Landmines section:
 - If it references a pattern: grep for it
 - Flag entries that appear to be resolved (file removed, pattern no longer present)
 
+## 3.9. Validate Ground Rules
+
+<IF condition="docs/reference/GROUND_RULES.md exists and has GR-NNN rules">
+Read `docs/reference/GROUND_RULES.md`. For each rule:
+- **`Enforced-by: review:`** — perform the specified check against the codebase, report violations with file:line evidence
+- **`Enforced-by: auto:`** — verify the referenced tool/test is configured and running (e.g., ArchUnit test exists, dependency-cruiser config present). Flag unconfigured enforcement as "enforcement gap"
+- **`Enforced-by: ai:`** — check that recent changes don't violate the ai instruction
+
+Check the **Exception Log** — any violation covered by a non-expired exception is compliant.
+</IF>
+
 ## 4. Auto-Generate ADR (if drift detected)
 
 If significant architectural changes are found, suggest creating an ADR:
@@ -117,6 +129,8 @@ Proposed
 ```
 
 Save to `docs/adr/ADR-NNN-title.md`.
+
+**ADR-to-principle promotion:** If `docs/adr/` contains 2+ ADRs addressing the same architectural concern (e.g., repeated boundary violations, recurring dependency decisions), suggest promoting it to a ground rule in `docs/reference/GROUND_RULES.md`. Recurring decisions indicate a missing principle.
 
 ## 5. Suggest Fitness Function Tests
 
@@ -144,6 +158,11 @@ For each architectural rule, suggest a test that can be automated:
 
 ### Suggested ADRs
 - [ADR title]: [Brief reason]
+
+### Ground Rules Compliance
+| Rule | Level | Status | Evidence |
+|------|-------|--------|----------|
+| [GR-NNN: name] | MUST/SHOULD | PASS/FAIL/ENFORCEMENT GAP | [file:line or tool status] |
 
 ### Fitness Function Suggestions
 - [Test description]: [What it validates]

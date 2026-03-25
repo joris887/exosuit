@@ -223,10 +223,17 @@ Each file: ≤200 lines, evidence-based claims only, update YAML frontmatter tim
 
 Prompt the user for 3-7 non-negotiable architectural principles. Populate `docs/reference/GROUND_RULES.md`:
 
-- Ask: "What architectural rules should NEVER be broken in this project?" Give examples (library-first, no ORM, max N services, composition over inheritance, etc.)
-- For each principle, classify as **MUST** (non-negotiable) or **SHOULD** (strong preference, exceptions require justification)
-- If the user has no strong preferences, suggest 3-5 principles based on detected stack and architecture
-- The ground rules are checked during `/story-cycle` planning (Phase 1e) and `/sprint-end` quality gates
+- Fill the **Architecture Summary** with 2-3 sentences describing the pattern and key technology choices
+- Walk through categories systematically — start with the 3 essential categories (dependencies, boundaries, data-flow), then ask about recommended categories based on context:
+  - Security-sensitive stack (auth, payments, PII) → recommend security category
+  - AI-assisted development → recommend technology category (locks choices, prevents AI introducing unapproved libs)
+  - APIs or microservices → suggest api-design category
+  - Production system with SLOs → suggest operational category
+- Ask: "What architectural rules should NEVER be broken in this project?" Give examples from the BOOTSTRAP DEFAULTS comment in GROUND_RULES.md, selecting the section matching the detected architecture
+- For each principle, use the `GR-NNN` format with fields: **Level** (MUST/SHOULD), **Category** (dependencies/boundaries/data-flow/security/technology/operational), **Statement** (one sentence with RFC 2119 keyword), **Rationale** (what breaks if violated), **Enforced-by** (ai/review/auto check), **Exceptions** (process or "None")
+- If the user has no strong preferences, suggest 3-5 principles from the matching architecture defaults plus universal defaults
+- **Brownfield baseline (Path A only):** If a new rule is defined but existing code already violates it, document existing violations in the Exception Log with scope "pre-existing", and suggest a foundation story to remediate incrementally. Rules that can't be enforced today are aspirational, not ground rules.
+- The ground rules are checked during `/story-cycle` planning (Phase 1e), `/sprint-end` quality gates, `/architecture-check`, `/code-quality`, and `/weekly-maintenance`
 
 
 ### A3.5c. Team Detection
