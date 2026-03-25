@@ -36,6 +36,7 @@ For each Readiness Report item classified as `⚠️ Risk` or `✗ Missing`, gen
 | Pre-commit hooks | `[Infrastructure]` Set up pre-commit hooks for {stack} | — | 2 |
 | Type-safe (not configured) | `[Infrastructure]` Configure type checking ({tool}) for {language} | — | 1 |
 | Ground-rules-governed (no rules) | `[Architecture]` Define project ground rules | — | 2 |
+| Ground-rules-governed (enforcement gap) | — | `[Infrastructure]` Set up automated ground rule enforcement ({tool} for {rule}) | 3 |
 | Technical debt (high severity) | `[Infrastructure]` Address high-severity technical debt items | `[Refactoring]` Address medium-severity technical debt items | 3 |
 
 ## Dependency Levels
@@ -80,7 +81,9 @@ The metric commands are stack-specific — bootstrap substitutes the actual dete
 
 Refactoring and CI stories. These require the test safety net from Level 2 (tests passing, coverage adequate) because they change code structure.
 
-**Typical stories:** Split oversized files, break circular dependencies, reduce coupling, set up CI pipeline, address technical debt.
+**Typical stories:** Split oversized files, break circular dependencies, reduce coupling, set up CI pipeline, address technical debt, set up automated ground rule enforcement.
+
+**Ground rule enforcement gap:** If ground rules define `Enforced-by: auto:{tool}` but the tool isn't configured, generate a story: `[Infrastructure] Set up {tool} for ground rule {GR-NNN}`. This closes the dual-enforcement loop: AI checks rules at generation time, automated tools verify at build time.
 
 **Execution method for measurable stories:** `/optimize`:
 

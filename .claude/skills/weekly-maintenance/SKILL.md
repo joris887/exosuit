@@ -98,6 +98,17 @@ Review the "Rule Triggers" section. Flag:
 
 Record findings in the weekly summary below.
 
+## 5.5. Ground Rules Health
+
+<IF condition="docs/reference/GROUND_RULES.md exists and has GR-NNN rules">
+Check the health of project ground rules:
+
+- **Expired exceptions** — scan the Exception Log table for rows where `Expires` date has passed. Flag for resolution (remove exception or renew with justification).
+- **Stale rules** — if Change History shows no updates in 6+ months, the rules may need a freshness review.
+- **Compliance trends** — read `docs/progress.md` → `## Ground Rule Compliance`. Consistent violations of one rule may mean the rule is unrealistic, or enforcement is missing.
+- **Enforcement gaps** — for rules with `Enforced-by: auto:`, verify the tool/test still exists and runs in CI. Unconfigured enforcement = paper rule.
+</IF>
+
 ## 6. Weekly Summary
 
 Update @docs/progress.md with:

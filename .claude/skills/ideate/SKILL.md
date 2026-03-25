@@ -49,6 +49,7 @@ Explore the codebase to understand:
 
 - Related existing code and patterns
 - Architectural constraints (read `docs/architecture/ARCHITECTURE.md`)
+- Ground rules (read `docs/reference/GROUND_RULES.md` if exists) — stories must not require MUST violations
 - What already exists vs what needs to be built
 - Testing patterns in the relevant area
 - Dependencies on existing code
@@ -232,3 +233,4 @@ Next Steps:
 - Follow coding standards in `docs/reference/CODING_STANDARDS.md`
 - Follow testing strategy in `docs/reference/TESTING_STRATEGY.md`
 - Follow architecture constraints in `docs/architecture/ARCHITECTURE.md`
+- Follow ground rules in `docs/reference/GROUND_RULES.md` (if exists) — no story should require a MUST violation

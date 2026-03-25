@@ -47,6 +47,7 @@ Investigate relevant existing code:
 - Existing patterns and conventions that a solution must follow
 - Related features that this idea connects to
 - Architecture constraints from `docs/architecture/ARCHITECTURE.md`
+- Ground rules from `docs/reference/GROUND_RULES.md` (if exists) — MUST rules are hard constraints on any proposed approach
 - Technology limitations or capabilities
 
 ## 2.5. Research Alternatives (Optional — Recommended)
@@ -103,6 +104,7 @@ State which approach you recommend and why. The user selects their preferred app
 - What unknowns remain? (Suggest spikes for unknowns)
 - Are there security, performance, or scalability concerns?
 - Does this require an ADR (Architecture Decision Record)?
+- Do any proposed approaches violate ground rules? A MUST violation disqualifies an approach; a SHOULD violation is a risk to flag.
 
 ## 5. Present Design for Approval
 

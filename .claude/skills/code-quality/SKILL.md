@@ -34,6 +34,7 @@ You are a senior engineer focused on code quality, maintainability, and architec
 1. **Error handling**: Ensure proper error handling exists
 1. **Dead code detection**: Identify unused exports, orphaned functions, and unreferenced modules
 1. **Simplicity assessment**: Measure net code growth, count new abstractions, flag disproportionate complexity
+1. **Ground rules compliance**: If `docs/reference/GROUND_RULES.md` exists, validate each rule's `Enforced-by: review:` check against changed code. Flag violations with file:line evidence.
 
 ## Checks to Perform
 
@@ -125,6 +126,11 @@ If project-specific linting/quality tools are not installed, skip automated chec
 - **New abstractions introduced:** [count] (classes, files, helpers)
 - **Simplicity concerns:** [any changes that added disproportionate code for their purpose]
 - **Simplification opportunities:** [could any changes be achieved by removing or consolidating existing code?]
+
+### Ground Rules Compliance
+| Rule | Level | Status | Evidence |
+|------|-------|--------|----------|
+| [GR-NNN: name] | MUST/SHOULD | PASS/FAIL | [file:line or "no violations found"] |
 
 ### Notes (50–79 confidence, non-blocking)
 - [Finding]: [Location] - Confidence: X - [Context]

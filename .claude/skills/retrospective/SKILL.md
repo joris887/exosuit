@@ -53,9 +53,19 @@ Run the project's test and quality commands (from CLAUDE.md Commands section):
 | Code duplication | [X%] | [Y%] | [+/-] |
 | Churn rate* | [X files] | [Y files] | [+/-] |
 | Security findings | [X] | [Y] | [+/-] |
+| Ground rule violations | [X] | [Y] | [+/-] |
 | Stories delivered | [X] | [Y] | [+/-] |
 
 *Churn rate: files added then quickly modified or deleted within the same sprint (indicates rework)
+
+<IF condition="docs/reference/GROUND_RULES.md exists">
+### Ground Rule Compliance Trends
+
+Read `docs/progress.md` → `## Ground Rule Compliance` table. Analyze:
+- **Violation trend** — increasing violations sprint-over-sprint signals architectural drift
+- **Repeat violations** — same rule violated multiple sprints may indicate the rule is unrealistic or enforcement is insufficient
+- **Coverage gaps** — rules never checked suggest the enforcement channel isn't working
+</IF>
 
 ### AI-Specific Metrics
 
