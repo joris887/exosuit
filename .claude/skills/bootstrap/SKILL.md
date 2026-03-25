@@ -169,7 +169,7 @@ Read `references/technical-debt-assessment.md` for the complete assessment flow.
 3. **Unsafe patterns** — detect known risky defaults (stack-specific)
 4. **Dead code indicators** — detect unused imports where tooling is available
 
-Record detected items in `docs/technical-debt.md` with category and severity. High-priority items (security implications) generate foundation stories in the foundation backlog (A5.9).
+Record detected items in `docs/technical-debt.md` under the matching severity heading, using the full item format (category, severity, origin, location, quantified impact, interest rate, effort, resolution). Set origin to `legacy` for all bootstrap-detected items. Critical/High-severity items generate foundation stories in the foundation backlog (A5.9).
 
 ### A3.5. Generate Architecture Overview
 
@@ -513,7 +513,7 @@ Also create `docs/research/` with a `.gitkeep` file. This directory stores struc
 - Total: [N] LOC across [N] files (avg [N] LOC/file)
 - Largest file: [path] ([N] LOC)
 - Files over 500 LOC: [N]
-- Technical debt items: [N] high / [N] medium / [N] low
+- Technical debt items: [N] critical / [N] high / [N] medium / [N] low
 
 **Stack Research:** [summary of best practices findings from A2.9, or "Skipped" if not run]
 

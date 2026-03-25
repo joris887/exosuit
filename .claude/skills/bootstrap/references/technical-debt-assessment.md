@@ -97,82 +97,114 @@ grep -rn ": any\b\|as any\b" --include="*.ts" --include="*.tsx"
 
 | Severity | Criteria | Action |
 |----------|----------|--------|
-| **High** | Security implications (unsafe defaults, eval, missing validation on user input, ignored errors) | Foundation story generated (P1) |
-| **Medium** | Maintainability impact (missing types, suppressed warnings, disabled tests) | Recorded in debt inventory, foundation story if count is high |
-| **Low** | Cosmetic or minor (stale TODOs, magic numbers, star imports) | Recorded in debt inventory only |
+| **Critical** | Active security vulnerability, data loss risk, blocks all development | Foundation story generated (P0) |
+| **High** | Security implications (unsafe defaults, eval, ignored errors), significant velocity impact | Foundation story generated (P1) |
+| **Medium** | Maintainability impact (missing types, suppressed warnings, disabled tests) | Recorded in debt register, foundation story if count >10 |
+| **Low** | Cosmetic or minor (stale TODOs, magic numbers, star imports) | Recorded in debt register only |
+
+## Category Mapping
+
+Map each detected pattern to one of the 7 categories in `docs/technical-debt.md`:
+
+| Pattern type | Category |
+|-------------|----------|
+| Stale markers (TODO/FIXME/HACK) | Code quality |
+| Disabled/skipped tests | Test |
+| Suppressed warnings | Code quality |
+| Missing type hints/annotations | Code quality |
+| Unsafe defaults, eval, bare except | Security |
+| Star imports, magic numbers | Code quality |
+| Deprecated API usage | Dependency |
 
 ## Recording Format
 
-Populate `docs/technical-debt.md`:
+Place items under the matching severity heading in `docs/technical-debt.md`:
 
 ```markdown
-## Active Items
+## High
 
-### TD-001: {count} TODO/FIXME/HACK comments
-- **Priority:** Low
-- **Location:** Across {n} files
-- **Description:** {count} stale markers found. Top files: {top_3_files}
-- **Impact:** Unresolved work items accumulate if not triaged
-- **Remediation:** Triage each marker — resolve, convert to backlog story, or remove
-- **Created:** {date}
-- **Sprint:** Bootstrap
+### TD-001: {count} unsafe defaults in Python code
+- **Category:** Security
+- **Severity:** High | **Since:** {date}
+- **Origin:** legacy
+- **Location:** `{files_list}`
 
-### TD-002: {count} functions missing type hints
-- **Priority:** Medium
-- **Location:** {files_list}
-- **Description:** {count} Python functions lack return type annotations
-- **Impact:** Type checker can't catch hallucinated types in these functions
-- **Remediation:** Add type hints progressively, starting with public API functions
-- **Created:** {date}
-- **Sprint:** Bootstrap
+**What:** {count} instances of unsafe defaults (`verify=False`, `shell=True`, `check_same_thread=False`) found across {n} files. These bypass security checks and enable injection vectors.
+
+**Impact:** Each instance is a potential security vulnerability. Affects {n} files in {modules}.
+
+**Interest:** Stable
+**Effort:** Days — each instance requires understanding the call site context.
+**Priority score:** (3 x 2) / 2 = 3.0
+
+**Resolution:** Audit each instance. Replace `verify=False` with proper cert config, `shell=True` with subprocess list args, etc.
+
+**Linked:** E00-S{nn}
+
+## Low
+
+### TD-002: {count} TODO/FIXME/HACK comments
+- **Category:** Code quality
+- **Severity:** Low | **Since:** {date}
+- **Origin:** legacy
+- **Location:** Across {n} files — top: `{top_3_files}`
+
+**What:** {count} stale markers found. These represent unresolved work items that accumulate if not triaged.
+
+**Impact:** Minor friction — developers encounter unresolved notes during code navigation.
+
+**Interest:** Stable
+**Effort:** Hours — triage each marker individually.
+**Priority score:** (1 x 2) / 1 = 2.0
+
+**Resolution:** Triage each marker — resolve, convert to backlog story, or remove if obsolete.
+
+**Linked:** —
 ```
 
-## Summary Table Update
+## Header Update
 
-After recording items, update the summary table at the top of `docs/technical-debt.md`:
+After recording items, update the header of `docs/technical-debt.md`:
 
 ```markdown
-| Priority | Count | Oldest |
-| -------- | ----- | ------ |
-| High     | {n}   | Bootstrap |
-| Medium   | {n}   | Bootstrap |
-| Low      | {n}   | Bootstrap |
+> Last reviewed: {date} | Next review: {date + 7 days}
+> Active items: {total_count} | Resolved this quarter: 0
 ```
 
 ## Integration with Foundation Backlog
 
-For High-severity items, generate a foundation story:
+For Critical/High-severity items, generate a foundation story:
 
 ```markdown
-### E00-S{nn}: Address high-severity technical debt ({category})
+### E00-S{nn}: Address {severity} {category} debt ({count} items)
 
 **Type:** Infrastructure
-**Priority:** P1
-**Source:** Framework Readiness Report — Technical debt (High severity)
+**Priority:** P0 (Critical) | P1 (High)
+**Source:** Framework Readiness Report — Technical debt ({severity})
 
 **Description:**
-Bootstrap detected {count} high-severity technical debt items in category "{category}":
-{list_of_items}
+Bootstrap detected {count} {severity}-severity technical debt items in category "{category}":
+{list_of_items_with_TD_ids}
 
 **Acceptance Criteria:**
-- [ ] All high-severity items in "{category}" are resolved or mitigated
-- [ ] No new high-severity items introduced
-- [ ] Items moved to "Resolved" in docs/technical-debt.md
+- [ ] All {severity} items in "{category}" are resolved or mitigated
+- [ ] No new {severity} items introduced
+- [ ] Items moved to "Resolved" section in docs/technical-debt.md with actual effort recorded
 ```
 
 For Medium-severity items with high count (>10 instances), generate a lower-priority story:
 
 ```markdown
-### E00-S{nn}: Address {category} technical debt ({count} instances)
+### E00-S{nn}: Address {category} debt ({count} instances)
 
 **Type:** Refactoring
 **Priority:** P2
 **Source:** Framework Readiness Report — Technical debt (Medium severity, high count)
 
 **Description:**
-Bootstrap detected {count} instances of {category} across {n} files.
+Bootstrap detected {count} instances of {category} debt across {n} files (TD-{ids}).
 
 **Acceptance Criteria:**
 - [ ] Instance count reduced by at least 50%
-- [ ] Updated count recorded in docs/technical-debt.md
+- [ ] Resolved items moved to "Resolved" section in docs/technical-debt.md with actual effort
 ```

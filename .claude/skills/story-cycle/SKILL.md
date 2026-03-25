@@ -268,6 +268,10 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 
 **Architecture rules check:** If `docs/architecture/ARCHITECTURE.md` exists and is non-template, read ONLY the Module Map (Dependency Rules subsection) and Known Landmines sections. For each module this story touches, note any applicable rules or landmines in the exploration summary. This avoids wrong-direction implementations and repeat mistakes.
 
+**Debt register cross-reference (skip for TRIVIAL stories):** If `docs/technical-debt.md` has active items, grep its Location fields for files identified in exploration. If any explored files appear in active debt items:
+- **Low severity + Hours effort** in files being modified → suggest addressing as a "boy scout" improvement alongside the story (leave code better than you found it). Note: do not expand story scope — only fix if genuinely trivial.
+- **Higher severity or effort** → note in exploration summary for awareness ("TD-NNN affects this file"), but do not expand scope. The debt register tracks these for future sprints.
+
 ### 1c. Research Codebase
 
 - Deep-read the files identified in step 1b
