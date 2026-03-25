@@ -54,6 +54,7 @@ git checkout -b fix/issue-$ARGUMENTS
 - Use Glob and Grep to find related files
 - Understand the current implementation
 - Identify what needs to change
+- <IF condition="docs/adr/ contains accepted ADR files">Check `docs/adr/` for accepted decisions that constrain the fix approach — the fix must respect existing architectural decisions</IF>
 
 ## 5. Implement Fix (TDD)
 

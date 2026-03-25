@@ -110,7 +110,7 @@ sequenceDiagram
 | <!-- e.g., ORM --> | <!-- e.g., None (raw SQL) --> | <!-- e.g., Performance control --> | <!-- e.g., More boilerplate --> |
 | <!-- e.g., Auth --> | <!-- e.g., JWT + refresh tokens --> | <!-- e.g., Stateless scaling --> | <!-- e.g., Token revocation complexity --> |
 
-<!-- Full ADRs: docs/adr/ADR-NNN-title.md (if directory exists) -->
+<!-- Full ADRs: docs/adr/ADR-NNNN-title.md (if directory exists) -->
 
 ## Quality Attributes
 

@@ -123,27 +123,61 @@ Check the **Exception Log** — any violation covered by a non-expired exception
 
 ## 4. Auto-Generate ADR (if drift detected)
 
-If significant architectural changes are found, suggest creating an ADR:
+If significant architectural changes are found (new dependency, pattern deviation across 3+ files, deviation from an accepted ADR), generate a draft ADR using the project's template format:
 
 ```markdown
-# ADR-NNN: [Title]
+---
+status: proposed
+date: {today}
+decision-makers: []
+tags: [{relevant domain tags}]
+rejected-options: []
+supersedes: {ADR-NNNN if deviating from existing ADR, else null}
+superseded-by: null
+linked-ground-rules: []
+confidence: medium
+---
 
-## Status
-Proposed
+# ADR-NNNN: {Imperative title describing the drift}
 
 ## Context
-[What architectural change was detected]
+
+{Describe the detected drift — what changed in the code, what prior decision
+(if any) it deviates from, and what forces drove the change. 2-4 sentences
+based on evidence from the codebase.}
 
 ## Decision
-[Accept the drift / Refactor back to documented architecture / Update documentation]
+
+**We will {accept the drift as the new standard / revert to the documented architecture / update documentation to match}.**
+
+{1-2 sentences expanding. Flag as `status: proposed` for human review.}
+
+## Alternatives Considered
+
+### ✅ {The detected approach} (Selected)
+- **Why chosen:** {what evidence in the codebase supports this direction}
+
+### ❌ {The prior documented approach}
+- **Why rejected:** {what changed that made the prior approach insufficient}
+- **Reconsider when:** {conditions under which the original approach would be better}
 
 ## Consequences
-[Impact on module boundaries, testing, and maintenance]
+
+- **Positive:** {what the drift improves}
+- **Negative:** {what risk or cost the drift introduces}
+- **Operational:** {what the team must now do differently}
+
+## Compliance
+
+{Suggest a concrete check — grep pattern, test, or review instruction —
+to verify this decision is followed going forward.}
 ```
 
-Save to `docs/adr/ADR-NNN-title.md`.
+Save to `docs/adr/NNNN-short-title.md` (sequential 4-digit number). Update the Index table in `docs/adr/README.md`.
 
-**ADR-to-principle promotion:** If `docs/adr/` contains 2+ ADRs addressing the same architectural concern (e.g., repeated boundary violations, recurring dependency decisions), suggest promoting it to a ground rule in `docs/reference/GROUND_RULES.md`. Recurring decisions indicate a missing principle.
+**Also check existing ADRs for staleness:** For each `confidence: low` ADR, check whether its `Reconsider when` conditions have been met. Flag any that need review.
+
+**ADR-to-ground-rule promotion:** If `docs/adr/` contains 2+ accepted ADRs addressing the same architectural concern (e.g., repeated boundary violations, recurring dependency decisions), suggest promoting it to a ground rule in `docs/reference/GROUND_RULES.md` with a back-reference to the ADR. Recurring decisions indicate a missing principle.
 
 ## 5. Suggest Fitness Function Tests
 
@@ -170,7 +204,10 @@ For each architectural rule, suggest a test that can be automated:
 - [Drift item]: [Documented vs Actual]
 
 ### Suggested ADRs
-- [ADR title]: [Brief reason]
+- [NNNN-short-title]: [Brief reason] (status: proposed, confidence: [level])
+
+### ADR Staleness Review
+- [ADR-NNNN]: [Reconsider-when condition met? Yes/No — action needed]
 
 ### Ground Rules Compliance
 | Rule | Level | Status | Evidence |

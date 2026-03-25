@@ -52,7 +52,17 @@ Investigate relevant existing code:
 - Ground rules from `docs/reference/GROUND_RULES.md` (if exists) — MUST rules are hard constraints on any proposed approach
 - Technology limitations or capabilities
 
-## 2.5. Research Alternatives (Optional — Recommended)
+## 2.5. Check Existing Architecture Decisions
+
+<IF condition="docs/adr/ contains accepted ADR files">
+Before generating alternatives, scan `docs/adr/` YAML frontmatter for `status: accepted` records with tags relevant to this idea's domain. Treat accepted ADRs as constraints on the design space:
+- **Exclude** any approach that matches a `rejected-options` value in an accepted ADR — note the ADR reference and why it was rejected
+- **Respect** accepted decisions as fixed constraints — don't propose alternatives that contradict them
+- **Check `Reconsider when`** conditions — only if circumstances have materially changed since the ADR was accepted, note this and present the reopened option alongside its history
+- Present any relevant ADRs in Phase 3 as context: "Constrained by ADR-NNNN: [title]"
+</IF>
+
+## 2.6. Research Alternatives (Optional — Recommended)
 
 Before proposing alternatives, research them with web evidence. This step makes alternatives evidence-backed rather than relying solely on training data.
 
@@ -71,7 +81,7 @@ Integrate findings into Phase 3 alternatives: each approach's pros/cons now incl
 
 **Skip when:** User says "no research" or "I know the approaches", or the brainstorm is about internal refactoring with no external technology choices.
 
-## 3. Propose Alternative Approaches
+## 3. Propose Alternative Approaches (ADR-Informed)
 
 Present 2-3 distinct approaches using AskUserQuestion with `markdown` previews for visual comparison.
 
@@ -143,6 +153,8 @@ decision: "<Chosen approach name>"
 ```
 
 Include the design brief (from Phase 5), the approaches explored (from Phase 3), and the risks identified (from Phase 4). This document is referenced by `/ideate` and `/story-cycle` when the idea becomes a story.
+
+**If the decision is architecturally significant** (from Phase 4 assessment): also create an ADR using `docs/adr/TEMPLATE.md`. The brainstorm document captures the exploration; the ADR captures the decision in machine-parseable format with rejected alternatives and compliance checks. Map the brainstorm's approaches to the ADR's Alternatives Considered section (chosen → ✅, rejected → ❌ with rationale and reconsider-when conditions).
 
 ## 7. Next Steps
 

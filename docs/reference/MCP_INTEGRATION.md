@@ -65,6 +65,17 @@ All framework skills work without MCP servers. When available, MCP servers enhan
 
 **Example servers:** LSP-based tools, language-specific analyzers
 
+### ADR Management Servers
+
+**Use when:** Projects with many ADRs that benefit from programmatic querying, filtering, and creation of architecture decision records.
+
+**Integration points:**
+- architecture-check — query ADRs by tag, status, or rejected-options for compliance checks
+- story-cycle Phase 1e — filter relevant ADRs by domain tags before planning
+- brainstorm — scan rejected-options across all ADRs before proposing alternatives
+
+**Example servers:** `adrs` (Rust) MCP server — 15 tools for ADR creation, querying, and management. Supports MADR 4.0 templates.
+
 ## Selection Decision Tree
 
 ```

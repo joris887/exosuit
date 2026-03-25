@@ -165,6 +165,10 @@ Read `references/quality-gates.md` for detailed checks (tests, test protection, 
 This builds a longitudinal compliance profile. Over time, frequently violated rules may need reinforcement or clarification; never-tested rules may be dead rules to review.
 </IF>
 
+<IF condition="docs/adr/ contains accepted ADR files">
+**ADR compliance:** Cross-reference sprint changes against accepted ADRs. Check that no new code contradicts an accepted ADR's decision. If a contradiction is found, flag it — the team must either revert the change or create a new ADR that supersedes the old one through proper process.
+</IF>
+
 <HARD-GATE>
 Do NOT proceed to documentation updates, PR creation, or merge if ANY quality gate has failed. All gates must pass. "It's probably fine" is not a pass.
 </HARD-GATE>

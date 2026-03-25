@@ -198,7 +198,7 @@ Auto-populate `docs/architecture/ARCHITECTURE.md` from code structure. Apply acc
 
 **Constraints:** Populate from CI config (timeout values → performance constraints), compliance markers in code (GDPR, SOC2, HIPAA references), version constraints (`engines`, minimum runtime versions). If nothing detected, leave with a guidance comment.
 
-**Key Decisions:** If `docs/adr/` contains ADRs, summarize top 3-5 with trade-offs. Otherwise, infer major technology choices from config (ORM, auth library, test framework).
+**Key Decisions:** If `docs/adr/` contains ADRs, summarize top 3-5 with trade-offs and populate the `## Architecture Rules` section in CLAUDE.md with the most critical ADR-derived constraints (format: `- [constraint] (ADR-NNNN)`). Otherwise, infer major technology choices from config (ORM, auth library, test framework) and suggest creating retroactive ADRs for undocumented decisions — list 2-3 candidate topics (e.g., "Why PostgreSQL over MongoDB?", "Why REST over GraphQL?") based on detected technologies.
 
 **Quality Attributes:** Seed from Readiness Report data (A5.8): coverage baseline, CI requirements, type safety status.
 
