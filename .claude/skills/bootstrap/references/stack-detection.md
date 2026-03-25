@@ -63,6 +63,41 @@ Check which docs exist and whether they contain real content or only template pl
 - `docs/reference/TESTING_STRATEGY.md` — exists? populated?
 - `docs/progress.md` — has sprint entries?
 
+## A2.55. Detect API Surface
+
+Scan for API specification files and framework-level API indicators:
+
+| File Pattern | Indicates |
+|---|---|
+| `openapi.yaml`, `openapi.json`, `swagger.yaml`, `swagger.json` | REST API (OpenAPI spec) |
+| `asyncapi.yaml`, `asyncapi.json` | Event-driven API (AsyncAPI spec) |
+| `schema.graphql`, `*.graphql` (non-test) | GraphQL API |
+| `*.proto` | gRPC API (Protocol Buffers) |
+
+Also scan for API framework indicators in detected stack:
+
+| Stack | API Framework Indicators |
+|---|---|
+| Python | `fastapi`, `flask`, `django.urls`, `django-rest-framework` in dependencies |
+| TypeScript/JS | `express`, `fastify`, `nestjs`, `hono`, `next/api` in dependencies |
+| Go | `gin`, `echo`, `chi`, `fiber`, `net/http` route definitions |
+| Rust | `actix-web`, `axum`, `rocket` in `Cargo.toml` |
+| Java/Kotlin | `@RestController`, `@RequestMapping` annotations, Spring WebFlux |
+| Ruby | `config/routes.rb`, `grape`, Rails API mode |
+| C# | `[ApiController]`, ASP.NET controller directories |
+| PHP | Laravel routes, Symfony controllers |
+
+**Record:**
+- **API type:** REST, GraphQL, gRPC, Event-Driven, Hybrid, or None
+- **Spec files found:** list paths
+- **API framework:** detected framework name and version
+- **Contract-first status:** spec file exists (contract-first) vs framework-only (code-first)
+
+This data feeds into:
+- `docs/context/tech-context.md` → `## API Contracts` section (A4)
+- Readiness Report (A5.8) → Contract-first and API-documented checks
+- Foundation backlog (A5.9) → contract testing and API documentation stories
+
 ## A2.6. Assess Test Coverage
 
 **Read `references/coverage-assessment.md`** for the complete coverage assessment flow.

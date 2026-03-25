@@ -180,6 +180,26 @@ For projects with component boundaries (API↔client, backend↔frontend, servic
 
 **AI-specific:** AI-generated code silently drifts from contracts (wrong field names, mismatched types). Contract tests catch this at build time. Skip for single-component projects.
 
+### Recommended Tools by Protocol
+
+| Protocol | Linting | Contract Testing | Breaking Change Detection |
+|---|---|---|---|
+| REST (OpenAPI) | Redocly CLI or Spectral | Dredd (spec→impl) + Schemathesis (fuzzing) | oasdiff |
+| GraphQL | graphql-inspector | graphql-inspector (schema diff) | graphql-inspector breaking |
+| gRPC (Protobuf) | Buf lint | Buf breaking | Buf breaking |
+| Consumer-driven (any) | — | Pact (10+ languages) | Pact compatibility checks |
+
+### Contract Testing CI Pipeline
+
+```yaml
+# Triggered on PRs modifying API-related files (routes, controllers, specs, schemas)
+lint:     redocly lint openapi.yaml        # or: buf lint, graphql-inspector
+breaking: oasdiff breaking base head       # detect breaking changes before merge
+contract: dredd openapi.yaml $BASE_URL     # validate implementation matches spec
+```
+
+Bootstrap detects API spec files (A2.55) and generates foundation stories for contract testing setup if missing. See `docs/reference/API_DOCUMENTATION.md` for the contract source definition.
+
 ---
 
 ## Test Infrastructure

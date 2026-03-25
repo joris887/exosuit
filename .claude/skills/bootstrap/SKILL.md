@@ -99,6 +99,7 @@ Read `references/stack-detection.md` for detailed detection tables and commands.
 - Technology stack detection (A1)
 - Command detection (A2)
 - Documentation state assessment (A2.5)
+- **API surface detection (A2.55)** — Scan for API spec files (OpenAPI, AsyncAPI, GraphQL, Proto) and API framework indicators. Record API type, spec files, contract-first status. Feeds into Readiness Report and foundation backlog.
 - **Test coverage assessment (A2.6)** — Read `references/coverage-assessment.md` for the full flow: detect coverage tool → offer installation if missing → run coverage → record baseline → flag zero-coverage areas. This data feeds into the Readiness Report (A5.8).
 - Architecture assessment (A2.7)
 - Codebase metrics (A3)
