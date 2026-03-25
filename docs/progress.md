@@ -2,44 +2,24 @@
 
 ## Current Sprint
 
-- **Sprint**: 1
-- **Story**: <!-- current story -->
-- **Status**: <!-- DONE / IN_PROGRESS -->
+<!-- Updated by /sprint-start, /story-cycle, /handoff, /sprint-end -->
 
-## Current Metrics
+**Sprint [N]: [Sprint Goal]**
+**Branch:** sprint-[N] | **Status:** in-progress
 
-<!-- Filled by /bootstrap or updated by /sprint-end -->
-<!-- Example:
-- **Tests**: 0 tests (0% coverage)
-- **Codebase**: 0 LOC
-- **Duplication**: N/A
-- **Build**: N/A
--->
+| # | Story | Size | Status |
+|---|-------|------|--------|
+<!-- Stories from current sprint — status: 🔲 🔄 ✅ ⏭️ -->
 
-## Sprint-over-Sprint Trends
+**Notes:** <!-- Session continuity — what to pick up next -->
 
-| Sprint | Stories | Tests | Coverage | Duplication | Notes |
-|--------|---------|-------|----------|-------------|-------|
-<!-- Added by /sprint-end after each sprint -->
+## Sprint History
 
-## Recent Sprints
+<!-- Appended by /sprint-end after each sprint. Flow metrics enable retrospectives and forecasting. -->
 
-<!-- Added by /sprint-end after each sprint -->
-<!-- Format: Sprint N: Story IDs — description (test delta) -->
-
-## Quality Indicators
-
-<!-- Updated by /weekly-maintenance -->
-<!-- - Complexity trend: stable
-- High-churn files: none
-- Dependency health: clean
-- Security findings: 0 -->
-
-## Ground Rule Compliance
-
-<!-- Updated by /sprint-end after each sprint -->
-| Sprint | Rules Checked | Violations | Details |
-|--------|--------------|------------|---------|
+| Sprint | Goal | Achieved | Throughput | Churn | Tests | Coverage | PR |
+|--------|------|----------|------------|-------|-------|----------|----|
+<!-- Format: Sprint N | goal summary | ✅/❌ | X stories | X% | X→Y | X%→Y% | #N -->
 
 ## Next Steps
 

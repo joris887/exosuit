@@ -78,14 +78,10 @@ Note: Full circular dependency detection is complex. Flag suspicious mutual impo
 
 ## Metrics to Record
 
-Record in `docs/progress.md` under "Current Metrics":
+Record in `docs/progress.md` → `## Current Sprint` → **Notes** field as part of bootstrap baseline:
 
 ```markdown
-- **Codebase:** {total_loc} LOC across {file_count} files
-- **Avg file size:** {avg_loc} LOC
-- **Largest file:** {file_path} ({max_loc} LOC)
-- **Files over 500 LOC:** {count}
-- **High fan-out modules:** {list or "none"}
+**Notes:** Bootstrap baseline — {total_loc} LOC across {file_count} files, largest: {file_path} ({max_loc} LOC), {count} files over 500 LOC.
 ```
 
 ## Integration with Readiness Report

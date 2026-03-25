@@ -1,7 +1,7 @@
 ---
 name: retrospective
-version: 2.4.0
-description: Run a sprint or weekly retrospective using the 4Ls framework with metrics dashboard. Analyzes what worked, what was learned, what was lacking, and what we wish we had.
+version: 2.5.0
+description: Run a sprint or weekly retrospective using flow metrics and the 4Ls framework. Reads sprint spec Outcome data and progress.md Sprint History for trend analysis.
 trigger: manual
 depends-on: []
 references: []
@@ -17,30 +17,31 @@ Run a sprint or weekly retrospective:
 
 ## 1. Gather Data
 
-Review:
+Read sprint specs and progress to build a complete picture:
 
-- @docs/progress.md recent entries
-- Sprint specs from this period
+- Read `docs/progress.md` → `## Sprint History` table for trend data
+- Read the sprint spec(s) being reviewed: `docs/sprints/sprint-N.md` — especially the `## Outcome` and `## Decisions` sections
 - Git log for commits and their messages
-- Any blockers or issues encountered
+- Any blockers or issues encountered (from sprint spec `## Notes` and `## Decisions`)
 
 ## 2. Metrics Dashboard
 
-Collect and present quantitative metrics:
+### Flow Metrics (from sprint spec Outcome section and progress.md Sprint History)
 
-### Sprint Metrics
+| Metric | This Sprint | Previous Sprint | Trend |
+|--------|-------------|-----------------|-------|
+| Goal achieved | [✅/❌] | [✅/❌] | [streak] |
+| Throughput | [X stories] | [Y stories] | [+/-] |
+| Cycle time (avg) | [X days] | [Y days] | [+/-] |
+| Sprint churn | [X%] | [Y%] | [+/-] |
+| Done-to-commit ratio | [X/Y = Z%] | [Z%] | [+/-] |
 
-```bash
-# Commits this sprint
-git log main..HEAD --oneline | wc -l
-
-# Files changed
-git diff --stat main...HEAD
-
-# Test count (use project test command)
-# Lines of code added/removed
-git diff --stat main...HEAD | tail -1
-```
+**Interpreting flow metrics:**
+- **Goal achievement streak** — consecutive ✅ signals predictable delivery. Target: 80%+ over 5 sprints.
+- **Throughput trend** — enables Monte Carlo forecasting. Stable throughput > increasing throughput (which may signal corner-cutting).
+- **Cycle time** — lower is better, but track by story type (feature vs bug vs refactor) since they differ.
+- **Sprint churn** — target below 20%. Above 40% signals broken upstream planning.
+- **Done-to-commit ratio** — 80% is healthy; >95% means under-committing; <65% means over-committing.
 
 ### Quality Metrics
 
@@ -50,18 +51,14 @@ Run the project's test and quality commands (from CLAUDE.md Commands section):
 |--------|-------------|-----------------|-------|
 | Test count | [X] | [Y] | [+/-] |
 | Coverage | [X%] | [Y%] | [+/-] |
-| Code duplication | [X%] | [Y%] | [+/-] |
-| Churn rate* | [X files] | [Y files] | [+/-] |
+| Test coverage delta | [+/-X%] | [+/-Y%] | [direction] |
+| Defect escapes | [X] | [Y] | [+/-] |
 | Security findings | [X] | [Y] | [+/-] |
-| Ground rule violations | [X] | [Y] | [+/-] |
-| Stories delivered | [X] | [Y] | [+/-] |
-
-*Churn rate: files added then quickly modified or deleted within the same sprint (indicates rework)
 
 <IF condition="docs/reference/GROUND_RULES.md exists">
 ### Ground Rule Compliance Trends
 
-Read `docs/progress.md` → `## Ground Rule Compliance` table. Analyze:
+Read sprint spec `## Outcome` → **Ground rules** field across recent sprints. Analyze:
 - **Violation trend** — increasing violations sprint-over-sprint signals architectural drift
 - **Repeat violations** — same rule violated multiple sprints may indicate the rule is unrealistic or enforcement is insufficient
 - **Coverage gaps** — rules never checked suggest the enforcement channel isn't working
@@ -121,16 +118,30 @@ Use the 4Ls format:
 
 - Consider: automation, better docs, different approach
 
-## 4. AI-Assisted Development Specific
+## 4. AI-Assisted Sprint Reflection
 
-Reflect on Claude Code usage:
+Sprint-goal-anchored questions (answer each with evidence, not impressions):
 
-- Context management: Did we hit limits? Use /clear effectively?
-- Agent usage: Which agents were most valuable?
-- TDD discipline: Did we maintain test-first?
-- Quality gates: Did verification catch issues?
-- Documentation: Did we keep docs updated?
-- Test quality: Were any tests weakened or deleted?
+### Sprint Goal Effectiveness
+- Did the sprint goal help scope decisions during story execution? Was it specific enough for AI to use as decision context?
+- Were there moments where the sprint goal was ignored or forgotten? What caused that?
+- Should the goal format change for next sprint? (e.g., too vague, too compound, too narrow)
+
+### Session & Capacity Accuracy
+- How many sessions were actually used vs estimated? Were S/M/L sizes accurate?
+- Which stories took more sessions than sized? Why? (complexity surprise, external dependency, scope change)
+- Should the session capacity estimate change for next sprint?
+
+### AI Execution Quality
+- Where did AI-generated code create review bottleneck? (time spent reviewing vs writing)
+- Were any tests weakened or deleted? Were quality gates effective at catching this?
+- Context management: Did we hit limits? Was the plan-then-execute pattern followed?
+- TDD discipline: Was test-first maintained, or did time pressure cause shortcuts?
+
+### Carry-Over & Churn Analysis
+- Were carried-over stories goal-critical or non-critical? (Non-critical carry-over = correct prioritization)
+- What was the sprint churn rate? If >20%, what caused mid-sprint additions?
+- Were any stories added mid-sprint that should have waited for backlog?
 
 ## 4.5. Architecture Decision Audit
 
@@ -169,10 +180,12 @@ If patterns or gotchas were discovered:
 ### Metrics Summary
 | Metric | Value | Trend |
 |--------|-------|-------|
-| Stories | [X] | [+/-] |
+| Goal achieved | [✅/❌] | [streak] |
+| Throughput | [X stories] | [+/-] |
+| Cycle time | [X days avg] | [+/-] |
+| Sprint churn | [X%] | [+/-] |
 | Tests | [X] | [+/-] |
 | Coverage | [X%] | [+/-] |
-| Quality | [score] | [+/-] |
 
 ### Top 3 Positives
 1. [Most impactful positive]

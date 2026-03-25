@@ -1,7 +1,7 @@
 ---
 name: dashboard
-version: 1.0.0
-description: Sprint status overview — current branch, story progress, test health, and actionable next steps.
+version: 1.1.0
+description: Sprint status overview — sprint goal, story progress, capacity, work item age warnings, test health, and actionable next steps.
 trigger: manual
 depends-on: []
 references: []
@@ -31,13 +31,16 @@ LAST_COMMIT=$(git log -1 --format="%cr — %s" 2>/dev/null || echo "no commits")
 ```bash
 # Current sprint from progress.md
 SPRINT=$(grep -m1 'Sprint\*\*:' docs/progress.md 2>/dev/null | sed 's/.*: *//' | tr -d ' ')
-
-# Current story
-STORY=$(grep -m1 'Story\*\*:' docs/progress.md 2>/dev/null | sed 's/.*: *//')
-
-# Story status
-STATUS=$(grep -m1 'Status\*\*:' docs/progress.md 2>/dev/null | sed 's/.*: *//')
 ```
+
+**Sprint spec:** Find the current sprint spec file (`docs/sprints/sprint-*.md`). Read it to extract:
+- **Sprint goal** (from `## Goal` section) — display prominently as the first sprint line
+- **Stories table** — count by status (🔲 todo, 🔄 in-progress, ✅ done, ⏭️ carried over)
+- **Capacity** — sessions available vs sessions used (count ✅ stories as sessions consumed based on their Size)
+- **Boundaries** — out of scope items (brief)
+
+**Work item age check:** For any story with 🔄 status, check `docs/sessions/.activity-log.jsonl` for its `status-change` to `in-progress` event. If the story has been in-progress for longer than the average cycle time from `docs/progress.md` → `## Sprint History`, flag it:
+> "⚠️ [Story ID] has been in-progress for [N] days (avg cycle time: [M] days)"
 
 ## 3. Backlog Snapshot
 
@@ -89,10 +92,14 @@ Quick checks (subset of /doctor):
 - **Branch:** `sprint-N` (X commits ahead, Y uncommitted files)
 - **Last commit:** 2 hours ago — "feat(auth): add login endpoint"
 
-### Sprint N
-- **Story:** E01-003 — Add user authentication
-- **Status:** Phase 3 — Implementation
-- **Backlog:** 3 done / 1 in progress / 8 TODO
+### Sprint N: [Sprint Goal]
+- **Progress:** 3/5 stories done (2 remaining: E01-004 🔄, E01-005 🔲)
+- **Capacity:** ~6/8 sessions used (buffer: 1 session)
+- **Out of scope:** [from boundaries]
+- ⚠️ E01-004 in-progress for 3 days (avg cycle time: 1.5 days)
+
+### Backlog
+- 3 done / 1 in progress / 8 TODO
 
 ### Tests
 - **Status:** 47 passing, 0 failing

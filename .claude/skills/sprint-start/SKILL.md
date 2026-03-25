@@ -1,13 +1,13 @@
 ---
 name: sprint-start
-version: 2.6.0
-description: Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development.
+version: 2.7.0
+description: Pre-sprint checks, feature branch creation, and sprint planning. Ensures clean state, defines sprint goal and scope, creates sprint spec document.
 trigger: manual
 depends-on: []
 references: []
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write
 argument-hint: "[branch-name] [--worktree]"
 ---
 ______________________________________________________________________
@@ -118,14 +118,7 @@ Each worktree has its own branch and working tree, so you can work on multiple s
 - Branch naming convention: `sprint-<number>` (e.g., `sprint-001`, `sprint-002`)
 - The number is always the next sequential sprint number
 
-## 3. Done
-
-<IF condition="docs/reference/PRD_SUMMARY.md exists">
-**Sprint Definition of Done** (derived from PRD): Read PRD Section 6 (NFRs) and Section 7 (scope boundaries). Include applicable thresholds in the sprint summary so they're visible throughout the sprint:
-- Performance targets from NFRs (e.g., "API < 200ms P95")
-- Security requirements from NFRs (e.g., "all PII encrypted")
-- Implementation boundaries from Section 7 (Always/Ask first/Never rules)
-</IF>
+## 3. Sprint Planning
 
 ### Show Upcoming Stories
 
@@ -135,23 +128,63 @@ Read `docs/reference/BACKLOG_INDEX.md` and scan epic files for stories with stat
 ### Ready Stories (by priority)
 | Priority | ID | Title | Type | Size | Epic |
 |----------|----|-------|------|------|------|
-| P0 | PROJ-001 | [title] | feature | SMALL | E01 |
-| P1 | PROJ-003 | [title] | bugfix | TRIVIAL | E01 |
+| P0 | PROJ-001 | [title] | feature | S | E01 |
+| P1 | PROJ-003 | [title] | bugfix | S | E01 |
 ```
 
 If no stories have `ready` status, check for `draft` stories and suggest running `/ideate` to refine them, or `/backlog-review` to assess backlog health.
+
+### Define Sprint Goal and Scope
+
+Ask the user to select stories for this sprint and define a sprint goal. Guide them:
+
+- **Sprint goal**: One sentence describing the outcome (not a list of stories). Example: "Enable users to authenticate via OAuth2"
+- **Story selection**: Based on ready stories, capacity (estimated sessions available), and priority order
+- **Sizing**: S (1 session), M (2-3 sessions), L (3-5 sessions) — based on complexity, not effort hours
+- **Buffer**: Reserve ~15% of sessions for unplanned work
+
+<IF condition="docs/reference/PRD_SUMMARY.md exists">
+**Sprint Definition of Done** (derived from PRD): Read PRD Section 6 (NFRs) and Section 7 (scope boundaries). Include applicable thresholds:
+- Performance targets from NFRs (e.g., "API < 200ms P95")
+- Security requirements from NFRs (e.g., "all PII encrypted")
+- Implementation boundaries from Section 7 (Always/Ask first/Never rules)
+</IF>
+
+### Create Sprint Spec
+
+Copy `docs/sprints/_TEMPLATE.md` to `docs/sprints/sprint-<number>.md` and fill in:
+
+- Sprint number and goal (from user input above)
+- Start date (today)
+- Branch name
+- Stories table (from selected stories, with sizes)
+- Boundaries: Done means, out of scope, risks
+- Capacity: available sessions, buffer, constraints
+
+Leave the Decisions, Notes, and Outcome sections empty — they're filled during and after the sprint.
+
+### Update progress.md
+
+Update `docs/progress.md` → `## Current Sprint` section with:
+- Sprint number and goal
+- Branch name and status
+- Compact stories table (just #, title, size, status)
+- Notes: empty (filled during sprint)
+
+## 4. Done
 
 Output a summary:
 
 ```markdown
 ### Sprint Ready
 
+**Sprint [N]: [goal]**
 **Branch:** `sprint-<number>`
 **Mode:** [Standard / Worktree at ../<path>]
 **Main status:** Tests passing, up to date
 **Open PRs:** None (or list any that exist)
-**Ready stories:** [count by priority]
-**Definition of Done:** [from PRD NFRs + boundaries, or "Standard (no PRD)"]
+**Stories:** [count] selected ([total size estimate])
+**Sprint spec:** `docs/sprints/sprint-<number>.md`
 
 Ready to start work. Use `/story-cycle <story-id>` to deliver a story.
 ```
@@ -160,6 +193,5 @@ Ready to start work. Use `/story-cycle <story-id>` to deliver a story.
 
 - Does not load story context (that's `/story-cycle`'s job)
 - Does not run analysis agents
-- Does not create sprint spec documents
 - Does not update epic files or backlog
 - Does not assume any particular project structure

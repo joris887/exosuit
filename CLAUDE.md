@@ -106,6 +106,8 @@ When compacting context, use this structured key-value format. Items are tagged 
 
 ### [CRITICAL — preserve verbatim across all compactions]
 goal: "[Current objective — what story/task is in progress]"
+sprint_goal: "[Current sprint goal — one sentence from sprint spec]"
+sprint_spec: "docs/sprints/sprint-[N].md"
 commands: {test: "[cmd]", lint: "[cmd]", build: "[cmd]", typecheck: "[cmd]"}
 active_plan: |
   [Any in-progress plan, verbatim if possible]
