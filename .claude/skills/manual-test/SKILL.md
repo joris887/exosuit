@@ -46,6 +46,13 @@ Check the backlog for known gaps and bugs that are still TODO:
 - Read `docs/testing/UAT_COVERAGE.md` (if it exists) for test case status
 - Identify which areas have not been tested yet
 
+### Product Requirements
+
+- Read `docs/reference/PRD_SUMMARY.md` (if it exists) for persona and success criteria context
+- Section 2 (target users) personas inform exploratory testing in Phase 3C
+- Section 3 (success criteria) identify what to prioritize testing
+- Section 4 (user flows) provide the core scenarios to regression test
+
 ## 2. Pre-Flight Checks
 
 Before manual testing, verify the system is ready:
@@ -85,11 +92,13 @@ For each open issue, note it as a known limitation:
 
 ### C. Exploratory Testing
 
-Based on architecture and project knowledge, suggest areas to probe:
+Based on architecture and project knowledge, suggest areas to probe.
+
+**If PRD_SUMMARY.md was loaded:** Structure exploratory testing around each persona from Section 2. For each persona, create scenarios that exercise their primary goal, pain points, and constraints. Example: a persona with "low connectivity" constraints → test offline/slow-network behavior. A persona with "screen reader" constraints → test keyboard navigation and ARIA labels.
 
 ```markdown
-#### Exploratory: [Feature Area]
-- [ ] [Step 1 — what to do and what to look for]
+#### Exploratory: [Feature Area] (as [Persona Name])
+- [ ] [Step 1 — what to do and what to look for, from persona's perspective]
 - [ ] [Step 2]
 
 #### Exploratory: Error Handling

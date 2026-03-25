@@ -87,6 +87,21 @@ Stories should be typed (feature, infrastructure, spike, etc.) and ordered for t
 
 Also create `docs/research/`, `docs/solutions/`, and `docs/brainstorms/` directories with `.gitkeep` files for future use by `/research`, `/story-cycle`, and `/brainstorm` skills.
 
+## B3.5. PRD Quality Gate
+
+After generating PRD_SUMMARY.md, validate it for common requirement smells:
+
+| Smell | Detection | Action |
+|-------|-----------|--------|
+| **Vague terms** | "fast", "user-friendly", "intuitive", "robust", "scalable", "high availability" without numbers | Replace with measurable threshold |
+| **Missing error handling** | Requirements describe happy path only, no WHEN [error] criteria | Add error and edge case acceptance criteria |
+| **Thin acceptance criteria** | Requirement has < 3 acceptance criteria | Expand — aim for 3-7 per requirement |
+| **Premature solutioning** | Requirements specify UI elements, specific libraries, or implementation details | Rewrite as outcome-oriented behavior |
+| **Empty NFR section** | NFRs omitted despite project type implying them (e.g., web app with no performance/accessibility) | Add applicable NFR categories with measurable defaults |
+| **No non-goals** | Section 7 is empty | Add at least 2 explicit non-goals based on what the vision does NOT mention |
+
+Fix any smells found before presenting to the user. Quality requirements prevent wasted implementation cycles — fixing them now is 10x cheaper than fixing wrong implementations later.
+
 ## B4. Present Summary
 
 ```markdown

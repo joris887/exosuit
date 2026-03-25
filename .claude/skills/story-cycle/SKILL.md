@@ -89,6 +89,8 @@ For STANDARD stories, consider entering Plan Mode at the start of Phase 0 and re
 
 Run the `context-prime` micro-component from `.claude/prompts/context-prime.md` to load project context (intent-aware ordering based on the story description).
 
+**PRD scope guard:** If `docs/reference/PRD_SUMMARY.md` exists, load Section 7 (scope boundaries) and Section 3 (success criteria). Use scope boundaries as guard rails throughout implementation — if the story drifts toward a stated non-goal or violates an implementation boundary, flag it. Use success criteria to verify the story contributes to measurable product outcomes.
+
 Before any exploration, decompose the user's request. Apply the `scope_analysis` reasoning tool from `references/reasoning-tools.md`:
 
 1. List ALL distinct outcomes the user expects (implementation, tests, docs, PR, etc.)
