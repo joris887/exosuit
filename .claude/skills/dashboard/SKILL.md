@@ -39,7 +39,9 @@ SPRINT=$(grep -m1 'Sprint\*\*:' docs/progress.md 2>/dev/null | sed 's/.*: *//' |
 - **Capacity** — sessions available vs sessions used (count ✅ stories as sessions consumed based on their Size)
 - **Boundaries** — out of scope items (brief)
 
-**Work item age check:** For any story with 🔄 status, check `docs/sessions/.activity-log.jsonl` for its `status-change` to `in-progress` event. If the story has been in-progress for longer than the average cycle time from `docs/progress.md` → `## Sprint History`, flag it:
+**Metrics snapshot:** Read `docs/progress.md` → `## Metrics` table. Extract rows that have data (Current column is not "—"). This data is displayed in section 8.
+
+**Work item age check:** For any story with 🔄 status, check `docs/sessions/.activity-log.jsonl` for its `status-change` to `in-progress` event. Read the current cycle time value from `docs/progress.md` → `## Metrics` table (row "Cycle time (days)", Current column). If available, use this as the average cycle time reference. Fall back to computing from Sprint History if no data. Flag stories in-progress longer than the average:
 > "⚠️ [Story ID] has been in-progress for [N] days (avg cycle time: [M] days)"
 
 ## 3. Backlog Snapshot
@@ -111,6 +113,14 @@ Quick checks (subset of /doctor):
 ### Session
 - **Last handoff:** 2 days ago
 - **Interrupted workflow:** None
+
+### Metrics Health
+| Metric | Current | Target | Trend | Status |
+|:-------|:-------:|:------:|:-----:|:------:|
+| Cycle time (days) | 2.1 | ≤3.0 | ▇▆▅▄▃▂ | 🟢 |
+| Change failure rate | 12% | ≤15% | ▂▃▂▄▅▃ | 🟡 |
+[Show only metrics rows with data — skip rows where Current is "—"]
+[If any 🟡/🔴: show sprint note from progress.md]
 
 ### Framework
 - **Health:** All checks passing

@@ -1,10 +1,10 @@
 ---
 name: retrospective
-version: 2.5.0
-description: Run a sprint or weekly retrospective using flow metrics and the 4Ls framework. Reads sprint spec Outcome data and progress.md Sprint History for trend analysis.
+version: 3.0.0
+description: Sprint retrospective — consumes progress.md Metrics table, adds leading-lagging analysis, anti-pattern detection, and 4Ls framework.
 trigger: manual
 depends-on: []
-references: []
+references: [references/metrics-analysis.md]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash
@@ -26,77 +26,95 @@ Read sprint specs and progress to build a complete picture:
 
 ## 2. Metrics Dashboard
 
-### Flow Metrics (from sprint spec Outcome section and progress.md Sprint History)
+### 2.1. Progress Metrics (single source of truth)
 
-| Metric | This Sprint | Previous Sprint | Trend |
-|--------|-------------|-----------------|-------|
-| Goal achieved | [✅/❌] | [✅/❌] | [streak] |
-| Throughput | [X stories] | [Y stories] | [+/-] |
-| Cycle time (avg) | [X days] | [Y days] | [+/-] |
-| Sprint churn | [X%] | [Y%] | [+/-] |
-| Done-to-commit ratio | [X/Y = Z%] | [Z%] | [+/-] |
+Read `docs/progress.md` → `## Metrics` table and display it directly — sprint-end already computed these values.
 
-**Interpreting flow metrics:**
-- **Goal achievement streak** — consecutive ✅ signals predictable delivery. Target: 80%+ over 5 sprints.
-- **Throughput trend** — enables Monte Carlo forecasting. Stable throughput > increasing throughput (which may signal corner-cutting).
-- **Cycle time** — lower is better, but track by story type (feature vs bug vs refactor) since they differ.
-- **Sprint churn** — target below 20%. Above 40% signals broken upstream planning.
-- **Done-to-commit ratio** — 80% is healthy; >95% means under-committing; <65% means over-committing.
+| Metric | Current | Target | Trend | Status |
+|:-------|:-------:|:------:|:-----:|:------:|
+[Copy all rows from progress.md Metrics table]
 
-### Quality Metrics
+**Sprint note:** [Copy from progress.md if present]
 
-Run the project's test and quality commands (from CLAUDE.md Commands section):
+### 2.2. Sprint-over-Sprint Comparison
 
-| Metric | This Sprint | Previous Sprint | Trend |
-|--------|-------------|-----------------|-------|
-| Test count | [X] | [Y] | [+/-] |
-| Coverage | [X%] | [Y%] | [+/-] |
-| Test coverage delta | [+/-X%] | [+/-Y%] | [direction] |
-| Defect escapes | [X] | [Y] | [+/-] |
-| Security findings | [X] | [Y] | [+/-] |
+Read `docs/progress.md` → `## Sprint History` table. Extract the last 2 rows (current and previous sprint):
 
-<IF condition="docs/reference/GROUND_RULES.md exists">
-### Ground Rule Compliance Trends
+| Metric | This Sprint | Previous | Δ | Direction |
+|--------|-------------|----------|---|-----------|
+| Goal achieved | [✅/❌] | [✅/❌] | — | [streak] |
+| Tasks completed | [X] | [Y] | [+/-] | [↑/↓/→] |
+| Cycle time | [X.Xd] | [Y.Yd] | [+/-] | [↑/↓/→] |
+| Change failure rate | [X%] | [Y%] | [+/-] | [↑/↓/→] |
+| Test coverage Δ | [+X%] | [+Y%] | [+/-] | [↑/↓/→] |
+| Code churn ratio | [0.XX] | [0.YY] | [+/-] | [↑/↓/→] |
+| AI effectiveness | [0.XX] | [0.YY] | [+/-] | [↑/↓/→] |
+| Sprint satisfaction | [X/5] | [Y/5] | [+/-] | [↑/↓/→] |
 
-Read sprint spec `## Outcome` → **Ground rules** field across recent sprints. Analyze:
-- **Violation trend** — increasing violations sprint-over-sprint signals architectural drift
-- **Repeat violations** — same rule violated multiple sprints may indicate the rule is unrealistic or enforcement is insufficient
-- **Coverage gaps** — rules never checked suggest the enforcement channel isn't working
-</IF>
+Also extract from sprint spec (`docs/sprints/sprint-N.md` → `## Outcome`):
+- **Sprint churn**: % stories added/removed mid-sprint (target <20%, >40% = broken planning)
+- **Done-to-commit ratio**: completed/planned (80% healthy, >95% = under-committing, <65% = over-committing)
 
-### AI-Specific Metrics
+### 2.3. Leading vs Lagging Analysis
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| AI suggestion survival rate* | [estimate] | Code from AI that survives first review |
-| Context resets | [count] | Number of /clear or compaction events |
-| Agent invocations | [count] | Quality/test/security agents used |
-| TDD compliance | [high/medium/low] | Were tests written first? |
+Read `references/metrics-analysis.md` for the leading/lagging classification.
 
-*Estimate based on commit history — code added then immediately changed indicates low survival rate
+From the Sprint History's last 3 rows, assess the trend direction for each group:
+- **Leading indicators** (churn, coverage Δ, satisfaction): [improving / stable / degrading]
+- **Lagging indicators** (CFR, tasks): [improving / stable / degrading]
 
-### Activity Log Metrics
+Flag any divergence — see the reference file for interpretation guidance. This is the most actionable analysis: leading indicators predict what lagging will show in 1-2 sprints.
+
+### 2.4. Anti-pattern Detection
+
+Read `references/metrics-analysis.md` for the four anti-pattern definitions. Check each against Sprint History data:
+
+1. **Perception gap**: satisfaction ≥4 AND (CFR or churn rising 2+ sprints)?
+2. **Task fragmentation**: tasks rising AND cycle time shrinking 2+ sprints?
+3. **Weak tests**: coverage Δ positive AND CFR rising 2+ sprints?
+4. **Maintenance spiral**: <50% feature stories AND churn rising?
+
+Flag any detected patterns with specific metric evidence.
+
+### 2.5. Feature Time Ratio
 
 <IF condition="docs/sessions/.activity-log.jsonl exists">
-Parse `docs/sessions/.activity-log.jsonl` to extract:
-- Total tool invocations (Edit, Write, Bash) per session
-- Most-edited files (hotspots indicating rework)
-- Edit-to-Bash ratio (high Edit ratio = productive, high Bash ratio = debugging)
-- Time distribution across files
+Parse `docs/sessions/.activity-log.jsonl` for story `status-change` events with `story_type` field. Count completed stories by type:
+
+| Type | Count | % |
+|------|-------|---|
+| feature | [X] | [X%] |
+| bugfix | [Y] | [Y%] |
+| refactor | [Z] | [Z%] |
+| other | [W] | [W%] |
+
+If feature stories are <50% of total, flag: "Less than half of sprint work on features — investigate maintenance burden."
 </IF>
-<ELSE>
-Activity log not available — skip activity metrics. Note: enable the PostToolUse hook via post-tool-use.sh for richer retrospective data.
-</ELSE>
 
-### Skill Execution Metrics
+### 2.6. Hotspot Investigation (conditional)
 
-Run the metrics script for quantitative skill data:
+<IF condition="Code churn ratio in Metrics table is 🟡 or 🔴">
+Run `scripts/pm/metrics.sh --churn` and display the high-churn files. Cross-reference with sprint stories — are these files being actively developed, or are they unrelated files being destabilized?
+</IF>
+
+### 2.7. Framework Metrics
+
+Run the metrics script for framework-specific data not captured in progress.md:
 
 ```bash
 bash scripts/pm/metrics.sh
 ```
 
-This reports: skill success/failure rates, per-skill breakdown, tool usage distribution, and rule trigger counts. Use this data to identify bottlenecks (skills with high failure rates), rework patterns (high Bash ratio), and underutilized quality gates.
+Reports: skill success/failure rates, per-skill breakdown, tool usage, rule triggers. Identify: bottleneck skills (high failure), rework patterns (high Bash ratio), underutilized gates.
+
+<IF condition="docs/reference/GROUND_RULES.md exists">
+### 2.8. Ground Rule Compliance
+
+Read sprint spec `## Outcome` → **Ground rules** field across recent sprints:
+- **Violation trend** — increasing violations signals architectural drift
+- **Repeat violations** — same rule violated multiple sprints: rule may be unrealistic or enforcement insufficient
+- **Coverage gaps** — rules never checked suggest enforcement isn't working
+</IF>
 
 ## 3. Retrospective Framework
 
@@ -178,14 +196,13 @@ If patterns or gotchas were discovered:
 [Sprint X / Week of Y]
 
 ### Metrics Summary
-| Metric | Value | Trend |
-|--------|-------|-------|
-| Goal achieved | [✅/❌] | [streak] |
-| Throughput | [X stories] | [+/-] |
-| Cycle time | [X days avg] | [+/-] |
-| Sprint churn | [X%] | [+/-] |
-| Tests | [X] | [+/-] |
-| Coverage | [X%] | [+/-] |
+[Copy the Metrics table from docs/progress.md — single source of truth]
+
+### Key Signals
+- Leading indicators: [improving/stable/degrading]
+- Lagging indicators: [improving/stable/degrading]
+- Anti-patterns detected: [list or "none"]
+- Feature time ratio: [X]%
 
 ### Top 3 Positives
 1. [Most impactful positive]

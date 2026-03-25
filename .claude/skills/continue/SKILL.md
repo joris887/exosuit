@@ -142,6 +142,9 @@ This avoids re-exploring files that were already investigated last session.
 ## 2. Assess Project State
 
 - Read @docs/progress.md for current sprint goal, story statuses, and notes
+- **Metrics warnings:** Check `docs/progress.md` → `## Metrics` table for any 🟡 or 🔴 status. If found, surface in the Project Health section (step 0):
+  > "⚠️ [Metric name]: [status] ([value], target [target]) — [sprint note context]"
+  This warns the user about quality degradation before they choose what to work on. Skip if all 🟢 or no data.
 - Read @docs/reference/BACKLOG_INDEX.md for current story status
 
 ### 2.5. Load Sprint Context

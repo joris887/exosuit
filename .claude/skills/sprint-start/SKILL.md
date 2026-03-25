@@ -81,6 +81,25 @@ Read CLAUDE.md Commands section to find the project's test command.
 - **If test command exists:** Run it. If tests fail on the default branch, stop and alert user — default branch should always be green.
 - **If NO test command configured:** Skip this check. Note in output: "No test command configured — consider running /bootstrap to set up."
 
+## 1.5. Metrics Health Check
+
+Read `docs/progress.md` → `## Metrics` table. If the table has data (not all "—"), check for quality signals that should influence sprint planning:
+
+| Metric signal | Planning guidance |
+|---|---|
+| Cycle time ↑ or 🟡/🔴 | Fewer or smaller stories this sprint |
+| Change failure rate 🟡/🔴 | Prioritize quality: include a bugfix or stabilization story |
+| Code churn ratio 🟡/🔴 | Include a refactoring story targeting hotspot files (see sprint note for file list) |
+| Test coverage Δ declining 3 sprints | Enforce strict TDD compliance for all stories |
+| Sprint satisfaction declining 3 sprints | Investigate root cause before adding feature work |
+| AI effectiveness declining | Review skill failure patterns; consider simpler story decomposition |
+
+Present findings to the user before story selection in step 3, framed as recommendations not blockers:
+
+> "Sprint metrics check: Code churn ratio is 🟡 (0.14, target ≤0.15). Consider including a refactoring story targeting [hotspot files from sprint note]."
+
+If all metrics are 🟢 with stable trends, or if the Metrics table has no data yet, skip this section silently.
+
 ## 2. Create Feature Branch
 
 Determine the next sprint number by reading `docs/progress.md` and finding the highest sprint number, then adding 1.
