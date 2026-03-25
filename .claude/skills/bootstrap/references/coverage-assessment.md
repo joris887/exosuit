@@ -88,6 +88,49 @@ Classification:
 - `risk`: Coverage tool available BUT overall < 60% OR significant zero-coverage areas
 - `missing`: No coverage tool, user declined installation
 
+## Mutation Testing Tool Detection
+
+Mutation testing is the strongest predictor of test suite fault detection (R²=0.94-0.99 correlation with real fault detection). Detect whether a mutation testing tool is available:
+
+| Stack | Mutation Tool | Detect Command | Install Command | Run Command |
+|-------|--------------|----------------|-----------------|-------------|
+| Python | mutmut | `python -c "import mutmut"` | `{pkg_mgr} install mutmut` | `mutmut run --paths-to-mutate={package}` |
+| TypeScript/JS | Stryker | `npx stryker --version` | `npm install --save-dev @stryker-mutator/core` | `npx stryker run` |
+| Java (Maven) | PIT (Pitest) | Check `pom.xml` for pitest plugin | Add to pom.xml | `mvn org.pitest:pitest-maven:mutationCoverage` |
+| Go | go-mutesting | `command -v go-mutesting` | `go install github.com/zimmski/go-mutesting/...@latest` | `go-mutesting ./...` |
+| Rust | cargo-mutants | `cargo mutants --version` | `cargo install cargo-mutants` | `cargo mutants` |
+| C# (.NET) | Stryker.NET | `dotnet stryker --version` | `dotnet tool install dotnet-stryker` | `dotnet stryker` |
+
+### Assessment
+
+- If mutation tool is available: record in progress.md, note as ready for nightly/pre-release CI
+- If missing: note in Readiness Report, generate foundation story (Level 2, P2) for installation
+- Mutation testing runs in post-merge/nightly CI, NOT in pre-commit — it's too slow for fast feedback
+
+Record mutation testing status:
+
+```
+mutation_testing:
+  tool: {tool_name}
+  status: ready | missing
+  detail: "{explanation}"
+```
+
+## Architecture → Testing Shape Mapping
+
+The recommended testing shape depends on the project's architecture. After architecture detection (A3), map to a testing recommendation:
+
+| Architecture | Testing Shape | Primary Test Level | Ratio Guidance |
+|---|---|---|---|
+| Monolith | Pyramid | Unit tests for business logic | 70% unit / 20% integration / 10% E2E |
+| Frontend SPA | Trophy | Integration tests + static analysis | 20% unit / 50% integration / 20% E2E / 10% static |
+| Microservices | Honeycomb | Service-boundary integration + contract | 30% unit / 50% integration + contract / 20% E2E |
+| Serverless | Hybrid | Per-function unit + contract | 50% unit + contract / 30% integration / 20% E2E |
+| CLI tool | Pyramid | Unit + integration (command tests) | 60% unit / 30% integration / 10% E2E |
+| Library/SDK | Pyramid | Unit + property-based | 70% unit + PBT / 20% integration / 10% examples |
+
+Populate the testing shape recommendation in TESTING_STRATEGY.md's `## Test Infrastructure` section during step A4.
+
 ## Graceful Degradation
 
 | Situation | Action |

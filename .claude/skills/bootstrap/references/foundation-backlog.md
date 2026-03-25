@@ -15,6 +15,8 @@ For each Readiness Report item classified as `⚠️ Risk` or `✗ Missing`, gen
 | TDD-first (no test runner) | `[Infrastructure]` Set up test framework for {language} | — | 0 |
 | TDD-first (no coverage) | `[Infrastructure]` Install and configure coverage tool ({tool}) | — | 0 |
 | TDD-first (low coverage) | — | `[Testing]` Improve test coverage to ≥60% (currently {pct}%) | 2 |
+| TDD-first (no mutation testing) | — | `[Infrastructure]` Install and configure mutation testing tool ({tool}) | 2 |
+| TDD-first (no PBT framework) | — | `[Infrastructure]` Install property-based testing framework ({tool}) | 2 |
 | Sprint-based | — (unlikely for existing repos) | `[Infrastructure]` Clean up git state | 0 |
 | Git-disciplined (no remote) | `[Infrastructure]` Configure git remote | — | 0 |
 | Verification-driven (tests fail) | `[Infrastructure]` Fix failing tests ({count} failures) | — | 1 |

@@ -4,23 +4,23 @@ Reference loaded by `/bootstrap` Path A between steps A2.2 (detect commands) and
 
 ## Tool Recommendations by Stack
 
-| Stack | Formatter | Linter | Coverage | Type Checker |
-|-------|-----------|--------|----------|-------------|
-| Python | ruff format | ruff check | pytest-cov | mypy or pyright |
-| TypeScript | prettier or biome | eslint or biome | Built-in (jest/vitest) | tsc --noEmit (built-in) |
-| JavaScript | prettier or biome | eslint or biome | Built-in (jest/vitest) | — |
-| Go | gofmt (built-in) | go vet (built-in) | Built-in (go test -cover) | Built-in |
-| Rust | rustfmt (built-in) | clippy (built-in) | cargo-tarpaulin | Built-in |
-| Ruby | rubocop | rubocop | simplecov | sorbet or steep |
-| Java | google-java-format | checkstyle or spotbugs | jacoco | Built-in (javac) |
-| C# | dotnet format (built-in) | dotnet analyzers | coverlet | Built-in |
-| Swift | swift-format | swiftlint | — | Built-in |
-| PHP | php-cs-fixer | phpstan or psalm | phpunit --coverage | phpstan |
-| Dart | dart format (built-in) | dart analyze (built-in) | Built-in | Built-in |
+| Stack | Formatter | Linter | Coverage | Type Checker | Mutation | Property-Based |
+|-------|-----------|--------|----------|-------------|----------|----------------|
+| Python | ruff format | ruff check | pytest-cov | mypy or pyright | mutmut | Hypothesis |
+| TypeScript | prettier or biome | eslint or biome | Built-in (jest/vitest) | tsc --noEmit (built-in) | Stryker | fast-check |
+| JavaScript | prettier or biome | eslint or biome | Built-in (jest/vitest) | — | Stryker | fast-check |
+| Go | gofmt (built-in) | go vet (built-in) | Built-in (go test -cover) | Built-in | go-mutesting | gopter |
+| Rust | rustfmt (built-in) | clippy (built-in) | cargo-tarpaulin | Built-in | cargo-mutants | proptest |
+| Ruby | rubocop | rubocop | simplecov | sorbet or steep | mutant | rantly |
+| Java | google-java-format | checkstyle or spotbugs | jacoco | Built-in (javac) | PIT (Pitest) | jqwik |
+| C# | dotnet format (built-in) | dotnet analyzers | coverlet | Built-in | Stryker.NET | FsCheck |
+| Swift | swift-format | swiftlint | — | Built-in | — | SwiftCheck |
+| PHP | php-cs-fixer | phpstan or psalm | phpunit --coverage | phpstan | Infection | — |
+| Dart | dart format (built-in) | dart analyze (built-in) | Built-in | Built-in | — | — |
 
 ## Detection Logic
 
-For each tool category (formatter, linter, coverage, type checker):
+For each tool category (formatter, linter, coverage, type checker, mutation, property-based):
 
 1. **Check if already available** — run `command -v {tool}` or the detect command
 2. **Skip built-in tools** — for stacks with built-in tools (Go, Rust, Dart), note as available and skip the offer
@@ -107,7 +107,9 @@ ls .go-arch-lint.yml 2>/dev/null  # Go
 - **Post-edit hook** (`post-edit-format.sh`): uses formatter + linter — quality depends on these being installed
 - **Quality gates** (`/sprint-end`): uses linter + type checker + test runner — gates can't function without them
 - **Readiness Report** (A5.8): uses tool availability data for the "Quality gates" principle check
-- **Coverage assessment** (`references/coverage-assessment.md`): coverage tool offer is part of this same pattern
+- **Coverage assessment** (`references/coverage-assessment.md`): coverage + mutation tool offer is part of this same pattern
+- **Mutation testing** (nightly/pre-release): mutation tools enable the ≥80% mutation score gate from TESTING_STRATEGY.md
+- **Property-based testing**: PBT frameworks enable TESTING_STRATEGY.md's "critical business logic" tier (unit + PBT + integration)
 - **Architecture enforcement** (optional): architecture enforcement tools make ARCHITECTURE.md Dependency Rules executable in CI
 
 ## Optional: CI Slop Detection

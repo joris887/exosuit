@@ -54,40 +54,38 @@ Run the project's test command with coverage (from CLAUDE.md Commands section). 
 # Swift: swift test --enable-code-coverage
 ```
 
-## Quality Checks
+## 6 Quality Checks (from TESTING_STRATEGY.md)
 
-- [ ] Tests exist for all public functions
-- [ ] Tests cover happy path AND error cases
-- [ ] No mock implementations replacing real logic
-- [ ] Tests are isolated (no shared mutable state)
-- [ ] Assertions are meaningful
-- [ ] Test names describe behavior being tested
+Apply to every AI-generated test:
 
-## Degradation Detection
+| # | Check | Red Flag |
+|---|---|---|
+| 1 | **Revert** — would this fail with a naive implementation? | Passes regardless of implementation |
+| 2 | **Mutation** — would changing `>` to `>=` cause failure? | Mutations survive |
+| 3 | **Independence** — validates behavior from caller's perspective? | Mirrors internal details |
+| 4 | **Assertion density** — ≥3 meaningful assertions per test? | Single weak assertion |
+| 5 | **Naming** — name explains what behavior it protects? | `test_function_works` |
+| 6 | **Edge coverage** — includes boundaries, errors, null/empty? | Only happy-path tests |
 
-Check for these anti-patterns that indicate test quality erosion:
+## Anti-Pattern Detection
 
-### Weakened Assertions
-- `toBeTruthy()` or `toBeFalsy()` replacing specific `toBe(value)` checks
-- `toBeInstanceOf()` replacing specific property assertions
-- `expect(result).toBeDefined()` replacing `expect(result).toEqual(expected)`
-- `assert True` replacing `assert value == expected`
+### Tier 1: Critical (check every review)
 
-### Deleted Tests
-- Test blocks removed or commented out
-- Test files deleted without replacement
-- `skip`, `xtest`, `xit`, `@pytest.mark.skip` added without documented reason
+**Tautological tests** (~30% of AI suites): Expected values computed from production logic, or assertions that can't fail. Detection: look for tests recalculating expected values using the same formulas as source code. Flag tests with near-zero mutation kill potential.
 
-### Tautological Tests
-- Tests that always pass regardless of implementation
-- Assertions on mock return values (testing the mock, not the code)
-- `expect(true).toBe(true)` or equivalent no-ops
-- Tests that catch all exceptions and pass
+**Over-mocking** (40-70% of AI repos): Test validates mock configuration, not real behavior. Detection: flag tests with >3 mocks, or where assertions only verify values explicitly set in mock setup. Check mock-to-assertion ratio — mocks must not exceed assertions.
 
-### Assertion Density
-- Each test should have at least one meaningful assertion
-- Ratio of assertions to test count should be >= 1.5
-- Flag tests with zero assertions
+**Happy-path-only** (near universal): All tests for valid inputs. Detection: compare branch coverage vs line coverage — gap >15% indicates this pattern. Flag functions with >3 branches and <60% branch coverage.
+
+### Tier 2: High (check in CI/review)
+
+**Assertion weakening**: Assertions became less specific without corresponding code changes (e.g., `toBe(42)` → `toBeTruthy()`). Compare assertion specificity in git diff.
+
+**Implementation coupling**: Assertions on method call counts/order rather than return values. Tests break on refactoring despite unchanged behavior.
+
+**Test similarity**: >80% structural similarity between test methods — indicates copy-paste instead of parameterized/table-driven tests.
+
+**Deleted tests**: Test blocks removed, files deleted, or `skip`/`xtest`/`@pytest.mark.skip` added without documented reason.
 
 ## Common Mistakes — NEVER:
 
@@ -115,9 +113,12 @@ Rate each finding 0–100:
 
 ### Summary
 - Tests run: X passed, Y failed
-- Coverage: X% (delta: +/-Y%)
+- Coverage: X% line, X% branch (delta: +/-Y%)
+- Branch-to-line gap: X% (flag if >15%)
+- Mutation score: X% on changed code (target: ≥80%)
 - Test count: X (delta: +/-Y vs main)
-- Assertion density: X.X assertions/test
+- Assertion density: X.X assertions/test (target: ≥3.0)
+- Mock-to-assertion ratio: X:Y (flag if mocks > assertions)
 
 ### Missing Coverage
 | File | Lines | Confidence | Why Critical |
@@ -135,6 +136,8 @@ Rate each finding 0–100:
 - [ ] Tests written before implementation
 - [ ] No test deletions detected
 - [ ] No weakened assertions detected
+- [ ] No tautological tests (hardcoded expected values, not computed)
 - [ ] Coverage did not decrease
-- [ ] Assertion density maintained
+- [ ] Assertion density ≥3.0 per test method
+- [ ] Mock-to-assertion ratio <1:1
 ```

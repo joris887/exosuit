@@ -42,6 +42,9 @@ If no lens is specified, review across all areas using the full checklist below.
 ### Testing
 - [ ] Tests are meaningful — would fail if implementation was naive
 - [ ] No weakened assertions (toBeTruthy replacing toBe(42))
+- [ ] No tautological tests — expected values hardcoded from specs, not computed from production logic
+- [ ] Mock count per test ≤3; assertions outnumber mocks (mock-to-assertion ratio <1:1)
+- [ ] Tests assert on return values and observable state, not method call counts or internal sequences
 - [ ] Edge cases have test coverage
 
 ## Confidence Scoring
