@@ -122,7 +122,8 @@ After presenting findings:
 
 1. **Check backlog impact** — Search `docs/reference/BACKLOG_INDEX.md` for stories that might be affected by these findings
 2. **Check solution overlap** — Search `docs/solutions/` for existing learnings that should be updated
-3. **Suggest next steps** based on findings:
+3. **Check ADR relevance** — Search `docs/adr/` for accepted decisions about the researched topic. If the research contradicts an accepted ADR, flag it explicitly ("Research suggests X, but ADR-NNNN chose Y because Z — consider whether to supersede"). If the research validates an accepted ADR, note the confirmation.
+4. **Suggest next steps** based on findings:
    - "These findings suggest a brainstorm: `/brainstorm [topic]`"
    - "This could become stories: `/ideate [idea based on findings]`"
    - "A spike story would help validate: [specific uncertainty]"

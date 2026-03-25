@@ -75,7 +75,7 @@ Run the relevant test or command to reproduce:
 
 If it cannot be reproduced, gather more context before proceeding.
 
-### 1c. Check Recent Changes
+### 1c. Check Recent Changes and ADR Constraints
 
 ```bash
 git log --oneline -10
@@ -83,6 +83,10 @@ git diff HEAD~3
 ```
 
 Did a recent change introduce this? Use `git bisect` for non-obvious regressions.
+
+<IF condition="docs/adr/ contains accepted ADR files">
+Check if the error area is governed by an accepted ADR. If so, the fix MUST respect that decision — propose a fix within the ADR's constraints rather than working around the architectural choice. If the ADR itself is the root cause, flag it for supersession rather than silently violating it.
+</IF>
 
 ### 1d. Trace Backward from Symptom
 

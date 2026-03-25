@@ -41,6 +41,7 @@ Before session recovery, assess project maturity by checking key artifacts:
 | `docs/reference/BACKLOG_INDEX.md` | Has ≥1 TODO story | Suggest `/ideate` |
 | Feature branch | `git branch --list 'feature/*' 'sprint-*'` | Suggest `/sprint-start` |
 | Test command | CLAUDE.md Commands has test entry | Suggest configuring tests |
+| ADR currency | New ADRs accepted since last session (`git log --oneline docs/adr/`) | Surface new decisions that may constrain current work |
 
 Present as a health dashboard before the session state:
 

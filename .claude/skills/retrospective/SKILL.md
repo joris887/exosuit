@@ -132,6 +132,16 @@ Reflect on Claude Code usage:
 - Documentation: Did we keep docs updated?
 - Test quality: Were any tests weakened or deleted?
 
+## 4.5. Architecture Decision Audit
+
+Review whether architectural decisions made during this sprint are properly documented:
+
+- **Scan commit messages and story plans** for technology choices, pattern decisions, or trade-off discussions that aren't captured in `docs/adr/`
+- **Check for "decisions in chat"** — if the team discussed architectural choices during the sprint but didn't create ADRs, flag specific candidates (e.g., "Chose Redis over Memcached for caching — warrants an ADR")
+- **Ground rule candidates** — if a pattern was enforced informally during the sprint ("we always do X"), suggest formalizing it as a ground rule backed by an ADR
+
+This prevents the "decisions in Slack" anti-pattern where architectural choices are made but never formalized.
+
 ## 5. Action Items
 
 Convert insights into specific actions:

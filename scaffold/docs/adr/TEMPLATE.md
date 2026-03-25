@@ -1,85 +1,50 @@
-# ADR-XXX: [Short Title of Decision]
+---
+# ADR Metadata (machine-parseable — used by /architecture-check and /story-cycle)
+status: proposed  # proposed | accepted | rejected | deprecated | superseded
+date: YYYY-MM-DD
+decision-makers: []
+tags: []  # e.g., [database, api, security, infrastructure]
+rejected-options: []  # e.g., [mongodb, graphql] — AI checks this before proposing approaches
+supersedes: null  # ADR-NNNN if replacing an earlier decision
+superseded-by: null
+linked-ground-rules: []  # e.g., [GR-003] if promoted to a ground rule
+confidence: high  # high | medium | low — low-confidence decisions get reviewed sooner
+---
 
-<!-- MADR 4.0 format — see https://adr.github.io/madr/ -->
+# ADR-NNNN: {Decision title as imperative phrase}
 
-## Status
+## Context
 
-<!-- Proposed | Accepted | Deprecated | Superseded by [ADR-YYY](link) -->
-
-- **Status:** Proposed
-- **Date:** YYYY-MM-DD
-- **Deciders:** [who was involved in the decision]
-
-## Context and Problem Statement
-
-<!-- What is the issue motivating this decision? Describe the context and the problem in 2-5 sentences. -->
-
-## Decision Drivers
-
-<!-- Forces that influence this decision. List the top 3-5. -->
-
-- [driver 1 — e.g., performance requirement]
-- [driver 2 — e.g., team expertise]
-- [driver 3 — e.g., maintenance cost]
+{What situation are we in? What forces are at play — technical, business,
+team, timeline? Write as value-neutral facts. 2-4 sentences.}
 
 ## Decision
 
-<!-- What is the change we are making? State it as a single clear sentence, then explain. -->
+**We will {decision in active voice}.**
 
-**Chosen option:** "[Option Name]"
+{1-2 sentences expanding on the decision if needed.}
 
-<!-- Explain why this option was chosen, referencing the decision drivers above. -->
+## Alternatives Considered
+
+### ✅ {Chosen option} (Selected)
+- **Why chosen:** {core rationale, 1-2 sentences}
+
+### ❌ {Rejected option 1}
+- **Why rejected:** {specific reason, 1-2 sentences}
+- **Reconsider when:** {conditions that would reopen this}
+
+### ❌ {Rejected option 2}
+- **Why rejected:** {specific reason, 1-2 sentences}
+- **Reconsider when:** {conditions that would reopen this}
 
 ## Consequences
 
-### Positive
-
-- [benefit — what becomes easier or better]
-
-### Negative
-
-- [trade-off — what becomes harder or worse]
-
-### Neutral
-
-- [observation — side effects that are neither good nor bad]
-
-## Considered Options
-
-<!-- List all options that were evaluated. -->
-
-1. [Option 1 — the chosen option]
-2. [Option 2]
-3. [Option 3]
-
-### Option 1: [Name]
-
-<!-- The chosen option -->
-
-- Good, because [argument]
-- Good, because [argument]
-- Bad, because [trade-off]
-
-### Option 2: [Name]
-
-- Good, because [argument]
-- Bad, because [argument]
-- Bad, because [argument]
-
-### Option 3: [Name]
-
-- Good, because [argument]
-- Bad, because [argument]
+- **Positive:** {what gets better}
+- **Negative:** {what gets worse or becomes harder}
+- **Operational:** {what the team must now do differently}
 
 ## Compliance
 
-<!-- How to verify this decision hasn't drifted. Check quarterly or at sprint boundaries. -->
-
-- **Check:** [How to verify — e.g., "grep for alternative_tech imports", "review dependency list"]
-- **Owner:** [Who is responsible for enforcement]
-- **Last checked:** YYYY-MM-DD
-
-## References
-
-- [links to relevant research, documentation, or discussions]
-- [link to related ADRs if any]
+{How will we verify this decision is followed? Reference fitness functions,
+code review checks, ground rules, or architectural tests. Optional for
+low-impact decisions.}

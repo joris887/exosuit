@@ -1,18 +1,22 @@
 # Architecture Decision Records
 
-Lightweight decision log for significant architectural choices.
+Decision log for significant architectural choices. **Before proposing any implementation approach, check ADRs in this directory for relevant prior decisions.**
+
+## Key Rules
+- Respect all `status: accepted` ADRs — do not propose approaches that contradict them
+- Do not propose approaches listed in `rejected-options` frontmatter of any ADR
+- Check `Reconsider when` conditions before suggesting a rejected alternative is now viable
+- ADRs are immutable once accepted — create a superseding ADR to change a decision
+- Use `TEMPLATE.md` format with YAML frontmatter for all new ADRs
+
+## Anti-Patterns (do NOT generate these)
+- **Rubber-stamp ADR** — no real alternatives considered. Every ADR MUST have ≥1 rejected option with specific rationale.
+- **Mega-ADR** — scope too broad. One decision per ADR. If it covers multiple decisions, split it.
+- **Missing "why not"** — chosen option documented but rejected options lack rationale. The rejection rationale is the most valuable content.
+- **Post-hoc rationalization** — ADR written long after implementation without acknowledging lost context. Flag with `confidence: low` if writing retroactively.
+- **Signal drowning** — ADR for a trivial decision (library minor bump, style choice). Apply the reversibility test: if cheap to reverse, skip the ADR.
 
 ## Files
-- `README.md` — ADR process overview
-- `TEMPLATE.md` — template for new ADRs
-- `NNNN-<title>.md` — individual decision records
-
-## When to Create an ADR
-- Choosing between competing technologies or approaches
-- Deviating from established patterns
-- Making irreversible or expensive-to-reverse decisions
-
-## Conventions
-- Use `TEMPLATE.md` format: context, decision, consequences
-- ADRs are immutable once accepted — supersede with a new ADR, don't edit
-- Number sequentially: 0001, 0002, etc.
+- `README.md` — full process, governance, and review workflow
+- `TEMPLATE.md` — template for new ADRs (copy, don't modify)
+- `NNNN-short-title.md` — individual decision records

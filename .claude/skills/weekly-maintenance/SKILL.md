@@ -109,6 +109,18 @@ Check the health of project ground rules:
 - **Enforcement gaps** — for rules with `Enforced-by: auto:`, verify the tool/test still exists and runs in CI. Unconfigured enforcement = paper rule.
 </IF>
 
+## 5.7. Architecture Decision Health
+
+<IF condition="docs/adr/ contains ADR files">
+Review the health of architecture decision records:
+
+- **Low-confidence ADRs** — scan for `confidence: low` in frontmatter. For each, check whether `Reconsider when` conditions have been met by the current codebase state. Flag any that need re-evaluation.
+- **Stale ADRs** — if no ADR has been created or reviewed in 90+ days on an actively developed project, the team may be making undocumented decisions. Flag as a process gap.
+- **Supersession chains** — check for `superseded-by` chains longer than 2 (A→B→C). These indicate a volatile decision area that may need a ground rule instead.
+- **Ground rule candidates** — if 2+ accepted ADRs address the same concern, suggest promoting to `docs/reference/GROUND_RULES.md`.
+- **ADR count health** — projects with <5 ADRs and >10 major dependencies are likely under-documenting decisions.
+</IF>
+
 ## 6. Weekly Summary
 
 Update @docs/progress.md with:

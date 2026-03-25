@@ -358,6 +358,10 @@ For any requirement where the user's intent is ambiguous or multiple valid inter
 
 Apply the `test_strategy_selection` reasoning tool for the testing section.
 
+<IF condition="docs/adr/ contains ADR files">
+Scan ADR YAML frontmatter for `status: accepted` records with tags relevant to this story's domain. Check that no proposed approach matches a `rejected-options` value in any accepted ADR. If a match is found, note the ADR reference and use the chosen alternative instead. Check `Reconsider when` conditions only if circumstances have materially changed.
+</IF>
+
 <IF condition="docs/reference/GROUND_RULES.md exists">
 Check the plan against `docs/reference/GROUND_RULES.md`. Any MUST violation → HALT. Any SHOULD violation → document justification in an Architectural Violations table (see `references/plan-template.md`).
 </IF>

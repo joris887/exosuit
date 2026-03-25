@@ -26,6 +26,7 @@ Each check maps a framework design principle to a concrete, verifiable project s
 | 12 | **Type-safe** | Type checker configured for the stack | A2.8 (type checking) | Type checker available and configured (or built-in for Go/Rust/Dart/C#/Java) |
 | 13 | **Contract-first** | API spec file exists if API endpoints detected | A2.55 (API detection) | Spec file exists and is non-empty; skip if no API detected |
 | 14 | **API-documented** | API_DOCUMENTATION.md populated if API project | A2.55 + A2.5 | API doc has populated Operations section; skip if no API detected |
+| 15 | **Decisions-documented** | ADRs exist for major technology choices | A3.5 (architecture) | `docs/adr/` has ≥1 accepted ADR; skip for new/greenfield projects |
 
 ## Classification
 
@@ -55,6 +56,7 @@ Each check produces one of three statuses:
 | Type-safe | Type checker configured (or built-in) | Type checker available but not configured | No type checker available (not built-in) |
 | Contract-first | Spec file exists + contract testing in CI | Spec exists but no contract testing | API endpoints detected but no spec file (skip if no API) |
 | API-documented | API_DOCUMENTATION.md has populated Operations | API_DOCUMENTATION.md exists but template-only | No API_DOCUMENTATION.md (skip if no API detected) |
+| Decisions-documented | ≥3 accepted ADRs in docs/adr/ | 1-2 accepted ADRs | 0 ADRs and project has >5 major deps (skip for new projects) |
 
 ## Report Template
 
@@ -77,9 +79,10 @@ Each check produces one of three statuses:
 | Type-safe | {status} | {detail} |
 | Contract-first | {status} | {detail} |
 | API-documented | {status} | {detail} |
+| Decisions-documented | {status} | {detail} |
 
 **Summary:** {ready_count}/{total_count} ready, {risk_count} at risk, {missing_count} missing
-_API checks (13-14) only counted when API endpoints are detected. Non-API projects show {total_count}=12._
+_API checks (13-14) only counted when API endpoints are detected. Decisions-documented (15) skipped for new/greenfield projects._
 
 ### Optimization Metrics
 

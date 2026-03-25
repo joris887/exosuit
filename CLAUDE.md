@@ -29,6 +29,15 @@
 ## Architecture
 <!-- One-liner filled by /bootstrap. See docs/architecture/ARCHITECTURE.md for details. -->
 
+## Architecture Rules
+<!-- Derived from accepted ADRs. See the linked ADR for full rationale. -->
+<!-- /bootstrap: Populate from existing docs/adr/ records. Add manually as ADRs are accepted. -->
+<!-- Example:
+- All API endpoints use REST, not GraphQL (ADR-0003)
+- Authentication uses Auth0; do not implement custom auth (ADR-0015)
+-->
+- Before proposing any architectural change, check @docs/adr/ for prior decisions.
+
 ## Git Workflow
 - **Default branch:** <!-- Detected by /bootstrap (main, master, develop, etc.) -->
 - **Flow:** GitHub Flow (feature branches → squash merge)
@@ -85,6 +94,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 - `docs/reference/TESTING_STRATEGY.md` — Testing practices
 - `docs/architecture/ARCHITECTURE.md` — System architecture
 - `docs/reference/GROUND_RULES.md` — Architectural principles
+- `docs/adr/` — Architecture decision records (prior decisions and rejected alternatives)
 - `docs/reference/MCP_INTEGRATION.md` — MCP server selection and integration guide
 - `docs/testing/UAT_COVERAGE.md` — UAT test cases
 

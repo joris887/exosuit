@@ -17,6 +17,7 @@
 - **Rationale**: Couples business logic to delivery mechanisms, making the domain untestable and non-portable.
 - **Enforced-by**: ai: "Never add infrastructure/framework imports into domain files" | review: check imports in domain/
 - **Exceptions**: None — define a port interface instead.
+- **ADR**: ADR-0007 (if this rule was promoted from an ADR — provides full decision context and rejected alternatives)
 -->
 
 <!-- BOOTSTRAP DEFAULTS — suggest based on detected architecture:
