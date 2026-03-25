@@ -70,11 +70,13 @@ Check CLAUDE.md Commands section for project-specific quality commands.
 
 ## AI-Specific Review (CRITICAL)
 
-- Are all imported packages REAL and maintained?
-- Were any existing tests deleted or weakened?
-- Does implementation match established patterns in the codebase?
-- Is there unexplained complexity that might be hallucinated?
-- Would a developer understand this in 6 months?
+Check for the 5 research-identified AI debt types. AI-generated code passes functional tests while failing structural quality — static analysis catches what tests miss.
+
+1. **Phantom dependency debt** — are all imported packages REAL and in the project's dependency manifest? AI references APIs that don't exist, deprecated methods, and phantom libraries at high rates.
+2. **Duplication debt** — are there near-identical code blocks? AI regenerates rather than reusing existing functions. Look for code that duplicates logic already present elsewhere in the codebase.
+3. **Pattern violation debt** — does the code match established patterns in `docs/reference/CODING_STANDARDS.md` and surrounding code? AI introduces inconsistent styles at 3x the human rate. Check naming, error handling, logging, and module structure.
+4. **Comprehension debt** — would a developer understand this in 6 months? Flag complex AI-generated blocks with no inline reasoning or design rationale. If the logic isn't self-evident and there are no comments explaining *why*, it's comprehension debt.
+5. **Verification debt** — were any existing tests deleted or weakened? Are there large generated blocks with no corresponding test coverage? AI can inflate coverage with meaningless assertions — check that tests verify behavior, not just execute code paths.
 
 ## Common Mistakes — NEVER:
 

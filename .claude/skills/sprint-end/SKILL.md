@@ -212,6 +212,12 @@ Based on what was done in the sprint, update relevant documentation:
 - **CLAUDE.md**: Update Current Focus if epic status changed
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
 - **Architecture doc** (`docs/architecture/ARCHITECTURE.md`): If any story in this sprint changed architecture (check the Update Triggers section), verify the doc was updated during story-cycle Phase 4e. If not, update it now and set `Last Verified` date to today.
+- **Technical debt register** (`docs/technical-debt.md`):
+  - If quality gates (step 2) identified issues logged to the debt register, ensure each item has the full format (category, severity, origin, quantified impact, interest rate, effort, resolution plan)
+  - For debt introduced by AI-assisted code this sprint, set `origin: ai-generated`
+  - For debt resolved by sprint stories, move items to "Resolved" section with actual effort and sprint reference
+  - Update the header: `Active items: X | Resolved this quarter: Y`
+  - Record in sprint spec `## Outcome`: **Debt delta**: +N added / -N resolved (net: +/-N). This data feeds into `/retrospective` for trend analysis.
 
 ### PRD Living Document Review
 

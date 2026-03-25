@@ -84,6 +84,35 @@ Flag and report:
 - Lockfile in sync: [yes/no]
 ```
 
+## 4.5. Technical Debt Register Review
+
+Read `docs/technical-debt.md` and perform the weekly debt review:
+
+### Triage active items
+For each active item:
+- **Interest rate reassessment** — check coupling to determine if interest is Growing or Stable. Run `grep -rn` on the debt item's Location files to count how many other files import/reference them. High fan-in (imported by >5 files) + active debt = Growing interest. Isolated files with no dependents = Stable or Shrinking.
+- **Severity check** — has the item worsened? (e.g., new incidents, more files affected). Promote if so.
+- **Resolution progress** — is there a linked story? If not and item is >30 days old, consider creating one.
+- **Accept or resolve** — can any items move to "Accepted" (conscious trade-off) or "Resolved" (fixed)?
+
+### Detect new debt
+Check this week's commits and code quality findings for new debt. Specifically scan for the **5 AI-specific debt types**:
+
+1. **Comprehension debt** — grep git log for AI-assisted commits (`Co-Authored-By: Claude` or similar). For files with high AI-commit ratio that haven't been manually modified since, flag as potential comprehension debt. The risk: code ships faster than developers understand it.
+2. **Pattern violation debt** — compare this week's changes against `docs/reference/CODING_STANDARDS.md` (if exists). AI introduces inconsistent patterns at 3x the human rate for formatting, 2x for naming.
+3. **Duplication debt** — check for near-duplicate code blocks introduced this week. AI regenerates rather than reusing existing functions.
+4. **Phantom dependency debt** — verify all imports added this week reference packages that exist in the project's dependency manifest (package.json, requirements.txt, go.mod, Cargo.toml, etc.).
+5. **Verification debt** — check if large AI-generated diffs have corresponding test coverage. Code reviewed without full understanding creates hidden risk.
+
+Tag new items with `origin: ai-generated` when the source commit has AI co-author markers.
+
+### Housekeeping
+1. **Review dates** — update "Last reviewed" to today, "Next review" to +7 days
+2. **Resolved cleanup** — delete resolved items older than 90 days
+3. **AI trends** — at quarter boundaries, update the AI Debt Trends table with counts
+4. **Active count** — update header: `Active items: X | Resolved this quarter: Y`
+5. **Sprint candidates** — flag items with priority score ≥4.5 or interest "Growing" for next sprint planning. `/sprint-start` reads these during its debt health check.
+
 ## 5. Rule Health Review
 
 Run the metrics script to assess rule effectiveness:
@@ -150,8 +179,11 @@ Additional weekly indicators not tracked per-sprint:
 - Duplication: X%
 - Dependency health: [count] vulnerabilities, [count] outdated
 
-### Technical Debt Identified
-- [Item]: [Location] - [Priority]
+### Technical Debt
+- New items added: [count] (AI-origin: [count])
+- Items resolved: [count]
+- Active totals: [N] critical / [N] high / [N] medium / [N] low
+- Growing-interest items needing attention: [list or "none"]
 
 ### Next Week Focus
 - [Story IDs planned]

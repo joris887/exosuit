@@ -100,6 +100,25 @@ Present findings to the user before story selection in step 3, framed as recomme
 
 If all metrics are 🟢 with stable trends, or if the Metrics table has no data yet, skip this section silently.
 
+## 1.6. Debt Health Check
+
+<IF condition="docs/technical-debt.md exists and contains active items (not just template comments)">
+Scan `docs/technical-debt.md` for debt that should influence sprint planning:
+
+1. **Active counts** — read the header (`Active items: X`). If 0, skip this section.
+2. **Sprint candidates** — scan for items matching any of:
+   - Severity: Critical (must be addressed this sprint)
+   - Interest: Growing (compounding — gets worse each sprint it's deferred)
+   - Priority score ≥ 4.5 (high impact-to-effort ratio)
+3. **Debt neglect check** — scan the Resolved section for dates. If no items resolved in the last 2 sprints, flag: "No debt resolved in 2+ sprints — debt is accumulating without remediation."
+
+Present findings before story selection in step 3, framed as recommendations:
+
+> "Debt register: [N] active items ([N] critical, [N] growing). Sprint candidates: TD-NNN [title], TD-NNN [title]. Consider including at least 1 debt remediation story."
+
+If Critical items exist, present them as P0 stories alongside backlog stories in the step 3 story table. If Growing items exist, note them as recommended additions.
+</IF>
+
 ## 2. Create Feature Branch
 
 Determine the next sprint number by reading `docs/progress.md` and finding the highest sprint number, then adding 1.

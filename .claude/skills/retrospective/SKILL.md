@@ -116,6 +116,29 @@ Read sprint spec `## Outcome` → **Ground rules** field across recent sprints:
 - **Coverage gaps** — rules never checked suggest enforcement isn't working
 </IF>
 
+<IF condition="docs/technical-debt.md exists and has active or resolved items">
+### 2.9. Technical Debt Health
+
+Read `docs/technical-debt.md` and recent sprint spec(s) `## Outcome` → **Debt delta** fields:
+
+- **Active inventory**: [N] total — [N] critical / [N] high / [N] medium / [N] low
+- **AI-origin ratio**: [N] of [total] active items ([X%]) have `origin: ai-generated`
+- **Growth trend**: Sum debt deltas from sprint outcomes in the review period. Net debt growing, stable, or shrinking?
+- **Resolution velocity**: Items resolved since last retro. Average time from `Since` date to `Resolved` date.
+- **Stale items**: Any active items older than 90 days with no linked story? Flag as neglected.
+- **Interest escalation**: Any items whose interest changed from Stable → Growing since last review? These are compounding.
+- **Estimate accuracy**: For resolved items, compare `Effort actual` vs `Effort` estimate. Systematic bias?
+
+<IF condition="Section 2.6 (Hotspot Investigation) produced results">
+Cross-reference high-churn files from 2.6 with debt item Locations. Overlap means debt in actively changing code — it's compounding through every edit.
+</IF>
+
+Flag actionable patterns:
+- **Net debt growing 2+ sprints** → "Debt accumulating faster than resolution — increase debt allocation in next sprint"
+- **AI-origin >50%** → "AI is primary debt source — review quality gates, coding standards enforcement, and AI-specific review depth"
+- **Stale items >3** → "Debt register going stale — items not converting to sprint stories. Check sprint-start debt health check."
+</IF>
+
 ## 3. Retrospective Framework
 
 Use the 4Ls format:
