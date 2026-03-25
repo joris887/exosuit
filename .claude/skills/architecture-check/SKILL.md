@@ -90,6 +90,19 @@ fi
 
 Compare changed files against trigger conditions (new top-level directories, new data stores, changed API boundaries). Flag any matches as "Architecture doc may be stale."
 
+### 3.7b. Validate API Documentation Currency (if API project)
+
+<IF condition="docs/reference/API_DOCUMENTATION.md exists and has populated Operations section (not just template placeholders)">
+
+1. Grep for route/endpoint definitions in the codebase (framework-specific: `@app.route`, `router.get`, `@RequestMapping`, `func (h *Handler)`, etc.)
+2. Compare discovered endpoints against documented Operations in `docs/reference/API_DOCUMENTATION.md`
+3. Flag: **undocumented endpoints** (in code but not in docs), **stale documentation** (in docs but removed from code)
+4. Check consistency: do all endpoints use the documented authentication method? Do error responses follow the documented error format?
+5. If an API spec file exists (`openapi.yaml`, `asyncapi.yaml`, etc.): verify it is referenced in the API documentation header
+
+Report findings in the output under `### API Documentation Currency`.
+</IF>
+
 ### 3.8. Validate Known Landmines
 
 For each entry in the Known Landmines section:
@@ -163,6 +176,9 @@ For each architectural rule, suggest a test that can be automated:
 | Rule | Level | Status | Evidence |
 |------|-------|--------|----------|
 | [GR-NNN: name] | MUST/SHOULD | PASS/FAIL/ENFORCEMENT GAP | [file:line or tool status] |
+
+### API Documentation Currency
+- [Undocumented endpoints / Stale docs / Consistent — or "N/A (no API detected)"]
 
 ### Fitness Function Suggestions
 - [Test description]: [What it validates]

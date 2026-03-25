@@ -24,6 +24,8 @@ Each check maps a framework design principle to a concrete, verifiable project s
 | 10 | **Documentation-lean** | Core docs generated and populated | A4 (config generation) | CLAUDE.md, ARCHITECTURE.md, TESTING_STRATEGY.md, progress.md all populated |
 | 11 | **Pre-commit hooks** | Git pre-commit hooks configured | A5.65 (pre-commit assessment) | Pre-commit tool detected (.pre-commit-config.yaml, .husky/, lefthook.yml, or git hook) |
 | 12 | **Type-safe** | Type checker configured for the stack | A2.8 (type checking) | Type checker available and configured (or built-in for Go/Rust/Dart/C#/Java) |
+| 13 | **Contract-first** | API spec file exists if API endpoints detected | A2.55 (API detection) | Spec file exists and is non-empty; skip if no API detected |
+| 14 | **API-documented** | API_DOCUMENTATION.md populated if API project | A2.55 + A2.5 | API doc has populated Operations section; skip if no API detected |
 
 ## Classification
 
@@ -51,6 +53,8 @@ Each check produces one of three statuses:
 | Documentation-lean | All core docs populated (incl. TESTING_STRATEGY.md) | Some docs still have template placeholders | Core docs missing |
 | Pre-commit hooks | Pre-commit tool configured | — | No pre-commit hooks detected |
 | Type-safe | Type checker configured (or built-in) | Type checker available but not configured | No type checker available (not built-in) |
+| Contract-first | Spec file exists + contract testing in CI | Spec exists but no contract testing | API endpoints detected but no spec file (skip if no API) |
+| API-documented | API_DOCUMENTATION.md has populated Operations | API_DOCUMENTATION.md exists but template-only | No API_DOCUMENTATION.md (skip if no API detected) |
 
 ## Report Template
 
@@ -71,8 +75,11 @@ Each check produces one of three statuses:
 | Documentation-lean | {status} | {detail} |
 | Pre-commit hooks | {status} | {detail} |
 | Type-safe | {status} | {detail} |
+| Contract-first | {status} | {detail} |
+| API-documented | {status} | {detail} |
 
-**Summary:** {ready_count}/12 ready, {risk_count} at risk, {missing_count} missing
+**Summary:** {ready_count}/{total_count} ready, {risk_count} at risk, {missing_count} missing
+_API checks (13-14) only counted when API endpoints are detected. Non-API projects show {total_count}=12._
 
 ### Optimization Metrics
 

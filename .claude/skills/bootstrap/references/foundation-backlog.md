@@ -32,6 +32,9 @@ For each Readiness Report item classified as `⚠️ Risk` or `✗ Missing`, gen
 | Context-efficient (oversized files) | `[Refactoring]` Split oversized files to ≤500 LOC | — | 3 |
 | Context-efficient (high fan-out) | — | `[Refactoring]` Reduce coupling in {module} (fan-out: {count}) | 3 |
 | Context-efficient (circular deps) | `[Refactoring]` Break circular dependency between {module_a} and {module_b} | — | 3 |
+| Contract-first (no API spec) | `[Documentation]` Create API spec (OpenAPI/AsyncAPI/Proto) for detected API endpoints | — | 2 |
+| Contract-first (spec exists, no contract testing) | — | `[Testing]` Set up contract testing for API spec ({tool}) | 3 |
+| API-documented (API detected, doc empty) | `[Documentation]` Populate API_DOCUMENTATION.md with operations, schemas, and error codes | — | 2 |
 | Documentation-lean | — (bootstrap just generated docs) | `[Documentation]` Review and complete generated documentation | 1 |
 | Pre-commit hooks | `[Infrastructure]` Set up pre-commit hooks for {stack} | — | 2 |
 | Type-safe (not configured) | `[Infrastructure]` Configure type checking ({tool}) for {language} | — | 1 |

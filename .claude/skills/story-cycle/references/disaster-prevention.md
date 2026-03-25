@@ -60,6 +60,20 @@ For each category, actively search for the anti-pattern — don't just check a b
 
 Quick check: run `git diff --name-only` — if new directories were created or top-level modules added/removed, architecture likely changed.
 
+## API Documentation Currency
+
+- [ ] Did this story add, remove, or change any API endpoints, routes, handlers, resolvers, or event consumers?
+- [ ] If yes: does `docs/reference/API_DOCUMENTATION.md` exist and contain real content (not just template placeholders)?
+  - If populated: verify the changed operations are documented — parameters, input schema, error responses, constraints
+  - If template-only: skip (no existing API documentation to maintain)
+- [ ] Did this story change request/response schemas, error codes, or authentication requirements?
+- [ ] If yes: update the relevant Data Models, Error Handling, or Authentication sections
+- [ ] Did this story add a new event/webhook type?
+- [ ] If yes: update the Events and Webhooks section with event type, trigger, and payload schema
+- [ ] If an API spec file exists (`openapi.yaml`, `asyncapi.yaml`, `schema.graphql`, `*.proto`): is the spec file updated to match the code changes?
+
+**Why this matters:** Every undocumented endpoint is a hallucination opportunity for AI. When AI reads outdated API docs, it generates incorrect integration code — wrong field names, missing auth, swallowed errors.
+
 ## Red Flags — Stop If You Find:
 
 | Finding | Severity | Action |
