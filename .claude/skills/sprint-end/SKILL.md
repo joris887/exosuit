@@ -180,6 +180,17 @@ Based on what was done in the sprint, update relevant documentation:
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
 - **Architecture doc** (`docs/architecture/ARCHITECTURE.md`): If any story in this sprint changed architecture (check the Update Triggers section), verify the doc was updated during story-cycle Phase 4e. If not, update it now and set `Last Verified` date to today.
 
+### PRD Living Document Review
+
+If `docs/reference/PRD_SUMMARY.md` exists, review it against sprint learnings:
+
+- **Section 9 (Open questions):** Were any assumptions validated or invalidated this sprint? Update their Status (Assumed → Validated/Invalidated). Were any open questions answered? Update Status (Open → Resolved).
+- **Section 5 (Requirements):** Did any requirement's scope change during implementation? If acceptance criteria were added, modified, or found insufficient, note the delta.
+- **Section 3 (Success criteria):** Can any criteria now be measured? Note baseline values if available from test output.
+- **Scope creep check:** Compare stories delivered against PRD Section 5 requirements. Flag stories that don't trace to any PRD requirement — these may indicate scope creep or legitimate new requirements that the PRD should absorb.
+
+If changes are needed, update PRD_SUMMARY.md and bump the version in the header comment.
+
 ## 3.5 Commit Documentation Artifacts
 
 Commit all documentation changes as a separate commit. This ensures documentation is preserved even if the push or PR step fails or is skipped.

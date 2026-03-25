@@ -120,6 +120,13 @@ Each worktree has its own branch and working tree, so you can work on multiple s
 
 ## 3. Done
 
+<IF condition="docs/reference/PRD_SUMMARY.md exists">
+**Sprint Definition of Done** (derived from PRD): Read PRD Section 6 (NFRs) and Section 7 (scope boundaries). Include applicable thresholds in the sprint summary so they're visible throughout the sprint:
+- Performance targets from NFRs (e.g., "API < 200ms P95")
+- Security requirements from NFRs (e.g., "all PII encrypted")
+- Implementation boundaries from Section 7 (Always/Ask first/Never rules)
+</IF>
+
 Output a summary:
 
 ```markdown
@@ -129,6 +136,7 @@ Output a summary:
 **Mode:** [Standard / Worktree at ../<path>]
 **Main status:** Tests passing, up to date
 **Open PRs:** None (or list any that exist)
+**Definition of Done:** [from PRD NFRs + boundaries, or "Standard (no PRD)"]
 
 Ready to start work. Use `/story-cycle <story-description>` to deliver a story.
 ```

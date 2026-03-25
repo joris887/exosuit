@@ -38,6 +38,8 @@ Understand the idea deeply before proposing solutions:
 - What similar functionality already exists in the codebase?
 - What are the non-negotiable requirements vs nice-to-haves?
 
+**Product requirements context:** Read `docs/reference/PRD_SUMMARY.md` if it exists. Use Section 3 (success criteria) as evaluation criteria for approaches in Phase 3. Use Section 7 (scope boundaries) to ensure no approach violates stated non-goals or implementation boundaries. Use Section 6 (NFRs) as constraints — e.g., an approach that can't meet the performance or accessibility thresholds is disqualified.
+
 Ask clarifying questions if the idea is vague. Do NOT proceed with assumptions.
 
 ## 2. Research the Codebase
@@ -94,7 +96,10 @@ For each approach, create an option with:
   - [tradeoff 2]
 
   **Complexity:** [Low/Medium/High] — [N files, N new deps]
+  **PRD Fit:** [How well this approach meets PRD success criteria and NFRs]
   ```
+
+**If PRD was loaded:** Score each approach against PRD success criteria (Section 3) and NFRs (Section 6). An approach that can't meet a stated NFR (e.g., performance target, accessibility requirement) should be flagged as non-viable.
 
 State which approach you recommend and why. The user selects their preferred approach.
 

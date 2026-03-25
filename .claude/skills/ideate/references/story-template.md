@@ -18,6 +18,8 @@ Use this structure when decomposing ideas into backlog stories. The template enf
 **Priority:** P1/P2/P3
 **Why this priority:** [Value justification — not technical complexity]
 
+**PRD Requirement:** R[N] from Phase [N] (or "New — not in PRD" if no mapping exists)
+
 **Skills:** [/code-quality, /test-validator, etc.]
 **Testing Approach:** [TDD | Characterization | Smoke | Benchmark | Manual review]
 **Verification:** [Command to prove it works]

@@ -54,6 +54,17 @@ Explore the codebase to understand:
 - Testing patterns in the relevant area
 - Dependencies on existing code
 
+### Product Requirements Context
+
+Read `docs/reference/PRD_SUMMARY.md` if it exists. When present, extract:
+
+- **Section 1 (Problem):** Does the idea align with the stated product problem? Flag divergence.
+- **Section 3 (Success criteria):** Stories should trace to these — they become verification targets.
+- **Section 5 (Requirements):** Check if the idea maps to existing requirements. If so, use their EARS acceptance criteria as story AC source. If not, note it as a scope addition.
+- **Section 6 (NFRs):** Generate dedicated infrastructure stories for NFRs not yet covered in the backlog (observability, security, accessibility, etc.).
+- **Section 7 (Scope boundaries):** Use non-goals as story non-goals. Use implementation boundaries to set guard rails on every story.
+- **Section 9 (Open questions):** Generate Spike stories for unresolved questions with High impact.
+
 ## 2.5. Feasibility Research (Conditional)
 
 If the idea involves external dependencies, unfamiliar technology, or integration with third-party services, perform a quick feasibility check before decomposition.
@@ -71,6 +82,26 @@ Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at 
 **Skip when:** The idea uses only well-understood, established technologies already present in the codebase, or when a prior brainstorm/research doc already covers feasibility.
 
 ## 3. Decompose into Stories
+
+### Splitting Strategy (SPIDR)
+
+When a requirement is too large for a single story, apply these five splitting patterns in order of preference:
+
+1. **Spike** — Uncertainty exists → create a time-boxed research story first
+2. **Path** — Multiple user flows → split by happy path, alternate paths, error paths
+3. **Interface** — Multiple devices/platforms → split by interface variant
+4. **Data** — Data variations → split by data complexity (basic fields first, advanced later)
+5. **Rules** — Business rules → split by happy path first, edge cases later
+
+Each resulting story must be a **vertical slice** (UI + logic + data), not a horizontal layer.
+
+### EARS → Given/When/Then Conversion
+
+When PRD requirements use EARS acceptance criteria, convert them to story-level Given/When/Then:
+
+`WHEN [trigger] THE SYSTEM SHALL [behavior]` → `Given [precondition state], When [trigger occurs], Then [behavior is observed]`
+
+PRD Properties (invariants) become test assertions. PRD edge case tables become additional test scenarios.
 
 Break the idea into properly typed stories. For each story, determine the best type:
 
@@ -116,6 +147,8 @@ Follow the story template in `references/story-template.md`. For each story, def
 **Priority:** P1/P2/P3
 **Why this priority:** [Value justification]
 
+**PRD Requirement:** R[N] from Phase [N] (or "New — not in PRD" if no mapping)
+
 **Skills:** <skills to load in story-cycle, e.g., `/code-quality`, `/test-validator`>
 
 **Testing Approach:** <TDD | Characterization | Smoke | Benchmark | Manual review>
@@ -137,6 +170,17 @@ For each story, check if the required skills exist:
 - If a story needs a skill that doesn't exist, add a **Skill/Tooling** story to create it
 - Skill creation stories should come before stories that depend on them
 
+### NFR Story Generation
+
+If PRD Section 6 (NFRs) exists and contains measurable thresholds, generate dedicated stories for each NFR not already covered in the backlog:
+
+- Observability NFR → "Set up structured logging and error alerting" [Infrastructure]
+- Accessibility NFR → "Implement [WCAG level] compliance for [component]" [Feature]
+- Security NFR → "Configure [encryption/auth] for [scope]" [Security]
+- Performance NFR → "Establish performance baseline and optimization for [target]" [Performance]
+
+These stories ensure NFRs become tracked, tested work items rather than implicit expectations.
+
 ## 5. Order for Testability
 
 Organize stories in a logical order that enables incremental testing:
@@ -145,6 +189,7 @@ Organize stories in a logical order that enables incremental testing:
 1. **Foundation stories** — core functionality that other stories depend on
 1. **Feature stories** — build on the foundation, enable E2E tests incrementally
 1. **Quality stories** — refactoring, performance, security hardening
+1. **NFR stories** — infrastructure, observability, security, accessibility (from PRD Section 6)
 1. **Documentation stories** — document what was built
 
 **Key principle:** Each story should be independently verifiable. Tests from earlier stories should keep passing as later stories are delivered.
