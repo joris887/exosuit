@@ -1,28 +1,37 @@
 ---
-skill: ideate
-date: {{date}}
-epic: {{epic}}
+id: {{id}}
+title: {{title}}
+type: {{type}}
+priority: {{priority}}
+size: {{size}}
+status: draft
+created: {{date}}
 ---
-# Story: {{title}}
 
-**ID:** {{id}}
-**Type:** {{type}}
-**Priority:** {{priority}}
-**Effort:** {{effort}}
+# {{title}}
 
-## User Story
-**As a** {{role}},
-**I want** {{capability}},
-**So that** {{benefit}}.
+## Why
+{{why}}
 
-## Acceptance Criteria
-1. **Given** {{state}}, **When** {{action}}, **Then** {{outcome}}
+## Context
+- **Current state**: {{current_state}}
+- **Affected files**: {{affected_files}}
+- **Follow patterns in**: {{pattern_reference}}
+- **Dependencies**: {{dependencies}}
 
-## Technical Notes
-<!-- Implementation hints, patterns to follow, files likely affected -->
+## Acceptance criteria
+- [ ] {{criterion_1}}
+- [ ] {{criterion_2}}
+- [ ] {{criterion_3}}
 
-## Dependencies
-<!-- Other stories or external dependencies -->
+## Verification
+```bash
+{{verification_commands}}
+```
 
-## Out of Scope
-<!-- What this story explicitly does NOT include -->
+## Out of scope
+- {{exclusion_1}}
+- {{exclusion_2}}
+
+## Notes
+{{notes}}

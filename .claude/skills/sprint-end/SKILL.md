@@ -177,8 +177,15 @@ Do NOT proceed to documentation updates, PR creation, or merge if ANY quality ga
 
 Based on what was done in the sprint, update relevant documentation:
 
-- **Epic file** (`docs/reference/backlog/E##-*.md`): Mark completed stories as `[DONE]`
-- **BACKLOG_INDEX.md**: Update Done/In Progress/TODO counts
+- **Epic file** (`docs/reference/backlog/E##-*.md`):
+  - In the story checklist: change `- [ ] ID — Title (P#, in-progress)` → `- [x] ID — Title (P#, done)`
+  - In story detail sections: update `**Status:** done`
+  - Legacy format: mark as `[DONE]` if epic uses old markers
+  - Emit story lifecycle event for each completed story:
+    ```bash
+    echo "{\"type\":\"story\",\"event\":\"status-change\",\"id\":\"<story-id>\",\"from\":\"review\",\"to\":\"done\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+    ```
+- **BACKLOG_INDEX.md**: Update story counts per priority group. Update the Backlog Health section: recalculate Definition of Ready %, check for zombie stories (any story with `created:` date >2 sprint cycles old still not done)
 - **progress.md**: Add sprint entry, update metrics
 - **CLAUDE.md**: Update Current Focus if epic status changed
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
