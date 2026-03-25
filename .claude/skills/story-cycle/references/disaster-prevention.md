@@ -33,6 +33,13 @@ For each category, actively search for the anti-pattern — don't just check a b
 - [ ] Are test files co-located with or mirroring source files per project convention?
 - [ ] Are new directories justified (not single-file directories)?
 
+## Test Quality (AI-Specific)
+
+- [ ] Are any new test expected values computed from production logic? (tautological — hardcode from specs instead)
+- [ ] Do any new tests have <3 meaningful assertions? (weak oracle — add specific assertions)
+- [ ] Do any new tests require >3 mocks? (over-mocking — consider integration test without mocks)
+- [ ] Are there near-duplicate test methods? (copy-paste — use parameterized/table-driven tests)
+
 ## Regression Surface
 
 - [ ] Do changes to shared utilities affect other callers? (search for all import sites)

@@ -16,7 +16,8 @@ paths:
 - Never replace real assertions with no-op or trivially-passing checks
 - Tests must test behavior, not implementation details
 - Mocks should mock external services only, never internal logic
-- Every test must have at least one meaningful assertion
+- Every test must have at least one meaningful assertion; aim for ≥3 per test method
+- Expected values must be hardcoded from domain knowledge, never computed using production logic
 - Test names must describe the behavior being tested: `test_[action]_[condition]_[expected]`
 - Structure tests as Arrange/Act/Assert (or Given/When/Then), separated by blank lines
 - Act section: 1-3 lines — if longer, the test is testing too much

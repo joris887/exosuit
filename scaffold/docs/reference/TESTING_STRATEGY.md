@@ -1,144 +1,186 @@
 # Testing Strategy
 
-Authoritative reference for testing practices in LLM-assisted development. All skills reference this document.
+Authoritative reference for testing practices in AI-assisted development. Referenced by `/story-cycle`, `/test-validator`, and all quality gates.
 
 ## Core Principle
 
-**AI amplifies your testing practice.** If testing is strong, AI makes you faster. If it is weak, AI makes you worse (DORA 2025). Tests are not afterthoughts — they are how you communicate intent to the machine.
+**AI amplifies your testing practice.** Strong testing + AI = faster delivery. Weak testing + AI = 1.7x more defects, 2x more logic errors (CodeRabbit 2025, DORA 2025). When AI writes both test and implementation, it creates a circular validation loop — tests protect bugs instead of catching them. TDD breaks this loop structurally.
 
-______________________________________________________________________
+---
 
-## TDD Workflow with LLMs
+## TDD Workflow — Role Separation
 
-TDD is mandatory for **feature**, **bug fix**, and **refactoring** stories. The human owns the RED phase (what to test); the AI assists with GREEN (make it pass) and REFACTOR.
+TDD is mandatory for **feature**, **bug fix**, and **refactoring** stories. The human owns the specification (RED); AI assists with implementation (GREEN) and refactoring.
 
 ### The 7-Step AI-Assisted TDD Cycle
 
-1. **Human writes the test name** — A clear, behavior-focused name IS the specification
-2. **Human writes a seed test** — One complete test establishing conventions, patterns, imports, fixtures, assertion style
-3. **AI generates remaining test cases** — Following the seed pattern for additional behaviors
-4. **Human validates AI-generated tests** — Check for quality (see Test Quality Criteria below)
-5. **AI generates implementation** — With the full test suite as context
-6. **Run tests, iterate on failures** — AI debugs using test output as context
-7. **Human reviews the final result** — Understand every line before committing
+1. **Human writes the test name** — behavior-focused name IS the specification
+2. **Human writes a seed test** — one complete test establishing conventions, fixtures, assertion style
+3. **AI generates remaining test cases** — following seed pattern for additional behaviors
+4. **Human validates AI tests** — apply the Quality Checks below; reject tautological/weak tests
+5. **AI generates implementation** — with the full test suite as context
+6. **Run tests, iterate** — AI debugs using test output as feedback
+7. **Human reviews final result** — understand every line before committing
 
 ### TDD Rules
 
-- NEVER let the AI write both the test AND the implementation in the same prompt
+- NEVER let AI write both test AND implementation in the same prompt
 - NEVER skip the failing test phase — always see RED before GREEN
-- NEVER weaken an assertion to make a test pass — fix the implementation instead
-- NEVER delete a failing test — either fix the code or understand why the test is wrong
+- NEVER weaken an assertion to make a test pass — fix the implementation
+- NEVER delete a failing test — fix the code or understand why the test is wrong
 - Run tests after EVERY small change — not in batches
 
-______________________________________________________________________
+### When NOT to Use TDD
 
-## When NOT to Use TDD
+| Story Type | Alternative | Why |
+|---|---|---|
+| **Spike/Research** | Exploratory, then retroactive tests | Requirements unknown |
+| **UI/UX exploration** | Visual feedback + snapshot tests | Behavior is subjective |
+| **Infrastructure/Config** | Integration/smoke tests only | Unit tests for wiring are brittle |
+| **Simple CRUD** | Schema validation + integration tests | Logic trivial; TDD overhead exceeds value |
+| **Documentation** | Manual link/accuracy verification | No executable behavior |
 
-| Story Type                  | Alternative                                     | Why                                            |
-| --------------------------- | ----------------------------------------------- | ---------------------------------------------- |
-| **Spike/Research**          | Exploratory coding, then retroactive tests      | Requirements unknown; tests would be rewritten |
-| **UI/UX exploration**       | Visual feedback, manual testing, then snapshots | Behavior is subjective and visual              |
-| **Infrastructure/Config**   | Integration/smoke tests only                    | Unit tests for config wiring are brittle       |
-| **Simple CRUD/Boilerplate** | Schema validation + integration tests           | Logic is trivial; TDD overhead exceeds value   |
-| **Documentation**           | Verify links and accuracy manually              | No executable behavior to test                 |
-| **One-shot scripts**        | Manual verification, then discard               | No long-term maintenance                       |
+---
 
-For these story types, `/story-cycle` automatically selects the appropriate alternative.
+## Quality Metrics — Concrete Thresholds
 
-______________________________________________________________________
+### Primary Metrics (ranked by fault-detection power)
 
-## Test Quality Criteria
+| Metric | Threshold | Why This Number |
+|---|---|---|
+| **Mutation score (changed code)** | ≥80% | Top-quartile suites show 8-46% better fault detection (Papadakis ICSE 2018); Google uses incremental mutation at scale |
+| **Mutation score (critical modules)** | ≥85% | Mutation-adequate testing detects 85% of faults vs 65% for coverage-only (Li et al.) |
+| **Assertion density** | ≥3 meaningful per test method | R²=0.94-0.99 correlation with mutation score (Zhang FSE 2015); 26-40/KLOC = lowest defect density (Microsoft Research) |
+| **Assertion-free test rate** | 0% (zero tolerance) | Assertion removal creates "substantially larger" oracle gaps |
+| **Branch coverage (core logic)** | ≥90% | Significant fault detection improvement above 90% (Hutchins et al.) |
+| **Branch coverage (overall)** | ≥75% | Google "commendable" tier; diminishing returns below this |
+| **New code coverage** | ≥80% on changed lines | SonarQube recommended gate; CI-enforced with ratcheting |
 
-AI-written tests frequently increase coverage numbers without catching real bugs. Apply these checks:
+### Secondary Metrics
 
-### The 6 Quality Tests
+| Metric | Threshold | Purpose |
+|---|---|---|
+| **Mock-to-assertion ratio** | <1:1 | Mocks must not exceed assertions — flags over-mocking |
+| **Flaky test rate** | <2% of suite | Fix or remove flaky tests within 14 days |
+| **Branch-to-line coverage gap** | <15% | Large gaps indicate happy-path-only testing |
+| **PR test execution time** | <15 minutes | Slower pipelines get bypassed |
 
-| Check                 | Question                                                        | Red Flag                                      |
-| --------------------- | --------------------------------------------------------------- | --------------------------------------------- |
-| **Revert Test**       | Would this test fail if you reverted to a naive implementation? | Test passes regardless of implementation      |
-| **Mutation Test**     | Would changing `>` to `>=` or removing a line make this fail?   | Mutations survive — assertions are too weak   |
-| **Independence Test** | Does this test validate behavior from the caller's perspective? | Test mirrors internal implementation details  |
-| **Assertion Ratio**   | Does every test have specific, meaningful assertions?           | `assert result is not None` as sole assertion |
-| **Name Test**         | Can you read the name and understand what behavior it protects? | `test_function_works` — says nothing          |
-| **Edge Case Test**    | Does the suite include boundaries, errors, empty/null inputs?   | Only happy-path tests                         |
+### Coverage by Risk Tier
 
-### Red Flags in AI-Generated Tests
+| Risk Tier | Branch Coverage | Mutation Score | Test Types Required |
+|---|---|---|---|
+| Critical business logic | 90%+ | 85%+ | Unit + property-based + integration |
+| API/interface layers | 80-90% | 80%+ | Unit + contract + integration |
+| Utility/helper code | 70-80% | 75%+ | Unit + parameterized |
+| Configuration/infra | Schema validation | N/A | Static analysis + smoke tests |
+| Generated/boilerplate | Exclude | N/A | Compilation verification only |
 
-- Tests that construct a mock, call a method, and assert the mock was called (testing the mock, not behavior)
-- Expected values computed using the same logic as the implementation (tautological)
-- Tests where removing the implementation would NOT require changing the test
-- `assert True`, `assert result is not None`, or zero assertions
-- All tests for valid inputs only — no error paths, no boundaries
+**Ratcheting:** Current coverage is the baseline. CI blocks PRs that reduce it. Threshold rises automatically. Apply per-module with 2% tolerance buffer.
 
-______________________________________________________________________
+---
 
-## Testing Anti-Patterns to Prevent
+## AI Anti-Patterns — Named Defenses
 
-| Anti-Pattern                 | Description                                                   | Prevention                                              |
-| ---------------------------- | ------------------------------------------------------------- | ------------------------------------------------------- |
-| **Testing the mock**         | Mock is configured, called, and asserted — no real logic runs | Mock external services only, never internal logic       |
-| **Tautological tests**       | Expected output computed with same formula as implementation  | Use hardcoded expected values from domain knowledge     |
-| **Happy-path-only**          | 5 tests, all for valid inputs                                 | Require at least 1 error/edge case per behavior         |
-| **Implementation mirroring** | Test replicates algorithm step-by-step                        | Test observable outcomes, not internal state            |
-| **Hallucinated APIs**        | Test calls methods that don't exist                           | Run every test immediately after writing                |
-| **Over-mocking**             | Everything mocked, zero production code runs                  | Measure what production code the test actually executes |
-| **Weakened assertions**      | AI "fixes" failing test by removing assertions                | Track assertion count — it must never decrease          |
-| **Copy-paste divergence**    | AI copies test structure but changes assertions incorrectly   | Review each test individually, not as a batch           |
+### Tier 1: Critical (detect in every review)
 
-______________________________________________________________________
+| Anti-Pattern | Frequency | Detection | Defense |
+|---|---|---|---|
+| **Tautological tests** | ~30% of AI suites | Mutation kill rate near zero; expected values computed from production logic | Require hardcoded expected values from specifications, never formulas |
+| **Over-mocking** | 40-70% of AI repos | >3 mocks per test; assertions only verify mock-configured returns | Mock external services only; require ≥1 integration test per feature without mocks |
+| **Happy-path-only** | Near universal | Branch coverage >15% below line coverage; functions with >3 branches at <60% branch coverage | Require negative tests proportional to positive; property-based testing for complex inputs |
+
+### Tier 2: High (detect in CI)
+
+| Anti-Pattern | Frequency | Detection | Defense |
+|---|---|---|---|
+| **Hallucinated APIs** | >20% of AI packages | Type-check/compile failures | Strict type checking; always compile before commit |
+| **Coverage theater** | 40-70% of AI repos | Line coverage 85%+ but mutation score <50% | Mutation score as quality gate alongside coverage |
+| **Implementation coupling** | Common | Assertions on method call counts/order, not return values | Test observable behavior through public APIs only |
+
+### Tier 3: Moderate (detect in review)
+
+| Anti-Pattern | Detection | Defense |
+|---|---|---|
+| **Assertion weakening** | Assertions became less specific in diff without code changes | Investigate code bugs before any test modification |
+| **Copy-paste duplication** | >80% AST similarity between test methods | Use parameterized/table-driven tests |
+| **Snapshot overuse** | Snapshots include timestamps, IDs, formatting | Targeted assertions for dynamic content |
+
+---
+
+## Quality Checks — /test-validator Reference
+
+Apply these 6 checks to every AI-generated test:
+
+| # | Check | Question | Red Flag |
+|---|---|---|---|
+| 1 | **Revert** | Would this fail with a naive implementation? | Passes regardless of implementation |
+| 2 | **Mutation** | Would changing `>` to `>=` or removing a line cause failure? | Mutations survive |
+| 3 | **Independence** | Does this validate behavior from the caller's perspective? | Mirrors internal details |
+| 4 | **Assertion density** | ≥3 meaningful assertions per test method? | `assert result is not None` as sole assertion |
+| 5 | **Naming** | Does the name explain what behavior it protects? | `test_function_works` |
+| 6 | **Edge coverage** | Does the suite include boundaries, errors, null/empty? | Only happy-path tests |
+
+### /test-validator Automated Checks
+
+1. **Tautological assertion scan** — flag tests recalculating expected values with production logic
+2. **Mock density** — flag tests with >3 mocks or assertions only on mock-configured values
+3. **Happy-path ratio** — flag branch-to-line coverage gap >15%; flag functions with >3 branches at <60% branch coverage
+4. **Assertion quality** — reject assertion-free tests, `expect(true).toBe(true)`, overly broad assertions (`> 0` where exact values are knowable)
+5. **Test similarity** — flag methods with >80% structural similarity (copy-paste, not parameterized)
+6. **Assertion weakening** — in test-modifying PRs, flag assertions that became less specific
+
+---
 
 ## Testing by Story Type
 
-### Feature Stories
+| Story Type | Method | Test Types | Key Rule |
+|---|---|---|---|
+| **Feature** | TDD (RED→GREEN→REFACTOR) | Unit + integration | Happy path + ≥1 error/edge case per behavior |
+| **Bug fix** | Reproduction-first TDD | Regression test | MUST fail before fix, pass after |
+| **Refactoring** | Characterization → refactor → verify | Golden master/approval | Lock ALL observable behavior before changing code |
+| **Security** | TDD + scanning tools | Security-focused unit + SAST/DAST | Every security boundary gets explicit tests |
+| **Performance** | Benchmark-driven | Baseline comparison | Before/after measurements for every optimization |
+| **Spike** | No TDD — exploratory | Retroactive on surviving code | Discard or test — no untested code merges |
+| **Infrastructure** | Smoke + integration | "Does it start?" + "Do parts connect?" | Verify commands, scripts, configs in CI |
 
-- **Method:** TDD (RED-GREEN-REFACTOR)
-- **Test types:** Unit tests for logic, integration tests for component interaction
-- **Coverage:** Must cover happy path + at least one error/edge case per behavior
-- **Pattern:** Given/When/Then structure
+---
 
-### Bug Fix Stories
+## CI Pipeline
 
-- **Method:** Reproduction-first TDD
-- **Test types:** Regression test that reproduces the exact bug
-- **Coverage:** The reproduction test MUST fail before the fix and pass after
-- **Pattern:** Write the failing test → verify it fails for the right reason → fix → verify pass
+| Stage | Tests Run | Time Budget | Gate |
+|---|---|---|---|
+| **Pre-commit** | Lint + type check + affected unit tests | <3 min | Advisory |
+| **PR/pre-merge** | Full unit + integration smoke + coverage + assertion density | <15 min | Blocking |
+| **Post-merge/nightly** | Full E2E + mutation testing + performance baselines | <2 hours | Creates issues |
+| **Pre-release** | Full regression + DAST + contract verification | Variable | Blocking |
 
-### Refactoring Stories
+---
 
-- **Method:** Characterization tests → Refactor → Verify
-- **Test types:** Golden master / approval tests that capture current behavior
-- **Coverage:** Lock ALL observable behavior before changing any code
-- **Pattern:** Capture outputs for comprehensive inputs → refactor → assert outputs unchanged
+## Guard Rails
 
-### Spike/Research Stories
+| Guard | What It Prevents | Implementation |
+|---|---|---|
+| **Test count gate** | AI deleting tests to "fix" failures | CI: count tests branch vs main; fail if decreased |
+| **Coverage ratchet** | AI code without tests | CI: reject PRs that decrease coverage for touched files |
+| **Assertion tracking** | AI weakening assertions | CI: track count per file; alert on decrease |
+| **Type checking** | Hallucinated APIs/types | Strict mode catches before runtime |
+| **Critical file protection** | AI modifying test infra | Human review for conftest.py, fixtures, shared mocks |
+| **Mutation gate** | Coverage theater | Mutation score ≥80% on changed code in nightly/pre-release |
 
-- **Method:** No TDD — exploratory
-- **Test types:** None during exploration; retroactive tests on any code that survives
-- **Coverage:** N/A during spike; code may be discarded
-- **Pattern:** Explore → prototype → document findings → discard or test
+---
 
-### Infrastructure Stories
+## Contract Testing
 
-- **Method:** Integration/smoke tests
-- **Test types:** Smoke tests ("does it start?"), integration tests ("do components connect?")
-- **Coverage:** Verify commands work, scripts execute, configs are valid
-- **Pattern:** Implement → smoke test → verify in CI
+For projects with component boundaries (API↔client, backend↔frontend, service↔service):
 
-### Security Stories
+1. Define the contract (OpenAPI, JSON Schema, Protocol Buffers, shared types)
+2. Write tests on BOTH sides validating against the contract
+3. Run in CI — schema changes that break the other side fail the build
+4. Update contract + both sides' tests in the same PR
 
-- **Method:** TDD + scanning tools
-- **Test types:** Security-focused unit tests + automated scanning
-- **Coverage:** Every security boundary must have explicit tests
-- **Pattern:** Threat model → TDD → scan with security tools → audit
+**AI-specific:** AI-generated code silently drifts from contracts (wrong field names, mismatched types). Contract tests catch this at build time. Skip for single-component projects.
 
-### Performance Stories
-
-- **Method:** Benchmark-driven
-- **Test types:** Benchmark tests with baseline comparison
-- **Coverage:** Before/after measurements for every optimization
-- **Pattern:** Baseline → optimize → benchmark → compare → prevent regression
-
-______________________________________________________________________
+---
 
 ## Test Infrastructure
 
@@ -151,128 +193,14 @@ ______________________________________________________________________
 # npm test -- --coverage      # Coverage report
 ```
 
-______________________________________________________________________
+**Bootstrap** detects your stack and configures coverage tools, mutation testing, and property-based testing recommendations. The project-specific commands in CLAUDE.md are always authoritative.
 
-## E2E Testing Strategy
+---
 
-### The Skeleton Pattern
+## Test Structure Conventions
 
-For multi-story features, build the test skeleton first:
-
-1. **Create disabled E2E tests** that describe all expected behaviors
-1. **Implement features** story by story
-1. **Enable corresponding E2E tests** as each feature ships
-1. **Integration is tested continuously** — not just at the end
-
-______________________________________________________________________
-
-## Contract Conformance Testing
-
-For projects with component boundaries (API ↔ client, backend ↔ frontend, service ↔ service), add contract tests that verify both sides agree on the interface. Skip for single-component projects.
-
-**What to test:** Request/response schemas match on both sides, error codes handled consistently, serialization round-trips correctly.
-
-**Pattern:**
-1. Define the contract (OpenAPI spec, JSON schema, Protocol Buffers, or shared type definition)
-2. Write tests on BOTH sides that validate against the contract
-3. Run contract tests in CI — a schema change that breaks the other side fails the build
-4. When modifying a boundary, update contract + both sides' tests in the same PR
-
-**Why this matters with LLMs:** AI-generated code often silently drifts from contracts (wrong field names, mismatched types). Contract tests catch this at build time.
-
-______________________________________________________________________
-
-## Guard Rails
-
-Automated protections that prevent LLMs from degrading test quality:
-
-### Must-Have Guards
-
-| Guard                        | What It Prevents                    | Implementation                                             |
-| ---------------------------- | ----------------------------------- | ---------------------------------------------------------- |
-| **Test count gate**          | AI deleting tests to "fix" failures | CI: count tests on branch vs main; fail if decreased       |
-| **Coverage delta gate**      | AI-generated code without tests     | CI: reject PRs that decrease coverage for touched files    |
-| **Assertion tracking**       | AI weakening assertions             | CI: track assertion count per test file; alert on decrease |
-| **Pre-commit test run**      | Broken code reaching remote         | Pre-commit hook runs tests on changed modules              |
-| **Type checking**            | Hallucinated types and APIs         | Strict type checking catches before runtime                |
-| **Critical file protection** | AI modifying test infrastructure    | Require human review for conftest.py, fixtures, mocks      |
-
-### Periodic Checks
-
-- **Reverse test:** Comment out key implementation lines; if all tests pass, tests need strengthening
-- **Mutation testing:** Run mutation testing tools; if mutations survive, assertions are too weak
-- **Coverage trend:** Track per-module coverage over sprints; flag persistent low-coverage modules
-
-______________________________________________________________________
-
-## Coverage Strategy
-
-### Targets
-
-- **Overall:** Must not decrease sprint-over-sprint; CI warns if below 70%
-- **New code:** ≥80% line coverage (CI-enforced on touched files)
-- **Critical business logic:** ≥90% branch coverage
-
-### What Coverage Means and Doesn't Mean
-
-- **Coverage = "this line was executed during tests"** — nothing more
-- **Coverage ≠ "this line is correctly tested"** — assertions matter, not execution
-- **Branch coverage > line coverage** — catches untested if/else paths
-- **Mutation testing > all coverage metrics** — answers "would a bug here be caught?"
-
-### Rules
-
-- Coverage is a **floor**, not a goal — do not chase 100%
-- Focus on **critical paths**, error handling, and security-sensitive code
-- Never increase coverage with tautological or assertion-free tests
-- Track **per-module** coverage to prevent high-coverage utilities from masking low-coverage logic
-
-______________________________________________________________________
-
-## Coverage Tool Quick Reference
-
-Bootstrap configures the appropriate tools for your detected stack. Common coverage commands:
-
-| Language | Tool | Command | Report Flag |
-|----------|------|---------|-------------|
-| Python | pytest-cov | `pytest --cov=src` | `--cov-report=term-missing` |
-| TypeScript/JS | c8/istanbul | `npx jest --coverage` | Built-in HTML report |
-| Go | built-in | `go test -cover ./...` | `-coverprofile=cover.out` |
-| Rust | tarpaulin | `cargo tarpaulin` | `--out Html` |
-| Ruby | simplecov | `bundle exec rspec` | Auto-generates HTML |
-| Java | JaCoCo | `mvn test` | Built-in with Maven |
-| Swift | built-in | `swift test --enable-code-coverage` | `llvm-cov` |
-| C# | coverlet | `dotnet test --collect:"XPlat Code Coverage"` | ReportGenerator |
-| PHP | phpunit | `phpunit --coverage-text` | `--coverage-html` |
-| Dart | built-in | `dart test --coverage` | `lcov` |
-| Kotlin | Kover | `gradle koverReport` | HTML report |
-| C/C++ | gcov/lcov | `make test && gcov *.c` | `lcov` |
-
-**Note:** This table is a starting reference. Bootstrap detects your specific project's tools and configures CLAUDE.md Commands accordingly. The project-specific test command is always authoritative.
-
-______________________________________________________________________
-
-## Characterization Tests
-
-For locking behavior before refactoring (especially important with LLMs):
-
-1. Run existing code with comprehensive inputs and capture all outputs
-1. Write tests asserting `current_output == captured_output` for every input
-1. These tests do NOT judge correctness — they lock CURRENT behavior
-1. Let the AI refactor with characterization tests as the safety net
-1. Any behavioral change is immediately caught
-1. After refactoring: keep useful tests as regression tests, replace others with behavior tests
-
-**When to use:** Before refactoring any module, before upgrading dependencies, before the AI restructures existing code.
-
-______________________________________________________________________
-
-## References
-
-- DORA 2025: TDD amplifies AI-assisted development quality
-- 8th Light: TDD as the missing protocol for effective AI collaboration
-- Tweag: Agentic Coding Handbook — TDD workflow and auto-validations
-- CodeRabbit: AI-generated code produces 1.7x more issues than human-written code
-- CodeScene: Three pillars of AI code guardrails — quality, familiarity, coverage
-- Addy Osmani: Ultra-granular version control for AI-generated code
-- Simon Willison: "Your job is to deliver code you have proven to work"
+- **Internal structure:** Arrange-Act-Assert (AAA), separated by blank lines
+- **Naming:** Behavior-focused: `should_reject_expired_tokens`, `returns_empty_when_no_matches`
+- **File organization:** Co-locate unit tests with source; centralize integration/E2E tests
+- **Test data:** Factory methods with builder pattern — convenient defaults, per-test overrides
+- **Parameterized tests:** Prefer table-driven tests over copy-paste for similar scenarios

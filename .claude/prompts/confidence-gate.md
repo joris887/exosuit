@@ -41,9 +41,11 @@ Dimension 4 adapts based on story type. The scoring weight (0–20) stays the sa
 ### 4. Test Strategy Clear (0–20)
 
 - Specific tests identified for each acceptance criterion?
-- Test type mapped (unit/integration/E2E) per criterion?
+- Test type mapped (unit/integration/E2E/property-based) per criterion?
+- Expected values are hardcoded from specifications (not computed from production logic)?
+- Negative/error tests planned proportional to happy-path tests?
+- For critical business logic: property-based testing or integration tests included?
 - Testing order defined (simple → edge → error)?
-- Existing test patterns in the area understood?
 
 ### 5. Dependencies Verified (0–20)
 

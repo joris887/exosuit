@@ -31,8 +31,10 @@ Steps:
 2. For **new behavior**: identify inputs, outputs, edge cases, error paths
 3. For **changed behavior**: identify what was true before, what should be true after, what should remain unchanged
 4. For **preserved behavior**: identify invariants that must hold through the refactoring
-5. Select test type per case: unit (isolated logic), integration (component boundaries), E2E (user flow)
-6. Order tests: start with the simplest happy path, then edge cases, then error paths
+5. Select test type per case: unit (isolated logic), integration (component boundaries), E2E (user flow), property-based (complex input spaces, pure transformations, invariants)
+6. Apply property-based testing when: function has complex/combinatorial inputs, function is a pure transformation (serialize/deserialize, encode/decode), function must maintain mathematical properties (commutativity, idempotency, ordering), or input validation with many edge cases
+7. For each test: plan ≥3 meaningful assertions with hardcoded expected values (never computed from production logic)
+8. Order tests: start with the simplest happy path, then edge cases, then error paths, then negative tests (aim for proportional negative:positive ratio)
 
 **Output:** Ordered test list with type, description, and key assertion sketch.
 

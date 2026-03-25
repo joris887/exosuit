@@ -17,8 +17,9 @@ Reference loaded by `/story-cycle` Phase 4a. Complete before running quality gat
 ## Testing
 
 - [ ] All tests pass — run the test command and show output (not from memory)
-- [ ] Tests are meaningful — would fail if implementation was naive
-- [ ] Edge cases from planning phase are covered
+- [ ] Apply the 6 Quality Checks from `docs/reference/TESTING_STRATEGY.md` § Quality Checks (Revert, Mutation, Independence, Assertion density ≥3, Naming, Edge coverage)
+- [ ] No tautological tests — expected values hardcoded, not computed from production logic
+- [ ] Mock-to-assertion ratio <1:1 — mocks don't outnumber assertions in any test
 
 ## Discipline
 
