@@ -1,6 +1,6 @@
 ---
 name: sprint-end
-version: 2.9.0
+version: 2.10.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -154,15 +154,7 @@ Read `references/quality-gates.md` for detailed checks (tests, test protection, 
 <IF condition="docs/reference/GROUND_RULES.md exists and has principles defined">
 **Ground rules compliance:** Verify sprint changes don't introduce untracked ground rules violations. Check commit diffs against MUST principles. Any violations must have been documented in story plans with justification.
 
-**Compliance ledger:** After checking, record results in `docs/progress.md` under the `## Ground Rule Compliance` section:
-
-```markdown
-| Sprint | Rules Checked | Violations | Details |
-|--------|--------------|------------|---------|
-| N      | X/Y          | Z          | [description or "Clean"] |
-```
-
-This builds a longitudinal compliance profile. Over time, frequently violated rules may need reinforcement or clarification; never-tested rules may be dead rules to review.
+**Compliance ledger:** Record results in the sprint spec's `## Outcome` → **Ground rules** field (e.g., "5/5 checked, Clean" or "5/5 checked, 1 violation: [description]"). This data is available to `/retrospective` for longitudinal compliance analysis.
 </IF>
 
 <IF condition="docs/adr/ contains accepted ADR files">
@@ -186,7 +178,23 @@ Based on what was done in the sprint, update relevant documentation:
     echo "{\"type\":\"story\",\"event\":\"status-change\",\"id\":\"<story-id>\",\"from\":\"review\",\"to\":\"done\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
     ```
 - **BACKLOG_INDEX.md**: Update story counts per priority group. Update the Backlog Health section: recalculate Definition of Ready %, check for zombie stories (any story with `created:` date >2 sprint cycles old still not done)
-- **progress.md**: Add sprint entry, update metrics
+- **Sprint spec** (`docs/sprints/sprint-N.md`):
+  - Update all story statuses to final state (✅ done or ⏭️ carried over)
+  - Fill in the `## Outcome` section with metrics:
+    - **Goal achieved**: yes/no — did the sprint goal succeed?
+    - **Stories completed**: X/Y
+    - **Throughput**: X stories (count of ✅)
+    - **Cycle time**: average days per completed story (from git log first/last commit per story)
+    - **Sprint churn**: % of stories added or removed mid-sprint vs original plan (compare current stories table against the initial commit of the sprint spec: `git show $(git log --oneline --diff-filter=A -- docs/sprints/sprint-N.md | tail -1 | cut -d' ' -f1):docs/sprints/sprint-N.md`)
+    - **Tests**: before → after (+delta)
+    - **Coverage**: before% → after%
+    - **Ground rules**: X/Y checked, Z violations or "Clean"
+    - **PR**: #number
+    - **Merged**: today's date
+- **progress.md**:
+  - Update `## Current Sprint` to show completed state
+  - Append row to `## Sprint History` table: `| N | [goal summary] | ✅/❌ | X stories | X% | X→Y | X%→Y% | #N |`
+  - Update `## Next Steps` with post-sprint actions
 - **CLAUDE.md**: Update Current Focus if epic status changed
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
 - **Architecture doc** (`docs/architecture/ARCHITECTURE.md`): If any story in this sprint changed architecture (check the Update Triggers section), verify the doc was updated during story-cycle Phase 4e. If not, update it now and set `Last Verified` date to today.
@@ -341,18 +349,26 @@ git log --oneline -3
 ```markdown
 ### Sprint Complete
 
+**Sprint [N]: [goal]**
+**Goal achieved:** [yes/no]
 **Branch:** `sprint-<number>` (merged and deleted)
 **PR:** #<number> (<url>)
-**Stories delivered:** [list]
-**Commits squashed:** [count]
-**Tests:** [total count] passing ([delta] vs main)
-**Documentation:** Updated [list of docs updated]
+**Stories:** [completed]/[total] delivered
+**Throughput:** [X] stories | **Churn:** [X]%
+**Tests:** [total] passing ([+delta] vs main) | **Coverage:** [X]%
+
+**Carried over:** [count] stories
+- [Goal-critical]: [list — these threaten the sprint goal, prioritize in next sprint]
+- [Non-critical]: [list — correct prioritization, schedule when ready]
+
+Non-critical carry-over is a positive signal — it means the team correctly prioritized goal-critical work over lower-priority items.
 
 **Main is clean and up to date.**
+**Sprint spec:** `docs/sprints/sprint-<number>.md`
 
 **Next Steps:**
+→ `/retrospective` — review sprint metrics and process
 → `/sprint-start` — begin the next sprint
-→ `/retrospective` — review what worked and what to improve
 → `/handoff` — if ending the session
 ```
 

@@ -30,6 +30,14 @@ Before starting, verify:
 
 If prerequisites fail, inform the user and stop — don't consume context on doomed work.
 
+### Sprint Scope Awareness
+
+Check if a sprint is currently active (branch matches `sprint-*` or `docs/progress.md` shows an in-progress sprint). If so, display a notice:
+
+> **Sprint [N] is in progress** (goal: "[sprint goal]"). New stories will be added to the backlog, not the current sprint. Adding stories to a running sprint increases sprint churn — target is <20%.
+
+This is informational, not blocking. The user may legitimately need to ideate during a sprint. But it prevents accidental scope creep where new stories get silently mixed into active sprint work.
+
 ## 1. Gather Input
 
 **Check for prior brainstorm artifacts:** Search `docs/brainstorms/` for existing design documents matching the topic. If a brainstorm doc exists with `status: decided`, load it as context — the design exploration and key decisions have already been made.

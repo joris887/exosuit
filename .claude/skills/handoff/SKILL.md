@@ -1,6 +1,6 @@
 ---
 name: handoff
-version: 2.5.0
+version: 2.6.0
 description: Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read.
 trigger: manual
 depends-on: []
@@ -35,7 +35,7 @@ Analyze:
 - Current branch: `git branch --show-current`
 - Git status (uncommitted changes?)
 - Open PRs: `gh pr list --author @me --state open`
-- Current sprint spec (if exists)
+- Current sprint spec (if exists: `docs/sprints/sprint-*.md`) — extract sprint goal, capacity used, and any decisions logged this session
 - Last entries in @docs/progress.md
 
 ## 2. Document Progress
@@ -56,6 +56,8 @@ The file MUST start with YAML frontmatter for `/resume` searchability:
 ---
 date: YYYY-MM-DD
 sprint: [current sprint number]
+sprint_goal: "[sprint goal — one sentence from sprint spec]"
+sprint_capacity: "[sessions used/total — e.g., 5/8]"
 branch: [branch-name]
 stories: [comma-separated story IDs worked on]
 status: [completed | in-progress | blocked]

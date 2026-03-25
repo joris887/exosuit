@@ -1,7 +1,7 @@
 ---
 name: continue
-version: 2.6.0
-description: Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.
+version: 2.7.0
+description: Resume development with smart session continuation. Reads session handoff files, sprint spec, analyzes git state, and determines the best path forward.
 trigger: manual
 depends-on: []
 references: []
@@ -141,9 +141,23 @@ This avoids re-exploring files that were already investigated last session.
 
 ## 2. Assess Project State
 
-- Read @docs/progress.md for last session
-- Check for any sprint spec files in progress
+- Read @docs/progress.md for current sprint goal, story statuses, and notes
 - Read @docs/reference/BACKLOG_INDEX.md for current story status
+
+### 2.5. Load Sprint Context
+
+If on a sprint branch (branch name matches `sprint-*`):
+
+1. Find the matching sprint spec: `docs/sprints/sprint-<number>.md`
+2. Read it and extract:
+   - **Sprint goal** — display prominently in the continuation summary
+   - **Stories table** — current status of all sprint stories
+   - **Capacity** — sessions available vs sessions consumed (count ✅ stories by size: S=1, M=2, L=4)
+   - **Decisions log** — any decisions made in prior sessions that constrain current work
+   - **Boundaries** — out of scope items and risks
+3. If a session handoff file exists, cross-reference `sprint_capacity` from its frontmatter
+
+This ensures the sprint goal and constraints survive across sessions — without this, resumed sessions lose the "why" behind the current work.
 
 ## 3. Determine Continuation Point
 

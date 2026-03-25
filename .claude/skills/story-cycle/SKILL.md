@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 4.3.0
+version: 4.4.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -109,6 +109,27 @@ If `$ARGUMENTS` matches a story ID pattern (e.g., `PROJ-001`, `S01`, `E01-S03`),
 echo "{\"type\":\"story\",\"event\":\"status-change\",\"id\":\"<story-id>\",\"from\":\"<previous>\",\"to\":\"in-progress\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
 ```
 
+### 0a.5. Sprint Context Load
+
+If on a sprint branch (branch name matches `sprint-*`), load the sprint spec for decision context:
+
+1. Find `docs/sprints/sprint-<number>.md` (derive number from branch name)
+2. Extract and hold in context:
+   - **Sprint goal** — the primary decision-making context for this story. When implementation choices are ambiguous, the sprint goal breaks the tie.
+   - **Boundaries** — out-of-scope items. If this story drifts toward an out-of-scope area, flag it.
+   - **Remaining capacity** — count stories by status and size (S=1, M=2, L=4 sessions). Compare against total available sessions to determine sprint health.
+   - **Decisions log** — prior decisions in this sprint that may constrain this story's approach.
+
+**Sprint-aware risk modifier:** If the sprint goal explicitly relates to this story's domain (e.g., sprint goal is "auth integration" and story is about auth), note "sprint-aligned" — this story is goal-critical and deserves full depth. If the story is peripheral to the sprint goal (e.g., sprint goal is "auth integration" but story is "update error messages"), note "sprint-peripheral" — keep scope minimal.
+
+**Capacity check:** If remaining stories (🔲 + 🔄) require more sessions than remain in sprint capacity:
+> "⚠️ Sprint capacity at risk — [N] stories remaining ([M] sessions needed), [K] sessions available. Consider carrying over the lowest-priority ⏭️ story."
+
+**M/L story session guidance:** If this story is sized M or L, suggest the three-session pattern:
+> "This is a [M/L] story (~[2-3/3-5] sessions). Consider: Session 1 = Phase 0-1 (plan + approve), Session 2 = Phase 3 (implement), Session 3 = Phase 4 (verify + commit). Use `/handoff` at natural break points to preserve context."
+
+This is guidance, not enforcement — the developer may complete it in fewer sessions.
+
 ### 0b. PRD Scope Guard
 
 If `docs/reference/PRD_SUMMARY.md` exists, load Section 7 (scope boundaries) and Section 3 (success criteria). Use scope boundaries as guard rails throughout implementation — if the story drifts toward a stated non-goal or violates an implementation boundary, flag it. Use success criteria to verify the story contributes to measurable product outcomes.
@@ -141,6 +162,11 @@ After Phase 0 decomposition, classify by **size** then **risk**:
 - If stories matching this type consistently required full workflow despite SMALL classification → escalate to STANDARD
 - If STANDARD stories in this area consistently completed without issues → note as candidate for lightweight treatment
 - Log calibration adjustment in plan for transparency: `Depth calibration: [escalated/standard/downgraded] based on [N] prior executions`
+
+**Sprint context modifier** (from Phase 0a.5): If sprint context was loaded, apply:
+- **Sprint-aligned** stories: maintain or escalate depth — these are goal-critical, quality matters most
+- **Sprint-peripheral** stories: consider downgrading depth if sprint capacity is tight — keep scope minimal, defer stretch goals to next sprint
+- Log: `Sprint alignment: [aligned/peripheral] — sprint goal: "[goal]"`
 
 **Risk classification** (apply `risk_classification` reasoning tool from `references/reasoning-tools.md`):
 
@@ -418,8 +444,11 @@ Use this exact format at the TOP of the plan:
 
 workflow: story-cycle
 storyType: "[from Phase 1a]"
+sprint_number: [N]
+sprint_goal: "[from Phase 0a.5 — one sentence]"
+sprint_alignment: "[aligned/peripheral — from Size & Risk Classification]"
 phase: "plan-approved — proceed to Phase 2 Context Transition + Confidence Gate"
-stepsCompleted: [0-intent, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d5-discovery-gate, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 1h-depth-check]
+stepsCompleted: [0-intent, 0a5-sprint-context, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d5-discovery-gate, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 1h-depth-check]
 remaining_steps:
   - "BOOTSTRAP (do this FIRST): Read .claude/skills/story-cycle/SKILL.md starting from '## Phase 2: Context Transition + Confidence Gate' to reload the full story-cycle workflow. You are mid-workflow — planning is done, implementation phases remain. Do NOT stop after reading the plan."
   - "Phase 2 — CONTEXT + CONFIDENCE GATE (HARD-GATE): Prune context (keep plan + paths + gotchas, discard bulk). Read .claude/prompts/confidence-gate.md. Score 5 dimensions 0-20 each. ≥85 proceed, 70-84 clarify, <70 return to planning. Output the score table."
@@ -428,7 +457,7 @@ remaining_steps:
   - "Phase 4b — QUALITY GATES (HARD-GATE): Run the project's quality command (from CLAUDE.md Commands section: lint → typecheck → test). Stop on first failure, fix, re-run. Show passing output in the current turn — do NOT claim tests pass without evidence. Do NOT proceed until all gates pass."
   - "Phase 4c — UAT (optional, Feature/Bug Fix only): If project has UAT directory, generate UAT test case + sense check per Phase 4c/4c.1 in SKILL.md. Skip for Spike/Research, Infrastructure, Documentation, Testing, Refactoring, Performance, Skill/Tooling stories. Also skip if no UAT directory exists."
   - "Phase 4d — COMPLETION VERIFICATION (HARD-GATE): Re-read original AC from plan. For EACH criterion, provide concrete evidence (test output, file:line, command output). Max 2 extra loop passes if gaps found. Do NOT print completion report until every AC has evidence."
-  - "Phase 4e — DOCS + COMMIT: (1) Update epic file (mark story DONE in heading, check all AC boxes). (2) Update BACKLOG_INDEX.md (increment Done, decrement TODO for epic row, update Total row). (3) Update docs/progress.md (current story status, test counts). (4) Update CLAUDE.md if it contains backlog counts or epic progress that changed. (5) Emit skill metrics event to docs/sessions/.activity-log.jsonl. (6) Invoke /commit skill. Do NOT merge or create PR — that is sprint-end."
+  - "Phase 4e — DOCS + COMMIT: (1) Update epic file (mark story DONE in heading, check all AC boxes). (2) Update BACKLOG_INDEX.md (increment Done, decrement TODO for epic row, update Total row). (3) Update docs/progress.md (story status ✅). (4) Update sprint spec (docs/sprints/sprint-N.md): set story Status to ✅, Session column to today's date. (5) Update CLAUDE.md if it contains backlog counts or epic progress that changed. (6) Emit skill metrics event to docs/sessions/.activity-log.jsonl. (7) Invoke /commit skill. Do NOT merge or create PR — that is sprint-end."
   - "COMPLETION REPORT: Print story, type, approach, files modified, test counts, commit hash, verification evidence. Include Next Steps (next story / sprint-end / handoff)."
 error_recovery: ".claude/skills/story-cycle/references/error-recovery.md"
 skill_file: ".claude/skills/story-cycle/SKILL.md"
@@ -731,7 +760,8 @@ Do NOT print the completion report until every acceptance criterion has been ver
      echo "{\"type\":\"story\",\"event\":\"status-change\",\"id\":\"<id>\",\"from\":\"in-progress\",\"to\":\"review\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
      ```
 3. **Update `docs/reference/BACKLOG_INDEX.md`**: Update story counts per priority group in the status table.
-4. **Update `docs/progress.md`** with story status (DONE)
+4. **Update `docs/progress.md`** with story status (✅)
+4.5. **Update sprint spec** (`docs/sprints/sprint-<N>.md`): set this story's Status to ✅ and Session column to today's date (YYYY-MM-DD). This creates the session-to-sprint mapping needed for cycle time calculation and retrospective analysis.
 5. **Update documentation** only if the story's AC requires it
 6. **Architecture documentation check:** Read the Update Triggers section of `docs/architecture/ARCHITECTURE.md`. If ANY trigger matches changes in this story (`git diff --name-only`), update the relevant sections and set `Last Verified` date to today. Also:
    - If a non-obvious gotcha was discovered during implementation → add to Known Landmines

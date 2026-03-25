@@ -58,14 +58,10 @@ Parse the output to extract:
 
 ### Step 4: Record baseline in progress.md
 
-Update the `## Current Metrics` section:
+Update `docs/progress.md` → `## Current Sprint` → **Notes** field with baseline test metrics:
 
 ```markdown
-## Current Metrics
-
-- **Tests**: {count} tests ({overall_pct}% coverage)
-- **Zero-coverage files**: {list or "none"}
-- **Coverage tool**: {tool_name}
+**Notes:** Bootstrap baseline — {count} tests ({overall_pct}% coverage), tool: {tool_name}. Zero-coverage: {list or "none"}.
 ```
 
 ### Step 5: Flag zero-coverage areas
