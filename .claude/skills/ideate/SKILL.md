@@ -131,36 +131,52 @@ If a story feels too large, split it further. Prefer many small stories over few
 
 ### Story Structure
 
-Follow the story template in `references/story-template.md`. For each story, define:
+Follow the story template in `references/story-template.md`. Use YAML frontmatter for machine-parseable metadata, checklist-style AC as the default, and explicit verification commands.
+
+For each story, produce:
 
 ```markdown
-### <Story-ID>: <Brief user-facing title — NO technical terms> [<Type>]
+---
+id: [PROJECT]-[NUMBER]
+title: [Clear, one-line summary of what changes]
+type: feature|bugfix|refactor|spike|infra|testing|docs|security|performance|skill
+priority: P0|P1|P2|P3
+size: TRIVIAL|SMALL|STANDARD
+status: draft
+created: YYYY-MM-DD
+---
 
-**As a** [user role], **I want** [capability], **so that** [value].
+# [Title]
 
-**Acceptance Criteria:**
-1. **Given** [state], **When** [action], **Then** [outcome]
-2. **Given** [state], **When** [action], **Then** [outcome]
+## Why
+[1-2 sentences: What problem does this solve? What user/business value?]
 
-**Independent Test:** [How to verify this story works without other stories]
+## Context
+- **Current state**: [What exists now — behavior, relevant code, prior decisions]
+- **Affected files**: [Explicit list — max 5 files]
+- **Follow patterns in**: [Path to exemplar file in codebase]
+- **Dependencies**: [Story IDs that must be complete first, or "None"]
 
-**Priority:** P1/P2/P3
-**Why this priority:** [Value justification]
+## Acceptance criteria
+- [ ] [Specific, testable outcome — WHAT not HOW]
+- [ ] [Edge case or error condition]
+- [ ] Given [precondition], when [action], then [verifiable result]
 
-**PRD Requirement:** R[N] from Phase [N] (or "New — not in PRD" if no mapping)
-
-**Skills:** <skills to load in story-cycle, e.g., `/code-quality`, `/test-validator`>
-
-**Testing Approach:** <TDD | Characterization | Smoke | Benchmark | Manual review>
-
-**Verification:** <Command to prove it works>
-
-**File Hints:** <Key files to read/modify>
-
-**Non-Goals:** <What is explicitly out of scope>
-
-**Depends On:** <Other story IDs>
+## Verification
+```bash
+[exact commands that prove completion]
 ```
+
+## Out of scope
+- [Explicit exclusion to prevent scope creep]
+- [Constraint: Must NOT modify X]
+```
+
+**Checklist AC is the default** — each item maps to a testable assertion. Use Given/When/Then only for complex behavioral scenarios with multiple preconditions. Target 3–7 AC per story; more than 7 means the story needs splitting.
+
+For TRIVIAL/SMALL stories, use the lightweight template in `references/story-template-lightweight.md`.
+
+Apply type-specific variations from `references/story-template.md` (Bug Fix → Bug section, Spike → Research questions, Refactoring → Constraints, Performance → Metrics).
 
 ## 4. Identify Missing Skills
 
@@ -209,20 +225,38 @@ Present the decomposed stories to the user:
 ```markdown
 ### Backlog: <Idea Title>
 
-**Stories:** [count]
-**Estimated scope:** [small/medium/large]
+**Stories:** [count] | **Sizes:** [X TRIVIAL, Y SMALL, Z STANDARD]
 
 #### Story Order (dependency-resolved):
-1. [Story-ID]: [Title] [Type] — [one-line summary]
-2. [Story-ID]: [Title] [Type] — [one-line summary]
-...
+| # | ID | Title | Type | Size | Priority | Depends On |
+|---|-----|-------|------|------|----------|------------|
+| 1 | PROJ-001 | [Title] | feature | SMALL | P0 | None |
+| 2 | PROJ-002 | [Title] | feature | STANDARD | P1 | PROJ-001 |
 
 #### Detailed Stories:
-[Full story definitions as structured above]
+[Full story definitions using the template structure above]
 
 #### Dependency Graph:
 [Simple ASCII or description of dependencies]
 ```
+
+### Definition of Ready Validation
+
+Before presenting stories, validate each against the Definition of Ready checklist (from `references/story-template.md`):
+
+- [ ] Title clear and specific
+- [ ] Type assigned (one of 10 types)
+- [ ] Size classified (TRIVIAL/SMALL/STANDARD)
+- [ ] 3-7 acceptance criteria, all testable
+- [ ] Verification commands specified
+- [ ] Out of scope defined (at least one exclusion)
+- [ ] Affected files listed (max 5)
+- [ ] Pattern references included (where applicable)
+- [ ] Dependencies resolved or documented
+- [ ] No ambiguous language
+- [ ] Self-contained
+
+Stories passing all criteria → `status: ready`. Stories missing criteria → `status: draft` with a note listing what's missing.
 
 ### Document Quality Check
 
@@ -244,10 +278,27 @@ Do NOT write any stories to backlog files, create epic files, or update BACKLOG_
 
 After user approval:
 
-- Add stories to the appropriate epic file in `docs/reference/backlog/`
-- Or create a new epic file if this is a new epic
-- Update `docs/reference/BACKLOG_INDEX.md` with new story counts
-- Update CLAUDE.md if the current focus changes
+### Epic File Format
+
+Use the epic template from `docs/reference/backlog/_EPIC_TEMPLATE.md`. Each epic file has:
+
+1. **YAML frontmatter** at the top: `id`, `title`, `status`, `priority`, `target`
+2. **Story checklist** for quick scanning: `- [ ] ID — Title (Priority, Status)`
+3. **Detailed story sections** below with inline metadata (not YAML frontmatter — see `references/story-template.md` Embedded Format section)
+
+### Writing Steps
+
+- Create or update the epic file in `docs/reference/backlog/`
+- Add each story to the checklist AND as a detailed subsection
+- Update `docs/reference/BACKLOG_INDEX.md`:
+  - Add stories to the appropriate priority table (P0/P1/P2/P3)
+  - Update the Story ID to Epic Mapping table
+  - Update Backlog Health counts
+- Update CLAUDE.md Current Focus if appropriate
+- Emit story creation events:
+  ```bash
+  echo "{\"type\":\"story\",\"event\":\"created\",\"id\":\"<id>\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"priority\":\"<priority>\",\"status\":\"<ready|draft>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+  ```
 
 ## Example
 
@@ -268,12 +319,13 @@ Next Steps:
 
 ## Rules
 
-- Each story must be scoped for 1-3 hours of focused work (single context window)
-- Each story should touch no more than 5-8 files
-- Acceptance criteria must be machine-verifiable where possible
-- Non-goals must be explicit to prevent scope creep
-- Skills-to-load must be defined for every story
-- Spike stories must have a time-box and decision criteria
+- Each story must fit in a single AI context window — max 5 affected files, describable in one sentence with one measurable outcome
+- Acceptance criteria must be machine-verifiable — exact commands in the Verification section that prove completion
+- 3–7 acceptance criteria per story. Fewer = insufficient guidance. More than 7 = story needs splitting.
+- Out of scope section is mandatory — at least one explicit exclusion to prevent AI scope creep
+- No ambiguous language in AC — reject "should be fast", "handle errors properly", "make it work"
+- Every story must have a size classification (TRIVIAL/SMALL/STANDARD) in frontmatter — this drives /story-cycle workflow depth
+- Spike stories must have a time-box and explicit research questions
 - Testing stories come before feature stories in the order
 - Follow coding standards in `docs/reference/CODING_STANDARDS.md`
 - Follow testing strategy in `docs/reference/TESTING_STRATEGY.md`

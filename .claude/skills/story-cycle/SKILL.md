@@ -89,7 +89,31 @@ For STANDARD stories, consider entering Plan Mode at the start of Phase 0 and re
 
 Run the `context-prime` micro-component from `.claude/prompts/context-prime.md` to load project context (intent-aware ordering based on the story description).
 
-**PRD scope guard:** If `docs/reference/PRD_SUMMARY.md` exists, load Section 7 (scope boundaries) and Section 3 (success criteria). Use scope boundaries as guard rails throughout implementation — if the story drifts toward a stated non-goal or violates an implementation boundary, flag it. Use success criteria to verify the story contributes to measurable product outcomes.
+### 0a. Backlog Story Lookup
+
+If `$ARGUMENTS` matches a story ID pattern (e.g., `PROJ-001`, `S01`, `E01-S03`), search `docs/reference/backlog/E*.md` for the story:
+
+1. Find the story in the epic checklist: `- [ ] ID — Title (Priority, Status)`
+2. Find the detailed story section: `### ID: Title` with inline metadata
+3. Extract metadata: **Type**, **Size**, **Priority**, **Status**, **Dependencies**, **Affected files**, **Acceptance criteria**, **Verification commands**
+4. Use extracted type/size/priority as starting classification (validated in the Size & Risk Classification step)
+
+**Definition of Ready check:** If the story has `status: draft` or is missing verification commands, affected files, or out-of-scope section, warn the user:
+> "This story doesn't meet the Definition of Ready. Missing: [list]. Consider running `/ideate` to refine it, or proceed with caution."
+
+**Dependency check:** If the story has dependencies listed, verify each dependency story has status `done` in its epic file. If any dependency is not done, warn:
+> "Dependency [ID] is not complete (status: [status]). This story may be blocked."
+
+**Status update:** Set the story's status to `in-progress` in the epic file (both checklist and detail section). Emit a story lifecycle event:
+```bash
+echo "{\"type\":\"story\",\"event\":\"status-change\",\"id\":\"<story-id>\",\"from\":\"<previous>\",\"to\":\"in-progress\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
+### 0b. PRD Scope Guard
+
+If `docs/reference/PRD_SUMMARY.md` exists, load Section 7 (scope boundaries) and Section 3 (success criteria). Use scope boundaries as guard rails throughout implementation — if the story drifts toward a stated non-goal or violates an implementation boundary, flag it. Use success criteria to verify the story contributes to measurable product outcomes.
+
+### 0c. Scope Analysis
 
 Before any exploration, decompose the user's request. Apply the `scope_analysis` reasoning tool from `references/reasoning-tools.md`:
 
@@ -105,13 +129,13 @@ This prevents missing later parts of compound requests (e.g., "refactor auth AND
 
 After Phase 0 decomposition, classify by **size** then **risk**:
 
-**Size classification:**
+**Size classification — use the story's frontmatter `size` field as starting point** (if the story came from the backlog via /ideate). Validate against actual scope after decomposition — reclassify if the scope doesn't match:
 
 | Size | Criteria | Default Workflow |
 |------|----------|----------|
 | **TRIVIAL** | Single-file, <10 lines changed, no behavioral change (typo, config, comment) | Phase 3-lite (below) |
-| **SMALL** | Single-file, <50 lines changed, clear acceptance criteria | Lightweight Phase 1 (skip 1f, 1g) → Phase 2 → Phase 3 → Phase 4 |
-| **STANDARD** | Everything else | Full workflow (unchanged) |
+| **SMALL** | 1-2 files, <50 lines changed, clear acceptance criteria | Lightweight Phase 1 (skip 1f, 1g) → Phase 2 → Phase 3 → Phase 4 |
+| **STANDARD** | Everything else (3-5 files, requires plan) | Full workflow (unchanged) |
 
 **Adaptive calibration:** If `docs/sessions/.activity-log.jsonl` contains 10+ skill execution records, check historical data for this story type/scope:
 - If stories matching this type consistently required full workflow despite SMALL classification → escalate to STANDARD
@@ -697,8 +721,16 @@ Do NOT print the completion report until every acceptance criterion has been ver
 ### 4e. Docs + Commit
 
 1. **Capture story outcome:** Run the `capture-outcome` micro-component from `.claude/prompts/capture-outcome.md` to record measurable deltas (lines added/removed, test count, coverage, new deps) to `docs/sessions/.story-outcomes.tsv`. Skip for Spike/Research and Documentation stories.
-2. **Update epic file** (`docs/reference/backlog/E##-*.md`): Mark the story status as DONE in the heading (`— TODO` → `— DONE`). Check all acceptance criteria boxes (`- [ ]` → `- [x]`).
-3. **Update `docs/reference/BACKLOG_INDEX.md`**: Increment the Done count and decrement the TODO count for this epic's row in the status table.
+2. **Update epic file** (`docs/reference/backlog/E##-*.md`):
+   - In story checklist: change `- [ ] ID — Title (P#, in-progress)` → `- [ ] ID — Title (P#, review)`
+   - In story detail section: update `**Status:** review`
+   - Legacy format: mark as `[DONE]` if epic uses old markers
+   - Check all acceptance criteria boxes in the detail section (`- [ ]` → `- [x]`)
+   - Emit story lifecycle event:
+     ```bash
+     echo "{\"type\":\"story\",\"event\":\"status-change\",\"id\":\"<id>\",\"from\":\"in-progress\",\"to\":\"review\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+     ```
+3. **Update `docs/reference/BACKLOG_INDEX.md`**: Update story counts per priority group in the status table.
 4. **Update `docs/progress.md`** with story status (DONE)
 5. **Update documentation** only if the story's AC requires it
 6. **Architecture documentation check:** Read the Update Triggers section of `docs/architecture/ARCHITECTURE.md`. If ANY trigger matches changes in this story (`git diff --name-only`), update the relevant sections and set `Last Verified` date to today. Also:

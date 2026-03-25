@@ -98,6 +98,8 @@ Parse the YAML frontmatter to extract structured data. Present it prominently:
 Check `started_at` — if the failure state is older than 4 hours, flag it as potentially stale:
 > "This failure state is [N] hours old. It may be from a previous session that was abandoned. Confirm you want to resume this workflow."
 
+**Validate story status:** If the failure state references a story ID, check its status in the epic file (`docs/reference/backlog/E*.md`). If the story status is `in-progress`, recovery is valid. If it's `done` or `review`, the story may have been completed in another session — inform the user.
+
 Recommend the user resume the interrupted skill (e.g., `/story-cycle` or `/debug-session`) with the recovery context from the `next_action` and `## Context` section.
 
 ## 0.6. Read Latest Session Handoff

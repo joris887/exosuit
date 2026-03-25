@@ -127,6 +127,20 @@ Each worktree has its own branch and working tree, so you can work on multiple s
 - Implementation boundaries from Section 7 (Always/Ask first/Never rules)
 </IF>
 
+### Show Upcoming Stories
+
+Read `docs/reference/BACKLOG_INDEX.md` and scan epic files for stories with status `ready`, grouped by priority:
+
+```markdown
+### Ready Stories (by priority)
+| Priority | ID | Title | Type | Size | Epic |
+|----------|----|-------|------|------|------|
+| P0 | PROJ-001 | [title] | feature | SMALL | E01 |
+| P1 | PROJ-003 | [title] | bugfix | TRIVIAL | E01 |
+```
+
+If no stories have `ready` status, check for `draft` stories and suggest running `/ideate` to refine them, or `/backlog-review` to assess backlog health.
+
 Output a summary:
 
 ```markdown
@@ -136,9 +150,10 @@ Output a summary:
 **Mode:** [Standard / Worktree at ../<path>]
 **Main status:** Tests passing, up to date
 **Open PRs:** None (or list any that exist)
+**Ready stories:** [count by priority]
 **Definition of Done:** [from PRD NFRs + boundaries, or "Standard (no PRD)"]
 
-Ready to start work. Use `/story-cycle <story-description>` to deliver a story.
+Ready to start work. Use `/story-cycle <story-id>` to deliver a story.
 ```
 
 ## What This Skill Does NOT Do
