@@ -193,7 +193,21 @@ Based on what was done in the sprint, update relevant documentation:
     - **Merged**: today's date
 - **progress.md**:
   - Update `## Current Sprint` to show completed state
-  - Append row to `## Sprint History` table: `| N | [goal summary] | ✅/❌ | X stories | X% | X→Y | X%→Y% | #N |`
+  - **Collect sprint satisfaction:** Ask the developer to rate LLM output quality this sprint (1–5). Use AskUserQuestion: "Sprint satisfaction (1–5)? 1=significant rework needed, 3=acceptable with corrections, 5=excellent, minimal intervention"
+  - **Compute sprint metrics** from git and activity log:
+    - **Tasks**: count of ✅ stories
+    - **Cycle time**: avg days per story (git log first/last commit dates per story)
+    - **Change failure rate**: post-merge fixes / total changes this sprint (count commits with "fix" type after initial implementation)
+    - **Test coverage Δ**: coverage change on new/modified code (from CI output or test runner)
+    - **Code churn ratio**: run `git log --numstat` to find lines modified within 14 days of creation / total lines (or use `scripts/pm/metrics.sh --churn`)
+    - **AI effectiveness**: parse `docs/sessions/.activity-log.jsonl` — compute skill success rate and context reset frequency (or use `scripts/pm/metrics.sh --ai-effectiveness`)
+    - **Sprint satisfaction**: from user input above (X/5 format)
+  - **Append row to `## Sprint History`**: `| N | [goal] | ✅/❌ | X | X.Xd | X% | +X% | 0.XX | 0.XX | X/5 | #N |`
+  - **Update `## Metrics` table**: For each metric row, update the Current column with this sprint's value. Recompute Trend sparklines from the last 6 Sprint History rows (use ▁▂▃▄▅▆▇█ — map values to 8 levels; for lower-is-better metrics like cycle time/CFR/churn, invert so up=improving). Compute Status using BOTH absolute and relative thresholds:
+    - **Absolute**: 🟢 if within target, 🟡 if within 120% of target, 🔴 if beyond 120%. For "≥" targets, invert.
+    - **Relative**: Also compute % change from the 3-sprint rolling average in Sprint History. If metric worsened >50% from average, set status to at least 🟡 regardless of absolute position. If >100% worse, set to 🔴. Example: CFR at 14% (target ≤15%) is 🟢 by absolute threshold, but if the 3-sprint average was 7%, the 100% increase makes it 🔴.
+    - Take the worst status between absolute and relative checks.
+  - **Sprint note**: If any metric is 🟡 or 🔴, write a one-sentence explanation of the likely cause. Include Δ3avg context when relative change triggered the status (e.g., "CFR doubled from 3-sprint average despite being within absolute target"). Check for three-sprint trends (3 consecutive sprints in same direction = strong signal requiring action). When code churn ratio is 🟡 or 🔴, run `scripts/pm/metrics.sh --churn` and include the top 3 hotspot files in the note (e.g., "Churn 🟡 — hotspots: src/auth/session.ts (7 changes), src/api/routes.ts (5 changes)").
   - Update `## Next Steps` with post-sprint actions
 - **CLAUDE.md**: Update Current Focus if epic status changed
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.

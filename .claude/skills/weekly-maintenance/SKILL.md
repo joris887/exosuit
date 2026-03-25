@@ -47,6 +47,7 @@ Check key documentation for accuracy:
 - @docs/progress.md completeness
 - Any drift between docs and implementation
 - **Documentation efficiency**: Key context files (CLAUDE.md, progress.md, BACKLOG_INDEX.md) are loaded every session — keep them lean. Archive stale content, deduplicate, condense verbose sections.
+- **Metrics freshness**: If `docs/progress.md` → `## Sprint History` has ≥2 data rows but `## Metrics` table still shows "—" values, sprint-end is not computing metrics — flag as a measurement gap. The feedback loop is broken: data collected but not surfaced.
 
 ## 4. Dependency Review
 
@@ -98,6 +99,17 @@ Review the "Rule Triggers" section. Flag:
 
 Record findings in the weekly summary below.
 
+Also run the progress dashboard for trend signals and relative changes:
+
+```bash
+bash scripts/pm/metrics.sh --progress
+```
+
+Review the output for:
+- Any metrics with Δ3avg >50% (rapid change worth investigating)
+- Leading vs Lagging divergences (early warning signals)
+- Persistent 3-sprint trends that haven't been addressed
+
 ## 5.5. Ground Rules Health
 
 <IF condition="docs/reference/GROUND_RULES.md exists and has GR-NNN rules">
@@ -131,15 +143,11 @@ Update @docs/progress.md with:
 ### Sprints Completed
 - [Sprint X]: [Story ID] - [Title]
 
-### Metrics
-- Stories completed: X
-- Test count: X (delta: +/-Y)
-- Test coverage: X% (delta: +/-Y)
-
-### Health Indicators
+### Metrics Status
+Reference `docs/progress.md` → `## Metrics` table for current sprint metrics.
+Additional weekly indicators not tracked per-sprint:
 - Complexity trend: [stable/increasing/decreasing]
 - Duplication: X%
-- High-churn files: [list if concerning]
 - Dependency health: [count] vulnerabilities, [count] outdated
 
 ### Technical Debt Identified
