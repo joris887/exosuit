@@ -160,6 +160,21 @@ Review findings. Fix genuine gaps before finalizing.
 - If sprint complete but no PR: suggest creating PR
 - If PR approved but not merged: suggest merging
 
+## 5.5. PR Session Summary
+
+<IF condition="An open PR exists for the current branch (from step 1 gh pr list)">
+Offer to add a session summary as a PR comment. This helps teammates (and future-you) understand the reasoning behind the code — the minimum viable knowledge transfer (see `docs/reference/TEAM_WORKFLOW.md` → Session Summaries):
+
+```bash
+gh pr comment --body "### Session Summary ($(date +%Y-%m-%d))
+- **Decisions made:** [what was decided and why]
+- **Alternatives rejected:** [approaches considered but not taken]
+- **AI limitations encountered:** [what the AI struggled with or got wrong]"
+```
+
+If the user declines, skip without further prompting.
+</IF>
+
 ## 6. Update Persistent Files
 
 Ensure these are current:

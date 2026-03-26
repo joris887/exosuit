@@ -9,6 +9,7 @@ On-demand reference files loaded by skills when needed. Not auto-loaded at sessi
 - `GROUND_RULES.md` — architectural MUST/SHOULD principles
 - `GIT_WORKFLOW.md` — branching, commit, and PR conventions
 - `MCP_INTEGRATION.md` — MCP server selection and usage guide
+- `TEAM_WORKFLOW.md` — team collaboration guide (2–15 developers)
 - `WORKFLOW.md` — development workflow phases
 - `READINESS_REPORT.md` — bootstrap readiness assessment
 - `PRD_SUMMARY.md` — product requirements summary

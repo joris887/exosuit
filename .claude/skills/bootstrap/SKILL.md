@@ -255,6 +255,10 @@ fi
 - Suggest configuring CODEOWNERS if it doesn't exist
 - Mention `docs/reference/TEAM_WORKFLOW.md` in the summary
 - Add "Team coordination" to the readiness report
+- **Size-based guidance** (based on `$CONTRIBUTORS` count):
+  - **2–5 contributors:** "Small team — shared CLAUDE.md and informal review are sufficient. See TEAM_WORKFLOW.md for lightweight coordination patterns."
+  - **6–15 contributors:** "Medium team — formal CODEOWNERS, 200-line PR caps, mandatory AI disclosure, and weekly architecture syncs recommended. See TEAM_WORKFLOW.md scaling guide."
+  - **16+ contributors:** "Large team — sub-team decomposition, rotating AI review lead, and architecture fitness functions needed. See TEAM_WORKFLOW.md."
 
 ### A3.7. Detect Default Branch
 

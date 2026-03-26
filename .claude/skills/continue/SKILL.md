@@ -42,6 +42,7 @@ Before session recovery, assess project maturity by checking key artifacts:
 | Feature branch | `git branch --list 'feature/*' 'sprint-*'` | Suggest `/sprint-start` |
 | Test command | CLAUDE.md Commands has test entry | Suggest configuring tests |
 | ADR currency | New ADRs accepted since last session (`git log --oneline docs/adr/`) | Surface new decisions that may constrain current work |
+| Team workflow | `.github/CODEOWNERS` exists or `>1` contributors | Surface team tier from `docs/reference/TEAM_WORKFLOW.md` scaling guide |
 
 Present as a health dashboard before the session state:
 
@@ -111,6 +112,21 @@ ls -t docs/sessions/session-*.md 2>/dev/null | head -1
 ```
 
 If a session file exists, read it as the primary context source. It contains: completed work, pending items, next steps, files to load, test status, and warnings.
+
+## 0.7. Team Context Check
+
+<IF condition=".github/CODEOWNERS exists or git log shows multiple contributors">
+Check for other developers' recent activity that may affect your work:
+
+```bash
+# Recent commits by other authors (last 7 days)
+git log --since="7 days ago" --format="%an: %s" --no-merges | head -10
+# Other open PRs that might conflict
+gh pr list --state open --limit 5 2>/dev/null
+```
+
+If other PRs touch files related to your current story, flag potential **agentic drift** — semantically incompatible changes that merge cleanly but encode different assumptions. See `docs/reference/TEAM_WORKFLOW.md` for the full team coordination workflow.
+</IF>
 
 ## 1. Assess Git State
 
