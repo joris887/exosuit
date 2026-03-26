@@ -76,8 +76,13 @@ Report: CURRENT/STALE/MISSING for each
 
 ## 6. Git State
 
-- Branch naming follows convention (`feature/*` or `sprint-*`)?
-- Any stale feature branches (merged but not deleted)?
+- Branch naming follows convention (`feat/*`, `fix/*`, `hotfix/*`, `refactor/*`, `docs/*`, `test/*`, `chore/*`, or `sprint-*`)?
+- Any stale branches (merged but not deleted)?
+- Any unmerged branches with no commits in the last 2 weeks?
+  ```bash
+  git for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdate:relative)' refs/heads/ | while read branch date; do echo "$branch — last commit $date"; done
+  ```
+  Flag branches with no commits in >14 days as "potentially stale — consider merging or deleting"
 - Remote configured and accessible?
 
 ## 7. Skill Conformance

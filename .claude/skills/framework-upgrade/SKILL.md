@@ -228,7 +228,7 @@ If Claude Code reads `.claude/hooks/hooks.json` alongside `settings.json`, repla
 
 | Error                                  | Cause                                      | Recovery                                                             |
 | -------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
-| Test failures after upgrade            | Skill/hook incompatibility                 | `git checkout -- <file>` to revert specific file, re-run tests       |
+| Test failures after upgrade            | Skill/hook incompatibility                 | `git restore <file>` to revert specific file, re-run tests       |
 | Missing project customization          | Merge missed a project-specific section    | Read both old and new versions, manually merge                       |
 | Framework path not found               | Wrong argument                             | Verify path exists and contains .claude/ directory                   |
 | Dirty working tree                     | Uncommitted changes                        | Commit or stash first, then retry                                    |

@@ -36,13 +36,13 @@ Show all active worktrees with their branches and status.
 
 If `$ARGUMENTS` contains "create" or a story description:
 
-1. Determine the branch name from the story: `feature/<story-id>-<description>`
+1. Determine the branch name from the story: `feat/<story-id>-<description>`
 2. **Dependency check:** If the story has a backlog entry, read its Dependencies field from the epic file. If any dependency is shared with another active worktree's story, warn:
    > "Story [ID] depends on [DEP-ID], which is being worked on in worktree [path]. These stories may conflict — consider sequencing them instead."
 3. Create the worktree:
 
 ```bash
-git worktree add ../<project>-<story-id> -b feature/<story-id>-<description>
+git worktree add ../<project>-<story-id> -b feat/<story-id>-<description>
 ```
 
 3. Output:
@@ -51,7 +51,7 @@ git worktree add ../<project>-<story-id> -b feature/<story-id>-<description>
 ### Worktree Created
 
 **Path:** `../<project>-<story-id>`
-**Branch:** `feature/<story-id>-<description>`
+**Branch:** `feat/<story-id>-<description>`
 
 To start working:
 1. Open a new Claude Code instance in `../<project>-<story-id>`

@@ -282,6 +282,26 @@ If `LINES_CHANGED` exceeds 200 lines, additionally note:
 
 Offer to proceed as-is or help split the PR.
 
+<IF condition="User wants to split the PR">
+**PR Splitting Strategies:**
+
+1. **By story:** Create one PR per completed story. Cherry-pick each story's commits to a new branch:
+   ```bash
+   git checkout $DEFAULT_BRANCH
+   git checkout -b feat/<story-description>
+   git cherry-pick <story-commit-hashes>
+   git push -u origin feat/<story-description>
+   gh pr create --title "<type>(<scope>): <story summary>"
+   ```
+   Repeat for each story. Each PR should be ≤400 LOC.
+
+2. **By layer:** Split into backend/frontend/infrastructure PRs if changes span layers.
+
+3. **By module:** Split into separate PRs per module or package boundary.
+
+Create split PRs in dependency order so CI passes on each. Reference the sprint spec in each PR for context. See `docs/reference/GIT_WORKFLOW.md` → Stacked PRs for advanced tooling.
+</IF>
+
 ## 4. Push and Create PR
 
 ```bash

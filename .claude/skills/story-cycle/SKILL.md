@@ -578,6 +578,23 @@ On successful story completion (Phase 4e commit), delete the checkpoint tag:
 git tag -d "story-checkpoint-*"  # Clean up
 ```
 
+### Intermediate Commits During Implementation
+
+After each completed TDD cycle (test written → implementation passes → tests green), create an intermediate commit:
+
+```bash
+git add <changed-files>
+git commit -m "<type>(<scope>): <description of this unit>"
+```
+
+These intermediate commits:
+- **Prevent data loss** if the session crashes mid-implementation
+- Provide natural rollback points within a story
+- Are **squashed at sprint-end** anyway — commit freely during development
+- Should each leave the codebase in a working state (tests pass)
+
+For TRIVIAL and SMALL stories, a single commit at Phase 4e is sufficient.
+
 In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 
 Before writing the first test, apply the `test_strategy_selection` reasoning tool from `references/reasoning-tools.md`.
@@ -740,7 +757,7 @@ Verification failed after 2 passes. Options:
 [F] Force complete — mark as done with known gaps documented
 ```
 
-If [R]: `git reset --hard <checkpoint-tag> && git tag -d <checkpoint-tag>`. Clear `.failure-state.md`. Suggest re-entering Phase 1 with lessons learned.
+If [R]: `git stash push --include-untracked -m "story-cycle: checkpoint rollback" && git reset --soft <checkpoint-tag> && git restore . && git tag -d <checkpoint-tag>`. Clear `.failure-state.md`. Suggest re-entering Phase 1 with lessons learned.
 If [C]: Save state to `.failure-state.md` for `/continue` pickup.
 If [F]: Document gaps in completion report, proceed to Phase 4e.
 </HALT>

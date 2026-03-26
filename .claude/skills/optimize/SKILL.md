@@ -75,7 +75,7 @@ Run `verify-clean-git-state` micro-component. Confirm:
 - Git is available
 
 <HARD-GATE>
-Do NOT proceed with uncommitted changes. The experiment loop uses `git reset --hard` — uncommitted work WILL be lost. Stash or commit first.
+Do NOT proceed with uncommitted changes. The experiment loop rolls back failed experiments by resetting commits — uncommitted work WILL be lost. Stash or commit first.
 </HARD-GATE>
 
 ### 2. Baseline Measurement
@@ -162,7 +162,8 @@ Run the metric command again. Parse the new value.
 
 ```bash
 # If command fails or output isn't parseable:
-git reset --hard HEAD~1  # Rollback the experiment
+git reset --soft HEAD~1   # Undo the experiment commit
+git restore .             # Discard the experiment's changes
 # Log as crash, continue loop
 ```
 
@@ -175,7 +176,7 @@ IF (direction == max AND new_value > best_value) OR
    (direction == min AND new_value < best_value):
   → KEEP: Branch advances. Update best_value.
 ELSE:
-  → DISCARD: git reset --hard HEAD~1
+  → DISCARD: git reset --soft HEAD~1 && git restore .
 ```
 
 **Important:** Compare against **best value**, not baseline. The frontier only advances.
@@ -239,7 +240,7 @@ Track consecutive non-improvements. If 3 experiments in a row are discarded (no 
 
 ## Safety
 
-- **Git safety:** Every experiment is a commit. Discards use `git reset --hard HEAD~1`. Only the latest uncommitted experiment can be lost on crash — all previous kept experiments are safe in git history.
+- **Git safety:** Every experiment is a commit. Discards use `git reset --soft HEAD~1 && git restore .` (safe alternatives to blocked `git reset --hard`). Only the latest uncommitted experiment can be lost on crash — all previous kept experiments are safe in git history.
 - **Working tree guard:** Hard gate prevents starting with uncommitted changes.
 - **Crash isolation:** Failed metric commands trigger at most one fix attempt before rollback.
 - **Diminishing returns:** Auto-stop after 3+ consecutive failures prevents infinite loops.

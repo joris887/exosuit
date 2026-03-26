@@ -66,9 +66,11 @@ Report: "Changes stashed. Use `git stash pop` to recover if needed."
 
 ```bash
 git diff --stat          # Show what will be lost — confirm with user
-git checkout -- .
-git clean -fd            # Remove untracked files
+git stash push --include-untracked -m "undo-work: <user-provided reason>"
+git stash drop           # Discard the stash (changes intentionally discarded)
 ```
+
+This captures both tracked changes AND untracked files into a stash, achieving a clean working directory. If the user changes their mind before the drop, `git stash pop` recovers everything.
 
 ### Story (reset branch to before story commits)
 
@@ -90,7 +92,9 @@ git log --oneline main..HEAD
 
 **If checkpoint tag exists:**
 ```bash
-git reset --hard <checkpoint-tag>
+git stash push --include-untracked -m "undo-work: story rollback backup"
+git reset --soft <checkpoint-tag>
+git restore .
 git tag -d <checkpoint-tag>
 ```
 
@@ -101,7 +105,9 @@ git reset --soft <commit-before-story>    # Keep changes staged (safest)
 
 <IF>User wants a clean slate (not just unstaged)</IF>
 ```bash
-git reset --hard <commit-before-story>
+git stash push --include-untracked -m "undo-work: story rollback backup"
+git reset --soft <commit-before-story>
+git restore .
 ```
 
 ## 4. Verify Clean State
@@ -123,6 +129,6 @@ Suggest the user note what went wrong in the current session context so the next
 
 - NEVER execute destructive git commands without showing the user exactly what will be affected and getting explicit confirmation
 - NEVER force push after a reset — the rollback is local only
-- Always prefer `git stash` (recoverable) over `git reset --hard` (permanent) unless the user explicitly requests hard reset
+- Always prefer `git stash --include-untracked` (recoverable) over destructive alternatives. Use `git restore .` for discarding tracked file changes, `git reset --soft` for undoing commits while keeping changes staged
 - If on `main` branch, REFUSE to reset — only feature/sprint branches
 - If there are commits that have already been pushed to remote, WARN the user that local reset won't affect the remote
