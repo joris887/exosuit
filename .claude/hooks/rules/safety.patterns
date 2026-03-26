@@ -3,12 +3,33 @@
 # Each line's regex is checked against the command string via grep -E.
 # Matched commands are blocked (exit 2) with the given message.
 # Lines starting with # are comments. Empty lines are skipped.
-git-push-force@@git\s+push\s+.*--force(\s|$)@@git push --force is not allowed. Use --force-with-lease if necessary.
-git-push-f@@git\s+push\s+.*-f(\s|$)@@git push -f is not allowed. Use --force-with-lease if necessary.
-git-checkout-dot@@git\s+checkout\s+\.\s*$@@git checkout . discards all changes. Use git stash or commit first.
-git-reset-hard@@git\s+reset\s+--hard@@git reset --hard is destructive. Stash or commit changes first.
-git-clean-f@@git\s+clean\s+-f@@git clean -f permanently deletes untracked files. Review with git clean -n first.
+#
+# Git patterns use (-C\s+\S+\s+)? to catch flag workarounds like `git -C /path push --force`
+
+# --- Git: destructive operations ---
+git-push-force@@git\s+(-C\s+\S+\s+)?push\s+.*--force(\s|$)@@git push --force is not allowed. Use --force-with-lease if necessary.
+git-push-f@@git\s+(-C\s+\S+\s+)?push\s+.*-[a-zA-Z]*f@@git push -f is not allowed. Use --force-with-lease if necessary.
+git-reset-hard@@git\s+(-C\s+\S+\s+)?reset\s+--hard@@git reset --hard is destructive. Use git stash or git reset --soft instead.
+git-clean-f@@git\s+(-C\s+\S+\s+)?clean\s+.*-[a-zA-Z]*f@@git clean -f permanently deletes untracked files. Review with git clean -n first.
+git-branch-force-delete@@git\s+(-C\s+\S+\s+)?branch\s+.*-D@@git branch -D force-deletes a branch. Use git branch -d (safe delete) instead.
+git-checkout-dot@@git\s+(-C\s+\S+\s+)?checkout\s+\.\s*$@@git checkout . discards all changes. Use git stash or commit first.
+
+# --- Git: hook bypass ---
+git-no-verify@@--no-verify@@--no-verify skips safety hooks. Fix the issue the hook caught instead.
+
+# --- Git: direct push to default branch ---
+git-push-main@@git\s+(-C\s+\S+\s+)?push\s+\S*\s*main(\s|$)@@Direct push to main is not allowed. Create a pull request instead.
+git-push-master@@git\s+(-C\s+\S+\s+)?push\s+\S*\s*master(\s|$)@@Direct push to master is not allowed. Create a pull request instead.
+
+# --- Filesystem: destructive operations ---
+rm-rf-git@@rm\s+-rf\s+\.git@@rm -rf .git destroys the repository. This is never allowed.
 rm-rf-dangerous@@rm\s+-rf\s+(/|\.\.|~)@@rm -rf on root, parent, or home directory is not allowed.
+
+# --- Package publishing (requires manual execution) ---
 package-publish@@(npm\s+publish|cargo\s+publish|twine\s+upload|gem\s+push|pod\s+trunk\s+push)@@Package publishing requires manual execution outside Claude Code.
+
+# --- Database: destructive operations ---
 db-destructive@@(DROP\s+(TABLE|DATABASE)|TRUNCATE\s+TABLE)@@Destructive database operations. Run manually with review.
+
+# --- Process: mass killing ---
 mass-kill@@(kill\s+-9\s+-1|killall\s|pkill\s+-9)@@Mass process killing is not allowed.

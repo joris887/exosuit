@@ -382,7 +382,44 @@ ls .git/hooks/pre-commit 2>/dev/null       # Raw git hook
 ```
 
 - **If found:** Record the tool in use. Mark as ready for the Readiness Report.
-- **If not found:** Record gap for the Readiness Report. Generate a low-priority foundation story. The framework's Claude Code hooks protect during AI sessions, but pre-commit hooks protect manual commits too.
+- **If not found:** Offer to set up Lefthook for git hook enforcement:
+
+  **If user accepts:**
+  1. Check for Lefthook: `lefthook version 2>/dev/null`
+  2. If available, create `lefthook.yml`:
+     ```yaml
+     commit-msg:
+       commands:
+         conventional:
+           run: |
+             MSG=$(head -1 {1})
+             if ! echo "$MSG" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\(.+\))?!?:\ .+'; then
+               echo "Commit message must follow Conventional Commits: <type>(<scope>): <description>"
+               exit 1
+             fi
+     pre-push:
+       commands:
+         branch-check:
+           run: |
+             BRANCH=$(git rev-parse --abbrev-ref HEAD)
+             if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+               echo "Direct push to $BRANCH blocked. Create a pull request instead."
+               exit 1
+             fi
+     ```
+  3. If Gitleaks is detected (`gitleaks version 2>/dev/null`), add pre-commit secret scanning:
+     ```yaml
+     pre-commit:
+       parallel: true
+       commands:
+         secrets:
+           run: gitleaks detect --staged --no-banner
+     ```
+  4. Run `lefthook install`
+  5. Record as "Ready" in the Readiness Report
+  - If Lefthook not available: suggest installing it (`go install github.com/evilmartians/lefthook@latest` or `brew install lefthook`), generate a foundation story for setup
+
+  **If user declines:** Record gap for the Readiness Report. Generate a low-priority foundation story. The framework's Claude Code hooks protect during AI sessions, but pre-commit hooks protect manual commits too.
 
 ### A5.7. Assess CI/CD Foundation
 

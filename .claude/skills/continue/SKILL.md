@@ -39,7 +39,7 @@ Before session recovery, assess project maturity by checking key artifacts:
 | `docs/reference/GROUND_RULES.md` | Exists and has ≥3 rules | Suggest `/bootstrap` (A3.5b step) |
 | `docs/reference/CODING_STANDARDS.md` | Exists and non-template | Suggest `/bootstrap` |
 | `docs/reference/BACKLOG_INDEX.md` | Has ≥1 TODO story | Suggest `/ideate` |
-| Feature branch | `git branch --list 'feature/*' 'sprint-*'` | Suggest `/sprint-start` |
+| Feature branch | `git branch --list 'feat/*' 'fix/*' 'sprint-*'` | Suggest `/sprint-start` |
 | Test command | CLAUDE.md Commands has test entry | Suggest configuring tests |
 | ADR currency | New ADRs accepted since last session (`git log --oneline docs/adr/`) | Surface new decisions that may constrain current work |
 | Team workflow | `.github/CODEOWNERS` exists or `>1` contributors | Surface team tier from `docs/reference/TEAM_WORKFLOW.md` scaling guide |

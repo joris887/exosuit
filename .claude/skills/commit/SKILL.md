@@ -32,7 +32,10 @@ Based on changes, select appropriate type:
 - **docs**: Documentation only
 - **style**: Formatting, no code change
 - **refactor**: Code restructuring
+- **perf**: Performance improvement
 - **test**: Adding/updating tests
+- **build**: Build system or dependency changes
+- **ci**: CI configuration changes
 - **chore**: Maintenance tasks
 
 ## 3. Generate Commit Message

@@ -9,7 +9,7 @@ Detailed reference for the `/optimize` skill's git checkpoint, rollback, crash r
 Every experiment creates exactly one git commit before measurement:
 
 ```
-feature/optimize-coverage (branch)
+feat/optimize-coverage (branch)
   ├── Commit A: "experiment: add missing auth tests"        ← KEEP (baseline improved)
   ├── Commit B: "experiment: add edge case tests for parser" ← KEEP (metric improved)
   ├── Commit C: "experiment: test error handlers"            ← DISCARD (git reset)
@@ -25,10 +25,11 @@ feature/optimize-coverage (branch)
 
 **Discard an experiment:**
 ```bash
-git reset --hard HEAD~1
+git reset --soft HEAD~1
+git restore .
 ```
 
-This removes the last commit AND reverts the working tree. The branch pointer moves back to the previous (known-good) state.
+This undoes the last commit and restores the working tree to the previous (known-good) state. Uses safe alternatives to `git reset --hard` (which is blocked by safety hooks).
 
 **Important:** Only the most recent experiment can be discarded. Once a KEEP decision advances the branch, all prior keeps are permanent. This is by design — the frontier only moves forward.
 
@@ -59,7 +60,7 @@ When a metric command fails after a code change:
 3. **Fix** — Make ONE targeted fix (no refactoring, no scope expansion)
 4. **Amend** — `git add -A && git commit --amend --no-edit`
 5. **Re-measure** — Run metric command again
-6. **If still failing** — Rollback: `git reset --hard HEAD~1`, log as crash
+6. **If still failing** — Rollback: `git reset --soft HEAD~1 && git restore .`, log as crash
 
 ### Session Interruption
 
@@ -99,8 +100,8 @@ commit	metric_value	delta	status	description	lines_added	lines_removed
 |--------|---------|------------|
 | `baseline` | Initial measurement, no change made | None |
 | `keep` | Metric improved, change retained | Commit stays |
-| `discard` | Metric same or worse, change reverted | `git reset --hard HEAD~1` |
-| `crash` | Metric command failed, change reverted | `git reset --hard HEAD~1` |
+| `discard` | Metric same or worse, change reverted | `git reset --soft HEAD~1 && git restore .` |
+| `crash` | Metric command failed, change reverted | `git reset --soft HEAD~1 && git restore .` |
 
 ### Example Log
 

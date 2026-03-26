@@ -156,6 +156,21 @@ Each worktree has its own branch and working tree, so you can work on multiple s
 - Branch naming convention: `sprint-<number>` (e.g., `sprint-001`, `sprint-002`)
 - The number is always the next sequential sprint number
 
+### Optional: Draft PR for Early CI Feedback
+
+<IF condition="CI is configured (.github/workflows/ detected) AND gh CLI is available">
+After branch creation, ask the user if they want to create a draft PR for early CI feedback:
+
+```bash
+git push -u origin sprint-<number>
+gh pr create --draft --title "Sprint <N>: <sprint-goal>" --body "Work in progress — sprint branch for early CI feedback."
+```
+
+Draft PRs enable CI to run on every push during the sprint, catching issues early. They block merging and suppress CODEOWNERS notifications until marked ready.
+
+If user declines, skip — the branch is pushed and PR created at sprint-end.
+</IF>
+
 ## 3. Sprint Planning
 
 ### Show Upcoming Stories

@@ -40,10 +40,13 @@
 
 ## Git Workflow
 - **Default branch:** <!-- Detected by /bootstrap (main, master, develop, etc.) -->
-- **Flow:** GitHub Flow (feature branches → squash merge)
-- **Branches:** `feature/<story-id>-<description>` or `sprint-<number>`
-- **Commits:** Conventional: `<type>(<scope>): <description>`
-- **Rules:** Never push to default branch, never force push, always PR
+- **Flow:** Modified GitHub Flow (sprint branches → squash merge to main)
+- **Branches:** `<type>/<description>` (feat, fix, hotfix, refactor, docs, test, chore) or `sprint-<N>`
+- **Commits:** Conventional Commits: `<type>(<scope>): <description>` — atomic, one logical unit each
+- **PRs:** ≤400 LOC (target ≤200). Squash merge to main. Delete branch after merge.
+- **Safety:** Force push, reset --hard, clean -f, branch -D, --no-verify, checkout . — all blocked by hooks
+- **Rollback:** `/rewind` → `reset --soft` → `stash` → `revert` → (reset --hard blocked)
+- **Reference:** See `docs/reference/GIT_WORKFLOW.md` for full guide
 
 ## Current Focus
 <!-- Updated per sprint by /sprint-end -->
