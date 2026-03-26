@@ -106,6 +106,38 @@ This step prevents quality gate fatigue from false positives.
 - DO present all findings ≥80 confidence to the user, even if they seem minor.
 - DON'T silently dismiss findings below the threshold — log them in the Notes section.
 
+## 2d. Independent Verification (integration-tester)
+
+When "Independent verification" is selected in the gate menu, dispatch the `integration-tester` native agent (`.claude/agents/integration-tester.md`) to independently run the full test suite and verify acceptance criteria for all completed stories.
+
+**Why this exists:** Quality skills (2c) perform static analysis — they read code and find patterns. The test suite run in 2a is performed by the same LLM context that implemented the code. The integration-tester agent breaks this self-assessment cycle by re-running everything in forked context with zero trust in prior results.
+
+**Dispatch prompt:**
+
+```
+Independently verify sprint [N] before merge.
+
+Test command: [from CLAUDE.md Commands section]
+Lint command: [if configured]
+Typecheck command: [if configured]
+
+Stories completed this sprint:
+[list from sprint spec with acceptance criteria for each]
+
+Changed files:
+[output of git diff --name-only $DEFAULT_BRANCH...HEAD]
+
+Run ALL commands yourself. Do NOT trust any prior claims about results.
+Verify each story's acceptance criteria with concrete command output.
+```
+
+**Integration with other gates:**
+- If integration-tester reports VERIFIED: its test run satisfies gate 2a (no need to re-run tests in main context). Gate 2b (test count protection) still runs independently via script.
+- If integration-tester reports NEEDS WORK: gate 2a MUST still run in the main context to reproduce the failure for debugging.
+- Integration-tester findings are treated like quality skill findings: NEEDS WORK blocks progression.
+
+**When to recommend:** All sprints. Mandatory for sprints touching auth, payments, data schemas, or security-sensitive code.
+
 ## Red Flags — Stop If You're Thinking:
 
 | Rationalization | Why It's Wrong | Correct Action |

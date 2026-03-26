@@ -11,6 +11,7 @@ Native Claude Code agents (subagents) that provide specialized personas for focu
 - `code-reviewer` — PR and code review with checklist enforcement
 - `architecture-reviewer` — architectural fitness evaluation
 - `codebase-explorer` — read-only exploration and analysis
+- `integration-tester` — independent dynamic verification (runs tests and commands)
 - `research-analyst` — web research with source quality scoring
 - `security-analyst` — security-focused code audit
 - `spec-reviewer` — specification and requirements review
