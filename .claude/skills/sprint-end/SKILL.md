@@ -229,6 +229,7 @@ Based on what was done in the sprint, update relevant documentation:
 - **CLAUDE.md**: Update Current Focus if epic status changed
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
 - **Architecture doc** (`docs/architecture/ARCHITECTURE.md`): If any story in this sprint changed architecture (check the Update Triggers section), verify the doc was updated during story-cycle Phase 4e. If not, update it now and set `Last Verified` date to today.
+- **SBOM (informational):** If CycloneDX or Syft tools are available, generate or update `sbom.json` to reflect current dependencies. If no SBOM tool is available, skip — note "SBOM generation: no tool available" in the PR body. This is informational, not blocking.
 - **Technical debt register** (`docs/technical-debt.md`):
   - If quality gates (step 2) identified issues logged to the debt register, ensure each item has the full format (category, severity, origin, quantified impact, interest rate, effort, resolution plan)
   - For debt introduced by AI-assisted code this sprint, set `origin: ai-generated`

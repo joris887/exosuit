@@ -17,7 +17,7 @@ Each check maps a framework design principle to a concrete, verifiable project s
 | 3 | **Git-disciplined** | Default branch exists, remote configured | A3.7 (default branch) | Default branch detected, remote set |
 | 4 | **Verification-driven** | Test command works and produces output | A2 (commands) | Test command configured and passing |
 | 5 | **CI-enforced** | CI/CD pipeline exists with framework PR review | A5.7 (CI/CD assessment) | CI config found AND framework PR review workflow present |
-| 6 | **Secrets-aware** | Post-edit hook configured with secrets scan | A5.5 (hook config) | `post-edit-format.sh` registered in settings.json |
+| 6 | **Secrets-aware** | Post-edit hook + .env gitignored + secret scanner available | A5.5 (hook config) + A2.85 (tooling) | Hook registered AND `.env*` in .gitignore AND secret scanning tool available |
 | 7 | **Anti-slop** | `code-slop.md` rule exists | File check | `.claude/rules/code-slop.md` exists |
 | 8 | **Quality gates** | Formatter + linter + coverage + type checker available | A2 + A2.8 + A2.85 (tooling) | All four tool categories available |
 | 9 | **Context-efficient** | Codebase LLM-ready: no oversized files, low coupling | A3.1 (LLM-readiness) | No files >500 LOC, avg ≤150 LOC, no high fan-out, no circular deps |
@@ -47,7 +47,7 @@ Each check produces one of three statuses:
 | Git-disciplined | Default branch + remote | Default branch but no remote | No git repo or no branches |
 | Verification-driven | Test command runs and passes | Test command exists but fails or has no output | No test command detected |
 | CI-enforced | CI config + framework PR review workflow | CI config exists but no framework PR review | No CI config found |
-| Secrets-aware | Post-edit hook registered | Hook registered but formatter/linter missing | Hook not registered |
+| Secrets-aware | Hook registered AND `.env*` in .gitignore AND gitleaks/similar available | Hook registered but missing .env gitignore or no secret scanner | Hook not registered or `.env` files committed in repo |
 | Anti-slop | code-slop.md rule exists | — | Rule file missing |
 | Quality gates | Formatter + linter + coverage + type checker | 2-3 of the four available | 0-1 available |
 | Context-efficient | No files >500 LOC, avg ≤150, no high fan-out | 1-3 files >500 LOC, or avg 150-300, or fan-out 5-10 | >3 files >500 LOC, or avg >300, or circular deps |

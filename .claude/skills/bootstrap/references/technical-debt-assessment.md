@@ -16,6 +16,12 @@ The framework maintains `docs/technical-debt.md` as a debt inventory. Bootstrap 
 | Disabled tests | `@skip`, `skip()`, `.skip`, `xtest`, `xit` | Medium |
 | Suppressed warnings | `// nolint`, `# noqa`, `// eslint-disable`, `@SuppressWarnings` | Medium |
 | Magic numbers | Hardcoded constants without named variables | Low |
+| Wildcard CORS | `Access-Control-Allow-Origin: *` in production code | High |
+| Disabled security | `CSRF_ENABLED=False`, `security.headers.disabled`, `verify=False` | High |
+| Deprecated crypto | `MD5`, `SHA1` (for security), `DES`, `RC4` usage | High |
+| Missing auth middleware | API routes without authentication/authorization checks | High |
+| Eval with input | `eval()`, `exec()`, `Function()` with non-constant arguments | High |
+| Hardcoded secrets | Strings matching API key, token, or password patterns | Critical |
 
 ### Python
 

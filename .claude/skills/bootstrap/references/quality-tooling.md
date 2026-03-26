@@ -76,6 +76,71 @@ Install selected tools now? [Select tools / Skip all]
   ```
 - Declined tools become foundation stories in E00 (see E8-S03)
 
+## Security Scanning Tools
+
+Security scanning tools catch vulnerabilities that formatters and linters miss. AI-generated code contains vulnerabilities 40-45% of the time — automated scanning is essential.
+
+| Stack | Secret Scanner | SAST | Dependency Audit |
+|-------|---------------|------|-----------------|
+| All | Gitleaks | Semgrep | — |
+| Python | — | Bandit | pip-audit |
+| TypeScript/JavaScript | — | — | npm audit, Socket |
+| Go | — | gosec | govulncheck |
+| Rust | — | — | cargo audit |
+| Ruby | — | Brakeman | bundler-audit |
+| Java | — | SpotBugs + Find Security Bugs | OWASP Dependency-Check |
+| PHP | — | — | composer audit |
+| Swift | — | MobSF/mobsfscan | — |
+
+### Detection Logic
+
+Follow the same pattern as formatter/linter detection:
+
+1. **Check if available:** `command -v gitleaks`, `command -v semgrep`, `command -v bandit`, etc.
+2. **Check for pre-commit integration:** Look for `gitleaks` in `.pre-commit-config.yaml`
+3. **Check for CI integration:** Look for secret/SAST scanning steps in CI config files
+
+### Offer Flow
+
+Present after formatter/linter/coverage tools in the same format:
+
+```
+Security scanning assessment:
+
+  ✗ gitleaks (secret scanner) — not installed
+  ✗ {tool} (SAST) — not installed
+  ✓ npm audit (dependency audit) — available
+
+Missing tools recommended for security gates:
+  ☐ gitleaks (secret scanner) — `brew install gitleaks` / `go install github.com/gitleaks/gitleaks/v8@latest`
+  ☐ {tool} (SAST) — `{install_command}`
+
+Install selected tools now? [Select tools / Skip all]
+```
+
+### Integration Points
+
+- **Pre-commit hook:** Gitleaks can be added to pre-commit config for automatic secret scanning
+- **Post-edit hook** (`post-edit-format.sh`): Framework's built-in secret patterns provide baseline detection without external tools
+- **Quality gates** (`/sprint-end`): `/security-audit` skill can invoke installed scanning tools
+- **Readiness Report** (A5.8): Security scanning tool availability feeds the "Secrets-aware" principle check
+- **CI pipeline:** Both Gitleaks and Semgrep offer GitHub Actions for PR-level scanning
+
+### If User Declines
+
+Record declined security tools for the Readiness Report:
+```
+declined_tools:
+  - tool: gitleaks
+    category: secret-scanner
+    reason: user declined
+  - tool: semgrep
+    category: sast
+    reason: user declined
+```
+
+Declined tools become foundation stories. Security tooling gaps are flagged as "Risk" (not "Missing") in the Readiness Report — the framework's built-in hook patterns provide baseline coverage.
+
 ## Architecture Enforcement Tools (Optional)
 
 Architecture enforcement tools make Dependency Rules in ARCHITECTURE.md executable — violations break the build instead of silently accumulating. These are optional but high-value for projects with clear layered architectures.

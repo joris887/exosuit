@@ -52,7 +52,13 @@ Universal (suggest for any project):
   - Test coverage floor (coverage MUST NOT decrease sprint-over-sprint)
   - No silent failures (errors MUST be logged or surfaced, never swallowed)
 
-CATEGORIES: dependencies | boundaries | data-flow | security | technology | operational
+AI-Assisted Development (suggest when AI tools are used):
+  - All AI-suggested dependencies MUST be verified to exist in their package registry before adding
+  - AI-generated values for secrets, tokens, and keys MUST NOT be used — always generate fresh
+  - Authentication and cryptographic code SHOULD use established libraries, not AI-generated implementations
+  - All AI-generated code SHOULD be scanned for the CWE top 15 (see .claude/rules/security.md)
+
+CATEGORIES: dependencies | boundaries | data-flow | security | technology | operational | ai-development
 -->
 
 ## Exception Log

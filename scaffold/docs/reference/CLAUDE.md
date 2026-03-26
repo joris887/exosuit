@@ -13,6 +13,7 @@ On-demand reference files loaded by skills when needed. Not auto-loaded at sessi
 - `WORKFLOW.md` — development workflow phases
 - `READINESS_REPORT.md` — bootstrap readiness assessment
 - `PRD_SUMMARY.md` — product requirements summary
+- `SECRETS_INVENTORY.md` — secret rotation tracking (loaded by security-audit, weekly-maintenance)
 - `backlog/` — individual epic files (load only the current one)
 
 ## Conventions

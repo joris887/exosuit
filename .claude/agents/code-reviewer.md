@@ -35,9 +35,13 @@ If no lens is specified, review across all areas using the full checklist below.
 - [ ] Naming is consistent with project conventions
 
 ### Security
-- [ ] No hardcoded secrets or credentials
-- [ ] User input is validated at system boundaries
-- [ ] SQL queries are parameterized (if applicable)
+- [ ] No hardcoded secrets or credentials (CWE-798 — most common AI vulnerability)
+- [ ] User input is validated at system boundaries (server-side, not just client-side)
+- [ ] SQL queries are parameterized (if applicable) — no string concatenation
+- [ ] No `eval()`, `exec()`, or `Function()` with user-controlled input (CWE-94)
+- [ ] No deprecated crypto algorithms (MD5, SHA1 for security; DES, RC4)
+- [ ] No `Access-Control-Allow-Origin: *` in production code
+- [ ] All AI-suggested dependencies verified to exist in their registry
 
 ### Testing
 - [ ] Tests are meaningful — would fail if implementation was naive

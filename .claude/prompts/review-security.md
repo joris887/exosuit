@@ -2,13 +2,20 @@
 ## name: review-security description: Security review of a specific file argument-hint: <file-path> user-invocable: true allowed-tools: Read, Glob, Grep
 ---
 
-Review `$1` for security vulnerabilities. Focus on:
+Review `$1` for security vulnerabilities. AI-generated code contains vulnerabilities 40-45% of the time — review thoroughly.
 
-- **Input validation:** Is all user input validated and sanitized before use?
-- **Injection:** SQL injection, command injection, path traversal, XSS
-- **Secrets:** Hardcoded credentials, API keys, tokens, passwords
-- **Authentication/Authorization:** Proper checks, no bypasses
-- **CWE top 10 for AI-generated code:** CWE-798, CWE-22, CWE-78, CWE-89, CWE-79, CWE-862, CWE-311, CWE-200, CWE-502, CWE-918
+Focus on (ranked by AI vulnerability frequency):
+
+- **Hardcoded credentials (CWE-798/259):** API keys, passwords, tokens, connection strings in source
+- **Injection (CWE-89, 78, 79, 94):** SQL injection, command injection, XSS, code injection (eval/exec)
+- **Input validation (CWE-20):** Server-side validation missing or client-side only
+- **Authentication/Authorization (CWE-287, 306, 862):** Missing auth checks, missing authorization, bypass paths
+- **Cryptography (CWE-327):** Deprecated algorithms (MD5, SHA1, DES), hardcoded keys, insufficient key lengths
+- **Over-permissive configs:** CORS wildcards, disabled security features, excessive permissions
+- **Supply chain:** Phantom packages (verify imports exist in registry), typosquatted names
+- **Data exposure (CWE-200):** Verbose error messages, sensitive data in logs, PII in responses
+- **SSRF (CWE-918):** User-controlled URLs in server-side requests
+- **Deserialization (CWE-502):** Untrusted data deserialized without validation
 
 Report findings as:
 

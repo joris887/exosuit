@@ -650,9 +650,11 @@ Do NOT skip self-review for ANY story size. If any checklist item fails, go back
 
 | Risk Level | Agents to Dispatch |
 |---|---|
-| **Low (3-4)** | `/code-quality`, `/test-validator` |
-| **Medium (5-6)** | `/code-quality`, `/test-validator`, `/security-audit` (if security-scoped) |
+| **Low (3-4)** | `/code-quality`, `/test-validator`, `/security-audit` (lightweight — CWE top 5 + secrets scan only) |
+| **Medium (5-6)** | `/code-quality`, `/test-validator`, `/security-audit` |
 | **High (7-9)** | `/code-quality`, `/test-validator`, `/security-audit`, `/architecture-check` |
+
+**Why security-audit at ALL risk levels:** AI-generated code contains vulnerabilities 40-45% of the time regardless of story type or perceived risk. At low risk, run a lightweight security pass (hardcoded credentials, SQL injection, XSS, command injection, eval — the 5 CWEs AI produces most). At medium/high, run the full checklist.
 
 For medium-risk STANDARD stories, the risk matrix promises "all quality agents" — dispatch accordingly. For high-risk, add `/architecture-check` as the risk matrix specifies "all agents + architecture-check."
 

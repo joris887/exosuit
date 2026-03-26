@@ -66,7 +66,19 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     fi
 fi
 
-# --- 4. Initialize session state ---
+# --- 4. Prompt injection defense: Unicode anomaly scan in AI config files ---
+# Rules File Backdoor attack uses zero-width chars and bidirectional overrides to hide
+# malicious instructions in AI config files. Scan for these obfuscation markers.
+if [ -d ".claude" ]; then
+    # Check for zero-width joiners, bidirectional overrides, and other Unicode obfuscation
+    # Uses octal sequences for POSIX compatibility
+    UNICODE_HITS=$(find .claude -type f -name "*.md" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" 2>/dev/null | head -50 | xargs grep -rl "$(printf '\xe2\x80\x8b\|\xe2\x80\x8c\|\xe2\x80\x8d\|\xe2\x80\x8e\|\xe2\x80\x8f\|\xe2\x80\xaa\|\xe2\x80\xab\|\xe2\x80\xac\|\xe2\x80\xad\|\xe2\x80\xae')" 2>/dev/null)
+    if [ -n "$UNICODE_HITS" ]; then
+        warn "Hidden Unicode characters detected in AI config files — possible prompt injection: $UNICODE_HITS"
+    fi
+fi
+
+# --- 5. Initialize session state ---
 mkdir -p "$STATE_DIR" 2>/dev/null
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/session-started" 2>/dev/null
 # Reset stop iteration counter

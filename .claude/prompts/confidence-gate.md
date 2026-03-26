@@ -61,7 +61,12 @@ This is NOT a 6th dimension. The score remains 0–100 across the 5 dimensions a
 - Do you understand the **blast radius** of this change? (Which users, services, or systems are affected?)
 - Is there a **rollback plan** if this doesn't work? (Checkpoint tag, feature flag, reversible migration?)
 
-If the answer to either question is unclear, flag to the user before proceeding — even if the total score is >=85.
+**Security-relevant stories** (touching auth, crypto, user data, API endpoints, file uploads, sessions): AI-generated code in these areas has the highest vulnerability rate. Before proceeding, verify:
+- Are you using established libraries for auth/crypto (not generating from scratch)?
+- Have you checked the CWE top 15 from `.claude/rules/security.md` against the plan?
+- Are all AI-suggested dependencies verified to exist in their registry?
+
+If the answer to any question is unclear, flag to the user before proceeding — even if the total score is >=85.
 
 ## Scoring Thresholds
 
