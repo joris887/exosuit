@@ -10,6 +10,9 @@ RULES_DIR="$HOOKS_DIR/rules"
 PATTERNS_FILE="$RULES_DIR/subagent.patterns"
 CONF_FILE="$RULES_DIR/subagent.conf"
 
+# --- Hook guard: profile + disable check ---
+"$HOOKS_DIR/lib/hook-guard.sh" "subagent-stop" "standard" || exit 0
+
 # --- Helper: read config value ---
 read_conf() {
     _key="$1"
@@ -51,7 +54,7 @@ if [ -f "$PATTERNS_FILE" ]; then
         regex=$(printf '%s' "$line" | sed 's/@@.*//')
         message=$(printf '%s' "$line" | sed 's/^[^@]*@@//')
 
-        if printf '%s' "$MESSAGE" | grep -qEi "$regex"; then
+        if printf '%s' "$MESSAGE" | grep -qEi -- "$regex"; then
             if [ -z "$WARNINGS" ]; then
                 WARNINGS="$message"
             else

@@ -72,6 +72,16 @@
           }
         ],
         "apply_to_subagents": true
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/pre-read-check.sh",
+            "statusMessage": "Checking file sensitivity..."
+          }
+        ]
       }
     ],
     "PostToolUse": [

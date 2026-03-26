@@ -8,6 +8,9 @@ HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 STATE_DIR="$HOOKS_DIR/state"
 WARNINGS=""
 
+# --- Hook guard: profile + disable check ---
+"$HOOKS_DIR/lib/hook-guard.sh" "session-start" "minimal" || exit 0
+
 # --- Helper: append warning ---
 warn() {
     if [ -z "$WARNINGS" ]; then
@@ -42,9 +45,15 @@ if [ -f "$AUTO_SAVE" ]; then
         NOW=$(date +%s 2>/dev/null || echo 0)
         if [ "$MTIME" -gt 0 ] && [ "$NOW" -gt 0 ]; then
             AGE=$((NOW - MTIME))
-            if [ "$AGE" -gt 86400 ]; then
-                DAYS=$((AGE / 86400))
-                warn "Stale auto-save detected ($AUTO_SAVE is ${DAYS}d old) -- consider running /continue"
+            if [ "$AGE" -gt 14400 ]; then
+                # 14400s = 4 hours. Catch recent auto-saves more aggressively.
+                HOURS=$((AGE / 3600))
+                if [ "$HOURS" -ge 24 ]; then
+                    DAYS=$((AGE / 86400))
+                    warn "Stale auto-save detected ($AUTO_SAVE is ${DAYS}d old) -- run /continue to resume"
+                else
+                    warn "Recent auto-save detected ($AUTO_SAVE is ${HOURS}h old) -- run /continue to resume"
+                fi
             fi
         fi
     fi

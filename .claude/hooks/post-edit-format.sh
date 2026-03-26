@@ -9,6 +9,10 @@
 # Path resolution (plugin/template mode compatible)
 source "$(dirname "$0")/lib/paths.sh"
 
+# Hook guard: profile + disable check
+HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+"$HOOKS_DIR/lib/hook-guard.sh" "post-edit-format" "standard" || exit 0
+
 FILE="$1"
 
 if [ -z "$FILE" ]; then

@@ -95,6 +95,37 @@ bash .claude/skills/doctor/scripts/validate-skills.sh
 
 Reports per-skill conformance: YAML frontmatter, line budget, required sections, reference budgets, registry version match. Include results in the health report under a "Skill Conformance" section.
 
+## 8. Skill Usage Analytics
+
+Parse `docs/sessions/.activity-log.jsonl` for entries with `"type":"skill"`:
+
+```bash
+# Extract skill invocation data from activity log
+grep '"type":"skill"' docs/sessions/.activity-log.jsonl 2>/dev/null || echo "No skill data"
+```
+
+- Count invocations per skill name over all available log data
+- Find the most recent invocation timestamp per skill
+- List all skill directories from `.claude/skills/` (excluding SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, and non-directory entries)
+- Cross-reference invocations with available skills to classify:
+  - **ACTIVE:** Invoked at least once in the log
+  - **DORMANT:** Skill directory exists, user-invocable, but never invoked
+  - **FREQUENT:** Invoked 5+ times (top skills)
+- Note: Skills not in the log may still be useful — they may not have been needed yet. DORMANT is informational, not a problem.
+
+## 9. Hook Profile Status
+
+Report the current hook profile configuration:
+
+```bash
+echo "JD_HOOK_PROFILE=${JD_HOOK_PROFILE:-standard}"
+echo "JD_DISABLED_HOOKS=${JD_DISABLED_HOOKS:-<none>}"
+```
+
+- Show current profile level and its implications
+- List any disabled hooks
+- Verify `lib/hook-guard.sh` exists and is executable
+
 ## Output
 
 ```markdown
@@ -135,6 +166,19 @@ Reports per-skill conformance: YAML frontmatter, line budget, required sections,
 | Skill | Frontmatter | Lines | References | Registry |
 |-------|-------------|-------|------------|----------|
 | [name] | PASS/FAIL | [count] | PASS/WARN | PASS/WARN |
+
+### Skill Usage
+| Skill | Invocations | Last Used | Status |
+|-------|-------------|-----------|--------|
+| story-cycle | 15 | 2026-03-25 | ACTIVE |
+| manual-test | 0 | never | DORMANT |
+
+### Hook Configuration
+| Setting | Value |
+|---------|-------|
+| Profile | standard |
+| Disabled | none |
+| Guard script | PASS |
 
 ### Overall: X/Y checks passed — [HEALTHY / NEEDS ATTENTION / ACTION REQUIRED]
 ```

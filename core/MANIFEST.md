@@ -22,7 +22,9 @@ These files are generic framework components. On upgrade, they are replaced with
 | `worktree.sh` | Worktree lifecycle |
 | `worktree-bash-fix.sh` | Worktree directory fix |
 | `status-line.sh` | Status bar output |
+| `pre-read-check.sh` | Sensitive file read warning |
 | `lib/paths.sh` | Path resolution |
+| `lib/hook-guard.sh` | Profile + disable check |
 | `hooks.json` | Plugin mode hook declarations |
 | `README.md` | Hook documentation |
 | `CLAUDE.md` | Directory context |
@@ -32,6 +34,9 @@ These files are generic framework components. On upgrade, they are replaced with
 | File | Merge Strategy |
 |------|---------------|
 | `safety.patterns` | **MERGE** -- framework patterns + project-specific patterns |
+| `advisory.patterns` | **MERGE** -- framework patterns + project-specific patterns |
+| `sensitive-files.patterns` | **MERGE** -- framework patterns + project-specific patterns |
+| `debug.patterns` | REPLACE |
 | `quality.conf` | **MERGE** -- framework defaults + project overrides |
 | `intent.patterns` | **MERGE** -- framework patterns + project-specific patterns |
 | `subagent.patterns` | REPLACE |
@@ -228,6 +233,7 @@ These files contain project-specific content. Never replaced automatically.
 |---|---|
 | `docs/sessions/*.md` | /handoff, stop.sh |
 | `docs/sessions/.activity-log.jsonl` | post-tool-use.sh |
+| `docs/sessions/.failure-log.jsonl` | post-tool-use.sh |
 | `docs/sessions/.auto-save.md` | stop.sh |
 | `docs/sessions/.failure-state.md` | story-cycle, debug-session |
 | `docs/solutions/*.md` | capture-learnings |
@@ -260,6 +266,8 @@ Files that require merging (framework base + project-specific additions):
 |------|--------------|
 | `.claude/settings.json` | Framework hook definitions + project-specific paths/settings |
 | `.claude/hooks/rules/safety.patterns` | Framework safety patterns + project-specific blocked commands |
+| `.claude/hooks/rules/advisory.patterns` | Framework advisory patterns + project-specific warnings |
+| `.claude/hooks/rules/sensitive-files.patterns` | Framework sensitive patterns + project-specific patterns |
 | `.claude/hooks/rules/quality.conf` | Framework quality defaults + project-specific thresholds |
 | `.claude/hooks/rules/intent.patterns` | Framework intent patterns + project-specific classifications |
 | `.github/CODEOWNERS` | Framework default patterns + team-specific ownership |

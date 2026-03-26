@@ -1,0 +1,61 @@
+#!/bin/sh
+# PreToolUse handler for Read: warn when reading sensitive files.
+# Matches file_path against rules/sensitive-files.patterns.
+# Advisory only (always exit 0) — warns on stderr.
+# POSIX-compliant — no bash required.
+#
+# Input:  JSON on stdin (file_path)
+# Output: advisory warnings on stderr, always exit 0
+
+HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+RULES_DIR="$HOOKS_DIR/rules"
+PATTERNS_FILE="$RULES_DIR/sensitive-files.patterns"
+
+# --- Hook guard: profile + disable check ---
+"$HOOKS_DIR/lib/hook-guard.sh" "pre-read-check" "standard" || exit 0
+
+# --- JSON field extraction ---
+extract_json_string() {
+    _field="$1"
+    if command -v jq >/dev/null 2>&1; then
+        jq -r ".$_field // empty"
+    else
+        sed -n 's/.*"'"$_field"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1
+    fi
+}
+
+# Read stdin once
+INPUT=$(cat)
+FILE_PATH=$(printf '%s' "$INPUT" | extract_json_string "file_path")
+
+# If no file path, allow through
+[ -z "$FILE_PATH" ] && exit 0
+
+# --- Check sensitive file patterns ---
+WARNINGS=""
+if [ -f "$PATTERNS_FILE" ]; then
+    while IFS= read -r line; do
+        case "$line" in
+            '#'*|'') continue ;;
+        esac
+
+        # Split on @@ delimiter: id@@regex@@message
+        regex=$(printf '%s' "$line" | sed 's/^[^@]*@@//' | sed 's/@@.*//')
+        message=$(printf '%s' "$line" | sed 's/.*@@//')
+
+        if printf '%s' "$FILE_PATH" | grep -qE -- "$regex"; then
+            if [ -z "$WARNINGS" ]; then
+                WARNINGS="$message"
+            else
+                WARNINGS="$WARNINGS
+  - $message"
+            fi
+        fi
+    done < "$PATTERNS_FILE"
+fi
+
+if [ -n "$WARNINGS" ]; then
+    printf 'Sensitive file warning:\n  - %s\n' "$WARNINGS" >&2
+fi
+
+exit 0
