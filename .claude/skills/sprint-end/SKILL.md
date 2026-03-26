@@ -130,6 +130,7 @@ Before running gates, present available checks using AskUserQuestion with `multi
 - **/test-validator** — description: "Weakened assertions, deleted tests, tautological tests, TDD compliance"
 - **/security-audit** — description: "OWASP top 10, secrets, injection, auth issues, CWE checklist"
 - **/architecture-check** — description: "Module boundaries, dependency direction, coupling, architectural drift"
+- **Independent verification** — description: "Dispatch integration-tester agent to independently run tests and verify acceptance criteria (recommended)"
 - **Ground rules compliance** — description: "Check against GROUND_RULES.md principles"
 - **UAT coverage check** — description: "Check UAT test case pass/fail summary (advisory, does not block)"
 - **Skip all quality gates** — description: "Skip all gates (not recommended)"
@@ -146,7 +147,9 @@ Dispatch quality agent **skills** (not native agents) as parallel Task agents us
 - `/security-audit` — OWASP top 10, secrets, injection, auth issues
 - `/architecture-check` — module boundaries, dependency direction, coupling
 
-**Do NOT use native agents** (`.claude/agents/code-reviewer.md`, `.claude/agents/security-analyst.md`) for quality gates — they use persona-driven review methodology, not the structured quality checklists that the skills provide.
+**Do NOT use native agents** (`.claude/agents/code-reviewer.md`, `.claude/agents/security-analyst.md`) for static quality gates — they use persona-driven review methodology, not the structured quality checklists that the skills provide.
+
+**Exception — integration-tester:** If "Independent verification" was selected, dispatch the `integration-tester` native agent (`.claude/agents/integration-tester.md`) alongside the quality skills. This agent independently runs the test suite and verifies acceptance criteria — it is a dynamic verification complement to the static quality skills. Include in its dispatch prompt: test/lint/typecheck commands, all completed stories' acceptance criteria (from sprint spec), and `git diff --name-only $DEFAULT_BRANCH...HEAD`.
 
 Run only selected gates. The HARD-GATE still applies: if any selected gate fails, do NOT proceed.
 

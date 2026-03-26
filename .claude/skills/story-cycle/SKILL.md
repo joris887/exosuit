@@ -457,7 +457,7 @@ remaining_steps:
   - "BOOTSTRAP (do this FIRST): Read .claude/skills/story-cycle/SKILL.md starting from '## Phase 2: Context Transition + Confidence Gate' to reload the full story-cycle workflow. You are mid-workflow — planning is done, implementation phases remain. Do NOT stop after reading the plan."
   - "Phase 2 — CONTEXT + CONFIDENCE GATE (HARD-GATE): Prune context (keep plan + paths + gotchas, discard bulk). Read .claude/prompts/confidence-gate.md. Score 5 dimensions 0-20 each. ≥85 proceed, 70-84 clarify, <70 return to planning. Output the score table."
   - "Phase 3 — IMPLEMENT (TDD HARD-GATE for Feature/Bug Fix/Refactoring): Read .claude/skills/story-cycle/references/story-types.md for [storyType] execution steps. Load relevant sections of docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md. Re-read all target files from plan before editing. CRITICAL: For Feature/Bug Fix/Refactoring stories, write and run a failing test BEFORE writing implementation code. Show test failure output. Only then write implementation. Follow story-type methodology (TDD: RED → GREEN → REFACTOR)."
-  - "Phase 4a — SELF-REVIEW (HARD-GATE): Read .claude/skills/story-cycle/references/self-review.md — complete ALL checklist items including ground rules re-check. Read .claude/skills/story-cycle/references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface, architecture doc staleness. Dispatch quality agents per risk level (Low: code-quality+test-validator, Medium: +security-audit, High: +architecture-check). If ANY item fails → fix in Phase 3 before proceeding."
+  - "Phase 4a — SELF-REVIEW (HARD-GATE): Read .claude/skills/story-cycle/references/self-review.md — complete ALL checklist items including ground rules re-check. Read .claude/skills/story-cycle/references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface, architecture doc staleness. Dispatch quality skills per risk level (Low: code-quality+test-validator+security-audit-lightweight, Medium: +security-audit-full, High: +architecture-check). At Medium+ risk, also dispatch integration-tester native agent (.claude/agents/integration-tester.md) with test commands + acceptance criteria for independent dynamic verification. If ANY item fails → fix in Phase 3 before proceeding."
   - "Phase 4b — QUALITY GATES (HARD-GATE): Run the project's quality command (from CLAUDE.md Commands section: lint → typecheck → test). Stop on first failure, fix, re-run. Show passing output in the current turn — do NOT claim tests pass without evidence. Do NOT proceed until all gates pass."
   - "Phase 4c — UAT (optional, Feature/Bug Fix only): If project has UAT directory, generate UAT test case + sense check per Phase 4c/4c.1 in SKILL.md. Skip for Spike/Research, Infrastructure, Documentation, Testing, Refactoring, Performance, Skill/Tooling stories. Also skip if no UAT directory exists."
   - "Phase 4d — COMPLETION VERIFICATION (HARD-GATE): Re-read original AC from plan. For EACH criterion, provide concrete evidence (test output, file:line, command output). Max 2 extra loop passes if gaps found. Do NOT print completion report until every AC has evidence."
@@ -665,15 +665,19 @@ Do NOT skip self-review for ANY story size. If any checklist item fails, go back
 
 **If sub-agents are available:** Dispatch quality agents in forked context based on the risk matrix from Size & Risk Classification:
 
-| Risk Level | Agents to Dispatch |
-|---|---|
-| **Low (3-4)** | `/code-quality`, `/test-validator`, `/security-audit` (lightweight — CWE top 5 + secrets scan only) |
-| **Medium (5-6)** | `/code-quality`, `/test-validator`, `/security-audit` |
-| **High (7-9)** | `/code-quality`, `/test-validator`, `/security-audit`, `/architecture-check` |
+| Risk Level | Quality Skills (static analysis) | Native Agents (dynamic verification) |
+|---|---|---|
+| **Low (3-4)** | `/code-quality`, `/test-validator`, `/security-audit` (lightweight — CWE top 5 + secrets scan only) | — |
+| **Medium (5-6)** | `/code-quality`, `/test-validator`, `/security-audit` | `integration-tester` |
+| **High (7-9)** | `/code-quality`, `/test-validator`, `/security-audit`, `/architecture-check` | `integration-tester` (mandatory) |
 
 **Why security-audit at ALL risk levels:** AI-generated code contains vulnerabilities 40-45% of the time regardless of story type or perceived risk. At low risk, run a lightweight security pass (hardcoded credentials, SQL injection, XSS, command injection, eval — the 5 CWEs AI produces most). At medium/high, run the full checklist.
 
 For medium-risk STANDARD stories, the risk matrix promises "all quality agents" — dispatch accordingly. For high-risk, add `/architecture-check` as the risk matrix specifies "all agents + architecture-check."
+
+**Why integration-tester at Medium+ risk:** The implementing LLM verifies its own work in Phase 4b (self-assessment). The `integration-tester` native agent (`.claude/agents/integration-tester.md`) independently re-runs the test suite and verifies acceptance criteria in forked context — breaking the self-verification cycle. At low risk, Phase 4b's quality-gate-sequence is sufficient.
+
+**Integration-tester dispatch prompt:** Include: (1) test/lint/typecheck commands from CLAUDE.md, (2) all acceptance criteria from the plan, (3) modified files from `git diff --name-only`. The agent runs everything independently and reports VERIFIED or NEEDS WORK with command output evidence.
 
 **If sub-agents are NOT available:** Complete self-review checklist manually. Do NOT skip quality checks.
 
