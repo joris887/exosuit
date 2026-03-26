@@ -118,8 +118,11 @@ After all findings are processed:
    - Set the test case **Status** to: Pass (all criteria met) / Fail (any criteria failed and unfixed) / Pass (if all failures were fixed during this cycle)
    - Set **Tested On** to today's date
    - Add **Findings** notes summarizing what was found and done
-   - Update the **Status Summary** table at the top of the file
+   - Update the **Dashboard** table at the top of the file
    - Check/uncheck the acceptance criteria checkboxes based on results
+   - Append a row to the test case's `#### Results` table:
+     `| [status emoji] [status] | [today's date] | [tester] | [build via git rev-parse --short HEAD] | [one-line summary] |`
+     Never delete existing rows — the Results table is an append-only execution log.
 
 1. **Update acceptance criteria checkboxes**:
 
