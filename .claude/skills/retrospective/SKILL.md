@@ -194,6 +194,18 @@ Review whether architectural decisions made during this sprint are properly docu
 
 This prevents the "decisions in Slack" anti-pattern where architectural choices are made but never formalized.
 
+## 4.6. AI Learnings
+
+Review how AI tools performed during this sprint — what worked, what didn't, and what to update:
+
+- **Effective patterns:** Which prompting strategies, decomposition approaches, or AI workflows produced good results? Document for future sessions and teammates.
+- **Anti-patterns observed:** Did AI-generated code introduce specific defect types this sprint? (Check: phantom packages, code duplication, abstraction bypass, tautological tests, over-engineering — see `docs/reference/TEAM_WORKFLOW.md` → AI-Specific Review Checklist)
+- **Comprehension check:** Can every developer explain the AI-generated code they merged? If not, flag specific areas for code walkthroughs. (59% of developers ship AI code they don't fully understand — this is how comprehension debt accumulates.)
+- **Rule updates needed:** Should any patterns be added to CLAUDE.md, GROUND_RULES.md, or `.claude/rules/` based on this sprint's experience?
+- **Review effectiveness:** Did the review layers (pre-commit → CI → AI review → human review) catch issues? Where did defects slip through?
+
+Capture findings in the retrospective summary. Update CLAUDE.md with any new rules or anti-patterns discovered.
+
 ## 5. Action Items
 
 Convert insights into specific actions:

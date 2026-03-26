@@ -265,6 +265,22 @@ fi
 
 If there are no documentation changes, skip this step gracefully. This commit happens regardless of whether push will be performed.
 
+### PR Size Check
+
+```bash
+LINES_CHANGED=$(git diff --stat $DEFAULT_BRANCH...HEAD | tail -1 | grep -oE '[0-9]+ insertion|[0-9]+ deletion' | grep -oE '[0-9]+' | paste -sd+ | bc 2>/dev/null || echo "0")
+```
+
+If `LINES_CHANGED` exceeds 400 lines, warn:
+> **Large PR detected** ([LINES_CHANGED] lines changed). Research shows PRs in the 200–400 line range have 40% fewer defects, and each additional 100 lines adds ~25 minutes of review time. Consider breaking this into stacked PRs for more effective review.
+
+<IF condition="CODEOWNERS exists or CONTRIBUTORS > 1">
+If `LINES_CHANGED` exceeds 200 lines, additionally note:
+> For teams, `docs/reference/TEAM_WORKFLOW.md` recommends capping AI-generated PRs at 200 lines. Consider using stacked PRs to break this into reviewable chunks.
+</IF>
+
+Offer to proceed as-is or help split the PR.
+
 ## 4. Push and Create PR
 
 ```bash
@@ -304,6 +320,11 @@ gh pr create --title "<type>(<scope>): <summary>" --body "$(cat <<'EOF'
 - [x] New code follows existing patterns
 - [x/n/a] Documentation updated where needed
 
+## AI Assistance
+- **AI-assisted:** <list components where AI generated or significantly modified code>
+- **Human-written:** <list components written or heavily edited by hand, or "N/A">
+- **AI review focus:** <specific areas where reviewers should check for AI anti-patterns>
+
 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
@@ -334,7 +355,12 @@ gh pr view --json reviewRequests,reviews
 
 **If human review is required:**
 1. List required reviewers from CODEOWNERS or branch protection rules
-2. Request reviews if not already requested:
+2. **Remind reviewers of Layer 4 focus** (see `docs/reference/TEAM_WORKFLOW.md` → Code Review Process):
+   - Architecture alignment with documented ADRs
+   - Business logic correctness — right problem solved?
+   - Intent verification — matches the story spec?
+   - AI-specific anti-patterns: phantom deps, code duplication, tautological tests, over-engineering
+3. Request reviews if not already requested:
    ```bash
    gh pr edit --add-reviewer <reviewer>
    ```

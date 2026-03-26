@@ -48,6 +48,14 @@
 - [ ] New code follows existing patterns in the codebase
 - [ ] Documentation updated where needed
 
+## AI Assistance
+
+<!-- If AI tools were used, note which components. Helps reviewers calibrate scrutiny — AI code has different defect patterns -->
+
+- **AI-assisted:** <!-- e.g., "auth middleware, test suite" or "None" -->
+- **Human-written:** <!-- e.g., "migration logic, security config" or "All" -->
+- **AI review focus:** <!-- Specific areas needing human attention -->
+
 ## Notes
 
 <!-- Optional: anything reviewers should know -->
