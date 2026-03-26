@@ -154,32 +154,90 @@ secrets_check() {
     local file="$1"
     # Skip non-text files and common false-positive paths
     case "$file" in
-        *.md|*.txt|*.lock|*.sum|*.svg|*.png|*.jpg|*.gif|*.ico) return ;;
+        *.md|*.txt|*.lock|*.sum|*.svg|*.png|*.jpg|*.gif|*.ico|*.woff|*.woff2|*.ttf|*.eot) return ;;
     esac
 
     local found=0
-    # AWS access key
+
+    # --- Cloud Provider Keys ---
+    # AWS access key (starts with AKIA)
     if grep -qE 'AKIA[0-9A-Z]{16}' "$file" 2>/dev/null; then
         echo "⚠ SECRETS: Possible AWS access key in $file"
         found=1
     fi
-    # OpenAI/Stripe-style keys
+    # AWS secret key pattern (40-char base64 after assignment)
+    if grep -qE 'aws_secret_access_key\s*[:=]\s*["\x27]?[A-Za-z0-9/+=]{40}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible AWS secret key in $file"
+        found=1
+    fi
+    # Google Cloud service account key
+    if grep -qE '"type"\s*:\s*"service_account"' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible GCP service account key in $file"
+        found=1
+    fi
+    # Azure connection string
+    if grep -qE 'AccountKey=[A-Za-z0-9+/=]{40,}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible Azure connection string in $file"
+        found=1
+    fi
+
+    # --- API Keys (service-specific prefixes) ---
+    # OpenAI / Stripe / Anthropic style (sk- prefix)
     if grep -qE 'sk-[a-zA-Z0-9]{20,}' "$file" 2>/dev/null; then
         echo "⚠ SECRETS: Possible API key (sk-...) in $file"
         found=1
     fi
-    # GitHub personal access token
-    if grep -qE 'ghp_[a-zA-Z0-9]{36}' "$file" 2>/dev/null; then
+    # Anthropic API key
+    if grep -qE 'sk-ant-[a-zA-Z0-9_-]{20,}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible Anthropic API key in $file"
+        found=1
+    fi
+
+    # --- Source Control Tokens ---
+    # GitHub tokens (PAT, OAuth, app)
+    if grep -qE '(ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36,}' "$file" 2>/dev/null; then
         echo "⚠ SECRETS: Possible GitHub token in $file"
         found=1
     fi
-    # Private keys
-    if grep -qE 'BEGIN (RSA |DSA |EC |OPENSSH )?PRIVATE KEY' "$file" 2>/dev/null; then
+    # GitHub fine-grained PAT
+    if grep -qE 'github_pat_[a-zA-Z0-9_]{22,}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible GitHub fine-grained PAT in $file"
+        found=1
+    fi
+    # GitLab token
+    if grep -qE 'glpat-[a-zA-Z0-9\-]{20,}' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible GitLab token in $file"
+        found=1
+    fi
+
+    # --- Messaging/Collaboration Tokens ---
+    # Slack tokens
+    if grep -qE 'xox[bporas]-[a-zA-Z0-9\-]+' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible Slack token in $file"
+        found=1
+    fi
+
+    # --- Cryptographic Material ---
+    # Private keys (PEM format)
+    if grep -qE 'BEGIN (RSA |DSA |EC |OPENSSH |PGP )?PRIVATE KEY' "$file" 2>/dev/null; then
         echo "⚠ SECRETS: Possible private key in $file"
         found=1
     fi
-    # Generic high-entropy secrets in assignments
-    if grep -qE '(password|secret|token|api_key|apikey)\s*[:=]\s*["\x27][A-Za-z0-9+/=]{20,}' "$file" 2>/dev/null; then
+
+    # --- JWTs (three base64url segments joined by dots) ---
+    if grep -qE 'eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible JWT in $file"
+        found=1
+    fi
+
+    # --- Database Connection Strings ---
+    if grep -qE '(mysql|postgres|postgresql|mongodb|mongodb\+srv|redis|amqp)://[^/\s]+:[^@/\s]+@' "$file" 2>/dev/null; then
+        echo "⚠ SECRETS: Possible database connection string with password in $file"
+        found=1
+    fi
+
+    # --- Generic High-Entropy Secrets in Assignments ---
+    if grep -qE '(password|passwd|secret|token|api_key|apikey|api_secret|auth_token|access_token|client_secret)\s*[:=]\s*["\x27][A-Za-z0-9+/=_\-]{16,}' "$file" 2>/dev/null; then
         echo "⚠ SECRETS: Possible hardcoded credential in $file"
         found=1
     fi

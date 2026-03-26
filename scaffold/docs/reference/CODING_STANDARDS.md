@@ -83,10 +83,18 @@ Comments explain WHY, not WHAT. Full anti-patterns in `.claude/rules/code-slop.m
 
 ### Security Baseline
 
-- All external input validated at system boundaries
+AI-generated code contains vulnerabilities 40-45% of the time. These rules apply to ALL code, with extra scrutiny for AI-generated code.
+
+- All external input validated at system boundaries — server-side always, client-side is UX not security
 - Database queries: parameterized only, never string interpolation
 - Authentication tokens: short-lived, stored securely, never logged
 - Dependencies: pinned versions, audited regularly (`npm audit`, `pip-audit`, `cargo audit`)
+- Cryptography: use established libraries only — SHA-256+ for hashing, AES-256-GCM for encryption, bcrypt/scrypt/argon2 for passwords. Never MD5/SHA1 for security, never DES/RC4.
+- Authentication: use established auth libraries — never generate auth code from scratch. AI-generated auth has high defect rates.
+- Logging: sanitize before logging — never log request bodies, passwords, tokens, or PII. Use structured logging with explicit field selection.
+- CORS: restrict to specific allowed origins — never `Access-Control-Allow-Origin: *` in production
+- Secrets: never trust AI-generated values for secrets, tokens, or keys — always generate fresh from a secure random source
+- Error responses: return generic messages to users — log details server-side with request correlation IDs
 
 ### API Design
 

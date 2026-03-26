@@ -84,6 +84,35 @@ Flag and report:
 - Lockfile in sync: [yes/no]
 ```
 
+## 4.3. Security Health Check
+
+Perform a focused security health review:
+
+### Secrets Inventory Review
+<IF condition="docs/reference/SECRETS_INVENTORY.md exists">
+Read `docs/reference/SECRETS_INVENTORY.md` and check:
+- **Overdue rotations:** Scan the `Next Due` column for dates in the past. Flag by severity: ≤7 days (warning), 8-30 days (high priority), >30 days (critical — rotate immediately).
+- **Missing rotation methods:** Any secrets without a documented `Rotation Method` should be flagged.
+- **Critical secrets without automation:** Secrets classified as `critical` that rely on `manual` rotation are high-risk.
+</IF>
+<ELSE>
+If `docs/reference/SECRETS_INVENTORY.md` does not exist but the project uses environment variables or credentials, note this as a gap: "No secrets inventory — consider creating one from the template in the framework scaffold."
+</ELSE>
+
+### Dependency Security Audit
+Run the project's dependency audit tool (same as section 4, but focused on security):
+```bash
+# npm audit --audit-level=high / pip-audit / cargo audit / govulncheck / bundler-audit
+```
+Report Critical and High vulnerabilities. These should be addressed before the next sprint.
+
+### Quarterly Full-Repo Secret Scan
+On the first weekly-maintenance of each quarter, run a full repository secret scan if Gitleaks or similar is available:
+```bash
+gitleaks detect --source . --no-git --report-format json 2>/dev/null
+```
+Report any findings. This catches secrets missed by the per-file post-edit hook.
+
 ## 4.5. Technical Debt Register Review
 
 Read `docs/technical-debt.md` and perform the weekly debt review:

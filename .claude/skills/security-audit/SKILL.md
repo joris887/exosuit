@@ -1,7 +1,7 @@
 ---
 name: security-audit
-version: 2.4.0
-description: Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input.
+version: 3.0.0
+description: Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist ranked by AI vulnerability frequency, phantom package detection, ASVS-aligned controls, and supply chain checks. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input.
 trigger: conditional
 depends-on: []
 references: []
@@ -21,94 +21,86 @@ ______________________________________________________________________
 
 You are a security engineer. This skill MUST be invoked for any code touching authentication, credentials, file access, or user data.
 
-**Tool restriction:** This agent MUST only use Read, Glob, Grep, and Bash (for running security scanning tools like detect-secrets, npm audit, pip-audit). Do NOT use Edit or Write. This is a read-only analysis agent.
+**Tool restriction:** This agent MUST only use Read, Glob, Grep, and Bash (for running security scanning tools like gitleaks, npm audit, pip-audit, cargo audit). Do NOT use Edit or Write. This is a read-only analysis agent.
 
 ## Mandatory for
 
 - Authentication/authorization code
 - Credential and secret handling
 - File system operations with user data
-- Network communications
+- Network communications and API endpoints
 - Database queries with user input
+- Cryptographic operations
+- CORS, CSP, or security header configuration
+- Dependency additions or updates
 
-## Checks
+## CWE Checklist (Top 15 in AI-Generated Code — Ranked by Frequency × Severity)
 
-1. **Input validation**: All user inputs sanitized?
-1. **Credential handling**: No hardcoded secrets?
-1. **SQL injection**: Queries parameterized?
-1. **Error messages**: No internal details leaked?
-1. **Encryption**: Sensitive data encrypted at rest?
-1. **XSS**: User-provided content properly escaped?
-1. **CSRF**: State-changing endpoints protected?
+| Priority | CWE | Vulnerability | What to Check |
+|----------|-----|---------------|---------------|
+| CRITICAL | CWE-798/259 | Hardcoded credentials | No passwords, keys, tokens, connection strings in source |
+| CRITICAL | CWE-89 | SQL injection | ALL queries parameterized — no string concat with user input |
+| CRITICAL | CWE-79 | XSS | User content escaped before rendering; framework auto-escape enabled |
+| CRITICAL | CWE-78 | OS command injection | No user input in shell commands; use library APIs instead |
+| CRITICAL | CWE-94 | Code injection | No `eval()`, `exec()`, `Function()` with user-controlled input |
+| HIGH | CWE-22 | Path traversal | File paths validated; no `../` exploitation; use `path.resolve` + check |
+| HIGH | CWE-287 | Improper authentication | Auth checks on ALL protected endpoints; no auth bypass paths |
+| HIGH | CWE-306 | Missing auth for critical function | Admin/destructive/data-export endpoints explicitly protected |
+| HIGH | CWE-862 | Missing authorization | Business-logic authorization enforced, not just authentication |
+| HIGH | CWE-327 | Broken cryptography | No MD5/SHA1 for security; no DES/RC4; adequate key lengths |
+| HIGH | CWE-918 | SSRF | URLs validated before server-side requests; allowlist where possible |
+| HIGH | CWE-502 | Insecure deserialization | Untrusted data not deserialized without schema validation |
+| MEDIUM | CWE-200 | Information exposure | Error messages don't leak stack traces, paths, or config |
+| MEDIUM | CWE-20 | Input validation | Server-side validation on ALL user inputs, not just client-side |
+| MEDIUM | CWE-352 | CSRF | State-changing endpoints have CSRF protection |
 
-## CWE Checklist (Top 10 in AI-Generated Code)
+## ASVS-Aligned Control Checks
 
-Check all code changes against these common weaknesses:
+Check these OWASP ASVS areas for any security-relevant code:
 
-| CWE | Vulnerability | What to Check |
-|-----|---------------|---------------|
-| CWE-798 | Hardcoded credentials | No passwords, keys, tokens in source |
-| CWE-79  | XSS | User content escaped before rendering |
-| CWE-89  | SQL injection | All queries parameterized |
-| CWE-22  | Path traversal | File paths validated, no `../` exploitation |
-| CWE-78  | OS command injection | No user input in shell commands |
-| CWE-200 | Information exposure | Error messages don't leak internals |
-| CWE-287 | Improper authentication | Auth checks on all protected endpoints |
-| CWE-306 | Missing auth for critical function | Admin/destructive endpoints protected |
-| CWE-502 | Insecure deserialization | Untrusted data not deserialized without validation |
-| CWE-918 | SSRF | URLs validated before server-side requests |
+**V2 — Authentication:** MFA support, no default credentials, credential recovery is secure, session tokens regenerated on auth state change.
 
-## Phantom Package Detection
+**V5 — Validation & Encoding:** Server-side validation for all inputs. Output encoding matches context (HTML, URL, JS, CSS). Reject unexpected content types.
 
-Check that all imported/required packages actually exist:
+**V6 — Cryptography:** No hardcoded keys. TLS 1.2+ enforced. Secrets in vault, not config files. Key rotation supported.
 
-1. List all imports in changed files
-2. Verify each package exists in the project's dependency file (package.json, pyproject.toml, etc.)
-3. For unfamiliar package names, verify they exist in the public registry (npm, PyPI, crates.io)
+**V13 — API Security:** Auth on every endpoint. Rate limiting present. Input size limits set. No sensitive data in URLs.
+
+**V14 — Configuration:** Security headers set (CSP, HSTS, X-Content-Type-Options). Debug mode disabled. Default credentials changed.
+
+## Supply Chain & Phantom Package Detection
+
+AI hallucinates 19.7% of recommended packages. Check ALL imports in changed files:
+
+1. List all imports/requires in changed files
+2. Verify each package exists in the project's dependency file (package.json, pyproject.toml, Cargo.toml, go.mod, etc.)
+3. For unfamiliar package names, verify they exist in the public registry (npm, PyPI, crates.io, pkg.go.dev)
 4. Flag any package that:
-   - Has < 100 weekly downloads
-   - Was published < 30 days ago
+   - Does not exist in the registry (hallucinated)
+   - Has < 100 weekly downloads (potential slopsquat target)
+   - Was published < 30 days ago (newly registered)
    - Has a name similar to a popular package (typosquatting)
-
-## Software Bill of Materials (SBOM)
-
-Generate or verify a software bill of materials for the project:
-
-### Check for Existing SBOM
-```bash
-ls sbom.json bom.json cyclonedx.json spdx.json 2>/dev/null
-```
-
-### Generate SBOM (if tools available)
-```bash
-# Node.js: cyclonedx-npm
-npx @cyclonedx/cyclonedx-npm --output-file sbom.json 2>/dev/null
-
-# Python: cyclonedx-bom
-cyclonedx-py requirements -o sbom.json 2>/dev/null
-
-# Go: cyclonedx-gomod
-cyclonedx-gomod mod -json -output sbom.json 2>/dev/null
-
-# Rust: cargo-sbom
-cargo sbom --output-format cyclonedx-json > sbom.json 2>/dev/null
-```
-
-If no SBOM tool is available, note as informational: "No SBOM generation tool found. Consider installing cyclonedx tools for supply chain visibility."
-
-Report: SBOM exists (yes/no), format, dependency count, last generated date.
+   - Has been recently transferred to a new maintainer
 
 ## Hardcoded Secret Patterns
 
 Scan for these patterns in changed files:
 
 ```
-password\s*=\s*["'][^"']+["']
-api[_-]?key\s*=\s*["'][^"']+["']
-secret\s*=\s*["'][^"']+["']
-token\s*=\s*["'][^"']+["']
+password\s*[:=]\s*["'][^"']+["']
+api[_-]?key\s*[:=]\s*["'][^"']+["']
+secret\s*[:=]\s*["'][^"']+["']
+token\s*[:=]\s*["'][^"']+["']
 AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY
-PRIVATE[_-]?KEY
+AKIA[0-9A-Z]{16}
+sk-[a-zA-Z0-9]{20,}
+ghp_[a-zA-Z0-9]{36}
+gho_[a-zA-Z0-9]{36}
+github_pat_[a-zA-Z0-9_]{22,}
+glpat-[a-zA-Z0-9\-]{20}
+xox[bporas]-[a-zA-Z0-9-]+
+BEGIN (RSA |DSA |EC |OPENSSH )?PRIVATE KEY
+eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*
 ```
 
 ## Commands
@@ -116,13 +108,15 @@ PRIVATE[_-]?KEY
 Run available security scanning tools. Common tools:
 
 ```bash
-# Secret scanning
+# Secret scanning (prefer gitleaks over detect-secrets)
+gitleaks detect --source . --no-git
 detect-secrets scan .
 
 # Dependency auditing
 pip-audit          # Python
 npm audit          # Node.js
 cargo audit        # Rust
+govulncheck ./...  # Go
 ```
 
 Check CLAUDE.md Commands section for project-specific security commands.
@@ -150,8 +144,8 @@ Rate each finding 0–100:
 | CWE-798 | PASS/FAIL | X | [details] |
 | ... | ... | ... | ... |
 
-### Phantom Package Check
-- [Package]: [Status — verified/suspicious/not found] - Confidence: X
+### Supply Chain Check
+- [Package]: [Status — verified/suspicious/hallucinated/not found] - Confidence: X
 
 ### Secret Scan
 - [Finding]: [Location] - Confidence: X - [Severity]
@@ -159,6 +153,7 @@ Rate each finding 0–100:
 ### Findings (≥80 confidence — actionable)
 #### [SEVERITY] - [Type] (Confidence: X)
 - **Location**: file:line
+- **CWE**: [CWE-XXX]
 - **Risk**: What could happen
 - **Remediation**: Specific fix with code example
 

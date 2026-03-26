@@ -31,17 +31,28 @@ Think like an attacker examining this code for the first time. Your goal is to f
 6. Are there any race conditions in auth or state-changing operations?
 7. Can I escalate privileges by manipulating user-controlled identifiers?
 
-## Red Flags
+## Red Flags (Ranked by AI Vulnerability Frequency)
 
-- Hardcoded secrets or credentials (CWE-798)
-- User input in SQL queries without parameterization (CWE-89)
-- User input in shell commands (CWE-78)
-- User input in file paths without sanitization (CWE-22)
-- User input rendered without escaping (CWE-79)
+**CRITICAL — AI produces these constantly:**
+- Hardcoded secrets or credentials (CWE-798/259) — all LLMs produce these
+- SQL injection via string concatenation (CWE-89) — 20%+ of AI samples
+- XSS from unescaped user content (CWE-79) — 86% AI failure rate
+- OS command injection from user input in shell commands (CWE-78)
+- Code injection via eval/exec with user input (CWE-94)
+
+**HIGH — AI frequently misses these:**
+- Path traversal via unsanitized file paths (CWE-22)
 - Missing authentication on endpoints (CWE-306)
-- Deserialization of untrusted data (CWE-502)
+- Missing authorization / business-logic access control (CWE-862)
+- Deprecated crypto: MD5, SHA1, DES, RC4 (CWE-327) — 14% insecurity rate
 - SSRF via user-controlled URLs (CWE-918)
-- Overly permissive CORS configuration
+- Deserialization of untrusted data (CWE-502)
+
+**AI-SPECIFIC risks:**
+- Phantom package imports — 19.7% of AI recommendations are hallucinated
+- Overly permissive CORS (`Access-Control-Allow-Origin: *`)
+- Disabled security features (CSRF protection, SSL verification)
+- Memorized secrets from training data — never trust AI-generated credential values
 - JWT validation skipped or misconfigured
 
 ## Analysis Framework

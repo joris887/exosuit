@@ -29,6 +29,7 @@
 | Code churn ratio | — | ≤0.15 | — | — |
 | AI effectiveness | — | ≥0.70 | — | — |
 | Sprint satisfaction | — | ≥3 | — | — |
+| Security findings | — | 0 | — | — |
 
 <!-- METRIC GUIDE:
 Tasks completed — direct output measure; denominator for quality ratios
@@ -38,6 +39,7 @@ Test coverage Δ — coverage change on new code; absolute % games trivially (tr
 Code churn ratio — lines re-edited <14d / total lines; strongest defect predictor (89% accuracy)
 AI effectiveness — composite: context resets + skill success rate from .activity-log.jsonl
 Sprint satisfaction — 1–5 rating of LLM output quality; divergence from CFR/churn signals perception gap
+Security findings — count of new security issues (Critical×10 + High×3 + Medium×1) from security-audit; 0 is target
 EXCLUDED (harmful/misleading with AI): LOC, acceptance rate, story points, commit count, absolute coverage %
 RAG considers BOTH absolute target AND relative change from 3-sprint rolling average.
 -->

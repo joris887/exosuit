@@ -121,6 +121,21 @@ State which approach you recommend and why. The user selects their preferred app
 - Does this require an ADR (Architecture Decision Record)?
 - Do any proposed approaches violate ground rules? A MUST violation disqualifies an approach; a SHOULD violation is a risk to flag.
 
+### STRIDE-Light Threat Analysis (for designs with trust boundaries)
+
+If the design involves API endpoints, authentication flows, data storage, service-to-service communication, or user input processing, run a quick STRIDE pass on each component in the data flow:
+
+| Threat | Question | Example |
+|--------|----------|---------|
+| **S**poofing | Can an attacker impersonate a legitimate user or service? | Missing auth tokens, weak session management |
+| **T**ampering | Can data be modified in transit or at rest? | Unsigned API payloads, unvalidated webhooks |
+| **R**epudiation | Can an action be denied without evidence? | Missing audit logs for sensitive operations |
+| **I**nformation Disclosure | Can sensitive data leak? | Verbose errors, PII in logs, secrets in config |
+| **D**enial of Service | Can the system be overwhelmed? | Missing rate limiting, unbounded queries |
+| **E**levation of Privilege | Can a user gain unauthorized access? | IDOR, missing role checks, privilege escalation |
+
+This is not full threat modeling — it's a 2-minute structured checklist. Include findings in the "Risks" section of the design brief. Any STRIDE finding should become a security acceptance criterion when the design is decomposed into stories by `/ideate`.
+
 ## 5. Present Design for Approval
 
 Summarize the recommended approach in a design brief:

@@ -205,6 +205,27 @@ If PRD Section 6 (NFRs) exists and contains measurable thresholds, generate dedi
 
 These stories ensure NFRs become tracked, tested work items rather than implicit expectations.
 
+### Security Acceptance Criteria Generation
+
+For stories touching authentication, authorization, user data handling, API endpoints, file uploads, or session management, auto-append security acceptance criteria using Given/When/Then format:
+
+```gherkin
+# Injection defense (for any story handling user input)
+- [ ] Given a user submits input containing SQL/XSS/command injection payload, When the input is processed, Then the system rejects or sanitizes the input and returns a generic error
+
+# Auth enforcement (for any story adding/modifying endpoints)
+- [ ] Given an unauthenticated request to a protected endpoint, When the request is processed, Then the system returns 401/403 and logs the attempt
+
+# Input validation (for any story accepting user data)
+- [ ] Given input exceeding expected size/type/format constraints, When submitted, Then the system rejects with a clear validation error
+```
+
+Select 1-2 criteria relevant to the story type — not all three for every story. These are in addition to the story's functional acceptance criteria.
+
+**Evil user stories** (for stories explicitly about security features): Generate an attacker-perspective story variant:
+- *"As an attacker, I want to manipulate [input/ID/token] to access [resource] belonging to other users."*
+- Use these to derive security test cases and red-team acceptance criteria.
+
 ## 5. Order for Testability
 
 Organize stories in a logical order that enables incremental testing:

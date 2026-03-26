@@ -111,6 +111,13 @@ GITIGNORE_PATTERNS=(
     "CLAUDE.local.md"
     ".claude/settings.local.json"
     "*.session-handoff.md"
+    ".env"
+    ".env.*"
+    ".env.local"
+    "*.pem"
+    "*.key"
+    "*.p12"
+    "*.pfx"
 )
 
 if [ -f ".gitignore" ]; then
