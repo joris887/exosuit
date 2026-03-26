@@ -10,6 +10,9 @@ HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 STATE_DIR="$HOOKS_DIR/state"
 MAX_ENTRIES=200
 
+# --- Hook guard: profile + disable check ---
+"$HOOKS_DIR/lib/hook-guard.sh" "post-tool-use" "minimal" || exit 0
+
 # --- JSON field extraction ---
 # Extracts a field from JSON. Supports dotted paths with jq, flat keys with sed.
 extract_json() {
@@ -83,6 +86,18 @@ if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
         if printf '%s' "$TOOL_OUTPUT" | grep -qEi '([0-9]+ passed|All tests passed|tests? (in [0-9]+ suites? )?passed|test run with [0-9]+ tests.*passed|BUILD SUCCEEDED|ok \(|Tests:.*[0-9]+ passed)'; then
             mkdir -p "$STATE_DIR" 2>/dev/null
             date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/tests-passed" 2>/dev/null
+        fi
+
+        # --- Track test/build failures for retrospective analysis ---
+        if printf '%s' "$TOOL_OUTPUT" | grep -qEi '(FAILED|FAIL\b|ERROR\b|error:|BUILD FAILED|npm ERR|test.*failed|[0-9]+ failed)'; then
+            FAIL_LOG="$LOG_DIR/.failure-log.jsonl"
+            # Extract first error line (truncated for JSON safety)
+            FIRST_ERROR=$(printf '%s' "$TOOL_OUTPUT" | grep -Ei '(FAILED|FAIL|ERROR|error:|failed)' | head -1 | cut -c1-120 | sed 's/"/\\"/g')
+            # Count failure indicators
+            FAIL_COUNT=$(printf '%s' "$TOOL_OUTPUT" | grep -cEi '(FAILED|FAIL\b|failed)' || echo "0")
+            SAFE_CMD=$(printf '%s' "$COMMAND" | cut -c1-80 | sed 's/"/\\"/g')
+            printf '{"ts":"%s","type":"test-failure","cmd":"%s","failures":%s,"first_error":"%s"}\n' \
+                "$TS" "$SAFE_CMD" "$FAIL_COUNT" "$FIRST_ERROR" >> "$FAIL_LOG" 2>/dev/null
         fi
     fi
 fi

@@ -1,7 +1,8 @@
 #!/bin/sh
-# Stop handler: auto-save session state + completion evidence validation.
-# 1. Always auto-saves git state (safety net for /continue).
-# 2. Validates last assistant message for unverified completion claims.
+# Stop handler: auto-save session state + debug audit + completion evidence validation.
+# 1. Always auto-saves git state + active skill context (safety net for /continue).
+# 2. Scans diff for leftover debug statements (advisory warning).
+# 3. Validates last assistant message for unverified completion claims.
 #    Evidence check is skipped when post-tool-use.sh has already recorded
 #    a successful test run (state/tests-passed). This prevents redundant
 #    re-runs when story-cycle Phase 4b already verified tests.
@@ -15,6 +16,10 @@ HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 RULES_DIR="$HOOKS_DIR/rules"
 STATE_DIR="$HOOKS_DIR/state"
 QUALITY_FILE="$RULES_DIR/quality.conf"
+DEBUG_PATTERNS_FILE="$RULES_DIR/debug.patterns"
+
+# --- Hook guard: profile + disable check ---
+"$HOOKS_DIR/lib/hook-guard.sh" "stop" "standard" || exit 0
 
 # --- Helper: read config value ---
 read_conf() {
@@ -61,6 +66,22 @@ if [ -d ".git" ] && [ -n "$(git status --porcelain 2>/dev/null)" ]; then
     STAGED_BLOCK="None"
     [ -n "$STAGED" ] && STAGED_BLOCK=$(printf '```\n%s\n```' "$STAGED")
 
+    # Extract active skill context from .failure-state.md (if exists)
+    SKILL_CONTEXT=""
+    FAILURE_STATE="$SESSIONS_DIR/.failure-state.md"
+    if [ -f "$FAILURE_STATE" ]; then
+        FS_SKILL=$(grep '^skill:' "$FAILURE_STATE" 2>/dev/null | sed 's/skill: *//' | head -1)
+        FS_PHASE=$(grep '^phase_name:' "$FAILURE_STATE" 2>/dev/null | sed 's/phase_name: *//' | head -1)
+        FS_GOAL=$(grep '^goal:' "$FAILURE_STATE" 2>/dev/null | sed 's/goal: *//' | head -1)
+        if [ -n "$FS_SKILL" ]; then
+            SKILL_CONTEXT="## Active Skill Context
+
+**Skill:** $FS_SKILL
+**Phase:** $FS_PHASE
+**Goal:** $FS_GOAL"
+        fi
+    fi
+
     cat > "$SESSIONS_DIR/.auto-save.md" 2>/dev/null <<AUTOSAVE_EOF
 # Auto-Save Session State
 
@@ -77,6 +98,8 @@ $UNCOMMITTED_BLOCK
 
 ## Staged Changes
 $STAGED_BLOCK
+
+$SKILL_CONTEXT
 AUTOSAVE_EOF
 fi
 
@@ -120,6 +143,36 @@ if [ -n "$LAST_MESSAGE" ]; then
         HAS_EVIDENCE=true
     fi
 
+    # --- 3a. Debug statement audit (advisory, only when claiming completion) ---
+    if [ "$CLAIMS_COMPLETION" = "true" ] && [ -f "$DEBUG_PATTERNS_FILE" ] && [ -d ".git" ]; then
+        # Scan added lines in git diff for debug patterns
+        DIFF_ADDED=$(git diff 2>/dev/null | grep '^+[^+]' ; git diff --cached 2>/dev/null | grep '^+[^+]')
+        if [ -n "$DIFF_ADDED" ]; then
+            DEBUG_WARNINGS=""
+            while IFS= read -r pline; do
+                case "$pline" in
+                    '#'*|'') continue ;;
+                esac
+                p_regex=$(printf '%s' "$pline" | sed 's/^[^@]*@@//' | sed 's/@@.*//')
+                p_message=$(printf '%s' "$pline" | sed 's/.*@@//')
+
+                if printf '%s' "$DIFF_ADDED" | grep -qE -- "$p_regex"; then
+                    if [ -z "$DEBUG_WARNINGS" ]; then
+                        DEBUG_WARNINGS="$p_message"
+                    else
+                        DEBUG_WARNINGS="$DEBUG_WARNINGS
+  - $p_message"
+                    fi
+                fi
+            done < "$DEBUG_PATTERNS_FILE"
+
+            if [ -n "$DEBUG_WARNINGS" ]; then
+                printf 'Debug audit (review before shipping):\n  - %s\n' "$DEBUG_WARNINGS" >&2
+            fi
+        fi
+    fi
+
+    # --- 3b. Block completion without evidence ---
     if [ "$CLAIMS_COMPLETION" = "true" ] && [ "$HAS_EVIDENCE" = "false" ]; then
         # Increment iteration counter
         NEW_ITER=$((ITERATION + 1))

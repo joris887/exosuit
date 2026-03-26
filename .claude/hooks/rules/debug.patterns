@@ -1,0 +1,31 @@
+# Debug statement patterns for stop hook audit
+# Format: id@@regex@@message (delimiter: @@)
+# Scanned against git diff output when completion is claimed.
+# Advisory only — warns but never blocks session exit.
+# Lines starting with # are comments. Empty lines are skipped.
+#
+# Only added lines (starting with +) in the diff are scanned,
+# so existing debug statements in untouched code are ignored.
+
+# --- JavaScript/TypeScript ---
+console-log@@console\.(log|debug|trace|info)\(@@console.log/debug statement left in code
+debugger-js@@\bdebugger\b@@debugger statement left in code
+
+# --- Python ---
+print-debug@@\bprint\(.*[Dd]ebug@@print() with debug content left in code
+pdb-trace@@\bpdb\.set_trace\b@@pdb debugger left in code
+breakpoint-py@@\bbreakpoint\(\)@@Python breakpoint() left in code
+ipdb@@\bipdb\.set_trace\b@@ipdb debugger left in code
+
+# --- Ruby ---
+binding-pry@@\bbinding\.pry\b@@Ruby binding.pry debugger left in code
+byebug@@\bbyebug\b@@Ruby byebug debugger left in code
+
+# --- Rust ---
+dbg-macro@@\bdbg!\(@@Rust dbg! macro left in code
+
+# --- Go ---
+fmt-println-debug@@fmt\.Println\(.*[Dd]ebug@@Go debug print left in code
+
+# --- General ---
+todo-fixme-hack@@\b(TODO|FIXME|HACK|XXX)\b@@TODO/FIXME marker left in code (review before shipping)

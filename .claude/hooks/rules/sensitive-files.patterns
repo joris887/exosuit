@@ -1,0 +1,12 @@
+# PreToolUse (Read) sensitive file patterns
+# Format: id@@regex@@message (delimiter: @@)
+# Patterns match against the file_path being read.
+# Advisory only — warns but never blocks.
+# Lines starting with # are comments. Empty lines are skipped.
+
+env-file@@(^|/)\.env(\.|$)@@Reading environment file -- secrets may enter context window
+key-file@@\.(key|pem|p12|pfx)$@@Reading cryptographic key file -- review before proceeding
+credentials@@(^|/)credentials@@Reading credentials file -- secrets may enter context window
+secrets-path@@(^|/)secrets?[/.]@@Reading file with 'secret' in path -- verify no credentials leak
+id-rsa@@(^|/)id_(rsa|dsa|ecdsa|ed25519)@@Reading SSH private key -- this should not be in context
+htpasswd@@(^|/)\.htpasswd@@Reading htpasswd file -- password hashes may enter context

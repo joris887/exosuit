@@ -1,0 +1,19 @@
+# PreToolUse (Bash) advisory patterns: warn but never block
+# Format: id@@regex@@message (delimiter: @@)
+#   Optional 4th field: id@@regex@@message@@severity
+#   Severity: critical (all profiles), standard (default), strict (strict only)
+# These patterns emit warnings on stderr but always allow the command to proceed.
+# Lines starting with # are comments. Empty lines are skipped.
+
+# --- Long-running processes (will block the session) ---
+dev-server-npm@@npm\s+(run\s+)?(dev|start)\b@@Long-running command detected -- consider running in a separate terminal or with &
+dev-server-yarn@@yarn\s+(dev|start)\b@@Long-running command detected -- consider running in a separate terminal or with &
+dev-server-pnpm@@pnpm\s+(run\s+)?(dev|start)\b@@Long-running command detected -- consider running in a separate terminal or with &
+dev-server-python@@python.*manage\.py\s+runserver@@Django dev server -- will block the session. Use a separate terminal
+dev-server-flask@@flask\s+run@@Flask dev server -- will block the session. Use a separate terminal
+dev-server-uvicorn@@uvicorn\s+@@Uvicorn server -- will block the session. Use a separate terminal or --workers with &
+dev-server-next@@npx\s+next\s+(dev|start)@@Next.js server -- will block the session. Use a separate terminal
+dev-server-vite@@npx\s+vite\b@@Vite dev server -- will block the session. Use a separate terminal
+dev-server-rails@@rails\s+server@@Rails server -- will block the session. Use a separate terminal
+dev-server-go@@go\s+run\s+\.@@Go binary execution -- consider if this is a long-running process
+dev-server-cargo-run@@cargo\s+run\b@@Cargo run -- consider if this is a long-running process
