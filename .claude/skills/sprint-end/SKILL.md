@@ -131,6 +131,7 @@ Before running gates, present available checks using AskUserQuestion with `multi
 - **/security-audit** — description: "OWASP top 10, secrets, injection, auth issues, CWE checklist"
 - **/architecture-check** — description: "Module boundaries, dependency direction, coupling, architectural drift"
 - **Ground rules compliance** — description: "Check against GROUND_RULES.md principles"
+- **UAT coverage check** — description: "Check UAT test case pass/fail summary (advisory, does not block)"
 - **Skip all quality gates** — description: "Skip all gates (not recommended)"
 
 If "All quality gates" is selected, run all individual gates. If the user deselects any: "Note: skipping gates may allow issues to reach main. All gates recommended for production sprints."
@@ -164,6 +165,22 @@ Read `references/quality-gates.md` for detailed checks (tests, test protection, 
 <HARD-GATE>
 Do NOT proceed to documentation updates, PR creation, or merge if ANY quality gate has failed. All gates must pass. "It's probably fine" is not a pass.
 </HARD-GATE>
+
+### 2.5 UAT Coverage Check (Advisory)
+
+<IF condition="UAT coverage check was selected AND (docs/testing/UAT_COVERAGE.md exists OR docs/testing/uat/ directory exists)">
+Read UAT tracking and report:
+
+1. Parse the Dashboard table (or scan directory for test case statuses)
+2. Count: total, pass, fail, untested, blocked, partial
+3. Identify critical/high priority cases that are ❌ Fail or ⬜ Untested
+4. Report:
+   ```
+   UAT Coverage: X/Y pass | Z untested | W fail
+   Critical untested: [list or "none"]
+   ```
+5. **WARN** (do not block) if critical cases are untested or failing — include warning in PR body
+</IF>
 
 ## 3. Documentation Updates
 

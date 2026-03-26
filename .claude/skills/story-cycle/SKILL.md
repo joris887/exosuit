@@ -677,28 +677,24 @@ Do NOT proceed to Phase 4c/4d until ALL configured quality gates pass with zero 
 
 ### 4c. Generate UAT Test Case (Optional)
 
-**Applies to:** Feature and Bug Fix stories that affect user-visible behavior, AND the project has a UAT structure (e.g., `docs/testing/uat/` or `tests/uat/`).
-**Skip for:** Spike/Research, Infrastructure, Documentation, Testing, Refactoring, Performance, Skill/Tooling stories. Also skip if no UAT directory exists in the project.
+**Applies to:** Feature and Bug Fix stories that affect user-visible behavior, AND the project has UAT tracking (`docs/testing/UAT_COVERAGE.md`, `docs/testing/uat/`, or `tests/uat/`).
+**Skip for:** Spike/Research, Infrastructure, Documentation, Testing, Refactoring, Performance, Skill/Tooling stories. Also skip if no UAT file or directory exists in the project.
 
-1. **Find the UAT directory:** Check for `tests/uat/scenarios/`, `docs/testing/uat/`, or similar. If none exists, skip this phase entirely.
-2. **Find next UAT ID:** Check existing UAT files, increment the highest number, format as `UAT-###` (zero-padded to 3 digits).
-3. **Generate test case file** (YAML or Markdown, matching existing project convention):
-   - `id`: UAT-NNN
-   - `title`: Descriptive name derived from story
-   - `covers`: Story IDs (e.g., `[E3-S05]`)
-   - `prerequisites`: What must be set up
-   - `steps`: Derived from story acceptance criteria — each step has `action` and `assertion`
-   - `acceptance_criteria`: List of pass/fail conditions
-4. **Add entry to UAT index/area file** if one exists, with verification checkmarks:
-   ```
-   **Claude Sense Check**
-   - [ ] Logic verified from code perspective
-   - [ ] Notes:
-
-   **Human UAT Check**
-   - [ ] Tested by user
-   - [ ] Notes:
-   ```
+1. **Find UAT location:** Check for `docs/testing/UAT_COVERAGE.md` (single-file), `docs/testing/uat/` (directory), or `tests/uat/scenarios/`. If none exists, skip this phase entirely.
+2. **Find next UAT ID:** Search for `### UAT-` headings in existing files, increment the highest number, format as `UAT-###` (zero-padded to 3 digits).
+3. **Generate test case** matching the template format in UAT_COVERAGE.md:
+   - `### UAT-NNN: [Title derived from story]`
+   - `**Priority:** [risk-based] | **Type:** [positive|negative|boundary] | **Covers:** [Story IDs] | **Tags:** [relevant tags]`
+   - `**Setup:**` — preconditions from story context
+   - `**Given**` / `**When**` / `**Then**` / `**And**` — one per acceptance criterion; create multiple test cases if an AC needs multiple scenarios
+   - `**Test Data:**` table if applicable
+   - `**Status:** ⬜ Untested` / `**Tested On:** —` / `**Findings:** —`
+   - `**Claude Sense Check**` and `**Human UAT Check**` checkbox sections
+   - `#### Results` append-only table with initial `⬜ Untested` row
+4. **Write the test case:**
+   - **Single file** (`docs/testing/UAT_COVERAGE.md`): Append before the `## Reference` section
+   - **Directory** (`docs/testing/uat/` or `tests/uat/`): Create a new file following existing naming convention
+5. **Update Dashboard:** Increment "Total Test Cases" and "⬜ Untested" counts in the Dashboard table
 
 ### 4c.1. Sense Check UAT Case (Optional)
 

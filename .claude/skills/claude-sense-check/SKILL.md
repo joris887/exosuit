@@ -4,7 +4,7 @@ version: 3.4.0
 description: Incremental code logic verification of UAT test cases — pick batch, trace code, fix issues, update tracking.
 trigger: manual
 depends-on: [story-cycle]
-references: []
+references: [references/issue-classification.md]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write
@@ -25,7 +25,7 @@ Performing incremental Claude Sense Check on UAT backlog.
 
 ## Phase 2: Pick Next Batch
 
-From the unchecked cases (in ID order):
+From the unchecked cases, sorted by priority (critical > high > medium > low), then by ID within each priority level:
 
 1. Select 2-5 cases that share the same module, feature area, or user flow
 2. Present to the user:
@@ -60,42 +60,14 @@ For each case in the batch:
    - Data flows correctly between components
    - Error handling covers the expected failure modes
    - Edge cases mentioned in the test case are handled
-4. Assign a verdict:
-   - **Pass** — logic is correct, code handles the scenario properly
-   - **Warning** — potential issue found, describe with file:line reference
-   - **Fail** — confirmed broken, describe with file:line reference and root cause
+4. Assign a verdict with confidence (high = full code path traced, medium = partial trace or complex logic, low = inference without full trace):
+   - **Pass** (high/medium/low) — logic is correct, code handles the scenario properly
+   - **Warning** (high/medium/low) — potential issue found, describe with file:line reference
+   - **Fail** (high/medium/low) — confirmed broken, describe with file:line reference and root cause
 
 ## Phase 5: Resolve Issues
 
-For every Warning or Fail verdict, classify the issue:
-
-### 5a: Quick Fixes (code bugs, wiring issues, missing calls)
-
-If the fix is localized (<=3 files, clear root cause, no architectural decisions):
-
-1. Invoke `/story-cycle` with a description of the fix needed
-2. After the fix is complete, re-verify the logic check passes for that case
-3. Record the commit hash and one-line description of what was fixed
-
-### 5b: Design Gaps (architectural changes, new features, multi-sprint work)
-
-If the issue requires architectural decisions, new features, or touches >3 files:
-
-1. Create a backlog story in the appropriate epic/backlog file
-2. Include: story title, user story, acceptance criteria, depends-on, technical constraints
-3. Reference the UAT case(s) that exposed the gap
-4. Set status to `TODO`
-5. Update backlog index totals if a new story was added
-
-### Classification guide
-
-| Signal | Action |
-| --- | --- |
-| Missing function call, wrong variable, inverted condition | Quick fix (5a) |
-| API contract mismatch, missing endpoint, wrong data flow | Quick fix (5a) |
-| Feature not implemented, new integration, new UI flow | Design gap (5b) |
-| Architectural decision needed (e.g., polling vs push) | Design gap (5b) |
-| Cross-cutting concern (affects multiple layers) | Design gap (5b) |
+For every Warning or Fail verdict, classify and act. Read `references/issue-classification.md` for the full classification guide (quick fix vs design gap).
 
 ## Phase 6: Update Tracking
 
@@ -105,9 +77,9 @@ For each case in the batch:
 
 1. Check the **Claude Sense Check** checkbox: `- [x] Logic verified from code perspective`
 2. Fill in the Notes line with verdict and what was checked or fixed:
-   - Pass: `"Pass — verified [what was checked], code handles [scenario] correctly"`
-   - Fixed: `"Fixed — [issue description], resolved in [commit-hash]"`
-   - Design gap: `"Warning -> [story-id] — [gap description], backlog story created"`
+   - Pass: `"Pass (high) — verified [what was checked], code handles [scenario] correctly"`
+   - Fixed: `"Fixed (high) — [issue description], resolved in [commit-hash]"`
+   - Design gap: `"Warning (medium) -> [story-id] — [gap description], backlog story created"`
 
 ### Per-area: Update UAT index
 
@@ -122,9 +94,9 @@ Output a summary:
 
 **Batch:** UAT-### to UAT-### ([area name])
 **Results:**
-| Case | Title | Verdict | Notes |
-| ---- | ----- | ------- | ----- |
-| UAT-### | [title] | Pass/Warning/Fixed | [one-line summary] |
+| Case | Title | Verdict | Confidence | Notes |
+| ---- | ----- | ------- | ---------- | ----- |
+| UAT-### | [title] | Pass/Warning/Fixed | high/medium/low | [one-line summary] |
 
 **Fixes Applied:** [count]
 - [commit-hash]: [one-line description] (for UAT-###)
@@ -135,6 +107,21 @@ Output a summary:
 **Progress:** [x]/[total] UAT cases sense-checked
 **Remaining:** [count] cases unchecked
 **Suggested Next Batch:** UAT-### to UAT-### ([area name]) — [why]
+```
+
+Include a YAML block for machine-parseable results:
+```yaml
+sense_check:
+  batch: [UAT-###, UAT-###]
+  area: "[area name]"
+  results:
+    - id: UAT-###
+      verdict: pass
+      confidence: high
+      notes: "[one-line]"
+  fixes: 0
+  stories_created: 0
+  progress: "X/Y"
 ```
 
 ## Rules

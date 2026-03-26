@@ -224,3 +224,18 @@ Bootstrap detects API spec files (A2.55) and generates foundation stories for co
 - **File organization:** Co-locate unit tests with source; centralize integration/E2E tests
 - **Test data:** Factory methods with builder pattern — convenient defaults, per-test overrides
 - **Parameterized tests:** Prefer table-driven tests over copy-paste for similar scenarios
+
+---
+
+## UAT Testing
+
+Automated tests verify code correctness; UAT verifies the product works for users. Both are required.
+
+- **Tracking:** `docs/testing/UAT_COVERAGE.md` — single-file registry of all UAT test cases with Given/When/Then format, pass/fail status, and execution history
+- **Create:** `/story-cycle` Phase 4c generates test cases for feature/bug-fix stories automatically
+- **AI verify:** `/claude-sense-check` traces test case logic against source code in prioritized batches (critical first)
+- **Execute:** `/UAT-cycle <UAT-###>` guides manual test execution and records results
+- **Plan:** `/manual-test` identifies coverage gaps and creates test plans
+- **Exit criteria:** All critical cases pass; all high cases pass or have linked backlog stories; all sense-check boxes checked. See UAT_COVERAGE.md Reference section for full criteria.
+
+UAT is advisory — `/sprint-end` reports coverage but does not block merge.
