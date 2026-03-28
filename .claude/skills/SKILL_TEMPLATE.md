@@ -31,7 +31,7 @@ references: [references/file1.md, references/file2.md]
 | Field | Required | Values | Purpose |
 |-------|----------|--------|---------|
 | `name` | Yes | lowercase, hyphenated | Skill identifier |
-| `version` | Yes | semver | Framework version when last updated |
+| `version` | Yes | semver | Skill version (SKILL.md is authoritative — update registry and inventory when changing) |
 | `description` | Yes | one line | Purpose (shown in inventory) |
 | `trigger` | Yes | `manual`, `auto`, `conditional` | How the skill is invoked |
 | `depends-on` | Yes | list of skill names | Skills this may invoke |
@@ -49,7 +49,7 @@ micro-components:
   phase-4: [quality-gate-sequence]
 ```
 
-At the start of each declared phase, load and execute the listed micro-components. This replaces inline references to micro-components in the skill body, making updates to a micro-component automatically affect all skills that declare it.
+**Convention:** Frontmatter `micro-components` is machine-readable metadata for tooling (registry validation, dependency graphs). The skill body text is the authoritative human-readable instruction for when and how to invoke each micro-component. Both must agree — when updating one, update the other.
 
 The frontmatter goes BEFORE the `______________________________________________________________________` separator line.
 

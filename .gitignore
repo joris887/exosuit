@@ -50,4 +50,8 @@ npm-debug.log*
 docs/sessions/.activity-log.jsonl
 docs/sessions/.auto-save.md
 docs/sessions/.failure-state.md
+docs/sessions/.failure-log.jsonl
+docs/sessions/.story-outcomes.tsv
+docs/sessions/.optimization-log.tsv
+docs/sessions/.refine-log.tsv
 .claude/hooks/state/session.json

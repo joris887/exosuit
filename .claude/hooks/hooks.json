@@ -34,6 +34,16 @@
           }
         ],
         "apply_to_subagents": true
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-read-check.sh",
+            "statusMessage": "Checking file sensitivity..."
+          }
+        ]
       }
     ],
     "PostToolUse": [

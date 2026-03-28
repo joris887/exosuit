@@ -21,7 +21,7 @@
   },
   {
     "name": "backlog-review",
-    "version": "2.4.0",
+    "version": "3.0.0",
     "description": "Execute comprehensive backlog review. Analyzes theme coverage, story quality, dependencies, and generates a backlog health report.",
     "trigger": "manual",
     "depends_on": [],
@@ -34,7 +34,9 @@
     "version": "3.4.0",
     "description": "Incremental code logic verification of UAT test cases — pick batch, trace code, fix issues, update tracking.",
     "trigger": "manual",
-    "depends_on": ["story-cycle"],
+    "depends_on": [
+      "story-cycle"
+    ],
     "calls": [],
     "references": [],
     "path": ".claude/skills/claude-sense-check/SKILL.md"
@@ -44,9 +46,23 @@
     "version": "2.13.0",
     "description": "First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.",
     "trigger": "manual",
-    "depends_on": ["skill-create"],
-    "calls": ["skill-create"],
-    "references": ["references/stack-detection.md", "references/new-project.md", "references/accuracy-safeguards.md", "references/coverage-assessment.md", "references/quality-tooling.md", "references/readiness-report.md", "references/foundation-backlog.md", "references/llm-readiness.md", "references/technical-debt-assessment.md"],
+    "depends_on": [
+      "skill-create"
+    ],
+    "calls": [
+      "skill-create"
+    ],
+    "references": [
+      "references/stack-detection.md",
+      "references/new-project.md",
+      "references/accuracy-safeguards.md",
+      "references/coverage-assessment.md",
+      "references/quality-tooling.md",
+      "references/readiness-report.md",
+      "references/foundation-backlog.md",
+      "references/llm-readiness.md",
+      "references/technical-debt-assessment.md"
+    ],
     "path": ".claude/skills/bootstrap/SKILL.md"
   },
   {
@@ -54,8 +70,12 @@
     "version": "2.7.0",
     "description": "Use when the user has a complex idea that needs design exploration before story decomposition.",
     "trigger": "manual",
-    "depends_on": ["ideate"],
-    "calls": ["ideate"],
+    "depends_on": [
+      "ideate"
+    ],
+    "calls": [
+      "ideate"
+    ],
     "references": [],
     "path": ".claude/skills/brainstorm/SKILL.md"
   },
@@ -81,7 +101,7 @@
   },
   {
     "name": "continue",
-    "version": "2.6.0",
+    "version": "2.7.0",
     "description": "Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.",
     "trigger": "manual",
     "depends_on": [],
@@ -90,13 +110,37 @@
     "path": ".claude/skills/continue/SKILL.md"
   },
   {
+    "name": "custom-hooks",
+    "version": "1.0.0",
+    "description": "Create project-specific hook scripts and register them in settings.json. Extends the framework's enforcement layer.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/custom-hooks/SKILL.md"
+  },
+  {
+    "name": "dashboard",
+    "version": "1.1.0",
+    "description": "Sprint status overview — sprint goal, story progress, capacity, work item age warnings, test health, and actionable next steps.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/dashboard/SKILL.md"
+  },
+  {
     "name": "debug-session",
     "version": "2.9.0",
     "description": "Use when the user reports a bug, error, or unexpected behavior that needs investigation.",
     "trigger": "manual",
     "depends_on": [],
     "calls": [],
-    "references": ["references/root-cause-tracing.md", "references/condition-based-waiting.md", "references/error-recovery.md"],
+    "references": [
+      "references/root-cause-tracing.md",
+      "references/condition-based-waiting.md",
+      "references/error-recovery.md"
+    ],
     "path": ".claude/skills/debug-session/SKILL.md"
   },
   {
@@ -115,13 +159,32 @@
     "description": "Fix a GitHub issue following project coding standards. Creates branch, implements fix with TDD, and prepares PR.",
     "trigger": "manual",
     "depends_on": [],
-    "calls": ["story-cycle"],
+    "calls": [
+      "story-cycle"
+    ],
     "references": [],
     "path": ".claude/skills/fix-issue/SKILL.md"
   },
   {
+    "name": "framework-upgrade",
+    "version": "1.1.0",
+    "description": "Upgrade JD-LLM Development Framework to a newer version while preserving project customizations.",
+    "trigger": "manual",
+    "depends_on": [
+      "doctor"
+    ],
+    "calls": [
+      "doctor"
+    ],
+    "references": [
+      "references/upgrade-checklist.md",
+      "references/merge-strategy.md"
+    ],
+    "path": ".claude/skills/framework-upgrade/SKILL.md"
+  },
+  {
     "name": "handoff",
-    "version": "2.5.0",
+    "version": "2.6.0",
     "description": "Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read.",
     "trigger": "manual",
     "depends_on": [],
@@ -130,13 +193,25 @@
     "path": ".claude/skills/handoff/SKILL.md"
   },
   {
+    "name": "help-me",
+    "version": "1.0.0",
+    "description": "Natural language skill discovery — describe what you want to do and get matched to the right skill.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/help-me/SKILL.md"
+  },
+  {
     "name": "ideate",
     "version": "2.10.0",
     "description": "Use when the user has an idea or requirement to decompose into backlog stories.",
     "trigger": "manual",
     "depends_on": [],
     "calls": [],
-    "references": ["references/story-template.md"],
+    "references": [
+      "references/story-template.md"
+    ],
     "path": ".claude/skills/ideate/SKILL.md"
   },
   {
@@ -150,6 +225,21 @@
     "path": ".claude/skills/manual-test/SKILL.md"
   },
   {
+    "name": "optimize",
+    "version": "1.0.0",
+    "description": "Use when the user wants to autonomously improve a measurable metric through iterative experimentation with git-based checkpointing and automatic rollback.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [
+      "refine-loop",
+      "undo-work"
+    ],
+    "references": [
+      "references/experiment-protocol.md"
+    ],
+    "path": ".claude/skills/optimize/SKILL.md"
+  },
+  {
     "name": "parallel-work",
     "version": "2.4.0",
     "description": "Manage git worktrees for parallel Claude Code instances working on different stories. List, create, and clean up worktrees.",
@@ -158,6 +248,16 @@
     "calls": [],
     "references": [],
     "path": ".claude/skills/parallel-work/SKILL.md"
+  },
+  {
+    "name": "performance-check",
+    "version": "1.0.0",
+    "description": "Analyze performance patterns — N+1 queries, unbounded operations, blocking I/O, memory leaks, and scaling behavior. Auto-invoke after performance-sensitive code changes.",
+    "trigger": "conditional",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/performance-check/SKILL.md"
   },
   {
     "name": "pr-status",
@@ -170,6 +270,21 @@
     "path": ".claude/skills/pr-status/SKILL.md"
   },
   {
+    "name": "quickstart",
+    "version": "1.0.0",
+    "description": "Guided interactive tour of the framework — walks through your first sprint from zero to shipped PR.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [
+      "bootstrap",
+      "sprint-start",
+      "story-cycle",
+      "sprint-end"
+    ],
+    "references": [],
+    "path": ".claude/skills/quickstart/SKILL.md"
+  },
+  {
     "name": "refine-loop",
     "version": "2.5.0",
     "description": "Use when the user wants iterative self-improvement on a deliverable (document, implementation, prompt, design) until completion criteria are met.",
@@ -180,8 +295,21 @@
     "path": ".claude/skills/refine-loop/SKILL.md"
   },
   {
+    "name": "research",
+    "version": "1.0.0",
+    "description": "Deep online research on any topic. Produces structured reports with citations and confidence scores. Three depth modes — quick scan, standard investigation, or deep dive.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [
+      "references/research-report-template.md",
+      "references/depth-profiles.md"
+    ],
+    "path": ".claude/skills/research/SKILL.md"
+  },
+  {
     "name": "retrospective",
-    "version": "2.4.0",
+    "version": "3.0.0",
     "description": "Run a sprint or weekly retrospective using the 4Ls framework with metrics dashboard. Analyzes what worked, what was learned, what was lacking, and what we wish we had.",
     "trigger": "manual",
     "depends_on": [],
@@ -191,7 +319,7 @@
   },
   {
     "name": "security-audit",
-    "version": "2.4.0",
+    "version": "3.0.0",
     "description": "Security review for code touching authentication, credentials, file access, or user data. Includes CWE checklist and phantom package detection. MANDATORY for auth code, credential handling, file operations with user data, network comms, or database queries with user input.",
     "trigger": "conditional",
     "depends_on": [],
@@ -221,17 +349,28 @@
   },
   {
     "name": "sprint-end",
-    "version": "2.9.0",
+    "version": "2.10.0",
     "description": "Use when the user wants to ship a sprint's work to main via PR.",
     "trigger": "manual",
-    "depends_on": ["code-quality", "test-validator", "security-audit"],
-    "calls": ["code-quality", "test-validator", "security-audit"],
-    "references": ["references/quality-gates.md", "references/error-recovery.md"],
+    "depends_on": [
+      "code-quality",
+      "test-validator",
+      "security-audit"
+    ],
+    "calls": [
+      "code-quality",
+      "test-validator",
+      "security-audit"
+    ],
+    "references": [
+      "references/quality-gates.md",
+      "references/error-recovery.md"
+    ],
     "path": ".claude/skills/sprint-end/SKILL.md"
   },
   {
     "name": "sprint-start",
-    "version": "2.6.0",
+    "version": "2.7.0",
     "description": "Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development.",
     "trigger": "manual",
     "depends_on": [],
@@ -241,12 +380,29 @@
   },
   {
     "name": "story-cycle",
-    "version": "4.3.0",
+    "version": "4.4.0",
     "description": "Use when the user wants to implement a single story or deliver a backlog item.",
     "trigger": "manual",
-    "depends_on": ["code-quality", "test-validator", "security-audit"],
-    "calls": ["code-quality", "test-validator", "security-audit"],
-    "references": ["references/story-types.md", "references/self-review.md", "references/disaster-prevention.md", "references/reasoning-tools.md", "references/elicitation-techniques.md", "references/error-recovery.md", "references/plan-template.md", "references/parallel-streams.md"],
+    "depends_on": [
+      "code-quality",
+      "test-validator",
+      "security-audit"
+    ],
+    "calls": [
+      "code-quality",
+      "test-validator",
+      "security-audit"
+    ],
+    "references": [
+      "references/story-types.md",
+      "references/self-review.md",
+      "references/disaster-prevention.md",
+      "references/reasoning-tools.md",
+      "references/elicitation-techniques.md",
+      "references/error-recovery.md",
+      "references/plan-template.md",
+      "references/parallel-streams.md"
+    ],
     "path": ".claude/skills/story-cycle/SKILL.md"
   },
   {
@@ -270,6 +426,16 @@
     "path": ".claude/skills/testing-cycle/SKILL.md"
   },
   {
+    "name": "uninstall",
+    "version": "1.0.0",
+    "description": "Cleanly remove the JD-LLM Development Framework from a project while preserving project-specific content.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/uninstall/SKILL.md"
+  },
+  {
     "name": "undo-work",
     "version": "3.0.1",
     "description": "Safely discard or revert failed implementation attempts and restore a clean working state.",
@@ -284,8 +450,13 @@
     "version": "2.5.0",
     "description": "Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning.",
     "trigger": "manual",
-    "depends_on": ["code-quality"],
-    "calls": ["code-quality", "doctor"],
+    "depends_on": [
+      "code-quality"
+    ],
+    "calls": [
+      "code-quality",
+      "doctor"
+    ],
     "references": [],
     "path": ".claude/skills/weekly-maintenance/SKILL.md"
   }

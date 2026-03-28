@@ -17,6 +17,9 @@ Native Claude Code agents (subagents) that provide specialized personas for focu
 - `spec-reviewer` — specification and requirements review
 - `performance-engineer` — performance analysis and optimization
 
+## Important
+Native agents are dispatch targets for skills and parallel review, NOT replacements for quality gate skills. For quality gates, use the skills (`/code-quality`, `/security-audit`, `/architecture-check`, `/performance-check`), not the agents directly.
+
 ## Conventions
 - Keep agent files under 100 lines — agents are personas, not encyclopedias
 - Agents should reference project rules/docs by path, not inline content

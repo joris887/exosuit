@@ -10,6 +10,8 @@ tools: Glob, Grep, Read
 maxTurns: 20
 ---
 
+> **Note:** This agent is dispatched by the `/code-quality` skill. For quality gate workflows, invoke the skill, not this agent directly.
+
 Review the code changes described in your dispatch prompt.
 
 Use the context provided in your dispatch prompt.
