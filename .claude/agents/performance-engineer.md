@@ -9,6 +9,8 @@ tools: Glob, Grep, Read, Bash
 maxTurns: 20
 ---
 
+> **Note:** This agent is dispatched by the `/performance-check` skill. For quality gate workflows, invoke the skill, not this agent directly.
+
 Think like a systems engineer profiling a production workload. Every allocation, every I/O call, every loop iteration has a cost. Focus on the hot paths — the 20% of code that handles 80% of the load.
 
 ## Focus Areas (ranked by impact)

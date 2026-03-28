@@ -80,8 +80,19 @@ fi
 # malicious instructions in AI config files. Scan for these obfuscation markers.
 if [ -d ".claude" ]; then
     # Check for zero-width joiners, bidirectional overrides, and other Unicode obfuscation
-    # Uses octal sequences for POSIX compatibility
-    UNICODE_HITS=$(find .claude -type f -name "*.md" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" 2>/dev/null | head -50 | xargs grep -rl "$(printf '\xe2\x80\x8b\|\xe2\x80\x8c\|\xe2\x80\x8d\|\xe2\x80\x8e\|\xe2\x80\x8f\|\xe2\x80\xaa\|\xe2\x80\xab\|\xe2\x80\xac\|\xe2\x80\xad\|\xe2\x80\xae')" 2>/dev/null)
+    # Uses multiple -e flags for BSD/GNU grep compatibility (BSD grep doesn't support \| alternation)
+    UNICODE_HITS=$(find .claude -type f \( -name "*.md" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" \) 2>/dev/null | head -50 | xargs grep -rl \
+        -e "$(printf '\xe2\x80\x8b')" \
+        -e "$(printf '\xe2\x80\x8c')" \
+        -e "$(printf '\xe2\x80\x8d')" \
+        -e "$(printf '\xe2\x80\x8e')" \
+        -e "$(printf '\xe2\x80\x8f')" \
+        -e "$(printf '\xe2\x80\xaa')" \
+        -e "$(printf '\xe2\x80\xab')" \
+        -e "$(printf '\xe2\x80\xac')" \
+        -e "$(printf '\xe2\x80\xad')" \
+        -e "$(printf '\xe2\x80\xae')" \
+        2>/dev/null)
     if [ -n "$UNICODE_HITS" ]; then
         warn "Hidden Unicode characters detected in AI config files — possible prompt injection: $UNICODE_HITS"
     fi

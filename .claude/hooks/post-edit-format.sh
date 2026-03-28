@@ -26,8 +26,24 @@ report_missing() {
     local tool="$1"
     local state_file="$HOOK_STATE_DIR/missing-$tool"
     if [ ! -f "$state_file" ]; then
-        echo "⚠ post-edit-format: '$tool' not found — skipping $tool formatting/linting"
+        echo "⚠ post-edit-format: '$tool' not found — skipping $tool formatting/linting" >&2
         touch "$state_file"
+    fi
+}
+
+# Portable hash function (macOS ships md5, Linux ships md5sum)
+portable_hash() {
+    if command -v md5sum &>/dev/null; then
+        echo "$1" | md5sum | cut -d' ' -f1
+    elif command -v md5 &>/dev/null; then
+        echo "$1" | md5
+    elif command -v shasum &>/dev/null; then
+        echo "$1" | shasum | cut -d' ' -f1
+    elif command -v cksum &>/dev/null; then
+        echo "$1" | cksum | cut -d' ' -f1
+    else
+        # Last resort: use the string itself (may cause path length issues but won't break)
+        echo "$1" | tr '/' '_'
     fi
 }
 
@@ -39,6 +55,8 @@ case "$FILE" in
             ruff format "$FILE" 2>/dev/null
         elif command -v black &>/dev/null; then
             black --quiet "$FILE" 2>/dev/null
+        else
+            report_missing "ruff/black"
         fi
         ;;
     *.ts|*.tsx|*.js|*.jsx|*.json|*.css|*.scss|*.html)
@@ -47,66 +65,88 @@ case "$FILE" in
             prettier --write "$FILE" 2>/dev/null
         elif npx biome --help &>/dev/null 2>&1; then
             npx biome format --write "$FILE" 2>/dev/null
+        else
+            report_missing "prettier/biome"
         fi
         ;;
     *.rs)
         # Rust: rustfmt
         if command -v rustfmt &>/dev/null; then
             rustfmt "$FILE" 2>/dev/null
+        else
+            report_missing "rustfmt"
         fi
         ;;
     *.go)
         # Go: gofmt
         if command -v gofmt &>/dev/null; then
             gofmt -w "$FILE" 2>/dev/null
+        else
+            report_missing "gofmt"
         fi
         ;;
     *.swift)
         # Swift: swift-format
         if command -v swift-format &>/dev/null; then
             swift-format -i "$FILE" 2>/dev/null
+        else
+            report_missing "swift-format"
         fi
         ;;
     *.rb)
         # Ruby: rubocop
         if command -v rubocop &>/dev/null; then
             rubocop -A --fail-level=error "$FILE" 2>/dev/null
+        else
+            report_missing "rubocop"
         fi
         ;;
     *.java)
         # Java: google-java-format
         if command -v google-java-format &>/dev/null; then
             google-java-format --replace "$FILE" 2>/dev/null
+        else
+            report_missing "google-java-format"
         fi
         ;;
     *.kt|*.kts)
         # Kotlin: ktfmt
         if command -v ktfmt &>/dev/null; then
             ktfmt "$FILE" 2>/dev/null
+        else
+            report_missing "ktfmt"
         fi
         ;;
     *.php)
         # PHP: php-cs-fixer
         if command -v php-cs-fixer &>/dev/null; then
             php-cs-fixer fix "$FILE" --quiet 2>/dev/null
+        else
+            report_missing "php-cs-fixer"
         fi
         ;;
     *.dart)
         # Dart: dart format
         if command -v dart &>/dev/null; then
             dart format "$FILE" 2>/dev/null
+        else
+            report_missing "dart"
         fi
         ;;
     *.cs)
         # C#: dotnet format
         if command -v dotnet &>/dev/null; then
             dotnet format --include "$FILE" 2>/dev/null
+        else
+            report_missing "dotnet"
         fi
         ;;
     *.c|*.cpp|*.cc|*.cxx|*.h|*.hpp|*.hxx)
         # C/C++: clang-format
         if command -v clang-format &>/dev/null; then
             clang-format -i "$FILE" 2>/dev/null
+        else
+            report_missing "clang-format"
         fi
         ;;
 esac
@@ -152,7 +192,7 @@ esac
 # Reports once per file per session to avoid noise; does NOT block edits
 SECRETS_STATE_DIR="${TMPDIR:-/tmp}/.claude-hook-state"
 mkdir -p "$SECRETS_STATE_DIR" 2>/dev/null
-SECRETS_STATE="$SECRETS_STATE_DIR/secrets-$(echo "$FILE" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "nomd5")"
+SECRETS_STATE="$SECRETS_STATE_DIR/secrets-$(portable_hash "$FILE")"
 
 secrets_check() {
     local file="$1"
@@ -259,7 +299,7 @@ fi
 
 # Code slop detection: scan for AI-typical filler comments (advisory only)
 # Checks patterns from .claude/rules/code-slop.md — warns once per file per session
-SLOP_STATE="$HOOK_STATE_DIR/slop-$(echo "$FILE" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "nomd5")"
+SLOP_STATE="$HOOK_STATE_DIR/slop-$(portable_hash "$FILE")"
 
 slop_check() {
     local file="$1"

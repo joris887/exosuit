@@ -139,7 +139,7 @@ if has_component "scaffold"; then
     safe_cp "-rn" "$SCAFFOLD_SRC/docs" .
     safe_cp "-rn" "$SCAFFOLD_SRC/vision" .
     safe_cp "-rn" "$SCAFFOLD_SRC/scripts" .
-    safe_cp "-n" "$SCAFFOLD_SRC/CLAUDE.md" .
+    safe_cp "-n" "$FRAMEWORK_DIR/CLAUDE.md" .
     safe_cp "-n" "$SCAFFOLD_SRC/llms.txt" .
     safe_cp "-n" "$SCAFFOLD_SRC/CLAUDE.local.md.template" .
 fi
@@ -203,15 +203,7 @@ if [ "$MODE" = "template" ]; then
         cp "$FRAMEWORK_DIR/.claude/settings.json" .claude/settings.json
     fi
 
-    # Replace placeholders with absolute paths for reliable hook resolution
-    if ! $DRY_RUN; then
-        tmp_settings=$(mktemp)
-        sed "s|__PROJECT_ROOT__|${PROJECT_ROOT}|g" ".claude/settings.json" > "$tmp_settings"
-        mv "$tmp_settings" ".claude/settings.json"
-        echo "  Hook paths configured for: $PROJECT_ROOT"
-    else
-        echo "  [DRY RUN] Would configure hook paths for: $PROJECT_ROOT"
-    fi
+    # Hook paths resolve at runtime via git rev-parse — no placeholder replacement needed
 fi
 
 # Create AGENTS.md symlink if it doesn't exist
@@ -236,6 +228,13 @@ GITIGNORE_PATTERNS=(
     "*.key"
     "*.p12"
     "*.pfx"
+    "docs/sessions/.activity-log.jsonl"
+    "docs/sessions/.auto-save.md"
+    "docs/sessions/.failure-state.md"
+    "docs/sessions/.failure-log.jsonl"
+    "docs/sessions/.story-outcomes.tsv"
+    "docs/sessions/.optimization-log.tsv"
+    "docs/sessions/.refine-log.tsv"
 )
 
 if $DRY_RUN; then

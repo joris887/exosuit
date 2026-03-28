@@ -61,7 +61,7 @@ All skills in the framework are CORE except technology-specific skills generated
 | Quality | code-quality, test-validator, security-audit, architecture-check, performance-check |
 | Testing | manual-test, testing-cycle, UAT-cycle, claude-sense-check |
 | Debugging | debug-session, fix-issue, undo-work |
-| Maintenance | weekly-maintenance, retrospective, backlog-review, doctor, framework-upgrade, pr-status, upstream-updates |
+| Maintenance | weekly-maintenance, retrospective, backlog-review, doctor, framework-upgrade, pr-status |
 | Utility | commit, parallel-work, skill-eval, refine-loop, optimize, quickstart, help-me, dashboard, custom-hooks, uninstall |
 | Inventory | SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, skills-registry.json, skills-registry.schema.json |
 
@@ -184,7 +184,7 @@ The entire scaffold directory is CORE. It contains templates copied to projects 
 
 | Path | Purpose |
 |------|---------|
-| `scaffold/CLAUDE.md` | Project CLAUDE.md template |
+| `scaffold/README.md` | Scaffold directory documentation |
 | `scaffold/CLAUDE.local.md.template` | Personal overrides template |
 | `scaffold/README.md` | Project README template |
 | `scaffold/llms.txt` | LLM context file template |
