@@ -1,90 +1,60 @@
-Pre-implementation confidence assessment. Run this AFTER plan approval and BEFORE writing any implementation code.
+Pre-implementation readiness check. Run AFTER plan approval and BEFORE writing any implementation code.
 
-## Confidence Dimensions
+## Objective Pre-Conditions
 
-Score each dimension 0–20. Sum for total confidence (0–100).
+Verify each check as PASS or FAIL with specific evidence. All 5 must pass to proceed. Failed checks require addressing the specific gap — not a generic retry.
 
-### Story-Type Adjustments for Dimension 4
+### 1. Files Read (have I examined what I plan to change?)
 
-Dimension 4 adapts based on story type. The scoring weight (0–20) stays the same — only the criteria change:
+- Compare the plan's list of files to modify against files actually read this session
+- Every file the plan touches MUST have been read (at least the relevant sections)
+- PASS: all planned files read. FAIL: list which planned files have NOT been read
 
-- **Spike / Research stories:** Score based on "exploration strategy clear" — score 20 if the spike has clear questions to answer, defined information sources, and a time-box.
-- **Documentation stories:** Score based on "review strategy clear" — score 20 if there is a clear plan for verifying accuracy (e.g., subject-matter review, cross-referencing sources, testing code examples).
-- **Infrastructure stories:** Score based on "smoke test / verification strategy clear" — score 20 if there is a defined way to verify the infrastructure change works (health check, deployment test, rollback verification) even without full TDD coverage.
-- **All other story types (feature, bug fix, refactoring):** Dimension 4 remains as defined below — full test strategy.
+### 2. Tests Baseline (do existing tests pass?)
 
-### 1. No Ambiguity Remaining (0–20)
+- If a test command is configured in CLAUDE.md, it must have been run this session with passing output
+- If no test command is configured, PASS by default (no baseline to verify)
+- PASS: test output shows green/passing in current session. FAIL: tests not run, or tests failing
 
-- All Phase 1f clarification questions answered?
-- No `[NEEDS CLARIFICATION]` markers remaining in the plan?
-- No implicit assumptions stated as "Assuming X..."?
-- All acceptance criteria are concrete and testable?
+### 3. Pattern Match (am I following existing conventions?)
 
-### 2. Architecture Compliance (0–20)
+- The plan must reference at least one existing file as a pattern source ("following the pattern in src/auth/middleware.ts")
+- For new projects with no existing code, PASS by default
+- PASS: plan cites existing code as pattern. FAIL: plan introduces patterns without referencing existing ones
 
-- Plan respects all MUST rules in `docs/reference/GROUND_RULES.md` (if exists)?
-- No cross-layer violations identified?
-- Dependency direction is correct (no circular imports introduced)?
-- Module boundaries respected per `docs/architecture/ARCHITECTURE.md`?
-- Plan respects Dependency Rules (MUST/NEVER statements) in the Module Map section?
-- If the story touches modules listed in Known Landmines: does the plan account for the documented gotchas?
+### 4. Scope Bounded (is the change appropriately sized?)
 
-> **Note:** If `docs/reference/GROUND_RULES.md` and `docs/architecture/ARCHITECTURE.md` do not exist (e.g., new project without bootstrap), score based on general best practices. Do NOT penalize for missing docs that haven't been created yet.
+- Count files the plan will create or modify
+- ≤5 files: PASS
+- 6-10 files: PASS with advisory ("larger change — consider splitting if possible")
+- >10 files: FAIL — requires explicit user approval before proceeding
 
-### 3. Existing Pattern Match (0–20)
+### 5. No Conflicts (does the plan respect project rules?)
 
-- Implementation follows patterns found in the codebase during Phase 1c research?
-- Naming conventions match existing code in the same module?
-- Error handling follows established project patterns?
-- No novel abstractions where existing patterns would work?
+- If `docs/reference/GROUND_RULES.md` exists: verify no MUST rule violations in the plan
+- If `docs/adr/` has ADR files: verify no contradictions with recorded architectural decisions
+- If neither exists: PASS by default
+- PASS: zero conflicts found. FAIL: list specific rule/ADR conflicts
 
-### 4. Test Strategy Clear (0–20)
+## Story-Type Adjustments
 
-- Specific tests identified for each acceptance criterion?
-- Test type mapped (unit/integration/E2E/property-based) per criterion?
-- Expected values are hardcoded from specifications (not computed from production logic)?
-- Negative/error tests planned proportional to happy-path tests?
-- For critical business logic: property-based testing or integration tests included?
-- Testing order defined (simple → edge → error)?
+- **TRIVIAL stories:** Skip this gate entirely (fast-track)
+- **Spike / Research stories:** Check 1 (Files Read) becomes "Have I identified where to look?" and Check 2 (Tests Baseline) is skipped
+- **Documentation stories:** Check 2 (Tests Baseline) is skipped
 
-### 5. Dependencies Verified (0–20)
+## Overrides
 
-- All APIs, libraries, and integrations confirmed to exist?
-- Version compatibility checked for any new dependencies?
-- No phantom packages (verified against registry if new)?
-- Internal module interfaces confirmed (function signatures, types)?
-
-## Risk Awareness (not scored — advisory)
-
-This is NOT a 6th dimension. The score remains 0–100 across the 5 dimensions above. However, before proceeding, consider:
-
-- Do you understand the **blast radius** of this change? (Which users, services, or systems are affected?)
-- Is there a **rollback plan** if this doesn't work? (Checkpoint tag, feature flag, reversible migration?)
-
-**Security-relevant stories** (touching auth, crypto, user data, API endpoints, file uploads, sessions): AI-generated code in these areas has the highest vulnerability rate. Before proceeding, verify:
-- Are you using established libraries for auth/crypto (not generating from scratch)?
-- Have you checked the CWE top 15 from `.claude/rules/security.md` against the plan?
-- Are all AI-suggested dependencies verified to exist in their registry?
-
-If the answer to any question is unclear, flag to the user before proceeding — even if the total score is >=85.
-
-## Scoring Thresholds
-
-| Score | Action |
-|-------|--------|
-| **85–100** | Proceed to Phase 3 implementation |
-| **70–84** | Flag low-scoring dimensions. Ask user for clarification on gaps before proceeding |
-| **< 70** | Hard-stop. Return to Phase 1 for additional research on the weakest dimensions |
+The user can override a failed check by acknowledging the specific gap. The gate is a speed bump, not a wall. When overridden, note which checks were overridden and why in the plan.
 
 ## Output Format
 
 ```
-Confidence: [total]/100
-  Ambiguity:    [score]/20 — [brief justification]
-  Architecture: [score]/20 — [brief justification]
-  Patterns:     [score]/20 — [brief justification]
-  Test Strategy:[score]/20 — [brief justification]
-  Dependencies: [score]/20 — [brief justification]
+Readiness Gate:
+  [✓] Files read: 4/4 planned files examined
+  [✓] Tests baseline: 23 passing (from test run at turn 12)
+  [✓] Pattern match: following pattern in src/auth/middleware.ts
+  [✗] Scope bounded: plan touches 8 files — larger change, consider splitting
+  [✓] No conflicts: 0 ground rule violations
 
-Decision: [PROCEED / CLARIFY: dimensions X, Y / STOP: return to Phase 1]
+Decision: 4/5 pass — proceed (scope advisory noted)
 ```

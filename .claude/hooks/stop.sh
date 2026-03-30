@@ -7,6 +7,8 @@
 #    a successful test run (state/tests-passed). This prevents redundant
 #    re-runs when story-cycle Phase 4b already verified tests.
 # Safety valve: max iterations (default 5), then allows stop unconditionally.
+# Override via JD_STOP_MAX_ITERATIONS env var, or quality.conf max_iterations.
+# Values <=0 disable the safety valve (infinite retries).
 # POSIX-compliant — no bash required.
 #
 # Input:  JSON on stdin (last_assistant_message)
@@ -104,7 +106,17 @@ AUTOSAVE_EOF
 fi
 
 # --- 2. Safety valve: max iterations ---
-MAX_ITER=$(read_conf "max_iterations" "5")
+# Priority: JD_STOP_MAX_ITERATIONS env var > quality.conf > default (5)
+# Values <=0 mean "no limit" (infinite retries — use with caution)
+if [ -n "${JD_STOP_MAX_ITERATIONS:-}" ]; then
+    MAX_ITER="$JD_STOP_MAX_ITERATIONS"
+else
+    MAX_ITER=$(read_conf "max_iterations" "5")
+fi
+# Ensure it's a number (fallback to 5 if not)
+case "$MAX_ITER" in
+    ''|*[!0-9-]*) MAX_ITER=5 ;;
+esac
 mkdir -p "$STATE_DIR" 2>/dev/null
 ITER_FILE="$STATE_DIR/stop-iteration"
 ITERATION=0
@@ -116,7 +128,8 @@ if [ -f "$ITER_FILE" ]; then
     esac
 fi
 
-if [ "$ITERATION" -ge "$MAX_ITER" ]; then
+# Values <=0 mean no limit (never auto-allow)
+if [ "$MAX_ITER" -gt 0 ] 2>/dev/null && [ "$ITERATION" -ge "$MAX_ITER" ]; then
     exit 0
 fi
 
@@ -177,7 +190,12 @@ if [ -n "$LAST_MESSAGE" ]; then
         # Increment iteration counter
         NEW_ITER=$((ITERATION + 1))
         echo "$NEW_ITER" > "$ITER_FILE" 2>/dev/null
-        printf 'Quality check before completion:\n  - Task claimed complete but no test output found. Run tests and show output.\n' >&2
+        EXPLAIN_MODE="${JD_EXPLAIN_MODE:-brief}"
+        if [ "$EXPLAIN_MODE" = "verbose" ]; then
+            printf 'Quality check before completion:\n  - Task claimed complete but no test output found. Run tests and show output.\n  WHY: The framework requires evidence that tests pass before marking work complete. This prevents shipping untested code. Run your project'\''s test command (check CLAUDE.md Commands section) and include the passing output in your response.\n' >&2
+        else
+            printf 'Quality check before completion:\n  - Task claimed complete but no test output found. Run tests and show output.\n' >&2
+        fi
         exit 2
     fi
 fi

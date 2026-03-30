@@ -31,7 +31,7 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"story-cycle\",\"story\
 **Progress tracking:** At the start, create a task list for phase tracking:
 
 1. "Phase 0+1: Decompose intent, research, plan" — activeForm: "Planning..."
-2. "Phase 2: Context transition + confidence gate" — activeForm: "Preparing..." — blockedBy: [1]
+2. "Phase 2: Context transition + readiness gate" — activeForm: "Preparing..." — blockedBy: [1]
 3. "Phase 3: Implement by story type" — activeForm: "Implementing..." — blockedBy: [2]
 4. "Phase 4: Verify, quality gates, commit" — activeForm: "Verifying..." — blockedBy: [3]
 
@@ -189,7 +189,7 @@ All other phases are **REQUIRED** — do NOT skip them because the story feels s
 
 - [ ] Phase 0: Intent decomposition
 - [ ] Phase 1: Lightweight analysis + plan (includes 1c.5 Research Decision — MANDATORY output) → `*** HARD GATE: user approval ***`
-- [ ] Phase 2: Context transition + confidence gate (score ≥85) → `*** HARD GATE ***`
+- [ ] Phase 2: Context transition + readiness gate (5 objective checks) → `*** HARD GATE ***`
 - [ ] Phase 3: Implementation (TDD by story type)
 - [ ] Phase 4: Self-review + quality gates + completion verification with evidence → `*** HARD GATE ***`
 
@@ -333,11 +333,11 @@ The research engine handles: query decomposition, parallel subagent dispatch, so
 - [Key finding 2 with source URL]
 - [Finding N...]
 
-**Research confidence:** [score]/100
+**Research confidence:** [high/medium/low]
 **Impact on plan:** [how findings affect the approach — or "No findings that change approach"]
 ```
 
-This block is included in the plan and feeds into Phase 2b confidence scoring.
+This block is included in the plan and feeds into Phase 2b readiness checks.
 
 **Record findings:**
 
@@ -455,7 +455,7 @@ phase: "plan-approved — proceed to Phase 2 Context Transition + Confidence Gat
 stepsCompleted: [0-intent, 0a5-sprint-context, 1a-type, 1b-discovery, 1c-research, 1c5-online-verify, 1d-skills, 1d5-discovery-gate, 1d7-refinement, 1e-plan, 1f-clarification, 1g-completeness, 1h-depth-check]
 remaining_steps:
   - "BOOTSTRAP (do this FIRST): Read .claude/skills/story-cycle/SKILL.md starting from '## Phase 2: Context Transition + Confidence Gate' to reload the full story-cycle workflow. You are mid-workflow — planning is done, implementation phases remain. Do NOT stop after reading the plan."
-  - "Phase 2 — CONTEXT + CONFIDENCE GATE (HARD-GATE): Prune context (keep plan + paths + gotchas, discard bulk). Read .claude/prompts/confidence-gate.md. Score 5 dimensions 0-20 each. ≥85 proceed, 70-84 clarify, <70 return to planning. Output the score table."
+  - "Phase 2 — CONTEXT + READINESS GATE (HARD-GATE): Prune context (keep plan + paths + gotchas, discard bulk). Read .claude/prompts/confidence-gate.md. Verify 5 objective checks (files read, tests baseline, pattern match, scope bounded, no conflicts). All pass → proceed. Any fail → address gap. Output the check results."
   - "Phase 3 — IMPLEMENT (TDD HARD-GATE for Feature/Bug Fix/Refactoring): Read .claude/skills/story-cycle/references/story-types.md for [storyType] execution steps. Load relevant sections of docs/reference/CODING_STANDARDS.md and docs/reference/TESTING_STRATEGY.md. Re-read all target files from plan before editing. CRITICAL: For Feature/Bug Fix/Refactoring stories, write and run a failing test BEFORE writing implementation code. Show test failure output. Only then write implementation. Follow story-type methodology (TDD: RED → GREEN → REFACTOR)."
   - "Phase 4a — SELF-REVIEW (HARD-GATE): Read .claude/skills/story-cycle/references/self-review.md — complete ALL checklist items including ground rules re-check. Read .claude/skills/story-cycle/references/disaster-prevention.md — check for wheel reinvention, spec drift, integration wiring, file structure, regression surface, architecture doc staleness. Dispatch quality skills per risk level (Low: code-quality+test-validator+security-audit-lightweight, Medium: +security-audit-full, High: +architecture-check). At Medium+ risk, also dispatch integration-tester native agent (.claude/agents/integration-tester.md) with test commands + acceptance criteria for independent dynamic verification. If ANY item fails → fix in Phase 3 before proceeding."
   - "Phase 4b — QUALITY GATES (HARD-GATE): Run the project's quality command (from CLAUDE.md Commands section: lint → typecheck → test). Stop on first failure, fix, re-run. Show passing output in the current turn — do NOT claim tests pass without evidence. Do NOT proceed until all gates pass."
@@ -528,18 +528,18 @@ After plan approval, prune context and score confidence in a single pass.
 
 Re-read target files before editing — context may have changed since Phase 1.
 
-### 2b. Confidence Gate
+### 2b. Readiness Gate
 
-Run the `confidence-gate` micro-component from `.claude/prompts/confidence-gate.md`. Score 5 dimensions (ambiguity, architecture, patterns, test strategy, dependencies) on a 0–20 scale each.
+Run the `confidence-gate` micro-component from `.claude/prompts/confidence-gate.md`. Verify 5 objective pre-conditions (files read, tests baseline, pattern match, scope bounded, no conflicts) as PASS or FAIL.
 
-| Total Score | Action |
-|-------------|--------|
-| **85–100** | Proceed to Phase 3 |
-| **70–84** | Flag low-scoring dimensions, ask user for clarification before proceeding |
-| **< 70** | Return to Phase 1 for additional research on the weakest dimensions |
+| Result | Action |
+|--------|--------|
+| **All 5 pass** | Proceed to Phase 3 |
+| **Any fail** | Address the specific gap (re-read missing files, run tests, check rules) |
+| **User override** | Proceed with acknowledgment of overridden checks |
 
 <HARD-GATE>
-Do NOT skip the confidence gate for ANY story size. Output the 5-dimension score table before proceeding to Phase 3.
+Do NOT skip the readiness gate for ANY story size except TRIVIAL. Output the 5-check results before proceeding to Phase 3.
 </HARD-GATE>
 
 ## Phase 3a: Parallel Stream Analysis (Optional)

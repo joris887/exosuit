@@ -16,6 +16,9 @@ ADVISORY_FILE="$RULES_DIR/advisory.patterns"
 # --- Hook guard: profile + disable check ---
 "$HOOKS_DIR/lib/hook-guard.sh" "pre-tool-use" "minimal" || exit 0
 
+# --- Explain mode: off, brief (default), verbose ---
+EXPLAIN_MODE="${JD_EXPLAIN_MODE:-brief}"
+
 # --- Profile level for severity filtering ---
 CURRENT_PROFILE="${JD_HOOK_PROFILE:-standard}"
 case "$CURRENT_PROFILE" in
@@ -51,8 +54,8 @@ severity_level() {
     esac
 }
 
-# --- Helper: parse pattern line with optional severity ---
-# Sets: id, regex, message, severity variables
+# --- Helper: parse pattern line with optional severity and explanation ---
+# Sets: id, regex, message, severity, explanation variables
 parse_pattern_line() {
     _line="$1"
 
@@ -60,11 +63,20 @@ parse_pattern_line() {
     rest=$(printf '%s' "$_line" | sed 's/^[^@]*@@//')
     regex=$(printf '%s' "$rest" | sed 's/@@.*//')
 
-    # Count @@ delimiters to detect severity field
+    # Count @@ delimiters to detect field count
     _at_count=$(printf '%s' "$_line" | tr -cd '@' | wc -c | tr -d ' ')
     _delim_count=$((_at_count / 2))
 
-    if [ "$_delim_count" -ge 3 ]; then
+    explanation=""
+
+    if [ "$_delim_count" -ge 4 ]; then
+        # 5-field format: id@@regex@@message@@severity@@explanation
+        explanation=$(printf '%s' "$rest" | sed 's/.*@@//')
+        # Strip explanation from rest to parse message and severity
+        _no_expl=$(printf '%s' "$rest" | sed 's/@@[^@]*$//')
+        severity=$(printf '%s' "$_no_expl" | sed 's/.*@@//')
+        message=$(printf '%s' "$_no_expl" | sed 's/@@[^@]*$//' | sed 's/^[^@]*@@//')
+    elif [ "$_delim_count" -ge 3 ]; then
         # 4-field format: id@@regex@@message@@severity
         severity=$(printf '%s' "$rest" | sed 's/.*@@//')
         message=$(printf '%s' "$rest" | sed 's/@@[^@]*$//' | sed 's/^[^@]*@@//')
@@ -93,7 +105,11 @@ if [ -f "$SAFETY_FILE" ]; then
 
         # Match command against regex
         if printf '%s' "$COMMAND" | grep -qE -- "$regex"; then
-            printf 'BLOCKED: %s\n' "$message" >&2
+            if [ "$EXPLAIN_MODE" = "verbose" ] && [ -n "$explanation" ]; then
+                printf 'BLOCKED: %s\n  %s\n' "$message" "$explanation" >&2
+            elif [ "$EXPLAIN_MODE" != "off" ]; then
+                printf 'BLOCKED: %s\n' "$message" >&2
+            fi
             exit 2
         fi
     done < "$SAFETY_FILE"
@@ -140,7 +156,7 @@ if [ -f "$ADVISORY_FILE" ]; then
     done < "$ADVISORY_FILE"
 fi
 
-if [ -n "$ADVISORIES" ]; then
+if [ -n "$ADVISORIES" ] && [ "$EXPLAIN_MODE" != "off" ]; then
     printf 'Advisory:\n  - %s\n' "$ADVISORIES" >&2
 fi
 

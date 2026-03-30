@@ -62,6 +62,24 @@ Safety patterns support an optional severity field: `id@@regex@@message@@severit
 - `standard` — Active at standard and strict (default if omitted)
 - `strict` — Active at strict only
 
+## Explanation Mode
+
+Control the verbosity of hook messages via `JD_EXPLAIN_MODE`:
+
+| Mode | Behavior |
+|------|----------|
+| `off` | Suppress advisory messages (blocks still exit non-zero with no output) |
+| `brief` | Short messages — what was blocked/warned (default) |
+| `verbose` | Full explanations — WHY it matters + safer alternatives |
+
+```bash
+export JD_EXPLAIN_MODE=verbose   # Recommended for beginners and newcomers
+export JD_EXPLAIN_MODE=brief     # Default
+export JD_EXPLAIN_MODE=off       # Experienced users who know the rules
+```
+
+Pattern files support an optional 5th field for explanations: `id@@regex@@message@@severity@@explanation`. When `JD_EXPLAIN_MODE=verbose`, the explanation is appended to the message.
+
 ## Runtime Hook Disabling
 
 Disable specific hooks without editing settings.json:
@@ -107,7 +125,7 @@ Activity logging to `docs/sessions/.activity-log.jsonl`. Rotates at 200 entries.
 Auto-saves session state (git + active skill context), then:
 1. Debug statement audit: scans git diff for leftover debug statements (advisory)
 2. Completion evidence validation: blocks claims without test output
-3. Safety valve: allows after 5 blocked attempts
+3. Safety valve: allows after max iterations (default 5, override via `JD_STOP_MAX_ITERATIONS` env var or `quality.conf max_iterations`; ≤0 = no limit)
 
 ### UserPromptSubmit
 - Advisory warning for destructive-sounding requests (intent.patterns)

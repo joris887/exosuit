@@ -1,6 +1,6 @@
 # JD-LLM Development Framework
 
-> A drop-in development framework for Claude Code with structured sprint workflows, TDD practices, quality gates, and backlog management.
+> A drop-in development framework for Claude Code with structured sprint workflows, TDD practices, quality gates, and backlog management. After installing, run `/quickstart` to get started.
 
 ## Project Entry Point
 - CLAUDE.md: Project configuration, commands, conventions, skill quick-reference
@@ -12,7 +12,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.5)
+- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference
 - docs/reference/MCP_INTEGRATION.md: MCP server selection guide with categories, decision tree, and integration patterns
 - docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
 - docs/solutions/: Searchable solutions database — learnings from completed stories with YAML frontmatter (title, tags, module, component)
@@ -87,7 +87,7 @@
 - .claude/prompts/verify-clean-git-state.md: Verify clean git working tree
 - .claude/prompts/context-budget.md: Estimate context budget usage and compaction proximity
 - .claude/prompts/context-prime.md: Intent-aware context loading with task classification (security, UI, data/API, refactoring, new feature) + error patterns
-- .claude/prompts/confidence-gate.md: Pre-implementation confidence assessment (5 dimensions, 0-100 scoring, threshold-gated)
+- .claude/prompts/confidence-gate.md: Pre-implementation readiness gate (5 objective checks: files read, tests baseline, pattern match, scope bounded, no conflicts)
 - .claude/prompts/record-failure.md: Cross-session error learning — records failure patterns, root causes, and prevention strategies
 - .claude/prompts/wave-execution.md: Wave → Checkpoint → Wave parallel execution pattern for independent operations
 - .claude/prompts/grep-first-explore.md: Grep-first codebase exploration — pre-filter files via targeted Grep before reading
@@ -103,13 +103,25 @@
 - .claude/agents/codebase-explorer.md: Fast file discovery and codebase mapping (model: haiku) — temperature: 0.3
 
 ## Hooks
-- .claude/hooks/engine.py: Unified Python dispatch engine routing all hook events to handler modules with YAML rule configuration and per-handler error isolation
-- .claude/hooks/rules/safety.yaml: PreToolUse blocking patterns (git force push, destructive ops, publishing, DB, process killing)
-- .claude/hooks/rules/quality.yaml: Stop quality gate rules (weak claims, completion evidence)
-- .claude/hooks/handlers/: Per-event handler modules (pre_tool_use, post_tool_use, stop, user_prompt, subagent_stop, session_start, worktree)
-- .claude/hooks/post-edit-format.sh: Auto-format and auto-lint after edits + automated secrets detection (bash, kept for file-type switching)
-- .claude/hooks/worktree-bash-fix.sh: Transparent worktree directory fix for Bash commands (bash, apply_to_subagents)
-- Engine falls back gracefully if Python unavailable
+- .claude/hooks/pre-tool-use.sh: Block dangerous Bash commands + advisory warnings (POSIX sh)
+- .claude/hooks/post-tool-use.sh: Activity logging + test/failure tracking (POSIX sh)
+- .claude/hooks/stop.sh: Auto-save + completion evidence validation (POSIX sh)
+- .claude/hooks/session-start.sh: Advisory environment checks (POSIX sh)
+- .claude/hooks/user-prompt.sh: Intent classification + skill tracking (POSIX sh)
+- .claude/hooks/pre-read-check.sh: Sensitive file warnings (POSIX sh)
+- .claude/hooks/subagent-stop.sh: Subagent quality checks (POSIX sh)
+- .claude/hooks/worktree.sh: Worktree init + cleanup (POSIX sh)
+- .claude/hooks/post-edit-format.sh: Auto-format + secrets/slop detection (bash)
+- .claude/hooks/worktree-bash-fix.sh: Transparent worktree directory fix (bash, apply_to_subagents)
+- .claude/hooks/status-line.sh: Status bar output (bash)
+- .claude/hooks/lib/hook-guard.sh: Profile + disable check (POSIX sh)
+- .claude/hooks/rules/safety.patterns: PreToolUse blocking patterns (@@-delimited, with severity and explanations)
+- .claude/hooks/rules/advisory.patterns: PreToolUse advisory patterns (warn only)
+- .claude/hooks/rules/quality.conf: Stop quality gate rules (key=value)
+- .claude/hooks/rules/sensitive-files.patterns: Sensitive file detection patterns
+- .claude/hooks/rules/debug.patterns: Debug statement audit patterns
+- .claude/hooks/rules/intent.patterns: User intent classification patterns
+- .claude/hooks/tests/: Hook test suite (run-all.sh)
 
 ## GitHub Templates
 - .github/workflows/claude-pr-review.yml: CI-based Claude Code PR review with tiered access
