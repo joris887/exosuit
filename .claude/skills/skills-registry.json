@@ -43,7 +43,7 @@
   },
   {
     "name": "bootstrap",
-    "version": "2.14.0",
+    "version": "2.13.0",
     "description": "First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.",
     "trigger": "manual",
     "depends_on": [
@@ -61,8 +61,7 @@
       "references/readiness-report.md",
       "references/foundation-backlog.md",
       "references/llm-readiness.md",
-      "references/technical-debt-assessment.md",
-      "references/path-a-detailed-steps.md"
+      "references/technical-debt-assessment.md"
     ],
     "path": ".claude/skills/bootstrap/SKILL.md"
   },
@@ -350,7 +349,7 @@
   },
   {
     "name": "sprint-end",
-    "version": "2.11.0",
+    "version": "2.10.0",
     "description": "Use when the user wants to ship a sprint's work to main via PR.",
     "trigger": "manual",
     "depends_on": [
@@ -365,9 +364,7 @@
     ],
     "references": [
       "references/quality-gates.md",
-      "references/error-recovery.md",
-      "references/documentation-updates.md",
-      "references/pr-and-merge.md"
+      "references/error-recovery.md"
     ],
     "path": ".claude/skills/sprint-end/SKILL.md"
   },
@@ -383,7 +380,7 @@
   },
   {
     "name": "story-cycle",
-    "version": "4.5.0",
+    "version": "4.4.0",
     "description": "Use when the user wants to implement a single story or deliver a backlog item.",
     "trigger": "manual",
     "depends_on": [
@@ -404,11 +401,7 @@
       "references/elicitation-techniques.md",
       "references/error-recovery.md",
       "references/plan-template.md",
-      "references/parallel-streams.md",
-      "references/phase-0-intent.md",
-      "references/phase-1-planning.md",
-      "references/phase-3-execution.md",
-      "references/phase-4-verification.md"
+      "references/parallel-streams.md"
     ],
     "path": ".claude/skills/story-cycle/SKILL.md"
   },
