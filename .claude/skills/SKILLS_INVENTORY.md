@@ -54,6 +54,7 @@ For technology skill generation: `/skill-create`
 | `/code-quality`   | After code changes    | Explore (forked)    |
 | `/test-validator` | After implementation  | Explore (forked)    |
 | `/security-audit` | Auth/credentials code | Explore (forked)    |
+| `/quality-check`  | Manual (or via sprint-end/story-cycle) | Dispatches quality agents with profile-aware defaults |
 
 ### Architecture (Manual + Auto)
 

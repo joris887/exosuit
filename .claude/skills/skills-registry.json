@@ -446,6 +446,28 @@
     "path": ".claude/skills/undo-work/SKILL.md"
   },
   {
+    "name": "quality-check",
+    "version": "1.0.0",
+    "description": "Unified quality gate dispatcher. Runs selected quality checks with profile-aware defaults.",
+    "trigger": "manual",
+    "depends_on": [
+      "code-quality",
+      "test-validator",
+      "security-audit",
+      "architecture-check",
+      "performance-check"
+    ],
+    "calls": [
+      "code-quality",
+      "test-validator",
+      "security-audit",
+      "architecture-check",
+      "performance-check"
+    ],
+    "references": [],
+    "path": ".claude/skills/quality-check/SKILL.md"
+  },
+  {
     "name": "weekly-maintenance",
     "version": "2.5.0",
     "description": "Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning.",

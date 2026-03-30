@@ -80,4 +80,31 @@ if [ -n "$SKILL_NAME" ]; then
     fi
 fi
 
+# --- 4. Proactive skill suggestions ---
+# Suggest relevant skills based on user intent when not already invoking a skill.
+SUGGEST_FILE="$RULES_DIR/skill-suggestions.patterns"
+SUGGEST_STATE="$HOOKS_DIR/state/suggestions-shown"
+if [ -z "$SKILL_NAME" ] && [ -f "$SUGGEST_FILE" ]; then
+    while IFS= read -r line; do
+        case "$line" in '#'*|'') continue ;; esac
+
+        # Parse: regex@@skill@@reason
+        s_regex=$(printf '%s' "$line" | sed 's/@@.*//')
+        s_rest=$(printf '%s' "$line" | sed 's/^[^@]*@@//')
+        s_skill=$(printf '%s' "$s_rest" | sed 's/@@.*//')
+        s_reason=$(printf '%s' "$s_rest" | sed 's/^[^@]*@@//')
+
+        if printf '%s' "$PROMPT" | grep -qEi -- "$s_regex"; then
+            # Session dedup: show each suggestion at most once
+            if [ -f "$SUGGEST_STATE" ] && grep -qx "$s_skill" "$SUGGEST_STATE" 2>/dev/null; then
+                continue
+            fi
+            printf 'Suggestion: /%s -- %s\n' "$s_skill" "$s_reason" >&2
+            mkdir -p "$HOOKS_DIR/state" 2>/dev/null
+            printf '%s\n' "$s_skill" >> "$SUGGEST_STATE"
+            break  # At most one suggestion per prompt
+        fi
+    done < "$SUGGEST_FILE"
+fi
+
 exit 0

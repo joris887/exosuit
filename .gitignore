@@ -54,4 +54,5 @@ docs/sessions/.failure-log.jsonl
 docs/sessions/.story-outcomes.tsv
 docs/sessions/.optimization-log.tsv
 docs/sessions/.refine-log.tsv
+docs/sessions/.audit-log.jsonl
 .claude/hooks/state/session.json

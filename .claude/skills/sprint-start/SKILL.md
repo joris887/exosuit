@@ -21,6 +21,18 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"sprint-start\",\"ts\":
 
 Starting a new sprint.
 
+## Profile-Adaptive Behavior
+
+Read the `**Profile:**` line from CLAUDE.md to determine the active project profile.
+
+<IF condition="Profile is lean">
+**Lean mode:** Skip steps 1.5 (Metrics Health Check), 1.6 (Debt Health Check), and step 3 (Sprint Planning ceremony — no sprint spec generation, no story selection, no PRD check). Perform only: 1a-1d (pre-flight checks), step 2 (create feature branch), and update `docs/progress.md` with branch name and sprint number.
+</IF>
+
+<IF condition="Profile is strict">
+**Strict mode:** All steps mandatory. Metrics and debt checks must produce actionable output (not just "all clear"). Sprint spec generation is required with explicit quality gate plan section.
+</IF>
+
 ## 1. Pre-flight Checks
 
 Verify the workspace is ready for new work:

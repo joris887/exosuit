@@ -20,10 +20,11 @@ See README.md for full hook documentation including profiles, runtime disabling,
 ## Hook Guard
 
 All hooks call `lib/hook-guard.sh` to check:
-- `JD_HOOK_PROFILE` (minimal/standard/strict) — skips hooks below the current profile
+- `JD_PROJECT_PROFILE` (lean/standard/strict) — project complexity profile; controls skill behavior and derives default hook profile. Read from env var, then CLAUDE.md `**Profile:**` line, then defaults to standard.
+- `JD_HOOK_PROFILE` (minimal/standard/strict) — explicit hook profile override; if not set, derived from project profile (lean→minimal, standard→standard, strict→strict)
 - `JD_DISABLED_HOOKS` (comma-separated IDs) — skips individually disabled hooks
 - `JD_EXPLAIN_MODE` (off/brief/verbose) — controls message verbosity (brief = default)
-- `JD_STOP_MAX_ITERATIONS` — overrides stop hook safety valve (default 5, ≤0 = no limit)
+- `JD_STOP_MAX_ITERATIONS` — overrides stop hook safety valve (default 5, strict profile defaults to 10, ≤0 = no limit)
 
 ## Performance
 - Pre-edit and post-edit hooks MUST complete in <5 seconds — slow hooks get disabled

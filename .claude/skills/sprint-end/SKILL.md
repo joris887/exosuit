@@ -23,6 +23,29 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"sprint-end\",\"ts\":\"
 
 Ending the sprint. Discovering and wrapping up all work on the current branch.
 
+## Profile-Adaptive Behavior
+
+Read the `**Profile:**` line from CLAUDE.md to determine the active project profile.
+
+<IF condition="Profile is lean">
+**Lean mode:** Simplified flow:
+1. Discover sprint state
+2. Run tests (HARD GATE: must pass) — skip quality agent dispatch
+3. Commit any pending changes
+4. Push and create PR (simplified PR body — summary of changes, test results, files changed)
+5. Wait for CI (if configured)
+6. Merge and clean up
+
+Skip: Step 2 quality agent dispatch, Step 3 documentation updates (epics, backlog, metrics, context, architecture, PRD review, debt register), ground rules compliance check, ADR compliance check. Tests must still pass — safety is not reduced.
+</IF>
+
+<IF condition="Profile is strict">
+**Strict mode:** All quality gates mandatory — skip the selection AskUserQuestion and run `/quality-check --all` automatically. PR body MUST include an Audit Trail section: files changed, agents run with verdicts, gates passed/failed, coverage delta. Ground rules compliance and ADR compliance checks are mandatory (if files don't exist, flag as a gap). On sprint completion, write a sprint-level audit entry to `docs/sessions/.audit-log.jsonl`:
+```json
+{"type":"sprint-audit","sprint":"<N>","profile":"strict","stories_completed":["<ids>"],"agents_run":["<names>"],"gates_passed":true,"coverage_delta":"+N%","ts":"<ISO-8601>"}
+```
+</IF>
+
 **Progress tracking:** Create step-level tasks:
 
 1. "Discover sprint state" — activeForm: "Discovering sprint state..."
@@ -121,37 +144,43 @@ Analyze: branch name, all commits since branching, all files changed, stories co
 
 **Mindset:** Assume there are problems. Your job is to find them. Your first assessment is almost never "all clear."
 
-Before running gates, present available checks using AskUserQuestion with `multiSelect: true`:
+<IF condition="Profile is strict">
+**Strict mode:** Skip the selection step — run `/quality-check --all` automatically. All gates are mandatory.
+</IF>
 
-- **All quality gates (Recommended)** — description: "Run all checks below"
-- **Run test suite** — description: "Execute all tests, verify zero failures"
+<IF condition="Profile is lean">
+**Lean mode:** Skip quality agent dispatch entirely. Run only the test suite (HARD GATE: must pass). Proceed to step 3.5 after tests pass.
+</IF>
+
+<IF condition="Profile is standard OR no profile set">
+Present available check levels using AskUserQuestion:
+
+- **Standard quality gates (Recommended)** — description: "Code quality + test validation + security audit"
+- **All quality gates** — description: "All 5 quality agents + independent verification"
+- **Run test suite only** — description: "Execute all tests, verify zero failures"
 - **Test count protection** — description: "Verify test count did not decrease from last sprint"
-- **/code-quality** — description: "Complexity, duplication, dead code, naming patterns"
-- **/test-validator** — description: "Weakened assertions, deleted tests, tautological tests, TDD compliance"
-- **/security-audit** — description: "OWASP top 10, secrets, injection, auth issues, CWE checklist"
-- **/architecture-check** — description: "Module boundaries, dependency direction, coupling, architectural drift"
-- **Independent verification** — description: "Dispatch integration-tester agent to independently run tests and verify acceptance criteria (recommended)"
 - **Ground rules compliance** — description: "Check against GROUND_RULES.md principles"
 - **UAT coverage check** — description: "Check UAT test case pass/fail summary (advisory, does not block)"
 - **Skip all quality gates** — description: "Skip all gates (not recommended)"
 
-If "All quality gates" is selected, run all individual gates. If the user deselects any: "Note: skipping gates may allow issues to reach main. All gates recommended for production sprints."
+If the user deselects any: "Note: skipping gates may allow issues to reach main. All gates recommended for production sprints."
+</IF>
 
 ### Quality Agent Dispatch
 
-Dispatch quality agent **skills** (not native agents) as parallel Task agents using the Task tool with `subagent_type: "general-purpose"`. Each skill has its own methodology, scoring, and AI-specific anti-pattern checks.
+Dispatch quality gates via `/quality-check`:
 
-**Skills to dispatch** (based on user selection above):
-- `/code-quality` — code complexity, duplication, dead code, naming
-- `/test-validator` — weakened assertions, deleted tests, tautological tests
-- `/security-audit` — OWASP top 10, secrets, injection, auth issues
-- `/architecture-check` — module boundaries, dependency direction, coupling
+- **Standard selection:** `/quality-check` (defaults to code + tests + security based on profile)
+- **All gates:** `/quality-check --all`
+- **Custom:** `/quality-check --code --security` (any combination of flags)
 
-**Do NOT use native agents** (`.claude/agents/code-reviewer.md`, `.claude/agents/security-analyst.md`) for static quality gates — they use persona-driven review methodology, not the structured quality checklists that the skills provide.
+The `/quality-check` skill handles parallel agent dispatch, profile-aware defaults, and unified reporting. See `.claude/skills/quality-check/SKILL.md` for details.
 
-**Exception — integration-tester:** If "Independent verification" was selected, dispatch the `integration-tester` native agent (`.claude/agents/integration-tester.md`) alongside the quality skills. This agent independently runs the test suite and verifies acceptance criteria — it is a dynamic verification complement to the static quality skills. Include in its dispatch prompt: test/lint/typecheck commands, all completed stories' acceptance criteria (from sprint spec), and `git diff --name-only $DEFAULT_BRANCH...HEAD`.
+**Do NOT use native agents** (`.claude/agents/code-reviewer.md`, `.claude/agents/security-analyst.md`) for static quality gates — use the skill-based dispatch through `/quality-check`.
 
-Run only selected gates. The HARD-GATE still applies: if any selected gate fails, do NOT proceed.
+**Exception — integration-tester:** For "All quality gates" or strict profile, `/quality-check --all` automatically includes the integration-tester agent.
+
+Run only selected gates. The HARD-GATE still applies: if `/quality-check` returns FAIL, do NOT proceed.
 
 Read `references/quality-gates.md` for detailed checks (tests, test protection, quality agents with scope-based scaling, recovery). For error recovery during this step, consult `references/error-recovery.md` — search for `## Step 2`.
 

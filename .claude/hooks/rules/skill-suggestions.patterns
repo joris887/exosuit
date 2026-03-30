@@ -1,0 +1,13 @@
+# UserPromptSubmit skill suggestion rules
+# Format: regex@@skill@@reason (delimiter: @@)
+# Advisory suggestions matching user intent to framework skills.
+# Shown at most once per skill per session. Suppressed when prompt starts with /skill-name.
+# Lines starting with # are comments. Empty lines are skipped.
+bug|error|broken|debug|crash|exception|traceback|stack trace@@debug-session@@Structured debugging with root-cause tracing
+ship|merge|pull request|deploy|release|push to main@@sprint-end@@Quality gates + PR creation
+plan|break down|stories|decompose|requirements|backlog@@ideate@@Decompose into backlog stories
+research|investigate|compare|evaluate|look into@@research@@Deep web research with citations
+test plan|prepare for testing|QA|manual test@@manual-test@@Generate test plan from recent changes
+undo|revert|rollback|go back|start over|discard@@undo-work@@Safe rollback to clean state
+status|dashboard|where am I|what sprint|progress@@dashboard@@Sprint status overview
+resume|continue|pick up where|what was I@@continue@@Resume from last session

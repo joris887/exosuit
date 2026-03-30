@@ -5,7 +5,11 @@
 // Personal settings (gitignored). Examples of useful overrides:
 //
 // Environment variables (set in your shell profile):
-//   JD_HOOK_PROFILE=minimal|standard|strict   — Hook strictness level (default: standard)
+//   JD_PROJECT_PROFILE=lean|standard|strict   — Project complexity profile (default: from CLAUDE.md or standard)
+//     lean:     Minimal ceremony — fast iteration, no quality agents, no sprint specs
+//     standard: Balanced quality gates + documentation (default)
+//     strict:   Maximum rigor — audit trail, all agents, no fast-tracking
+//   JD_HOOK_PROFILE=minimal|standard|strict   — Hook strictness override (default: derived from project profile)
 //   JD_DISABLED_HOOKS=stop,post-edit-format    — Disable specific hooks by ID
 //   JD_EXPLAIN_MODE=off|brief|verbose          — Hook message verbosity (default: brief)
 //     off:     Suppress all advisory messages (blocks still exit non-zero)
