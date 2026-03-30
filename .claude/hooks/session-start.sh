@@ -110,6 +110,8 @@ mkdir -p "$STATE_DIR" 2>/dev/null
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/session-started" 2>/dev/null
 # Reset stop iteration counter
 echo "0" > "$STATE_DIR/stop-iteration" 2>/dev/null
+# Clear skill suggestion dedup state
+rm -f "$STATE_DIR/suggestions-shown" 2>/dev/null
 
 # --- Output warnings ---
 if [ -n "$WARNINGS" ]; then

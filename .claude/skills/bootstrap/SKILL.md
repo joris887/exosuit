@@ -31,7 +31,9 @@ START → 0. Detect Installation Mode
               → A3.1: LLM-readiness assessment → A3.2: Technical debt assessment
                 → A3.5: Generate architecture → A3.5b: Establish ground rules
                   → A3.7: Detect default branch
-                    → A4: Generate config + populate TESTING_STRATEGY.md
+                    → A3.8: Profile detection (recommend lean/standard/strict)
+                      → [Lean?] → Skip A3.1-A3.5c, A5-A5.9, generate minimal docs
+                      → A4: Generate config + populate TESTING_STRATEGY.md
                       → A5: Run /skill-create → A5.5-A5.6: Configure hooks/rules + assess pre-commit + CI/CD
                         → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
                           → A6: Clean up → A7: Present summary → DONE
@@ -287,6 +289,54 @@ echo "Default branch: $DEFAULT_BRANCH"
 ```
 
 Update CLAUDE.md's Git Workflow section: replace the `<!-- Detected by /bootstrap -->` comment with the detected branch name.
+
+### A3.8. Profile Detection
+
+Analyze project characteristics to recommend a complexity profile. This determines the ceremony level for all framework skills.
+
+**Strict indicators** (2+ present = recommend Strict):
+- Compliance/regulatory references: grep for HIPAA, SOC2, PCI-DSS, GDPR, FDA, FedRAMP in any file
+- Domain markers: fintech, healthcare, insurance, payments, banking in README or package description
+- Multi-service architecture: docker-compose.yml with 3+ services, kubernetes/ or k8s/ directory, terraform/ directory
+- Production infrastructure: k8s manifests, terraform configs, multiple deployment environment configs
+- Strict CI: branch protection rules, required reviewers, mandatory status checks
+
+**Standard indicators** (default when not clearly Lean or Strict):
+- CI/CD configured (.github/workflows/, .gitlab-ci.yml, Jenkinsfile, etc.)
+- Test framework detected (from A2)
+- Established codebase (>5K LOC from A3 metrics)
+- Production deployment target (Dockerfile, deployment configs, CDN configs)
+
+**Lean indicators** (ALL must be true to recommend Lean):
+- No CI/CD configuration detected
+- No test framework detected OR zero test files
+- Small codebase (<2K LOC from A3 metrics)
+- No deployment configuration (no Dockerfile, no hosting configs)
+
+Present the recommendation with matched indicators:
+> "Based on your project: [list matched indicators]. I recommend the **[profile]** profile because [reason]. You can change this anytime by editing the **Profile:** line in CLAUDE.md or setting JD_PROJECT_PROFILE."
+
+Use AskUserQuestion with options:
+- **Lean** — "Minimal ceremony. Fast iteration. Best for prototypes, MVPs, internal tools, and learning projects."
+- **Standard** (recommended unless indicators suggest otherwise) — "Balanced quality gates + documentation. Best for production apps and APIs."
+- **Strict** — "Maximum rigor with audit trail. Best for regulated, high-stakes, or compliance-sensitive projects."
+
+Store the chosen profile: write `**Profile:** <choice>` to CLAUDE.md in step A4.
+
+<IF condition="Profile is lean (chosen or detected)">
+**Lean mode bootstrap:** After profile selection, skip these steps:
+- A2.5-A2.9 (documentation assessment, architecture assessment, best practices research)
+- A3.1-A3.2 (LLM-readiness assessment, technical debt assessment)
+- A3.5-A3.5c (architecture overview, context knowledge base, ground rules, team detection)
+- A5-A5.9 (skill-create, hook/rule configuration, CI/CD setup, readiness report, foundation backlog)
+
+Generate only:
+- CLAUDE.md with commands section populated (test, lint, format, build, typecheck from A2)
+- docs/progress.md (minimal template)
+- .gitignore with stack-specific patterns
+
+Still perform: A1 (stack detection), A2 (command detection), A2.85 (quality tooling offer), A3.7 (default branch), A4 (CLAUDE.md configuration — lean subset).
+</IF>
 
 ### A4. Generate Configuration
 

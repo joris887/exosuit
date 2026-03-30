@@ -3,6 +3,10 @@
 ## Project Overview
 <!-- Filled by /bootstrap -->
 
+**Profile:** standard
+<!-- Project complexity profile: lean | standard | strict. Set by /bootstrap or manually. -->
+<!-- Override per-session: JD_PROJECT_PROFILE=lean|standard|strict -->
+
 ## Tech Stack
 <!-- /bootstrap: Fill with detected versions. Prevents AI from mixing incompatible API versions. -->
 <!-- Example: Python 3.12 / FastAPI 0.109 / SQLAlchemy 2.0 / Pydantic 2.5 -->
@@ -89,8 +93,13 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | Upgrade framework      | `/framework-upgrade`           |
 | Evaluate a skill       | `/skill-eval <mode> <skill>`   |
 | Undo failed work       | `/undo-work`                   |
+| Run quality gates      | `/quality-check [--all]`       |
 | Iterative refinement   | `/refine-loop "<task>"`        |
 | Optimize a metric      | `/optimize "<goal>"`           |
+
+<!-- Profile: lean — /bootstrap generates only these ~12 core skills in the table:
+/bootstrap, /continue, /story-cycle, /ideate, /sprint-start, /sprint-end, /handoff,
+/debug-session, /research, /doctor, /help-me, /quality-check -->
 
 ## Important Files
 - `docs/reference/CODING_STANDARDS.md` — Code conventions

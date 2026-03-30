@@ -113,18 +113,28 @@ grep '"type":"skill"' docs/sessions/.activity-log.jsonl 2>/dev/null || echo "No 
   - **FREQUENT:** Invoked 5+ times (top skills)
 - Note: Skills not in the log may still be useful — they may not have been needed yet. DORMANT is informational, not a problem.
 
-## 9. Hook Profile Status
+## 9. Profile & Hook Status
 
-Report the current hook profile configuration:
+Report the current project profile and hook configuration:
 
 ```bash
-echo "JD_HOOK_PROFILE=${JD_HOOK_PROFILE:-standard}"
+echo "Project profile: $(cat .claude/hooks/state/project-profile 2>/dev/null || echo 'standard (default)')"
+echo "JD_PROJECT_PROFILE=${JD_PROJECT_PROFILE:-<not set, reading from CLAUDE.md>}"
+echo "JD_HOOK_PROFILE=${JD_HOOK_PROFILE:-<derived from project profile>}"
 echo "JD_DISABLED_HOOKS=${JD_DISABLED_HOOKS:-<none>}"
+echo "JD_EXPLAIN_MODE=${JD_EXPLAIN_MODE:-brief}"
+echo "JD_STOP_MAX_ITERATIONS=${JD_STOP_MAX_ITERATIONS:-5}"
 ```
 
-- Show current profile level and its implications
+- Show current project profile and its source (env var, CLAUDE.md `**Profile:**` line, or default)
+- Show derived hook profile and whether it was explicitly overridden
+- Profile implications:
+  - **lean**: minimal hooks, simplified story-cycle (Plan→Build→Verify), no quality agents, no sprint specs
+  - **standard**: standard hooks, full 8-phase story-cycle, 3 quality agents, full docs
+  - **strict**: strict hooks, all phases mandatory for all stories, 5 quality agents + integration-tester, audit trail
 - List any disabled hooks
 - Verify `lib/hook-guard.sh` exists and is executable
+- Show effective stop iteration limit (strict defaults to 10)
 
 ## Output
 
@@ -173,12 +183,15 @@ echo "JD_DISABLED_HOOKS=${JD_DISABLED_HOOKS:-<none>}"
 | story-cycle | 15 | 2026-03-25 | ACTIVE |
 | manual-test | 0 | never | DORMANT |
 
-### Hook Configuration
-| Setting | Value |
-|---------|-------|
-| Profile | standard |
-| Disabled | none |
-| Guard script | PASS |
+### Profile & Hook Configuration
+| Setting | Value | Source |
+|---------|-------|--------|
+| Project Profile | lean/standard/strict | env var / CLAUDE.md / default |
+| Hook Profile | minimal/standard/strict | env var / derived from project |
+| Disabled Hooks | none or list | JD_DISABLED_HOOKS |
+| Explain Mode | off/brief/verbose | JD_EXPLAIN_MODE |
+| Stop Iterations | 5/10/custom | JD_STOP_MAX_ITERATIONS |
+| Guard script | PASS/FAIL | lib/hook-guard.sh |
 
 ### Overall: X/Y checks passed — [HEALTHY / NEEDS ATTENTION / ACTION REQUIRED]
 ```

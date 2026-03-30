@@ -71,6 +71,47 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
         → [All criteria met?] → NO: Fix + re-verify (max 2 passes) → YES: Report → DONE
 ```
 
+## Profile-Adaptive Behavior
+
+Read the `**Profile:**` line from CLAUDE.md to determine the active project profile.
+
+<IF condition="Profile is lean">
+**Lean mode active.** Simplified workflow: Plan (optional for SMALL) -> Build -> Verify.
+
+Skip these phases/steps entirely:
+- Phase 0a.5 (sprint context loading)
+- Phase 1f (clarification check) and Phase 1g (plan completeness check)
+- Phase 2 confidence gate scoring — only run objective pre-checks: are planned files read? do existing tests pass?
+- Phase 4a quality agent dispatch — use `/quality-check` with no flags (lean defaults = code only)
+- Phase 4c (UAT generation)
+- Phase 4e capture-outcome and capture-learnings micro-components
+
+Keep these (non-negotiable):
+- Phase 0 (intent decomposition and size classification)
+- Phase 1 core (1a-1e for STANDARD stories; skip Phase 1 entirely for SMALL — go directly to Build)
+- Phase 3 (implementation with TDD for Feature/Bug Fix/Refactoring story types)
+- Phase 4b quality-gate-sequence (lint + test from CLAUDE.md Commands)
+- Phase 4d (completion verification — all AC met with evidence)
+- Phase 4e commit and completion report
+
+Plan is optional for SMALL stories — if the task is clear, go directly to Phase 3 (Build).
+Safety is unchanged in Lean mode: TDD enforcement, test-before-ship, all hooks active. Lean is less ceremony, not less safe.
+</IF>
+
+<IF condition="Profile is strict">
+**Strict mode active.** Maximum rigor for all story sizes.
+
+Additions beyond standard behavior:
+- All 8 phases are mandatory for ALL stories including TRIVIAL — no fast-tracking, no Phase 3-lite
+- Phase 4a: dispatch `/quality-check --all` for EVERY story regardless of risk level (all 5 agents + integration-tester)
+- Coverage delta must be >= 0 (test coverage cannot decrease). Compare before/after in Phase 4b.
+- Security audit runs full CWE checklist (all 15 entries) for ALL stories, not just security-scoped ones
+- On story completion (Phase 4e), write structured audit entry to `docs/sessions/.audit-log.jsonl`:
+  ```json
+  {"type":"audit","story":"<id>","story_type":"<type>","profile":"strict","files_changed":["<paths>"],"agents_run":["<names>"],"gates_passed":true,"coverage_delta":"+N%","ts":"<ISO-8601>"}
+  ```
+</IF>
+
 ## Plan Mode for Phases 0-2 (Optional)
 
 For STANDARD stories, consider entering Plan Mode at the start of Phase 0 and remaining in it through Phase 2 (Context Transition). This prevents accidental implementation during the planning phases and provides a natural approval checkpoint.
@@ -663,21 +704,25 @@ Do NOT skip self-review for ANY story size. If any checklist item fails, go back
 
 **Ground rules re-check:** If `docs/reference/GROUND_RULES.md` exists, re-read it and verify the IMPLEMENTATION (not just the plan) complies. Plans can comply while implementation drifts. Check `git diff --name-only` against ground rules — any MUST violation requires fixing before proceeding.
 
-**If sub-agents are available:** Dispatch quality agents in forked context based on the risk matrix from Size & Risk Classification:
+**If sub-agents are available:** Dispatch quality gates via `/quality-check` based on the risk matrix from Size & Risk Classification:
 
-| Risk Level | Quality Skills (static analysis) | Native Agents (dynamic verification) |
+| Risk Level | `/quality-check` Invocation | Notes |
 |---|---|---|
-| **Low (3-4)** | `/code-quality`, `/test-validator`, `/security-audit` (lightweight — CWE top 5 + secrets scan only) | — |
-| **Medium (5-6)** | `/code-quality`, `/test-validator`, `/security-audit` | `integration-tester` |
-| **High (7-9)** | `/code-quality`, `/test-validator`, `/security-audit`, `/architecture-check` | `integration-tester` (mandatory) |
+| **Low (3-4)** | `/quality-check` (profile defaults) | Standard: code+tests+security. Lean: code only. |
+| **Medium (5-6)** | `/quality-check --code --tests --security` | Plus integration-tester at standard+ profiles |
+| **High (7-9)** | `/quality-check --all` | All 5 agents + integration-tester (mandatory) |
 
-**Why security-audit at ALL risk levels:** AI-generated code contains vulnerabilities 40-45% of the time regardless of story type or perceived risk. At low risk, run a lightweight security pass (hardcoded credentials, SQL injection, XSS, command injection, eval — the 5 CWEs AI produces most). At medium/high, run the full checklist.
+<IF condition="Profile is strict">
+**Strict override:** Dispatch `/quality-check --all` for ALL stories regardless of risk level. Integration-tester is mandatory for all stories.
+</IF>
 
-For medium-risk STANDARD stories, the risk matrix promises "all quality agents" — dispatch accordingly. For high-risk, add `/architecture-check` as the risk matrix specifies "all agents + architecture-check."
+<IF condition="Profile is lean">
+**Lean override:** Skip quality agent dispatch. Phase 4b quality-gate-sequence (lint + test) is sufficient.
+</IF>
 
-**Why integration-tester at Medium+ risk:** The implementing LLM verifies its own work in Phase 4b (self-assessment). The `integration-tester` native agent (`.claude/agents/integration-tester.md`) independently re-runs the test suite and verifies acceptance criteria in forked context — breaking the self-verification cycle. At low risk, Phase 4b's quality-gate-sequence is sufficient.
+**Why security at ALL risk levels:** AI-generated code contains vulnerabilities 40-45% of the time regardless of story type. `/quality-check` handles lightweight vs full security pass based on flags.
 
-**Integration-tester dispatch prompt:** Include: (1) test/lint/typecheck commands from CLAUDE.md, (2) all acceptance criteria from the plan, (3) modified files from `git diff --name-only`. The agent runs everything independently and reports VERIFIED or NEEDS WORK with command output evidence.
+**Why integration-tester at Medium+ risk:** The implementing LLM verifies its own work in Phase 4b (self-assessment). The `integration-tester` agent independently re-runs the test suite and verifies acceptance criteria — breaking the self-verification cycle. At low risk, Phase 4b's quality-gate-sequence is sufficient.
 
 **If sub-agents are NOT available:** Complete self-review checklist manually. Do NOT skip quality checks.
 
