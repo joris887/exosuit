@@ -9,7 +9,8 @@ The context window is shared between: system prompt, conversation history, all l
 **Default assumption:** Claude is already very smart. Only add context that Claude doesn't already know. Challenge every paragraph: "Does Claude need this to do the right thing?"
 
 - Keep SKILL.md under 150 lines (target: ~100 lines for frequently-invoked skills)
-- Move detailed content to `references/` subdirectory (loaded on demand)
+- **Exception: orchestration skills** (story-cycle, sprint-end, bootstrap) may exceed this limit — their procedural content must be inline to guarantee the LLM follows every step. Reference loading is advisory and LLMs skip advisory instructions for "simple" tasks (proven by T01-015). If it MUST happen, keep it inline.
+- Move supplementary content to `references/` subdirectory (checklists, templates, recovery tables — content that enriches but isn't essential to the core workflow)
 - Prefer concise examples over verbose explanations
 - Never duplicate information available in CODING_STANDARDS.md or TESTING_STRATEGY.md
 

@@ -7,5 +7,5 @@ Each subdirectory is a skill. `SKILL.md` is the entry point.
 - `references/` for on-demand content (grep for sections, don't read entire files)
 - `scripts/` for executables (run, don't read into context)
 - `assets/` for output templates (copy, don't read)
-- Keep SKILL.md under 150 lines; move detail to references/
+- Keep SKILL.md under 150 lines; move detail to references/. Exception: orchestration skills (story-cycle, sprint-end, bootstrap) keep procedural content inline — reference loading is advisory and LLMs skip it
 - See SKILL_TEMPLATE.md for format reference
