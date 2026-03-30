@@ -13,6 +13,57 @@ Each version entry lists:
 
 ---
 
+## [4.0.0] - 2026-03-30
+
+### Summary
+Open source readiness: critical bug fixes (macOS md5sum, BSD grep Unicode, plugin mode security, registry gaps), consistency fixes (version sync, gitignore, dead code removal), objective readiness gate (replaces subjective confidence scoring), explanation mode for hooks (WHY/INSTEAD for beginners), configurable stop iteration limit, quickstart as default entry point, CONTRIBUTING.md, CHANGELOG audit.
+
+### Added
+- `CONTRIBUTING.md` -- open source contribution guide
+- Explanation mode (`JD_EXPLAIN_MODE=off|brief|verbose`) for hook messages with WHY/INSTEAD explanations
+- `JD_STOP_MAX_ITERATIONS` env var to override stop hook safety valve
+- First-run detection in session-start.sh (suggests `/quickstart`)
+
+### Changed
+- `install.sh` -- post-install message now directs to `/quickstart` instead of `/bootstrap`
+- `.claude/prompts/confidence-gate.md` -- replaced subjective 5-dimension scoring (0-100) with 5 objective pre-condition checks (PASS/FAIL)
+- `.claude/skills/story-cycle/SKILL.md` -- updated Phase 2b to use objective readiness gate
+- `.claude/hooks/stop.sh` -- configurable iteration limit via env var, explanation mode support
+- `.claude/hooks/pre-tool-use.sh` -- explanation mode support, 5-field pattern parsing
+- `.claude/hooks/rules/safety.patterns` -- added WHY/INSTEAD explanations to all entries
+- `.claude/hooks/README.md` -- documented explanation mode and configurable stop limit
+- `.claude/hooks/CLAUDE.md` -- documented new environment variables
+- `.claude/settings.local.json.template` -- documented all framework env vars
+- `llms.txt` -- updated entry point to /quickstart, fixed stale references
+
+### Files Changed (for framework-upgrade)
+
+```
+CORE_REPLACE:
+  CONTRIBUTING.md (NEW)
+  .claude/prompts/confidence-gate.md (CHANGED)
+  .claude/hooks/stop.sh (CHANGED)
+  .claude/hooks/pre-tool-use.sh (CHANGED)
+  .claude/hooks/rules/safety.patterns (CHANGED)
+  .claude/hooks/session-start.sh (CHANGED)
+  .claude/hooks/README.md (CHANGED)
+  .claude/hooks/CLAUDE.md (CHANGED)
+  .claude/settings.local.json.template (CHANGED)
+  .claude/skills/story-cycle/SKILL.md (CHANGED)
+  install.sh (CHANGED)
+  llms.txt (CHANGED)
+  CHANGELOG.md (CHANGED)
+
+CORE_MERGE:
+  (none)
+
+PROJECT_UPDATE_INSTRUCTIONS:
+  - Set JD_EXPLAIN_MODE=verbose in your shell profile if you want beginner-friendly hook explanations
+  - The confidence gate in story-cycle now uses objective checks instead of self-assessed scoring
+```
+
+---
+
 ## [3.8.0] - 2026-03-23
 
 ### Added
@@ -22,7 +73,6 @@ Each version entry lists:
 - `/custom-hooks` skill -- create project-specific hooks
 - `/uninstall` skill -- clean framework removal
 - `/performance-check` skill -- performance analysis quality agent
-- `/upstream-updates` skill -- track upstream framework changes
 - `.claude/prompts/error-recovery-central.md` -- centralized error recovery
 - `.claude/prompts/validate-arguments.md` -- argument validation pattern
 - `.claude/prompts/capture-outcome.md` -- structured story outcome tracking
@@ -61,7 +111,6 @@ CORE_REPLACE:
   .claude/skills/custom-hooks/SKILL.md (NEW)
   .claude/skills/uninstall/SKILL.md (NEW)
   .claude/skills/performance-check/SKILL.md (NEW)
-  .claude/skills/upstream-updates/SKILL.md (NEW)
   .claude/prompts/error-recovery-central.md (NEW)
   .claude/prompts/validate-arguments.md (NEW)
   .claude/prompts/capture-outcome.md (NEW)

@@ -302,6 +302,6 @@ fi
 echo ""
 echo "Next steps:"
 echo "  1. Open Claude Code in this directory"
-echo "  2. Run: /bootstrap"
-echo "  3. Follow the prompts to configure for your stack"
+echo "  2. Run: /quickstart"
+echo "     (Guided tour → checks readiness → runs /bootstrap for you)"
 echo ""

@@ -22,6 +22,8 @@ See README.md for full hook documentation including profiles, runtime disabling,
 All hooks call `lib/hook-guard.sh` to check:
 - `JD_HOOK_PROFILE` (minimal/standard/strict) — skips hooks below the current profile
 - `JD_DISABLED_HOOKS` (comma-separated IDs) — skips individually disabled hooks
+- `JD_EXPLAIN_MODE` (off/brief/verbose) — controls message verbosity (brief = default)
+- `JD_STOP_MAX_ITERATIONS` — overrides stop hook safety valve (default 5, ≤0 = no limit)
 
 ## Performance
 - Pre-edit and post-edit hooks MUST complete in <5 seconds — slow hooks get disabled
