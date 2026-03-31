@@ -1,7 +1,7 @@
 ---
 name: weekly-maintenance
-version: 2.5.0
-description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning.
+version: 2.6.0
+description: Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, activity insights, and planning.
 trigger: manual
 depends-on: [code-quality]
 references: []
@@ -190,6 +190,39 @@ Review the health of architecture decision records:
 - **Ground rule candidates** — if 2+ accepted ADRs address the same concern, suggest promoting to `docs/reference/GROUND_RULES.md`.
 - **ADR count health** — projects with <5 ADRs and >10 major dependencies are likely under-documenting decisions.
 </IF>
+
+## 5.9. Weekly Activity Insights
+
+Parse `docs/sessions/.activity-log.jsonl` for the past 7 days of activity:
+
+```bash
+ACTIVITY_LOG="docs/sessions/.activity-log.jsonl"
+WEEK_AGO=$(date -v-7d +%Y-%m-%d 2>/dev/null || date -d "7 days ago" +%Y-%m-%d 2>/dev/null)
+if [ -f "$ACTIVITY_LOG" ] && [ -s "$ACTIVITY_LOG" ]; then
+  # Filter to last 7 days and analyze
+  # Top 3 most-edited files this week
+  # Skill invocation counts
+  # Test failure patterns (same test failing repeatedly = flaky or fundamental)
+  # Edit-to-test ratio for the week
+fi
+```
+
+Present as a concise summary (5-10 lines max):
+
+```markdown
+### Weekly Activity Insights
+- **Hot files:** `src/auth/login.ts` (23 edits), `src/api/users.ts` (15 edits), `tests/auth.test.ts` (12 edits)
+- **Skills used:** /story-cycle (8x), /commit (6x), /debug-session (2x), /sprint-end (1x)
+- **Test health:** 3 failures this week — `auth.test.ts:login_expired_token` failed 2x (possible flaky test)
+- **Edit-to-test ratio:** 3.2 (good TDD discipline)
+- **Sessions:** 4 sessions, avg 45 min each
+```
+
+Flag patterns worth investigating:
+- Same test failing in multiple sessions → likely flaky or fundamental issue
+- High edit-to-test ratio (>5.0) → TDD discipline slipping
+- One file getting >30% of all edits → possible hotspot needing refactoring
+- Skills with repeated failures → investigate common failure points
 
 ## 6. Weekly Summary
 

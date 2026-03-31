@@ -1,7 +1,7 @@
 ---
 name: dashboard
-version: 1.1.0
-description: Sprint status overview — sprint goal, story progress, capacity, work item age warnings, test health, and actionable next steps.
+version: 1.2.0
+description: Sprint status overview with session insights, sprint trends, and actionable next steps.
 trigger: manual
 depends-on: []
 references: []
@@ -85,7 +85,58 @@ Quick checks (subset of /doctor):
 - At least one formatter available
 - GROUND_RULES.md has content
 
-## 8. Present Dashboard
+## 8. Session Insights
+
+Parse `docs/sessions/.activity-log.jsonl` (if it exists and has entries) for this session's activity:
+
+```bash
+# Count entries by tool type
+ACTIVITY_LOG="docs/sessions/.activity-log.jsonl"
+if [ -f "$ACTIVITY_LOG" ] && [ -s "$ACTIVITY_LOG" ]; then
+  # Top 5 most edited files
+  grep '"tool":"Edit\|Write"' "$ACTIVITY_LOG" | grep -o '"target":"[^"]*"' | sort | uniq -c | sort -rn | head -5
+  # Count edits vs test runs
+  EDIT_COUNT=$(grep -c '"tool":"Edit\|Write"' "$ACTIVITY_LOG" 2>/dev/null || echo 0)
+  TEST_RUNS=$(grep -c '"test_result"' "$ACTIVITY_LOG" 2>/dev/null || echo 0)
+  # Skill invocations
+  grep '"type":"skill"' "$ACTIVITY_LOG" | grep -o '"skill":"[^"]*"' | sort | uniq -c | sort -rn | head -5
+fi
+```
+
+Present insights (only sections with data):
+
+```markdown
+### Session Insights
+- **Most edited:** `src/auth/login.ts` (8 edits), `src/api/users.ts` (5 edits)
+- **Edit-to-test ratio:** 12 edits / 3 test runs (ratio: 4.0 — consider running tests more often)
+- **Test failures this session:** 2 (both recovered)
+- **Skills used:** /story-cycle (3x), /commit (2x), /debug-session (1x)
+```
+
+Edit-to-test ratio guidance:
+- ≤2.0: Good TDD discipline
+- 2.1-5.0: Acceptable, could test more frequently
+- >5.0: TDD drift — many edits between test runs
+
+## 9. Sprint Trends
+
+<IF condition="docs/progress.md has ≥2 rows in Sprint History table">
+Read `docs/progress.md` → `## Sprint History` table. Extract trends:
+
+```markdown
+### Sprint Trends
+- **Cycle time:** 2.1 → 1.8 → 1.5 days (improving)
+- **Coverage:** 78% → 82% → 84% (improving)
+- **Change failure rate:** 15% → 12% → 8% (improving)
+```
+
+Flag any metric that worsened for 2+ consecutive sprints.
+</IF>
+<ELSE>
+Skip this section — not enough sprint data yet.
+</ELSE>
+
+## 10. Present Dashboard
 
 ```markdown
 ## Sprint Dashboard
@@ -121,6 +172,15 @@ Quick checks (subset of /doctor):
 | Change failure rate | 12% | ≤15% | ▂▃▂▄▅▃ | 🟡 |
 [Show only metrics rows with data — skip rows where Current is "—"]
 [If any 🟡/🔴: show sprint note from progress.md]
+
+### Session Insights
+- **Most edited:** `src/auth/login.ts` (8 edits)
+- **Edit-to-test ratio:** 4.0 (12 edits / 3 test runs)
+- **Skills used:** /story-cycle (3x), /commit (2x)
+
+### Sprint Trends
+- Cycle time: 2.1 → 1.8 → 1.5 days (improving)
+- Coverage: 78% → 82% → 84%
 
 ### Framework
 - **Health:** All checks passing
