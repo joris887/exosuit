@@ -1,12 +1,12 @@
 # Skills Inventory
 
-Last updated: 2026-03-28
+Last updated: 2026-03-30
 
 ## Overview
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 3.8
+**Framework Version:** 4.0
 
 ## Core Workflow
 
@@ -110,6 +110,16 @@ For structured UAT with tracked test cases:
 | `/skill-eval`    | `<mode> [skill-name] [--scenario <desc>]`              | Test, measure, or A/B compare skill effectiveness    |
 | `/refine-loop`   | `"<task>" --until "<criteria>" [--max <N>]`            | Iterative self-improvement until completion criteria met |
 | `/optimize`      | `"<goal>" --metric "<cmd>" --target <N> [--direction min\|max]` | Autonomous metric-driven optimization with git checkpointing and automatic rollback |
+
+### Guided Experiences (Manual-only)
+
+| Skill            | Arguments                  | Description                                      |
+| ---------------- | -------------------------- | ------------------------------------------------ |
+| `/quickstart`    | -                          | Guided interactive tour of the framework         |
+| `/build`         | `"<description>"`          | Build from plain-English description — handles all technical decisions automatically |
+| `/deploy`        | `[platform] [--dry-run]`   | Deploy to hosting platform with pre-deploy checks and platform auto-detection |
+| `/help-me`       | `"<what you want to do>"`  | Natural language skill discovery                 |
+| `/dashboard`     | -                          | Sprint status overview with actionable next steps |
 
 ### Utility (Manual-only)
 

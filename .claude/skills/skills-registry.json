@@ -121,8 +121,8 @@
   },
   {
     "name": "dashboard",
-    "version": "1.1.0",
-    "description": "Sprint status overview — sprint goal, story progress, capacity, work item age warnings, test health, and actionable next steps.",
+    "version": "1.2.0",
+    "description": "Sprint status overview with session insights, sprint trends, and actionable next steps.",
     "trigger": "manual",
     "depends_on": [],
     "calls": [],
@@ -446,6 +446,34 @@
     "path": ".claude/skills/undo-work/SKILL.md"
   },
   {
+    "name": "build",
+    "version": "1.0.0",
+    "description": "Build a project from a plain-English description. Handles all technical decisions automatically. Designed for non-technical users but useful for anyone who wants fast results.",
+    "trigger": "manual",
+    "depends_on": [
+      "bootstrap",
+      "ideate",
+      "story-cycle"
+    ],
+    "calls": [
+      "bootstrap",
+      "ideate",
+      "story-cycle"
+    ],
+    "references": [],
+    "path": ".claude/skills/build/SKILL.md"
+  },
+  {
+    "name": "deploy",
+    "version": "1.0.0",
+    "description": "Deploy the project to a hosting platform. Detects deployment configuration, runs pre-deploy checks, and guides first-time setup.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/deploy/SKILL.md"
+  },
+  {
     "name": "quality-check",
     "version": "1.0.0",
     "description": "Unified quality gate dispatcher. Runs selected quality checks with profile-aware defaults.",
@@ -469,8 +497,8 @@
   },
   {
     "name": "weekly-maintenance",
-    "version": "2.5.0",
-    "description": "Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, and planning.",
+    "version": "2.6.0",
+    "description": "Execute comprehensive weekly maintenance routine (1-2 hours, Friday recommended). Includes health checks, quality review, dependency governance, activity insights, and planning.",
     "trigger": "manual",
     "depends_on": [
       "code-quality"

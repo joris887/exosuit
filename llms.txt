@@ -1,6 +1,6 @@
 # JD-LLM Development Framework
 
-> A drop-in development framework for Claude Code with structured sprint workflows, TDD practices, quality gates, and backlog management. After installing, run `/quickstart` to get started.
+> A drop-in development framework for Claude Code with structured sprint workflows, TDD practices, quality gates, and backlog management. Three profiles (Lean/Standard/Strict) adapt ceremony to your project. After installing, run `/quickstart` to get started.
 
 ## Project Entry Point
 - CLAUDE.md: Project configuration, commands, conventions, skill quick-reference
@@ -12,6 +12,7 @@
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
+- docs/GETTING_STARTED.md: Getting started guide with per-profile walkthrough (Lean/Standard/Strict)
 - docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference
 - docs/reference/MCP_INTEGRATION.md: MCP server selection guide with categories, decision tree, and integration patterns
 - docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
@@ -47,6 +48,8 @@
 - .claude/skills/skill-create/SKILL.md: Generate technology-specific skills with co-located references
   - scripts/init-skill.sh: Scaffold a new skill directory with SKILL.md template
   - scripts/update-registry.sh: Generate skills-registry.json from YAML frontmatter
+- .claude/skills/build/SKILL.md: Build from plain-English description — handles all technical decisions, outputs plain English, orchestrates bootstrap+ideate+story-cycle in Lean mode
+- .claude/skills/deploy/SKILL.md: Deploy to hosting platform — detects Vercel/Netlify/Railway/Fly.io/Render, pre-deploy checks, CLI verification, graceful degradation
 - .claude/skills/skills-registry.json: Machine-readable index of all skills (generated)
 - .claude/skills/skills-registry.schema.json: JSON Schema for registry validation
 - .claude/skills/debug-session/SKILL.md: 5-phase structured debugging with reasoning scaffolds, error recovery tables, error learning, halt conditions, and handoff suggestions

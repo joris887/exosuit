@@ -31,9 +31,9 @@ vendor/
 Pods/
 
 # Build outputs
-dist/
-build/
-out/
+/dist/
+/build/
+/out/
 *.egg-info/
 
 # Coverage
