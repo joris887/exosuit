@@ -1,74 +1,73 @@
-# Deep Research Prompt
+# Project Vision Template
 
-Use this prompt with Claude Projects (or any AI research tool) to transform your idea into a comprehensive project specification.
+Use this template to capture your project idea before running `/bootstrap`. Fill in what you know — leave blanks for what you don't. The framework will help you figure out the rest.
 
-## Instructions
-
-1. Create a new Claude Project for your idea
-2. Copy everything below the line into the project as the initial prompt
-3. Fill in the bracketed sections with your information
-4. Have a research conversation with Claude — ask follow-ups, explore edge cases
-5. Save the final research output (the structured spec) back to this `vision/` folder
-6. Run `/bootstrap` or `/ideate` to generate epics and stories from the vision
+You can also use this as a prompt in Claude Projects, ChatGPT, or Perplexity for deeper research before building.
 
 ---
 
-## Research Prompt (for Claude Projects)
+## What problem are you solving?
 
-I have an idea for a software project. I'm going to describe it as a braindump — raw, unstructured thoughts. I need you to:
+Describe it as if telling a friend. Who has this problem? How do they deal with it today?
 
-1. **Clarify and structure** my idea into a clear problem statement and solution
-2. **Ask me questions** to fill gaps — keep asking until you have a complete picture
-3. **Research** the technical landscape — existing solutions, relevant technologies, architectural patterns, potential pitfalls
-4. **Identify** the key decisions I need to make (build vs buy, technology choices, architecture trade-offs)
-5. **Propose** a high-level architecture with component boundaries
-6. **List** the risks, unknowns, and things that need prototyping
-7. **Suggest** a phased delivery approach (MVP → V1 → future)
-8. **Output** a structured specification document that can be used to generate epics and user stories
+[YOUR ANSWER HERE]
+
+## Who is this for?
+
+Describe your typical user in one sentence. How comfortable are they with technology?
+
+[YOUR ANSWER HERE]
+
+## What should it do?
+
+List the main things a user should be able to do. Don't worry about prioritizing yet — we'll sort that out together.
+
+- [Feature 1]
+- [Feature 2]
+- [Feature 3]
+- ...
+
+## How should it look and feel?
+
+Any preferences on style? Reference apps you like the look of, or skip this and we'll figure it out together.
+
+[YOUR ANSWER HERE — or leave blank]
+
+## Technology preferences?
+
+Do you have preferences for programming languages, frameworks, or platforms? Or should the framework choose for you?
+
+Examples: "I want to use Python", "Must work on mobile", "Deploy to AWS", "No preference — pick the best option"
+
+[YOUR ANSWER HERE — or "No preference"]
+
+## How big will this get?
+
+How many users do you expect in the first 3 months? When do you want the first version live?
+
+- Expected users: [tens / hundreds / thousands / tens of thousands+]
+- Timeline: [this week / this month / this quarter / no rush]
+
+## How will it make money? (optional)
+
+Is this a side project, or does it need to generate revenue? If revenue: subscription, freemium, marketplace commission, other?
+
+[YOUR ANSWER HERE — or "just a side project"]
+
+## Anything else?
+
+Constraints, requirements, things you definitely want or definitely don't want.
+
+[YOUR ANSWER HERE — or leave blank]
 
 ---
 
-### Problem Statement
+## What happens next?
 
-What problem are you solving? Who experiences this problem? How is it currently handled?
+1. Save this file with your answers filled in
+2. Run `/bootstrap` in Claude Code — it reads this file automatically
+3. The framework will ask follow-up questions for anything unclear
+4. It will research technology options and help you make informed decisions
+5. Then it generates your project structure, backlog, and gets you building
 
-[YOUR PROBLEM STATEMENT HERE]
-
-### Target Users
-
-Who are the primary users? What are their technical skill levels? How many users do you expect?
-
-[YOUR TARGET USERS HERE]
-
-### Solution Vision
-
-What does the solution look like? What's the core experience? What makes it different from alternatives?
-
-[YOUR SOLUTION VISION HERE]
-
-### Technical Constraints
-
-Any requirements around: language/framework, hosting, budget, existing systems to integrate with, compliance?
-
-[YOUR CONSTRAINTS HERE — or "no constraints, open to suggestions"]
-
-### Similar Products / Prior Art
-
-What existing products are similar? What do you like/dislike about them?
-
-[YOUR EXAMPLES HERE — or "none that I know of"]
-
-### Non-Negotiable Requirements
-
-What absolutely must be true for this project to succeed?
-
-[YOUR REQUIREMENTS HERE]
-
-### Additional Context (optional)
-
-- Target platform(s):
-- Team size / solo developer:
-- Timeline:
-- Budget constraints:
-- Technology preferences/constraints:
-- Anything else relevant:
+**Alternative:** Don't want to fill this out? Just run `/bootstrap` and describe your idea when asked. The framework guides you through everything interactively.

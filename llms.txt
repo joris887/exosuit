@@ -22,7 +22,10 @@
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack, generate project context knowledge base, scaffold solutions/brainstorms directories, optional MCP server detection
   - references/stack-detection.md: Technology detection tables and commands
-  - references/new-project.md: New project braindump and generation workflow
+  - references/new-project.md: New project guided discovery flow (Phase 0-4)
+  - references/phase-1-analysis.md: Project type detection and competitive research
+  - references/discovery-engine.md: Iterative dimension discovery loop
+  - references/dimensions/: Per-dimension option modules (10 files)
   - references/accuracy-safeguards.md: Anti-hallucination protocol for documentation creation
   - scripts/detect-stack.sh: Automated stack detection helper
 - .claude/skills/sprint-start/SKILL.md: Pre-flight checks, branch creation
