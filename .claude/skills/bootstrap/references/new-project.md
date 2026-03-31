@@ -2,126 +2,215 @@
 
 Reference loaded by `/bootstrap` when no existing source files are detected.
 
-## B1. Check for Vision Content
+## Flow Overview
+
+```
+Phase 0: CAPTURE → Phase 1: ANALYZE → Phase 2: DISCOVER → Phase 3: SYNTHESIZE → Phase 4: GENERATE
+```
+
+- **Fast-track:** description + "just build it" → skip to Phase 4, LLM makes all decisions
+- **Guided:** full discovery with questions at each dimension → all phases
+- **Braindump:** user pre-wrote vision files → skip Phase 0 questions, start Phase 1
+
+## Phase 0: Idea Capture
+
+### Check for Existing Vision Content
 
 ```bash
 ls vision/ 2>/dev/null
 ```
 
-**If `vision/` has content (beyond README and BRAINDUMP_PROMPT.md):** → B2.7 (offer domain research, then B3)
-**If empty:** → B2 (Guide braindump)
+**If `vision/` has content beyond templates** (README.md, BRAINDUMP_PROMPT.md, CLAUDE.md): Parse existing `.md` files and extract problem, users, features, technical preferences, constraints → Phase 1.
 
-## B2. Guide Braindump
+**If empty or templates only:** Present entry options.
 
-Present the braindump flow:
+### Entry Options
 
 ```markdown
 ### New Project Setup
 
 No existing codebase detected. Let's build your project from an idea.
 
-**Option 1 — Deep Research (recommended for complex projects):**
-
-1. Open `vision/BRAINDUMP_PROMPT.md` — it contains a structured research prompt
-2. Copy the research prompt into a Claude Project (or ChatGPT, Perplexity, etc.)
-3. Fill in the `[YOUR IDEA HERE]` section with your raw idea
-4. Have a research conversation — explore the problem space deeply
-5. Save the structured output back to `vision/` (as .md files)
-6. Run `/bootstrap` again to generate your project structure
-
-**Option 2 — Quick Start:**
-
-Describe your idea now and I'll ask clarifying questions to build a complete picture.
+1. **Describe your idea** — I'll ask a few questions to understand it fully
+2. **I already wrote a vision** — I'll check the `vision/` folder for your notes
+3. **Just build it** — Give me a one-liner and I'll make all the decisions
 ```
 
-## B2.5. Accept Inline Braindump
+### Inline Description (Option 1)
 
-If the user types their idea directly, transition to iterative questioning mode:
+1. Accept the user's description (any length, any format)
+2. Assess which of these are addressed: problem/purpose, target users, key features, technical preferences, scale/timeline
+3. Ask up to **5 focused questions** for the top gaps — adapt to what's missing:
+   - Problem unclear → "What problem does this solve? Describe it as if telling a friend."
+   - Users unclear → "Who will use this? Describe your typical user in one sentence."
+   - Features unclear → "What are the 3 most important things it needs to do?"
+   - No tech preferences → "Do you have any technology preferences, or should I choose?"
+   - Scale unknown → "How many users do you expect in the first 3 months?"
+4. **Stop after 5 questions maximum.** Users abandon after 5.
 
-1. Acknowledge the idea
-2. Ask 5-10 clarifying questions covering:
-   - Problem statement and target users
-   - Technical constraints and preferences
-   - Similar products or prior art
-   - Non-negotiable requirements
-   - Scale and performance needs
-   - Security and compliance requirements
-3. After gathering answers, synthesize into a vision document
-4. Save to `vision/braindump-output.md`
-5. Continue to B2.7 (domain research)
+### Braindump File (Option 2)
 
-## B2.7. Domain Research (Optional — Recommended for Complex Projects)
+Parse all `.md` files in `vision/` and extract: problem statement, target users, proposed features, technical preferences, constraints. Treat as inline description with pre-filled answers.
 
-Before generating the project structure from vision, research the domain to inform the vision with current best practices and competitive landscape.
+### Fast-Track (Option 3)
 
-Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **STANDARD** depth:
+Triggered by: user says "just build it" / "fast-track" / "quick" / "skip questions", OR `$ARGUMENTS` includes `--fast`.
 
-- **Query:** Generated dynamically from the vision content. Example: "Best practices for building [type of project described in vision]"
-- **Sub-questions** (generated from vision content):
-  1. "What similar tools/projects exist for [domain]? What do they do well/poorly?"
-  2. "What are current best practices for [domain/technology mentioned in vision]?"
-  3. "What common pitfalls should be avoided when building [type of project]?"
-  4. "What architecture patterns are recommended for [type of project]?"
-- **Output format:** `decision-input` (compact, feeds vision generation)
+1. Record the raw idea
+2. Mark all dimensions as "auto-decide"
+3. Jump directly to Phase 4 — LLM makes all decisions with documented assumptions
+4. Present summary of auto-decided choices for quick approval before generating
 
-**Present findings to user before generating project structure.** The user may have insights to add, or findings may change the vision direction.
+### Completeness Assessment
 
-**Skip when:** User explicitly says "skip research" or "I know what I want", or when the project is simple enough that domain research adds no value (e.g., a basic CRUD app with well-known patterns).
+After capture, classify the idea:
+- **Complete** (problem + users + features + 4 more aspects addressed) → Phase 1
+- **Partial** (problem + 2-5 other aspects) → ask focused questions for top gaps → Phase 1
+- **Minimal** (just a sentence or two) → ask more questions OR offer fast-track
 
-**Persistence:** Save research findings to `vision/domain-research.md` so they're available for B3 generation and future reference.
+### Output
 
-## B3. Generate from Vision
+Save to `vision/idea-capture.md`:
+```yaml
+---
+captured: YYYY-MM-DD
+mode: inline | braindump | fast-track
+completeness: complete | partial | minimal
+---
+```
+Followed by: raw input, Q&A transcript, and extracted dimension status (KNOWN/INFERRED/OPEN per dimension).
 
-Read all files in `vision/` (including `domain-research.md` if it exists from B2.7) and generate:
+**All user-facing text must be jargon-free.** No "dimensions", "phases", "sprint", "TDD", "PR", "ORM".
 
-1. **`docs/reference/PRD_SUMMARY.md`** — Extract requirements, goals, users, use cases
-2. **`docs/architecture/ARCHITECTURE.md`** — Extract or propose architecture
-3. **`docs/reference/BACKLOG_INDEX.md`** — Create epic structure
-4. **`docs/reference/backlog/E01-*.md` through `E0N-*.md`** — Epic files with typed stories
-5. **`CLAUDE.md`** — Fill in overview, architecture one-liner, current focus
-6. **`docs/reference/CODING_STANDARDS.md`** — Fill if stack is specified in vision
-7. **`.claude/rules/`** — Generate rules tailored to proposed stack
-8. **`.gitignore`** — Add language-specific patterns for proposed stack
+## Phase 1: Idea Analysis
 
-Stories should be typed (feature, infrastructure, spike, etc.) and ordered for testability.
+Read `references/phase-1-analysis.md` and follow its steps.
 
-Also create `docs/research/`, `docs/solutions/`, and `docs/brainstorms/` directories with `.gitkeep` files for future use by `/research`, `/story-cycle`, and `/brainstorm` skills.
+Phase 1 classifies the project type, runs competitive landscape research, and decomposes the idea into addressable dimensions — marking each as KNOWN (user specified), INFERRED (derivable from input), or OPEN (needs user decision).
 
-## B3.5. PRD Quality Gate
+**Output:** `vision/analysis.md` with project type, competitive findings, and dimension status map.
 
-After generating PRD_SUMMARY.md, validate it for common requirement smells:
+## Phase 2: Dimension Discovery
 
-| Smell | Detection | Action |
-|-------|-----------|--------|
-| **Vague terms** | "fast", "user-friendly", "intuitive", "robust", "scalable", "high availability" without numbers | Replace with measurable threshold |
-| **Missing error handling** | Requirements describe happy path only, no WHEN [error] criteria | Add error and edge case acceptance criteria |
-| **Thin acceptance criteria** | Requirement has < 3 acceptance criteria | Expand — aim for 3-7 per requirement |
-| **Premature solutioning** | Requirements specify UI elements, specific libraries, or implementation details | Rewrite as outcome-oriented behavior |
-| **Empty NFR section** | NFRs omitted despite project type implying them (e.g., web app with no performance/accessibility) | Add applicable NFR categories with measurable defaults |
-| **No non-goals** | Section 7 is empty | Add at least 2 explicit non-goals based on what the vision does NOT mention |
+Read `references/discovery-engine.md` and follow the iteration loop.
 
-Fix any smells found before presenting to the user. Quality requirements prevent wasted implementation cycles — fixing them now is 10x cheaper than fixing wrong implementations later.
+Phase 2 walks through each OPEN or INFERRED dimension, presents research-backed options, and records the user's choice. Dimension content modules live in `references/dimensions/`.
 
-## B4. Present Summary
+**Skip when:** Fast-track mode (all dimensions auto-decided).
+
+**Output:** `vision/discovery.md` with per-dimension decisions.
+
+## Phase 3: Vision Synthesis
+
+### Contradiction Detection
+
+Check all decisions for incompatible combinations:
+
+| Combination | Issue |
+|-------------|-------|
+| Next.js + non-Node hosting | Framework requires Node.js runtime |
+| SQLite + serverless | No persistent filesystem in serverless |
+| "1M users" + free tier hosting | Free tiers cap at ~10K-100K monthly |
+| "Offline required" + server-rendered | SSR needs server; offline needs client-side |
+| Supabase Auth + non-Supabase database | Supabase Auth works best with Supabase |
+| Mobile app + web-only deployment | Need native/cross-platform framework |
+
+Present contradictions with explanation and suggested resolution. Let user choose.
+
+### Generate Vision Document
+
+Create `vision/project-vision.md` with YAML frontmatter (project, type, profile, date, discovery_mode) and sections:
+
+1. **The Problem** — from dimension 1
+2. **Target Users** — persona cards from dimension 2
+3. **Features (MVP)** — tiered feature list from dimension 3
+4. **Design Direction** — UX choices from dimension 4
+5. **Technology Stack** — frontend, backend, database, auth, hosting from dimensions 5-9
+6. **Business Model** — from dimension 10
+7. **Decisions Log** — all choices with rationale (including auto-filled)
+8. **Research Sources** — all URLs from dimension research
+
+### Present for Approval
+
+Show a one-screen summary:
+
+```markdown
+### Your Project at a Glance
+
+**[Name]** — [one-line description]
+
+**Building for:** [primary persona]
+**MVP features:** [3-5 bullet points]
+**Tech:** [frontend] + [backend] + [database] on [hosting]
+**Auth:** [provider]
+**Style:** [design direction]
+
+Does this look right? I can change any aspect, or we can start building.
+```
+
+User can go back to any dimension. After approval → Phase 4.
+
+## Phase 4: Epic Generation
+
+### Generate PRD
+
+Create `docs/reference/PRD_SUMMARY.md` from the vision document. Map dimensions to PRD sections:
+- Problem & users → Sections 1-2
+- Features & MVP → Section 5 (requirements with Given/When/Then acceptance criteria)
+- UX/design → Section 6 (NFRs, design constraints)
+- Business model → Section 3 (success criteria)
+- Technical decisions → Section 8 (technical context)
+
+**PRD quality gate:** Check for vague terms ("fast", "user-friendly" without numbers), missing error handling, thin AC (<3 per requirement), premature solutioning, empty NFR section, no non-goals. Fix smells before presenting.
+
+### Generate Epics
+
+Organize by delivery phase:
+
+- **E01: Project Foundation** — Initialize framework, configure database schema, set up auth, configure CI/CD, development environment
+- **E02: Core MVP Features** — Dependency-ordered feature stories from dimension 3 must-have tier
+- **E03: Design & Polish** — Apply design direction, responsive design, error states, loading indicators
+- **E04: Launch Preparation** — Production deployment, domain, analytics, feedback mechanism
+
+Stories must: fit single context window (≤5 files, 1-3 hours), use template from `ideate/references/story-template.md`, reference personas from dimension 2, have machine-verifiable acceptance criteria.
+
+### Generate Scaffold
+
+From technology choices, generate:
+- `CLAUDE.md` — commands for chosen stack, profile, architecture overview
+- `.gitignore` — stack-specific patterns
+- `docs/reference/CODING_STANDARDS.md` — for chosen language(s)
+- `docs/architecture/ARCHITECTURE.md` — proposed architecture
+- `docs/reference/GROUND_RULES.md` — 3-5 default rules for chosen stack
+
+**Profile-aware generation:**
+- Lean: CLAUDE.md with commands only, ~12 core skills in table, minimal docs
+- Standard: full documentation suite
+- Strict: full docs + compliance structure + audit trail scaffold
+
+Also create `docs/research/`, `docs/solutions/`, `docs/brainstorms/` with `.gitkeep`.
+
+### Present Summary
 
 ```markdown
 ### Bootstrap Complete (New Project)
 
-**Domain Research:** [summary of key findings from B2.7, or "Skipped" if not run]
+**Discovery mode:** [full | partial | fast-track]
 
-**Generated from vision:**
-- PRD Summary: docs/reference/PRD_SUMMARY.md
-- Architecture: docs/architecture/ARCHITECTURE.md
-- Backlog: [N] epics, [M] stories
+**Generated:**
+- [N] epics, [M] stories
+- Project scaffold: [framework] + [database] + [auth] on [hosting]
+- Docs: CLAUDE.md, Architecture, Coding Standards, Ground Rules
 
 **Epic Structure:**
 | Epic | Stories | Description |
 |------|---------|-------------|
-| E01  | [count] | [name]      |
-| ...  | ...     | ...         |
+| E01  | [count] | Foundation   |
+| E02  | [count] | Core MVP     |
+| E03  | [count] | Polish       |
+| E04  | [count] | Launch       |
 
-**Next Steps:**
-- Review generated epics in `docs/reference/backlog/`
-- Run `/sprint-start` to begin your first sprint
-- First sprint should be E01 (foundation/infrastructure)
+**First sprint:** E01 foundation (project setup, database, auth, CI/CD)
+
+**Next:** Review epics in `docs/reference/backlog/`, then `/sprint-start`
 ```

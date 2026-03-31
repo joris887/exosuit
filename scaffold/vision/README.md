@@ -1,38 +1,25 @@
 # Vision Folder
 
-This folder is for the **new project flow**. Use it when starting a project from scratch.
+This folder is for **new projects** — when you're starting from an idea, not an existing codebase.
 
-## How to Use
+## Two Ways to Start
 
-### Step 1: Research Your Idea
+### Option 1: Write Your Vision First
+1. Open `BRAINDUMP_PROMPT.md` and fill in what you know
+2. Run `/bootstrap` — it reads your answers and asks follow-up questions
+3. The framework helps you make technology choices with research-backed options
+4. It generates your project structure and backlog
 
-Open `BRAINDUMP_PROMPT.md`. It contains a structured research prompt with clear sections to fill in.
+### Option 2: Start Interactively
+1. Run `/bootstrap` with an empty vision folder
+2. Describe your idea when asked
+3. The framework guides you through every decision step by step
 
-### Step 2: Run Deep Research
+Both paths end at the same place: a project scaffold with your chosen technology stack and a backlog of stories ready to build.
 
-Copy the filled-in prompt into Claude Projects, ChatGPT, Perplexity, or your preferred AI research tool. Have a deep conversation — explore the problem space, challenge assumptions, ask follow-ups.
+### Fast-Track
+Know exactly what you want? Run `/bootstrap --fast` with a one-liner description. The framework makes all technology decisions for you and generates everything immediately.
 
-### Step 3: Save Output
+## For Existing Projects
 
-Save the final structured output back here as `.md` files. Name them descriptively:
-- `research-output.md` — Main specification
-- `architecture-proposal.md` — If architecture was discussed separately
-- `competitive-analysis.md` — If alternatives were analyzed
-
-### Step 4: Generate Project
-
-Run `/bootstrap` in Claude Code. It reads everything in this folder and generates:
-
-- **PRD summary** → `docs/reference/PRD_SUMMARY.md`
-- **Architecture** → `docs/architecture/ARCHITECTURE.md`
-- **Epic structure** → `docs/reference/BACKLOG_INDEX.md`
-- **Typed stories** → `docs/reference/backlog/E01-*.md` through `E0N-*.md`
-- **Project config** → `CLAUDE.md`
-
-### Alternative: Quick Start
-
-Don't want to do deep research? Run `/bootstrap` with an empty vision folder. It will ask you to describe your idea inline and will ask clarifying questions before generating.
-
-## Note for Existing Projects
-
-If you're adding the framework to an existing codebase, you can delete this folder. The `/bootstrap` skill will detect your existing code and auto-configure instead.
+If you're adding the framework to an existing codebase, you can ignore this folder. `/bootstrap` detects your code and auto-configures instead.

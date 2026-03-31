@@ -55,6 +55,8 @@
     "references": [
       "references/stack-detection.md",
       "references/new-project.md",
+      "references/phase-1-analysis.md",
+      "references/discovery-engine.md",
       "references/accuracy-safeguards.md",
       "references/coverage-assessment.md",
       "references/quality-tooling.md",

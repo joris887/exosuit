@@ -4,7 +4,7 @@ version: 2.13.0
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
-references: [references/stack-detection.md, references/new-project.md, references/accuracy-safeguards.md, references/coverage-assessment.md, references/quality-tooling.md, references/readiness-report.md, references/foundation-backlog.md, references/llm-readiness.md, references/technical-debt-assessment.md]
+references: [references/stack-detection.md, references/new-project.md, references/phase-1-analysis.md, references/discovery-engine.md, references/accuracy-safeguards.md, references/coverage-assessment.md, references/quality-tooling.md, references/readiness-report.md, references/foundation-backlog.md, references/llm-readiness.md, references/technical-debt-assessment.md]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent
@@ -38,10 +38,12 @@ START → 0. Detect Installation Mode
                         → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
                           → A6: Clean up → A7: Present summary → DONE
       → NO: Path B (New Project)
-        → Read references/new-project.md and follow B1-B4
-          → B1: Check vision → B2: Guide braindump (if empty)
-            → B2.7: Domain research (optional, standard depth)
-              → B3: Generate from vision → B4: Present summary → DONE
+        → Read references/new-project.md and follow Phase 0-4
+          → Phase 0: Idea Capture (braindump file / inline description / fast-track)
+            → Phase 1: Idea Analysis (type detection, competitive research, dimension decomposition)
+              → Phase 2: Dimension Discovery (iterative loop through OPEN dimensions)
+                → Phase 3: Vision Synthesis (contradiction check, vision document, approval)
+                  → Phase 4: Epic Generation (PRD, epics, scaffold) → DONE
 ```
 
 ## 0. Detect Installation Mode
@@ -87,7 +89,7 @@ find . -type f \
 ```
 
 **If source files exist:** → Path A (Existing Repository)
-**If no source files (or only framework files):** → Path B — Read `references/new-project.md` and follow its steps. Path B now includes a domain research step (B2.7) — see `references/new-project.md`.
+**If no source files (or only framework files):** → Path B — Read `references/new-project.md` and follow Phase 0-4 (guided project discovery with research-backed technology choices).
 
 ---
 
