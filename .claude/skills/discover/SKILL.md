@@ -184,9 +184,44 @@ Read `references/scale-guide.md` for scale-adapted epic structures. Read `refere
 
 <HARD-GATE>User approves stories.</HARD-GATE>
 
-Generate outputs: PRD_SUMMARY.md, BACKLOG_INDEX.md, DECISION_LOG.md, ASSUMPTION_REGISTER.md, backlog/E*.md, scaffold.
+Generate outputs: PRD_SUMMARY.md, BACKLOG_INDEX.md, DECISION_LOG.md, ASSUMPTION_REGISTER.md, backlog/E*.md.
 
-Populate framework documents from discovery outputs per the documentation flow in Phase 6/7 of this skill. Map decisions → docs/context/*, GROUND_RULES.md, ARCHITECTURE.md, CODING_STANDARDS.md, CLAUDE.md.
+### 7D. Populate Project Documentation from Discovery
+
+<HARD-GATE>
+This step is MANDATORY. Do NOT skip it. Every file below must be populated with real content from discovery — not left as a template.
+</HARD-GATE>
+
+Using all decisions, research findings, and user answers from Phases 1-6, populate these files. Each file must contain project-specific content, not placeholder comments.
+
+**From vision/classification.md + vision/core-identity.md:**
+- `docs/context/project-overview.md` — What this project is, who it's for, what problem it solves, archetype + scale classification
+- `docs/context/product-context.md` — User personas, workflows, feature priorities, user journeys from Phase 3, validation plan from ASSUMPTION_REGISTER
+
+**From vision/deep-elicitation.md:**
+- `docs/context/system-patterns.md` — Interaction patterns, UX patterns chosen in Phase 3, edge case handling decisions
+
+**From DECISION_LOG.md (technical decisions from Phase 5 dimension sweep):**
+- `docs/context/tech-context.md` — Stack choices (frontend, backend, database, auth, hosting), key libraries, API style, data layer decisions
+- `docs/architecture/ARCHITECTURE.md` — Proposed architecture: tech stack table, architecture overview (Mermaid diagram from stack decisions), module map, dependency rules, deployment strategy
+- `docs/reference/CODING_STANDARDS.md` — Language-specific conventions for the chosen stack, naming conventions, formatting tool, linter, quality gates
+- `CLAUDE.md` — Fill in: Project Overview, Tech Stack (versions), Commands (for chosen stack), Architecture one-liner, Profile
+
+**From vision/stress-test.md + vision/project-pitch.md:**
+- `docs/reference/GROUND_RULES.md` — No-Gos become MUST-NOT rules, key architectural constraints from dimension decisions become MUST rules, add 3-5 principles from the chosen architecture pattern
+- `docs/context/error-patterns.md` — Pre-mortem risks from Phase 4B as potential failure modes to watch for
+
+**From DECISION_LOG.md (if test framework was decided):**
+- `docs/reference/TESTING_STRATEGY.md` — Test Infrastructure section filled with chosen test runner, coverage tool, test command, test location. Testing approach from `references/engineering-by-archetype.md` for the project's archetype.
+
+**From vision/classification.md (if project has no source files yet):**
+- `docs/context/project-structure.md` — Proposed directory layout based on chosen stack and architecture pattern
+
+**Scale-adapted depth:**
+- Quick Build: populate CLAUDE.md (commands, overview) + GROUND_RULES.md (No-Gos only) + minimal tech-context.md. Skip ARCHITECTURE.md, CODING_STANDARDS.md, system-patterns.md (fill during first sprint).
+- Standard: populate all files above
+- Platform: populate all files above + create initial ADRs in docs/adr/ for major architectural decisions (database, auth, hosting, API style)
+- Pioneering: populate CLAUDE.md + tech-context.md (what's known) + project-overview.md. Mark other files as "post-spike" with a note about what spikes will determine.
 
 ## Quick Start Mode
 

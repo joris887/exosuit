@@ -101,29 +101,21 @@ After Phase 0 (Idea Capture):
       - MVP scoping + backlog generation with Phase Transition Stories
 ```
 
-**Output:** `/discover` generates all vision documents, DECISION_LOG.md, ASSUMPTION_REGISTER.md, PRD_SUMMARY.md, BACKLOG_INDEX.md, and epic files.
+**Output:** `/discover` generates all vision documents, DECISION_LOG.md, ASSUMPTION_REGISTER.md, PRD_SUMMARY.md, BACKLOG_INDEX.md, epic files, AND populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/context/*, CLAUDE.md) from discovery decisions in its Phase 7D step.
 
 See `.claude/skills/discover/SKILL.md` for the complete 7-phase flow.
 
 **Legacy dimension references** (`references/dimensions/01-10.md`, `references/phase-1-analysis.md`, `references/discovery-engine.md`) are preserved and reused by /discover's dimension sweep phase.
 
-## Post-Discovery: Scaffold Generation
+## Post-Discovery: Remaining Scaffold
 
-After `/discover` completes, continue with scaffold generation:
+`/discover` Phase 7D already populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/context/*, CLAUDE.md) from discovery decisions. After `/discover` completes, only these remaining scaffold steps are needed:
 
-From technology choices (now in `docs/reference/DECISION_LOG.md`), generate:
-- `CLAUDE.md` — commands for chosen stack, profile, architecture overview
-- `.gitignore` — stack-specific patterns
-- `docs/reference/CODING_STANDARDS.md` — for chosen language(s)
-- `docs/architecture/ARCHITECTURE.md` — proposed architecture
-- `docs/reference/GROUND_RULES.md` — principles + No-Gos from discovery
+- `.gitignore` — stack-specific patterns (from DECISION_LOG tech choices)
+- Create empty directories: `docs/research/`, `docs/solutions/`, `docs/brainstorms/`, `docs/reviews/` with `.gitkeep`
+- If strict profile: create `docs/adr/` with initial ADRs from Platform-scale discovery decisions
 
-**Profile-aware generation:**
-- Lean: CLAUDE.md with commands only, ~12 core skills in table, minimal docs
-- Standard: full documentation suite
-- Strict: full docs + compliance structure + audit trail scaffold
-
-Also create `docs/research/`, `docs/solutions/`, `docs/brainstorms/`, `docs/reviews/` with `.gitkeep`.
+**Verify Phase 7D ran:** Check that `docs/context/project-overview.md`, `docs/context/tech-context.md`, and `docs/architecture/ARCHITECTURE.md` contain project-specific content (not template placeholders). If they're still templates, Phase 7D was skipped — re-read the `/discover` SKILL.md Phase 7D instructions and execute them now.
 
 ### Present Summary
 
