@@ -255,9 +255,9 @@ fi
 
 # Create directories
 if $DRY_RUN; then
-    echo "  [DRY RUN] Would create directories: docs/sessions, docs/plans, docs/research, docs/solutions, docs/brainstorms, docs/adr, docs/sprints"
+    echo "  [DRY RUN] Would create directories: docs/sessions, docs/plans, docs/research, docs/solutions, docs/brainstorms, docs/reviews, docs/adr, docs/sprints"
 else
-    mkdir -p docs/sessions docs/plans docs/research docs/solutions docs/brainstorms docs/adr docs/sprints
+    mkdir -p docs/sessions docs/plans docs/research docs/solutions docs/brainstorms docs/reviews docs/adr docs/sprints
 fi
 
 echo ""
