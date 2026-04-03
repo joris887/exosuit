@@ -38,12 +38,13 @@ START → 0. Detect Installation Mode
                         → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
                           → A6: Clean up → A7: Present summary → DONE
       → NO: Path B (New Project)
-        → Read references/new-project.md and follow Phase 0-4
+        → Read references/new-project.md for Phase 0 (Idea Capture) ONLY
           → Phase 0: Idea Capture (braindump file / inline description / fast-track)
-            → Phase 1: Idea Analysis (type detection, competitive research, dimension decomposition)
-              → Phase 2: Dimension Discovery (iterative loop through OPEN dimensions)
-                → Phase 3: Vision Synthesis (contradiction check, vision document, approval)
-                  → Phase 4: Epic Generation (PRD, epics, scaffold) → DONE
+            → After Phase 0: invoke /discover
+              → [Lean profile or --quick?] → /discover --quick
+              → [Otherwise] → /discover (auto-detects mode from scale)
+              → /discover handles: classification, elicitation, research, vision, backlog
+            → After /discover: continue with scaffold generation + summary → DONE
 ```
 
 ## 0. Detect Installation Mode
@@ -89,7 +90,7 @@ find . -type f \
 ```
 
 **If source files exist:** → Path A (Existing Repository)
-**If no source files (or only framework files):** → Path B — Read `references/new-project.md` and follow Phase 0-4 (guided project discovery with research-backed technology choices).
+**If no source files (or only framework files):** → Path B — Read `references/new-project.md` for Phase 0 (Idea Capture), then invoke `/discover` for deep guided elicitation (replaces legacy Phases 1-4).
 
 ---
 

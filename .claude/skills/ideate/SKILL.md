@@ -21,6 +21,20 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"ideate\",\"ts\":\"$(da
 
 Transforming idea into backlog stories: **$ARGUMENTS**
 
+## Step 0: Check Discovery State
+
+<IF condition="vision/project-pitch.md exists">
+Discovery has been completed. Load `docs/reference/DECISION_LOG.md` and `docs/reference/ASSUMPTION_REGISTER.md` for story generation context. When generating stories, include relevant entries in each story under "Relevant Decisions", "Relevant Assumptions", and "No-Gos" sections.
+</IF>
+<IF condition="vision/idea-capture.md exists BUT vision/project-pitch.md does NOT exist">
+Discovery hasn't been completed. Warn the user:
+> "Discovery hasn't been completed. Run `/discover` first for thorough guided discovery, or proceed with `/ideate` for quick decomposition (less guidance, more assumptions)."
+Wait for user decision before proceeding.
+</IF>
+<ELSE>
+No vision files found — proceed with current behavior (no change).
+</ELSE>
+
 ## Phase 0: Validate Prerequisites
 
 Before starting, verify:

@@ -13,6 +13,45 @@ Each version entry lists:
 
 ---
 
+## [4.1.0] - 2026-04-03
+
+### Summary
+Deep guided elicitation system: `/discover` skill with archetype-aware, multi-phase, research-backed discovery. 11 project archetypes with tailored question banks. 4 discovery modes (Quick/Guided/Platform/Pioneering). Assumption tracking with DECISION_LOG and ASSUMPTION_REGISTER. Phase Transition Stories for infinite build→review→discover→build cycle. `/phase-review` skill for structured post-phase evaluation.
+
+### Added
+- `.claude/skills/discover/SKILL.md` — 7-phase discovery skill with 4 mode branches
+- `.claude/skills/discover/references/scale-guide.md` — scale classification + archetype cards
+- `.claude/skills/discover/references/question-scaffolding.md` — 6 scaffolding rules for questions
+- `.claude/skills/discover/references/dimension-sweep.md` — D04-D10 sweep with archetype overlays
+- `.claude/skills/discover/references/research-protocols.md` — per-archetype research queries
+- `.claude/skills/discover/references/engineering-by-archetype.md` — testing + AC strategies per archetype
+- `.claude/skills/discover/references/phase-transition-template.md` — E0N-REVIEW story templates
+- `.claude/skills/discover/references/archetypes/*.md` — 11 archetype question bank files
+- `.claude/skills/discover/assets/decision-log.md` — DECISION_LOG template
+- `.claude/skills/discover/assets/assumption-register.md` — ASSUMPTION_REGISTER template
+- `.claude/skills/discover/assets/phase-walkthrough.md` — phase walkthrough review template
+- `.claude/skills/phase-review/SKILL.md` — phase transition review skill
+- "Review" story type in story-cycle for Phase Transition Stories
+
+### Changed
+- `.claude/skills/bootstrap/SKILL.md` — Path B now invokes /discover instead of legacy Phases 1-4
+- `.claude/skills/bootstrap/references/new-project.md` — delegates Phases 1-4 to /discover
+- `.claude/skills/ideate/SKILL.md` — added discovery-state pre-flight (Step 0)
+- `.claude/skills/story-cycle/SKILL.md` — added discovery context loading (Phase 0b.5) + Review story type
+- `.claude/skills/build/SKILL.md` — added retroactive discovery capture
+- `.claude/skills/ideate/references/story-template.md` — added Relevant Decisions, Assumptions, No-Gos fields
+- `.claude/skills/ideate/references/story-template-lightweight.md` — added Relevant Decisions, No-Gos fields
+- `.claude/skills/skills-registry.json` — added discover + phase-review entries
+- `.claude/skills/SKILLS_INVENTORY.md` — added discover + phase-review to inventory, updated workflow, added Review type
+- `CLAUDE.md` — added /discover and /phase-review to skill table, version bump to 4.1
+
+### Project File Changes
+- New projects using Path B will now go through /discover instead of the legacy dimension discovery
+- Existing projects: no changes required. /discover is opt-in via manual invocation.
+- Story templates now include optional Decisions/Assumptions/No-Gos sections (omit if no discovery was run)
+
+---
+
 ## [4.0.0] - 2026-03-30
 
 ### Summary

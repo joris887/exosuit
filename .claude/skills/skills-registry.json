@@ -132,6 +132,25 @@
     "path": ".claude/skills/dashboard/SKILL.md"
   },
   {
+    "name": "discover",
+    "version": "1.0.0",
+    "description": "Deep guided elicitation for new projects. Archetype-aware, research-backed, multi-phase discovery with assumption tracking and Phase Transition Stories.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [
+      "ideate"
+    ],
+    "references": [
+      "references/scale-guide.md",
+      "references/question-scaffolding.md",
+      "references/dimension-sweep.md",
+      "references/phase-transition-template.md",
+      "references/engineering-by-archetype.md",
+      "references/research-protocols.md"
+    ],
+    "path": ".claude/skills/discover/SKILL.md"
+  },
+  {
     "name": "debug-session",
     "version": "2.9.0",
     "description": "Use when the user reports a bug, error, or unexpected behavior that needs investigation.",
@@ -250,6 +269,20 @@
     "calls": [],
     "references": [],
     "path": ".claude/skills/parallel-work/SKILL.md"
+  },
+  {
+    "name": "phase-review",
+    "version": "1.0.0",
+    "description": "Phase transition review — walkthrough, assumption validation, research refresh, pivot-or-persevere decision, and next-phase planning.",
+    "trigger": "manual",
+    "depends_on": [
+      "discover"
+    ],
+    "calls": [
+      "ideate"
+    ],
+    "references": [],
+    "path": ".claude/skills/phase-review/SKILL.md"
   },
   {
     "name": "performance-check",

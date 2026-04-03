@@ -74,6 +74,17 @@ steps:
     files: [...]
 ```
 
+### Discovery Capture (Retroactive)
+
+Silently capture discovery context for future phase reviews — the user does NOT see this:
+1. Infer archetype from description (classify against the 10 archetypes in `.claude/skills/discover/references/scale-guide.md`)
+2. Set scale to Quick Build
+3. Auto-generate a minimal `docs/reference/DECISION_LOG.md` (copy template from `.claude/skills/discover/assets/decision-log.md`), logging all technical decisions with confidence: ASSUMED
+4. Include Phase Transition Stories (E0N-REVIEW: 3-story quick variant — E0N-001, E0N-004, E0N-006) as the last internal step
+5. Save classification to `vision/classification.md`
+
+This ensures /build users get the review cycle without upfront friction.
+
 ## Phase 2: Execute
 
 For each step in dependency order:

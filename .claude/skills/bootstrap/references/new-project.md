@@ -82,133 +82,63 @@ Followed by: raw input, Q&A transcript, and extracted dimension status (KNOWN/IN
 
 **All user-facing text must be jargon-free.** No "dimensions", "phases", "sprint", "TDD", "PR", "ORM".
 
-## Phase 1: Idea Analysis
+## Phases 1-4: Deep Guided Elicitation (via /discover)
 
-Read `references/phase-1-analysis.md` and follow its steps.
+**After Phase 0 completes, invoke `/discover`** which replaces the legacy Phase 1-4 flow with a deeply guided, archetype-aware, research-backed elicitation system.
 
-Phase 1 classifies the project type, runs competitive landscape research, and decomposes the idea into addressable dimensions — marking each as KNOWN (user specified), INFERRED (derivable from input), or OPEN (needs user decision).
-
-**Output:** `vision/analysis.md` with project type, competitive findings, and dimension status map.
-
-## Phase 2: Dimension Discovery
-
-Read `references/discovery-engine.md` and follow the iteration loop.
-
-Phase 2 walks through each OPEN or INFERRED dimension, presents research-backed options, and records the user's choice. Dimension content modules live in `references/dimensions/`.
-
-**Skip when:** Fast-track mode (all dimensions auto-decided).
-
-**Output:** `vision/discovery.md` with per-dimension decisions.
-
-## Phase 3: Vision Synthesis
-
-### Contradiction Detection
-
-Check all decisions for incompatible combinations:
-
-| Combination | Issue |
-|-------------|-------|
-| Next.js + non-Node hosting | Framework requires Node.js runtime |
-| SQLite + serverless | No persistent filesystem in serverless |
-| "1M users" + free tier hosting | Free tiers cap at ~10K-100K monthly |
-| "Offline required" + server-rendered | SSR needs server; offline needs client-side |
-| Supabase Auth + non-Supabase database | Supabase Auth works best with Supabase |
-| Mobile app + web-only deployment | Need native/cross-platform framework |
-
-Present contradictions with explanation and suggested resolution. Let user choose.
-
-### Generate Vision Document
-
-Create `vision/project-vision.md` with YAML frontmatter (project, type, profile, date, discovery_mode) and sections:
-
-1. **The Problem** — from dimension 1
-2. **Target Users** — persona cards from dimension 2
-3. **Features (MVP)** — tiered feature list from dimension 3
-4. **Design Direction** — UX choices from dimension 4
-5. **Technology Stack** — frontend, backend, database, auth, hosting from dimensions 5-9
-6. **Business Model** — from dimension 10
-7. **Decisions Log** — all choices with rationale (including auto-filled)
-8. **Research Sources** — all URLs from dimension research
-
-### Present for Approval
-
-Show a one-screen summary:
-
-```markdown
-### Your Project at a Glance
-
-**[Name]** — [one-line description]
-
-**Building for:** [primary persona]
-**MVP features:** [3-5 bullet points]
-**Tech:** [frontend] + [backend] + [database] on [hosting]
-**Auth:** [provider]
-**Style:** [design direction]
-
-Does this look right? I can change any aspect, or we can start building.
+```
+After Phase 0 (Idea Capture):
+  → invoke /discover with the captured idea
+  ├── If lean profile or fast-track mode: /discover --quick
+  ├── Otherwise: /discover (auto-detects mode from scale classification)
+  └── /discover handles:
+      - Archetype + scale classification
+      - Core identity elicitation (archetype-specific questions)
+      - Deep dive with research checkpoints
+      - Assumption surfacing and stress testing
+      - Dimension completeness sweep (D04-D10)
+      - Vision synthesis with user approval
+      - MVP scoping + backlog generation with Phase Transition Stories
 ```
 
-User can go back to any dimension. After approval → Phase 4.
+**Output:** `/discover` generates all vision documents, DECISION_LOG.md, ASSUMPTION_REGISTER.md, PRD_SUMMARY.md, BACKLOG_INDEX.md, and epic files.
 
-## Phase 4: Epic Generation
+See `.claude/skills/discover/SKILL.md` for the complete 7-phase flow.
 
-### Generate PRD
+**Legacy dimension references** (`references/dimensions/01-10.md`, `references/phase-1-analysis.md`, `references/discovery-engine.md`) are preserved and reused by /discover's dimension sweep phase.
 
-Create `docs/reference/PRD_SUMMARY.md` from the vision document. Map dimensions to PRD sections:
-- Problem & users → Sections 1-2
-- Features & MVP → Section 5 (requirements with Given/When/Then acceptance criteria)
-- UX/design → Section 6 (NFRs, design constraints)
-- Business model → Section 3 (success criteria)
-- Technical decisions → Section 8 (technical context)
+## Post-Discovery: Scaffold Generation
 
-**PRD quality gate:** Check for vague terms ("fast", "user-friendly" without numbers), missing error handling, thin AC (<3 per requirement), premature solutioning, empty NFR section, no non-goals. Fix smells before presenting.
+After `/discover` completes, continue with scaffold generation:
 
-### Generate Epics
-
-Organize by delivery phase:
-
-- **E01: Project Foundation** — Initialize framework, configure database schema, set up auth, configure CI/CD, development environment
-- **E02: Core MVP Features** — Dependency-ordered feature stories from dimension 3 must-have tier
-- **E03: Design & Polish** — Apply design direction, responsive design, error states, loading indicators
-- **E04: Launch Preparation** — Production deployment, domain, analytics, feedback mechanism
-
-Stories must: fit single context window (≤5 files, 1-3 hours), use template from `ideate/references/story-template.md`, reference personas from dimension 2, have machine-verifiable acceptance criteria.
-
-### Generate Scaffold
-
-From technology choices, generate:
+From technology choices (now in `docs/reference/DECISION_LOG.md`), generate:
 - `CLAUDE.md` — commands for chosen stack, profile, architecture overview
 - `.gitignore` — stack-specific patterns
 - `docs/reference/CODING_STANDARDS.md` — for chosen language(s)
 - `docs/architecture/ARCHITECTURE.md` — proposed architecture
-- `docs/reference/GROUND_RULES.md` — 3-5 default rules for chosen stack
+- `docs/reference/GROUND_RULES.md` — principles + No-Gos from discovery
 
 **Profile-aware generation:**
 - Lean: CLAUDE.md with commands only, ~12 core skills in table, minimal docs
 - Standard: full documentation suite
 - Strict: full docs + compliance structure + audit trail scaffold
 
-Also create `docs/research/`, `docs/solutions/`, `docs/brainstorms/` with `.gitkeep`.
+Also create `docs/research/`, `docs/solutions/`, `docs/brainstorms/`, `docs/reviews/` with `.gitkeep`.
 
 ### Present Summary
 
 ```markdown
 ### Bootstrap Complete (New Project)
 
-**Discovery mode:** [full | partial | fast-track]
+**Discovery mode:** [quick | guided | platform | pioneering]
+**Archetype:** [primary] (+ [secondary] if hybrid)
+**Scale:** [Quick Build | Standard | Platform | Pioneering]
 
 **Generated:**
-- [N] epics, [M] stories
+- [N] epics, [M] stories (including Phase Transition epic)
 - Project scaffold: [framework] + [database] + [auth] on [hosting]
 - Docs: CLAUDE.md, Architecture, Coding Standards, Ground Rules
-
-**Epic Structure:**
-| Epic | Stories | Description |
-|------|---------|-------------|
-| E01  | [count] | Foundation   |
-| E02  | [count] | Core MVP     |
-| E03  | [count] | Polish       |
-| E04  | [count] | Launch       |
+- Discovery artifacts: DECISION_LOG.md, ASSUMPTION_REGISTER.md, project-pitch.md
 
 **First sprint:** E01 foundation (project setup, database, auth, CI/CD)
 

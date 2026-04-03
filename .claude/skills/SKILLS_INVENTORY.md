@@ -6,18 +6,20 @@ Last updated: 2026-03-30
 
 This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 4.0
+**Framework Version:** 4.1
 
 ## Core Workflow
 
 The primary development workflow:
 
 ```
-/sprint-start → /story-cycle (repeat per story) → /sprint-end
+/bootstrap → /discover (new projects) → /ideate → /sprint-start → /story-cycle (repeat) → /sprint-end
 ```
 
 For first-time setup: `/bootstrap`
+For deep guided discovery: `/discover`
 For backlog management: `/ideate`
+For phase transition reviews: `/phase-review`
 For technology skill generation: `/skill-create`
 
 ## Skill Categories
@@ -45,6 +47,8 @@ For technology skill generation: `/skill-create`
 | `/brainstorm`   | `<idea-or-topic>`       | Design exploration with alternatives before story decomposition |
 | `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed stories (single context window sized) |
 | `/skill-create` | -                       | Generate tech skills, rules, and hook configs |
+| `/discover`     | `"<idea>" [--quick\|--platform\|--pioneer]` | Deep guided elicitation — archetype-aware, research-backed discovery with assumption tracking and Phase Transition Stories |
+| `/phase-review` | `[phase-number]`                             | Phase transition review — walkthrough, assumption validation, and next-phase planning |
 | `/research`     | `<topic-or-question>`   | Deep online research with parallel sub-question investigation, source evaluation, and structured reports |
 
 ### Quality & Testing (Manual + Auto)
@@ -184,6 +188,7 @@ The `/story-cycle` skill adapts its methodology based on story type:
 | Security       | Threat model → Implement → Audit           | Hardening, vulnerabilities |
 | Performance    | Baseline → Optimize → Benchmark            | Speed, memory, latency     |
 | Skill/Tooling  | Design → Build → Document                  | Developer experience       |
+| Review         | Walkthrough → Document → Decide             | Phase transition reviews   |
 
 ## Skill Design Patterns
 
@@ -262,6 +267,7 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 4.1     | 2026-04-03 | Deep guided elicitation: `/discover` skill with 11 archetype-aware question banks, 4 discovery modes (Quick/Guided/Platform/Pioneering), DECISION_LOG + ASSUMPTION_REGISTER tracking, Phase Transition Stories (infinite build→review→discover cycle), `/phase-review` skill, "Review" story type, discovery context loading in story-cycle/ideate/build, question scaffolding rules, engineering adaptation by archetype |
 | 3.8     | 2026-03-23 | Comprehensive upgrade: `/quickstart`, `/help-me`, `/dashboard`, `/custom-hooks`, `/uninstall`, `/performance-check` skills, centralized error recovery, standardized argument validation, framework test suite for hooks, team workflow support (human review, CODEOWNERS, TEAM_WORKFLOW.md), security enhancements (SBOM, .env template, secret rotation), architecture documentation (C4+Mermaid templates, MADR ADRs, API docs), developer experience (status line skill indicator, keybindings), framework versioning (MANIFEST.md, machine-parseable CHANGELOG), CLAUDE.md lazy-loading (renamed .claude-context.md to CLAUDE.md), skill lifecycle events for metrics, coverage tool reference table, universal coding standards, lightweight story template |
 | 3.7     | 2026-03-20 | Metric-driven optimization: `/optimize` skill with git checkpointing and automatic rollback, story-cycle git checkpoint + auto-rollback on verification failure, story-scoped file boundaries, simplicity assessment in `/code-quality`, `capture-outcome` micro-component for structured story outcome tracking, `/refine-loop` autonomous mode with TSV logging and diminishing-returns detection |
 | 3.6     | 2026-03-16 | Deep research capability: `/research` skill, `deep-research` engine snippet, `source-evaluator` snippet, `research-analyst` agent, research rule, depth-calibrated research in bootstrap/brainstorm/ideate/story-cycle, reflection-based context compression, parallel subagent dispatch for research, prior research caching |

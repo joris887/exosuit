@@ -175,6 +175,26 @@ This is guidance, not enforcement — the developer may complete it in fewer ses
 
 If `docs/reference/PRD_SUMMARY.md` exists, load Section 7 (scope boundaries) and Section 3 (success criteria). Use scope boundaries as guard rails throughout implementation — if the story drifts toward a stated non-goal or violates an implementation boundary, flag it. Use success criteria to verify the story contributes to measurable product outcomes.
 
+### 0b.5. Discovery Context Loading
+
+<IF condition="docs/reference/DECISION_LOG.md exists">
+Load decisions relevant to this story (grep for keywords from story description and affected files).
+During implementation: if a decision point arises that's already in the log, USE the logged decision. State:
+> "Using decision D007 (logged during discovery): [decision]"
+Do NOT re-decide settled questions. If a decision needs revisiting, document why and update the log.
+</IF>
+
+<IF condition="docs/reference/ASSUMPTION_REGISTER.md exists">
+Load assumptions relevant to this story (grep for keywords from story description).
+If implementation reveals an assumption is wrong, update the register: set status → INVALIDATED, add evidence in the Evidence column. Flag to the user:
+> "Assumption A003 has been invalidated: [assumption]. Evidence: [what we found]. This may affect [related decisions]."
+</IF>
+
+<IF condition="Story has a 'No-Gos' section OR vision/project-pitch.md contains NO-GOS">
+Load No-Gos into context. If scope creep toward a No-Go is detected during implementation, STOP:
+> "This is heading toward a documented No-Go: [no-go]. Should we continue or respect the boundary?"
+</IF>
+
 ### 0c. Scope Analysis
 
 Before any exploration, decompose the user's request. Apply the `scope_analysis` reasoning tool from `references/reasoning-tools.md`:
@@ -266,6 +286,7 @@ Determine the story type from the description, backlog entry, or user input:
 | **Security** | "Harden", "audit", "vulnerability", "encrypt" | Threat model → Implement → Audit |
 | **Performance** | "Optimize", "benchmark", "speed up", "latency" | Baseline → Optimize → Benchmark |
 | **Skill/Tooling** | "Create skill", "add tool", "developer experience" | Design → Build → Document |
+| **Review** | Phase transition, walkthrough, assumption validation, direction decision | Interactive walkthrough → Document findings → Decide direction |
 
 If the story type is ambiguous after checking indicators, ask the user using AskUserQuestion with `description` fields explaining workflow implications:
 

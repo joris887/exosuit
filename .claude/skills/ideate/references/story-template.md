@@ -47,6 +47,20 @@ created: YYYY-MM-DD
 - [Future enhancement tracked in PROJ-XXX]
 - [Constraint: Must NOT modify X]
 
+## Relevant Decisions
+<!-- Auto-populated from DECISION_LOG.md during story generation. Omit section if no discovery was run. -->
+- D003: Database — PostgreSQL on Supabase (CONFIRMED)
+- D007: Auth — Supabase Auth with magic links (CONFIRMED)
+
+## Relevant Assumptions
+<!-- Auto-populated from ASSUMPTION_REGISTER.md. Omit section if no discovery was run. -->
+- A002: Users prefer email auth over social (MEDIUM confidence)
+
+## No-Gos for This Story
+<!-- Auto-populated from vision/project-pitch.md. Omit section if no discovery was run. -->
+- Do NOT implement social login (Phase 2)
+- Do NOT add admin dashboard (Phase 2)
+
 ## Notes
 [Optional: implementation hints, known gotchas, links to designs or ADRs]
 ```

@@ -32,6 +32,12 @@ created: YYYY-MM-DD
 
 ## Out of scope
 - [What is NOT part of this story]
+
+## Relevant Decisions
+<!-- Omit if no discovery was run -->
+
+## No-Gos
+<!-- Omit if no discovery was run -->
 ```
 
 ## When to use
