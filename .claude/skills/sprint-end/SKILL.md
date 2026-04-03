@@ -140,6 +140,17 @@ git diff --name-only $DEFAULT_BRANCH...HEAD
 
 Analyze: branch name, all commits since branching, all files changed, stories completed (parse from commit messages).
 
+## 1.5. Pre-Ship Smoke Test (Optional)
+
+Check CLAUDE.md Commands for a `dev:` command. If one is configured:
+
+1. Offer: "Before running quality gates, want to do a quick visual check of the app?"
+2. If user accepts: run the dev command in background (`run_in_background: true`), show whatever output it produces (URLs, status, CLI output — do NOT assume localhost), let user verify
+3. If user finds issues: fix them before proceeding to quality gates
+4. If user declines or no dev command exists: skip and proceed to quality gates
+
+This catches visual/UX issues that automated tests don't cover. Advisory, not blocking.
+
 ## 2. Quality Gates
 
 **Mindset:** Assume there are problems. Your job is to find them. Your first assessment is almost never "all clear."

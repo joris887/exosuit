@@ -23,6 +23,7 @@
 ## Commands
 ```bash
 # Filled by /bootstrap with detected commands:
+# dev:       <dev server command>
 # test:      <test command>
 # lint:      <lint command>
 # format:    <format command>

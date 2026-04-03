@@ -112,6 +112,23 @@ For each step in dependency order:
 
 ## Phase 3: Complete
 
+### 3A. Launch & Verify (if applicable)
+
+Check CLAUDE.md Commands for a `dev:` command. If one is configured:
+
+1. Show: "Starting your project..."
+2. Run the dev command in background using Bash with `run_in_background: true`
+3. Wait a few seconds. Read any output — look for URLs, ports, file paths, or status messages.
+4. Show whatever the command produces. If it outputs a URL, highlight it. If it's a CLI, show the help output. If it starts a server, show the address.
+5. Ask: "Take a look and tell me what you think!"
+6. Wait for feedback. Positive → proceed to completion report. Issues → fix and re-run.
+
+If no `dev` command is configured (libraries, packages, pipelines, etc.) → skip this step. Tests already verified the build.
+
+**Do NOT assume localhost or any specific URL.** Read the actual command output. Different projects produce different results.
+
+### 3B. Completion Report
+
 Show a completion report in plain English:
 
 ```markdown
@@ -135,10 +152,10 @@ Show a completion report in plain English:
 - **Auth:** [chosen approach] — [one-line reason]
 - ...
 
-### How to Run It
-```bash
-[the command to start the app, e.g., npm run dev]
-```
+### Try It
+[If dev command ran: "Your project is running — see above"]
+[If dev command exists but didn't launch: "Run `[dev command]` to start"]
+[If no dev command: omit this section]
 
 ### Next Steps
 - [Suggestion 1, e.g., "Add a payment system with /build 'Stripe payment integration'"]
