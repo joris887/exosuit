@@ -251,8 +251,14 @@ Output a summary:
 **Stories:** [count] selected ([total size estimate])
 **Sprint spec:** `docs/sprints/sprint-<number>.md`
 
-Ready to start work. Use `/story-cycle <story-id>` to deliver a story.
+Ready to start work.
+
+**Next steps:**
+1. Clear your context window: `/clear`
+2. Start the first story: `/story-cycle [first-story-id]`
 ```
+
+Always show the actual first story ID from the sprint plan (e.g., `/story-cycle E01-S01`), not a placeholder.
 
 ## What This Skill Does NOT Do
 
