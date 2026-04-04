@@ -9,26 +9,52 @@ set -euo pipefail
 # Usage:
 #   curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
 #   bash install.sh
+#   bash install.sh --mode=plugin
+#   bash install.sh --components=hooks,rules
 #   bash install.sh --dry-run
+#
+# Modes:
+#   --mode=template  (default) Install core framework (.claude/) + project scaffold
+#   --mode=plugin    Install project scaffold only (core provided by Claude Code plugin)
+#
+# Options:
+#   --components=X   Comma-separated .claude/ subdirectories to install (template mode only).
+#                    Default: all. Components are auto-detected from the framework — no
+#                    hardcoded list. Run --dry-run to see what's available.
+#   --dry-run        Preview what would be installed without making changes.
 
 REPO_URL="https://github.com/joris887/JD-LLM-Development_framework.git"
+MODE="template"
 DRY_RUN=false
+COMPONENTS="all"
 
 for arg in "$@"; do
     case "$arg" in
-        --dry-run)  DRY_RUN=true ;;
+        --mode=template) MODE="template" ;;
+        --mode=plugin)   MODE="plugin" ;;
+        --dry-run)       DRY_RUN=true ;;
+        --components=*)  COMPONENTS="${arg#--components=}" ;;
         --help|-h)
-            echo "Usage: install.sh [--dry-run]"
-            echo "  Installs the JD-LLM Development Framework into the current directory."
-            echo "  --dry-run  Preview what would be installed without making changes."
+            echo "Usage: install.sh [OPTIONS]"
+            echo ""
+            echo "Modes:"
+            echo "  --mode=template  Install full framework (default)"
+            echo "  --mode=plugin    Install scaffold only (core via Claude Code plugin)"
+            echo ""
+            echo "Options:"
+            echo "  --components=X   Comma-separated .claude/ subdirectories (template mode)"
+            echo "                   Default: all. Auto-detected from framework contents."
+            echo "  --dry-run        Preview without making changes"
             exit 0
             ;;
     esac
 done
 
 echo "=== JD-LLM Development Framework ==="
-echo "Installing into: $(pwd)"
-$DRY_RUN && echo "(Dry run — no files will be modified)"
+echo "Mode: $MODE"
+$DRY_RUN && echo "Dry run: yes"
+[ "$COMPONENTS" != "all" ] && echo "Components: $COMPONENTS"
+echo "Target: $(pwd)"
 echo ""
 
 # Clone to temp directory
@@ -41,21 +67,53 @@ SRC="$TMP/fw"
 # --- Helpers ---
 run() {
     if $DRY_RUN; then
-        echo "  [dry-run] $*"
+        # Show clean paths instead of temp directory
+        local display="${*//$SRC/[framework]}"
+        echo "  [dry-run] $display"
     else
         "$@" 2>/dev/null || true
     fi
 }
 
-# --- 1. Core framework (.claude/) ---
-# Copy all framework files. Won't overwrite existing files (user customizations preserved).
-# settings.json is always overwritten — it's framework-managed, not user-editable.
-echo "Installing core framework (.claude/)..."
-run cp -rn "$SRC/.claude" .
-if $DRY_RUN; then
-    echo "  [dry-run] Would overwrite .claude/settings.json"
+# --- 1. Core framework (.claude/) — template mode only ---
+if [ "$MODE" = "template" ]; then
+    echo "Installing core framework (.claude/)..."
+
+    if [ "$COMPONENTS" = "all" ]; then
+        # Copy everything — any new skill/rule/hook is auto-included
+        run cp -rn "$SRC/.claude" .
+    else
+        # Selective: copy only requested subdirectories + root-level files
+        mkdir -p .claude
+        # Always copy root-level files in .claude/ (settings, templates, CLAUDE.md)
+        for f in "$SRC/.claude"/*; do
+            if [ -f "$f" ]; then
+                run cp -n "$f" .claude/
+            fi
+        done
+        # Copy each requested component (auto-validated against what exists)
+        IFS=',' read -ra SELECTED <<< "$COMPONENTS"
+        for comp in "${SELECTED[@]}"; do
+            comp=$(echo "$comp" | tr -d ' ')
+            if [ -d "$SRC/.claude/$comp" ]; then
+                echo "  Installing $comp..."
+                run cp -rn "$SRC/.claude/$comp" .claude/
+            else
+                echo "  Warning: '$comp' not found in .claude/ — skipping"
+                echo "  Available: $(ls -d "$SRC/.claude"/*/ 2>/dev/null | xargs -n1 basename | tr '\n' ' ')"
+            fi
+        done
+        echo "  Note: Partial install — some skills may require components you didn't include."
+    fi
+
+    # settings.json is always overwritten — it's framework-managed
+    if $DRY_RUN; then
+        echo "  [dry-run] Would overwrite .claude/settings.json (framework-managed)"
+    else
+        cp "$SRC/.claude/settings.json" .claude/settings.json
+    fi
 else
-    cp "$SRC/.claude/settings.json" .claude/settings.json
+    [ "$COMPONENTS" != "all" ] && echo "  Note: --components ignored in plugin mode (core comes from plugin)"
 fi
 
 # --- 2. Project scaffold (docs/, vision/, scripts/, etc.) ---
@@ -63,20 +121,26 @@ fi
 echo "Installing project scaffold..."
 if [ -d "$SRC/scaffold" ]; then
     run cp -rn "$SRC/scaffold/." .
+else
+    echo "  Warning: scaffold/ not found in framework"
 fi
 
 # --- 3. Entry point + GitHub integration ---
-echo "Installing entry point and GitHub integration..."
+echo "Installing entry point..."
 run cp -n "$SRC/CLAUDE.md" .
-[ -d "$SRC/.github" ] && run cp -rn "$SRC/.github" .
-[ ! -e AGENTS.md ] && run ln -s CLAUDE.md AGENTS.md
+if [ -d "$SRC/.github" ]; then
+    run cp -rn "$SRC/.github" .
+fi
+if [ ! -e AGENTS.md ]; then
+    run ln -s CLAUDE.md AGENTS.md
+fi
 
 # --- 4. Gitignore patterns ---
-# Patterns are stored in the framework (.gitignore.framework), not hardcoded in this script.
+# Patterns are stored in the framework (.gitignore.framework), not hardcoded here.
 if [ -f "$SRC/.gitignore.framework" ]; then
     echo "Updating .gitignore..."
     if $DRY_RUN; then
-        echo "  [dry-run] Would append framework patterns to .gitignore"
+        echo "  [dry-run] Would append framework patterns from .gitignore.framework"
     else
         touch .gitignore
         while IFS= read -r line; do
@@ -87,8 +151,16 @@ if [ -f "$SRC/.gitignore.framework" ]; then
     fi
 fi
 
+# --- Summary ---
 echo ""
 echo "=== Installed ==="
+if [ "$MODE" = "template" ]; then
+    echo "  .claude/        Core framework (skills, hooks, rules, agents, prompts)"
+fi
+echo "  docs/           Documentation templates"
+echo "  vision/         New project discovery flow"
+echo "  CLAUDE.md       Framework entry point"
+echo "  .github/        PR template, CI workflow"
 echo ""
 echo "Next steps:"
 echo "  1. Open Claude Code in this directory"
