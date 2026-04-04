@@ -1,0 +1,16 @@
+{
+  "name": "jd-llm-framework",
+  "description": "JD-LLM Development Framework marketplace — structured development with Claude Code",
+  "owner": {
+    "name": "Joris de Umens",
+    "url": "https://github.com/joris887"
+  },
+  "plugins": [
+    {
+      "name": "jd-llm-development-framework",
+      "description": "Structured development framework — TDD, sprints, quality gates, 45 skills, 8 agents, 11 hooks, path-scoped rules. Language-agnostic, works for any project.",
+      "version": "4.1.0",
+      "source": "./"
+    }
+  ]
+}

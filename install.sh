@@ -21,6 +21,16 @@ set -euo pipefail
 #   bash install.sh --mode=plugin
 #   bash install.sh --dry-run
 #   bash install.sh --components=hooks,rules,skills
+#
+# Plugin marketplace (alternative to install.sh):
+#   Add to your ~/.claude/settings.json or .claude/settings.json:
+#   "extraKnownMarketplaces": {
+#     "jd-llm-framework": {
+#       "source": "github",
+#       "repo": "joris887/JD-LLM-Development_framework"
+#     }
+#   }
+#   Then: /plugin install jd-llm-development-framework@jd-llm-framework
 
 REPO_URL="https://github.com/joris887/JD-LLM-Development_framework.git"
 MODE="template"

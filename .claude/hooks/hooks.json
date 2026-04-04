@@ -121,6 +121,28 @@
           }
         ]
       }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh",
+            "statusMessage": "Preserving session state..."
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-failure.sh",
+            "statusMessage": "Analyzing failure..."
+          }
+        ]
+      }
     ]
   }
 }

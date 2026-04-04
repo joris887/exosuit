@@ -4,6 +4,11 @@
   "attribution": {
     "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
   },
+  "env": {
+    "JD_PROJECT_PROFILE": "standard",
+    "JD_EXPLAIN_MODE": "brief",
+    "JD_STOP_MAX_ITERATIONS": "5"
+  },
   "plansDirectory": "docs/plans",
   "outputStyle": ".claude/output-styles/framework.md",
   "spinnerVerbs": {
@@ -156,6 +161,28 @@
           {
             "type": "command",
             "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/subagent-stop.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/pre-compact.sh",
+            "statusMessage": "Preserving session state..."
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/post-tool-failure.sh",
+            "statusMessage": "Analyzing failure..."
           }
         ]
       }

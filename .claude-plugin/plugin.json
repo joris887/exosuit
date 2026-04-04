@@ -1,7 +1,7 @@
 {
   "name": "jd-llm-development-framework",
-  "version": "3.7.0",
-  "description": "Opinionated development framework with hooks, skills, agents, and quality gates for Claude Code",
+  "version": "4.1.0",
+  "description": "Structured development framework for Claude Code — TDD, sprints, quality gates, 45 skills, 8 agents, 11 hooks, path-scoped rules",
   "homepage": "https://github.com/joris887/JD-LLM-Development_framework",
   "author": "Joris de Umens",
   "license": "MIT",
@@ -11,9 +11,49 @@
     ]
   },
   "settings": {
+    "includeGitInstructions": false,
+    "attribution": {
+      "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
+    },
+    "plansDirectory": "docs/plans",
+    "outputStyle": "${CLAUDE_PLUGIN_ROOT}/output-styles/framework.md",
+    "env": {
+      "JD_PROJECT_PROFILE": "standard",
+      "JD_EXPLAIN_MODE": "brief",
+      "JD_STOP_MAX_ITERATIONS": "5"
+    },
     "statusLine": {
       "type": "command",
       "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/status-line.sh"
+    },
+    "spinnerVerbs": {
+      "mode": "append",
+      "verbs": [
+        "Discovering",
+        "Planning",
+        "Building",
+        "Testing",
+        "Reviewing",
+        "Shipping",
+        "Analyzing",
+        "Refactoring",
+        "Investigating"
+      ]
+    },
+    "spinnerTipsOverride": {
+      "excludeDefault": false,
+      "tips": [
+        "Use /story-cycle for structured story delivery",
+        "Run /doctor to check framework health",
+        "Use /research for evidence-backed decisions",
+        "TDD first — write tests before implementation",
+        "Use /handoff before ending a session",
+        "Run /sprint-end to ship completed work",
+        "Use /bootstrap to set up a new project",
+        "Never claim done without test evidence",
+        "Use /debug-session for structured root-cause analysis",
+        "Use /continue to resume from last session"
+      ]
     }
   }
 }
