@@ -15,16 +15,23 @@ Typical post-elicitation coverage:
 
 ## Scale-Adapted Depth
 
-| Scale | Approach per Dimension |
-|---|---|
-| **Quick Build** | "I'd go with [X]. Sound good?" → confirm/change. ~2 minutes total. |
-| **Standard** | 2-3 options with tradeoffs → user picks. ~15-20 minutes total. |
-| **Platform** | Full treatment + research + ADR for significant decisions. ~30-45 minutes. |
-| **Pioneering** | Defer to post-spike: "We'll decide after spikes." Mark OPEN. |
+| Scale | Approach per Dimension | AskUserQuestion Style |
+|---|---|---|
+| **Quick Build** | "I'd go with [X]. Sound good?" → confirm/change. ~2 minutes total. | INFERRED format: recommended option + "Show others" + "Other" |
+| **Standard** | 2-3 options with tradeoffs → user picks. ~15-20 minutes total. | Full options: 3-4 options with rich descriptions |
+| **Platform** | Full treatment + research + ADR for significant decisions. ~30-45 minutes. | Full options + `preview` field with architecture diagrams/config |
+| **Pioneering** | Defer to post-spike: "We'll decide after spikes." Mark OPEN. | Skip AskUserQuestion — note as OPEN in DECISION_LOG |
 
 ## The 10 Dimensions
 
 For each dimension, load the corresponding module from `.claude/skills/bootstrap/references/dimensions/{NN}-{name}.md` for base questions, options, and research queries.
+
+**Presentation format:** Every dimension with 2-4 predefined options MUST use **AskUserQuestion** (not plain text). Follow `@.claude/prompts/interactive-ux.md`:
+- Recommended option FIRST with `(Recommended)` and reason based on earlier decisions
+- Rich `description` on every option: what it is, when to choose it, trade-off, cost
+- Use `preview` field for technical dimensions (D05-D09) to show file structures or config examples
+- Question text includes: _"Select 'Other' to describe your specific needs — more detail helps me pick the right technology."_
+- After research runs, incorporate findings into option descriptions (e.g., "Currently ranked #1 for [use case] in [year]")
 
 ### D04. UX & Design
 **Base:** Load `bootstrap/references/dimensions/04-ux-design.md`
@@ -81,6 +88,21 @@ After all dimensions are decided, detect contradictions:
 | Mobile app + web-only deployment | Need native/cross-platform framework | Add React Native/Flutter/Expo |
 
 Present conflicts with explanation. Let user choose resolution. Log resolved conflicts in DECISION_LOG with rationale.
+
+## Progress Within Phase 5
+
+Update the progress bar after each dimension is decided:
+
+```
+---
+**Discover** | Phase 5 of 7: Technical Decisions
+[=============>......] [N] of ~22 decisions
+Just decided: [Dimension name] → [choice]
+Next: [next dimension name]
+---
+```
+
+This keeps the user oriented as they move through the 7 dimensions (D04-D10).
 
 ## Decision Logging
 

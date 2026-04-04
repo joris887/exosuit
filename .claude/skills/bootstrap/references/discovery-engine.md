@@ -80,35 +80,45 @@ When presenting options for a constrained dimension, note: "Based on your earlie
 
 ## Option Presentation Format
 
-For each option, present in this structure:
+Present options via **AskUserQuestion** (not as plain text). Each dimension's 2-4 options map directly to AskUserQuestion's format:
 
-```markdown
-**Option [A/B/C]: [Name]**
-[One sentence: what this is in plain English]
-- **Used by:** [2-3 well-known examples]
-- **Good for:** [when to choose this]
-- **Trade-off:** [honest downside]
-- **Cost:** [pricing summary]
+```
+header: "[Dimension]"  // max 12 chars (e.g., "Frontend", "Database", "Auth")
+question: "[Plain-English question about this dimension]. Select 'Other' to
+           describe your own preference — more detail helps me pick the right
+           technology for your needs."
+options:
+  - label: "[Recommended option] (Recommended)"
+    description: "[What it is in plain English]. Used by [examples]. Best for
+                  [when to choose]. Trade-off: [honest downside]. Cost: [pricing]."
+  - label: "[Option B]"
+    description: "[Same structure — what, used by, best for, trade-off, cost]"
+  - label: "[Option C]"
+    description: "[Same structure]"
 ```
 
-For non-technical users, lead with the analogy. For technical users, include version numbers and ecosystem details.
+**Use the `preview` field** for technical choices where visual comparison helps (e.g., file structure examples, config snippets, architecture diagrams).
 
-Always include:
-- A recommended option (with reason)
-- A "Pick for me" shortcut
-- A "Tell me more" option for any choice
+For non-technical users, lead descriptions with plain-English analogies. For technical users, include version numbers and ecosystem details.
+
+The "Other" option is auto-included by AskUserQuestion — it serves as the "Tell me more" and "I have a different preference" escape hatch. "Pick for me" / "You decide" → select the recommended option.
 
 ## INFERRED Dimension Handling
 
-For INFERRED dimensions, present the inference for confirmation:
+For INFERRED dimensions, confirm the inference via **AskUserQuestion**:
 
-```markdown
-Based on your description, I'm planning to use **[inferred choice]** because [reason].
-
-Does that sound right? Or would you prefer something different?
-- [x] Sounds good (continue)
-- [ ] Show me other options
-- [ ] I have a specific preference: [text]
+```
+header: "[Dimension]"
+question: "Based on your description, I'm planning to use [inferred choice]
+           because [reason]. Does that sound right?"
+options:
+  - label: "Sounds good (Recommended)"
+    description: "Continue with [inferred choice]. I'll configure everything
+                  for this technology."
+  - label: "Show me other options"
+    description: "I want to see what else is available before deciding."
+  - label: "I have a specific preference"
+    description: "Select 'Other' and tell me what you'd prefer to use."
 ```
 
 This is faster than presenting all options but still gives the user control.

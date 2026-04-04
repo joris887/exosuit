@@ -26,14 +26,23 @@ ls vision/ 2>/dev/null
 
 ### Entry Options
 
-```markdown
-### New Project Setup
+Present via **AskUserQuestion**:
 
-No existing codebase detected. Let's build your project from an idea.
-
-1. **Describe your idea** — I'll ask a few questions to understand it fully
-2. **I already wrote a vision** — I'll check the `vision/` folder for your notes
-3. **Just build it** — Give me a one-liner and I'll make all the decisions
+```
+header: "New project"
+question: "No existing codebase detected. Let's build your project from an idea.
+           How would you like to start?"
+options:
+  - label: "Describe my idea (Recommended)"
+    description: "Tell me about your project in your own words. I'll ask a few
+                  focused questions to understand it fully — the more detail you
+                  give, the better the result."
+  - label: "I already wrote a vision"
+    description: "I'll check the vision/ folder for your notes and build from there.
+                  Great if you've already thought things through."
+  - label: "Just build it"
+    description: "Give me a one-liner and I'll make all the technical decisions.
+                  Fastest path to code. You'll review my choices before I start."
 ```
 
 ### Inline Description (Option 1)
@@ -112,7 +121,7 @@ See `.claude/skills/discover/SKILL.md` for the complete 7-phase flow.
 `/discover` Phase 7D already populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/context/*, CLAUDE.md) from discovery decisions. After `/discover` completes, only these remaining scaffold steps are needed:
 
 - `.gitignore` — stack-specific patterns (from DECISION_LOG tech choices)
-- Create empty directories: `docs/research/`, `docs/solutions/`, `docs/brainstorms/`, `docs/reviews/` with `.gitkeep`
+- Create empty directories: `docs/research/`, `docs/solutions/`, `docs/brainstorms/`, `docs/reviews/`, `docs/plans/` with `.gitkeep`
 - If strict profile: create `docs/adr/` with initial ADRs from Platform-scale discovery decisions
 
 **Verify Phase 7D ran:** Check that `docs/context/project-overview.md`, `docs/context/tech-context.md`, and `docs/architecture/ARCHITECTURE.md` contain project-specific content (not template placeholders). If they're still templates, Phase 7D was skipped — re-read the `/discover` SKILL.md Phase 7D instructions and execute them now.

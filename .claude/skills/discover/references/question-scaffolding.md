@@ -59,3 +59,35 @@ Match the user's energy and confidence level:
 - **Impatient or rushed** → compress, offer to auto-decide remaining items
 
 Read the room. A weekend hobbyist and an enterprise architect need different pacing.
+
+## Rule 7: Use AskUserQuestion for Closed Choices
+
+When presenting 2-4 predefined options, use the **AskUserQuestion tool** — don't just list options as text. This gives the user a proper selection UI instead of typing.
+
+Follow the format rules in `@.claude/prompts/interactive-ux.md`:
+- Recommended option FIRST with `(Recommended)` in the label
+- Rich `description` on every option (what it means, when to choose it, trade-off)
+- Phrase the question to encourage the user to select "Other" for detailed custom input
+- Use `preview` field for technical comparisons (file structures, config snippets)
+- Use `multiSelect: true` for "select all that apply" questions
+
+**When NOT to use AskUserQuestion:**
+- Open-ended exploration ("describe your idea", "what problem does this solve")
+- Follow-up clarification where the answer depends on prior conversation context
+- Questions with >4 genuine options where narrowing would lose important nuance
+
+**Hybrid pattern:** For questions that could go either way, present AskUserQuestion options but make the question text say: _"Select below, or choose 'Other' to tell me in your own words — detailed answers help me build something closer to what you want."_
+
+## Rule 8: Progress Tracking
+
+Users need to know where they are in the process. Display a progress bar at the start of each new phase:
+
+```
+---
+**Discover** | Phase [N] of 7: [Phase Name]
+[========>...........] [X] of ~[Y] decisions
+Coming up: [plain-English next step]
+---
+```
+
+Before each phase's first question, give a 2-3 sentence preview: what this phase covers, why it matters, how long it takes. Between phases, summarize what was decided (3-5 bullets) before showing the next progress bar.

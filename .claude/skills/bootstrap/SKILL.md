@@ -7,13 +7,15 @@ depends-on: [skill-create]
 references: [references/stack-detection.md, references/new-project.md, references/phase-1-analysis.md, references/discovery-engine.md, references/accuracy-safeguards.md, references/coverage-assessment.md, references/quality-tooling.md, references/readiness-report.md, references/foundation-backlog.md, references/llm-readiness.md, references/technical-debt-assessment.md]
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent, AskUserQuestion
 ---
 ______________________________________________________________________
 
 ## bootstrap
 
 Setting up the JD-LLM Development Framework for this project.
+
+**Interactive UX:** Read `@.claude/prompts/interactive-ux.md` for the shared protocol. Use AskUserQuestion for all closed-choice interactions. Show progress between major steps. Read `references/question-scaffolding.md` (in the discover skill) for question formatting rules — Rules 7-8 apply here too.
 
 ## Process Flow (authoritative — prose below is supporting detail)
 
@@ -96,6 +98,17 @@ find . -type f \
 
 ## Path A: Existing Repository
 
+```
+---
+**Bootstrap** | Step 1 of 8: Stack Detection
+[=>..................] 1 of 8 steps
+Coming up: Detecting your technology stack, tools, and codebase metrics
+---
+
+Analyzing your project to detect the tech stack, available tools, and
+codebase structure. This is automatic — no input needed yet.
+```
+
 ### A1-A3. Detect Stack, Commands, and Measure Codebase
 
 Run `scripts/detect-stack.sh` — execute directly, do NOT read source first.
@@ -131,7 +144,34 @@ Detect whether a type checker is configured for the detected stack:
 
 ### A2.85. Offer Quality Tooling Installation
 
-Read `references/quality-tooling.md` for the complete flow. After detecting the stack and its available tools (including type checker from A2.8), present missing-but-recommended quality tools (formatter, linter, coverage, type checker) with correct install commands for the detected package manager. The user can select which tools to install or decline all. Declined tools are recorded for the Readiness Report and foundation backlog.
+```
+---
+**Bootstrap** | Step 3 of 8: Quality Tooling
+[=====>..............] 3 of 8 steps
+Coming up: Installing recommended development tools
+---
+```
+
+Read `references/quality-tooling.md` for the complete flow. After detecting the stack and its available tools (including type checker from A2.8), present missing-but-recommended quality tools via **AskUserQuestion** with `multiSelect`:
+
+```
+header: "Dev tools"
+question: "These tools are recommended for your [language] project but aren't
+           installed yet. Select which to install now. Skipped tools become
+           backlog stories you can tackle later."
+multiSelect: true
+options:
+  - label: "[tool] ([category]) (Recommended)"
+    description: "[what it does]. Install: `[command]`. Used by quality gates
+                  during development."
+  - label: "[tool] ([category]) (Recommended)"
+    description: "[what it does]. Install: `[command]`."
+  - label: "[tool] ([category])"
+    description: "[what it does]. Install: `[command]`. Optional but improves
+                  code reliability."
+```
+
+If all tools are already available, skip this step with a note: "All recommended tools detected."
 
 **For stacks with built-in tools** (Go, Rust, Dart): note as available, skip the offer for those categories.
 
@@ -175,6 +215,8 @@ Read `references/technical-debt-assessment.md` for the complete assessment flow.
 4. **Dead code indicators** — detect unused imports where tooling is available
 
 Record detected items in `docs/technical-debt.md` under the matching severity heading, using the full item format (category, severity, origin, location, quantified impact, interest rate, effort, resolution). Set origin to `legacy` for all bootstrap-detected items. Critical/High-severity items generate foundation stories in the foundation backlog (A5.9).
+
+**Seed `docs/context/error-patterns.md`:** For files with 3+ stale markers (TODO/FIXME/HACK) or detected unsafe patterns, add an entry to error-patterns.md noting the affected area and common failure patterns for that module. This gives debug-session and context-prime useful context from day one. Format follows the template in error-patterns.md (Brief description, Affected area, Prevention note). Only seed 3-5 entries maximum from the most problematic areas — this file grows organically via record-failure during normal development.
 
 ### A3.5. Generate Architecture Overview
 
@@ -227,15 +269,44 @@ Each file: ≤200 lines, evidence-based claims only, update YAML frontmatter tim
 
 ### A3.5b. Establish Project Ground Rules
 
+```
+---
+**Bootstrap** | Step 5 of 8: Ground Rules
+[========>...........] 5 of 8 steps
+Coming up: Defining architectural rules that protect your codebase
+---
+
+Ground rules are non-negotiable architectural principles — they prevent
+AI and developers from making choices that break your system. These get
+checked automatically during every sprint.
+```
+
 Prompt the user for 3-7 non-negotiable architectural principles. Populate `docs/reference/GROUND_RULES.md`:
 
 - Fill the **Architecture Summary** with 2-3 sentences describing the pattern and key technology choices
-- Walk through categories systematically — start with the 3 essential categories (dependencies, boundaries, data-flow), then ask about recommended categories based on context:
-  - Security-sensitive stack (auth, payments, PII) → recommend security category
-  - AI-assisted development → recommend technology category (locks choices, prevents AI introducing unapproved libs)
-  - APIs or microservices → suggest api-design category
-  - Production system with SLOs → suggest operational category
-- Ask: "What architectural rules should NEVER be broken in this project?" Give examples from the BOOTSTRAP DEFAULTS comment in GROUND_RULES.md, selecting the section matching the detected architecture
+- **Select categories** — use **AskUserQuestion** with `multiSelect` to let the user pick which categories matter:
+
+```
+header: "Categories"
+question: "Which ground rule categories matter for your project?
+           The first 3 are recommended for all projects."
+multiSelect: true
+options:
+  - label: "Dependencies + Boundaries + Data-flow (Recommended)"
+    description: "Essential for all projects. Controls what imports what,
+                  where logic lives, and how data moves."
+  - label: "Security"
+    description: "For apps handling auth, payments, or personal data.
+                  Locks down credential handling and data access patterns."
+  - label: "Technology"
+    description: "Locks tech choices to prevent AI from introducing unapproved
+                  libraries. Recommended for AI-assisted development."
+  - label: "API design / Operational"
+    description: "For APIs, microservices, or production systems with SLOs.
+                  Enforces contract-first design and operational standards."
+```
+
+- Ask conversationally: "What architectural rules should NEVER be broken in this project?" Give examples from the BOOTSTRAP DEFAULTS comment in GROUND_RULES.md, selecting the section matching the detected architecture
 - For each principle, use the `GR-NNN` format with fields: **Level** (MUST/SHOULD), **Category** (dependencies/boundaries/data-flow/security/technology/operational), **Statement** (one sentence with RFC 2119 keyword), **Rationale** (what breaks if violated), **Enforced-by** (ai/review/auto check), **Exceptions** (process or "None")
 - If the user has no strong preferences, suggest 3-5 principles from the matching architecture defaults plus universal defaults
 - **Brownfield baseline (Path A only):** If a new rule is defined but existing code already violates it, document existing violations in the Exception Log with scope "pre-existing", and suggest a foundation story to remediate incrementally. Rules that can't be enforced today are aspirational, not ground rules.
@@ -293,7 +364,17 @@ echo "Default branch: $DEFAULT_BRANCH"
 
 Update CLAUDE.md's Git Workflow section: replace the `<!-- Detected by /bootstrap -->` comment with the detected branch name.
 
+Also update `docs/reference/GIT_WORKFLOW.md`: replace generic `main` references in the Branching Model section with the detected default branch name (e.g., if the project uses `develop` as its default branch, update accordingly). This ensures sprint-end and framework-upgrade read the correct branch name from this reference file.
+
 ### A3.8. Profile Detection
+
+```
+---
+**Bootstrap** | Step 4 of 8: Development Profile
+[======>.............] 4 of 8 steps
+Coming up: Choosing how much ceremony the framework applies
+---
+```
 
 Analyze project characteristics to recommend a complexity profile. This determines the ceremony level for all framework skills.
 
@@ -316,13 +397,28 @@ Analyze project characteristics to recommend a complexity profile. This determin
 - Small codebase (<2K LOC from A3 metrics)
 - No deployment configuration (no Dockerfile, no hosting configs)
 
-Present the recommendation with matched indicators:
-> "Based on your project: [list matched indicators]. I recommend the **[profile]** profile because [reason]. You can change this anytime by editing the **Profile:** line in CLAUDE.md or setting JD_PROJECT_PROFILE."
+Present the recommendation with matched indicators, then use **AskUserQuestion**:
 
-Use AskUserQuestion with options:
-- **Lean** — "Minimal ceremony. Fast iteration. Best for prototypes, MVPs, internal tools, and learning projects."
-- **Standard** (recommended unless indicators suggest otherwise) — "Balanced quality gates + documentation. Best for production apps and APIs."
-- **Strict** — "Maximum rigor with audit trail. Best for regulated, high-stakes, or compliance-sensitive projects."
+```
+header: "Profile"
+question: "Based on your project ([list matched indicators]), I recommend
+           [profile]. This controls how much ceremony the framework applies.
+           You can change this anytime in CLAUDE.md."
+options:
+  - label: "[Recommended profile] (Recommended)"
+    description: "[Full description]. [Why this fits based on matched indicators]."
+  - label: "Lean"
+    description: "Minimal ceremony. Fast iteration. Best for prototypes, MVPs,
+                  internal tools. Fewer quality gates, less documentation."
+  - label: "Standard"
+    description: "Balanced quality gates + documentation. Best for production apps
+                  and APIs. TDD enforced, PR reviews, sprint workflow."
+  - label: "Strict"
+    description: "Maximum rigor with audit trail. Best for regulated, high-stakes,
+                  or compliance-sensitive projects. All gates mandatory, ADRs required."
+```
+
+Note: Show the recommended profile first with `(Recommended)`. The remaining 2 options are the other profiles (don't repeat the recommended one).
 
 Store the chosen profile: write `**Profile:** <choice>` to CLAUDE.md in step A4.
 
@@ -371,6 +467,10 @@ Update these files with detected information:
 
 All data comes from A2 (detect commands) and A2.6 (coverage assessment). If test setup files exist (conftest.py, jest.config.*, vitest.config.*, etc.), document key fixtures and configuration.
 
+### A4.4. Update llms.txt
+
+Update `llms.txt` with project-specific information from bootstrap results. Replace the generic framework description with: project name, one-line purpose (from CLAUDE.md Project Overview), detected tech stack, and key documentation paths. This file is consumed by `/framework-upgrade` for version comparisons and serves as an external LLM context entry point.
+
 ### A4.5. Detect MCP Servers (Optional)
 
 Check if any MCP servers are available in the Claude Code environment. If detected, note them in `CLAUDE.md` under a `## MCP Servers` section so skills can conditionally leverage them. See `docs/reference/MCP_INTEGRATION.md` for server categories and integration guidance.
@@ -378,6 +478,14 @@ Check if any MCP servers are available in the Claude Code environment. If detect
 If no MCP servers are detected, skip this step — all skills function without them.
 
 ### A5. Run /skill-create
+
+```
+---
+**Bootstrap** | Step 6 of 8: Configuration
+[===========>........] 6 of 8 steps
+Coming up: Generating skills, configuring hooks, and setting up CI/CD
+---
+```
 
 Generate technology-specific skills for the detected stack.
 
@@ -422,6 +530,8 @@ ls .env .env.* 2>/dev/null
 
 4. **If no .env usage detected:** Skip silently.
 
+5. **Populate SECRETS_INVENTORY.md** (if .env usage detected): Create `docs/reference/SECRETS_INVENTORY.md` from the scaffold template. For each detected environment variable, add a row with: variable name, inferred type (api_key, database_credential, jwt_signing, config — based on naming patterns), environment (all), storage (env_file), classification (critical if name contains SECRET/KEY/TOKEN/PASSWORD, standard otherwise). Leave Last Rotated, Next Due, and Rotation Method as "—" for the user to fill. This enables weekly-maintenance's secret rotation checking from day one.
+
 ### A5.65. Assess Pre-Commit Hook Readiness
 
 Check for existing pre-commit hook infrastructure:
@@ -435,7 +545,24 @@ ls .git/hooks/pre-commit 2>/dev/null       # Raw git hook
 ```
 
 - **If found:** Record the tool in use. Mark as ready for the Readiness Report.
-- **If not found:** Offer to set up Lefthook for git hook enforcement:
+- **If not found:** Offer to set up Lefthook via **AskUserQuestion**:
+
+```
+header: "Git hooks"
+question: "No pre-commit hooks detected. Lefthook can enforce conventional
+           commits and block direct pushes to main — protecting manual
+           commits (the framework already protects AI sessions via its own hooks)."
+options:
+  - label: "Yes, set up Lefthook (Recommended)"
+    description: "Installs Lefthook with conventional commit validation and
+                  branch protection. Takes ~1 minute."
+  - label: "Skip for now"
+    description: "No pre-commit hooks. A low-priority backlog story will be
+                  created. The framework's own hooks still protect AI sessions."
+  - label: "I use a different tool"
+    description: "Tell me which tool (Husky, pre-commit, etc.) and I'll
+                  configure it instead."
+```
 
   **If user accepts:**
   1. Check for Lefthook: `lefthook version 2>/dev/null`
@@ -489,7 +616,25 @@ ls .travis.yml 2>/dev/null                 # Travis CI
 ```
 
 - **If CI/CD found:** Check if the framework's `claude-pr-review.yml` workflow is included. If not, note separately — existing CI exists but framework PR review is missing.
-- **If no CI/CD found:** Ask the user if they want to install the framework's GitHub Actions workflow (`claude-pr-review.yml`).
+- **If no CI/CD found:** Use **AskUserQuestion**:
+
+```
+header: "CI/CD"
+question: "No CI/CD pipeline detected. The framework includes a GitHub Actions
+           workflow for automated PR review — it checks code quality on every
+           pull request."
+options:
+  - label: "Install GitHub Actions (Recommended)"
+    description: "Adds claude-pr-review.yml to .github/workflows/. Runs
+                  quality checks on every PR automatically."
+  - label: "Skip for now"
+    description: "No CI/CD. A backlog story will be created. Quality checks
+                  will only run locally during AI sessions."
+  - label: "I use a different CI"
+    description: "Tell me your CI provider (GitLab CI, CircleCI, etc.)
+                  and I'll note it for manual setup."
+```
+
   - **If user accepts:** Copy the workflow to `.github/workflows/claude-pr-review.yml`.
   - **If user declines:** Generate a foundation story in the backlog.
 - Feed CI/CD status into the Readiness Report (A5.8) under "CI-enforced".
@@ -506,6 +651,14 @@ Review findings. Fix genuine gaps before presenting the summary to the user.
 
 ### A5.8. Framework Readiness Report
 
+```
+---
+**Bootstrap** | Step 7 of 8: Readiness Assessment
+[===============>....] 7 of 8 steps
+Coming up: Assessing how ready your project is for framework-powered development
+---
+```
+
 Read `references/readiness-report.md` for the complete check definitions and classification rules.
 
 Using data collected in earlier steps (A1-A3, A2.6, A2.8, A2.9, A3.1, A3.2, A3.5b, A3.7, A4, A5.5, A5.65, A5.7), assess each framework principle against the project's actual state. For each principle, classify as `✓ Ready`, `⚠️ Risk`, or `✗ Missing` with a brief explanation.
@@ -516,6 +669,14 @@ Using data collected in earlier steps (A1-A3, A2.6, A2.8, A2.9, A3.1, A3.2, A3.5
 3. Pass Risk and Missing items to A5.9 for foundation story generation
 
 ### A5.9. Generate Foundation Backlog & Initialize BACKLOG_INDEX.md
+
+```
+---
+**Bootstrap** | Step 7 of 8: Foundation Backlog
+[=================>..] 7 of 8 steps
+Coming up: Generating stories for gaps found in the readiness report
+---
+```
 
 Read `references/foundation-backlog.md` for story generation templates.
 
@@ -528,7 +689,24 @@ Based on the Readiness Report (A5.8), auto-generate **dependency-ordered** found
 
 Stories at Level N require all Level N-1 stories to be complete. Level 2+ stories with measurable targets include an `/optimize` execution method with metric command, target, and direction from the Readiness Report's Optimization Metrics section. A **Framework Ready Gate** is inserted between Levels 2 and 3, defining minimum thresholds for starting feature development.
 
-Each story has a type, priority, level, description, execution method, and acceptance criteria. Present to the user for review — they can accept, modify, or discard stories. Write accepted stories to `docs/reference/backlog/E00-foundation.md`.
+Each story has a type, priority, level, description, execution method, and acceptance criteria. Present stories to the user and use **AskUserQuestion** for approval:
+
+```
+header: "Foundation"
+question: "I've generated [N] foundation stories across [L] levels based on
+           the readiness gaps. Review the stories above. Ready to finalize?"
+options:
+  - label: "Accept all (Recommended)"
+    description: "Write all stories to the foundation backlog. You can
+                  modify individual stories later during sprint planning."
+  - label: "I want to remove some"
+    description: "Tell me which stories to drop — I'll adjust dependencies."
+  - label: "Skip foundation backlog"
+    description: "No foundation stories. Go straight to feature work.
+                  Note: some framework features won't work without foundation."
+```
+
+Write accepted stories to `docs/reference/backlog/E00-foundation.md`.
 
 **Initialize BACKLOG_INDEX.md** — remove template comments and populate with actual content:
 
@@ -573,6 +751,8 @@ Also create `docs/brainstorms/` with a `.gitkeep` file. This directory stores de
 
 Also create `docs/research/` with a `.gitkeep` file. This directory stores structured research reports from `/research` sessions and spike stories. Reports have searchable YAML frontmatter (title, tags, confidence, date) so future research and story-cycle Phase 1 can check for prior findings.
 
+Also create `docs/reviews/` with a `.gitkeep` file. This directory stores phase review findings from `/phase-review` sessions (walkthrough results, direction decisions). Required by Phase Transition Stories.
+
 ### A6. Clean Up
 
 - Delete `vision/` directory (not needed for existing repos)
@@ -580,6 +760,13 @@ Also create `docs/research/` with a `.gitkeep` file. This directory stores struc
 - Delete any empty template sections that weren't filled
 
 ### A7. Present Summary
+
+```
+---
+**Bootstrap** | Step 8 of 8: Complete!
+[====================] 8 of 8 steps
+---
+```
 
 ```markdown
 ### Bootstrap Complete (Existing Repository)
@@ -622,13 +809,21 @@ Also create `docs/research/` with a `.gitkeep` file. This directory stores struc
 **Foundation Backlog:** [N] stories across [L] levels in E00-foundation (Framework Ready Gate after Level 2: [N] checks) — or "No gaps found — project is ready"
 
 **Files Updated:**
-- CLAUDE.md (project overview, commands, architecture)
+- CLAUDE.md (project overview, commands, architecture, profile, default branch)
 - docs/reference/CODING_STANDARDS.md (language standards)
 - docs/architecture/ARCHITECTURE.md (module overview)
+- docs/context/* (project knowledge base — 5-6 files)
+- docs/reference/GROUND_RULES.md (architectural principles)
+- docs/reference/TESTING_STRATEGY.md (test infrastructure)
 - docs/reference/READINESS_REPORT.md (principle assessment)
+- docs/reference/GIT_WORKFLOW.md (personalized with default branch)
+- docs/reference/SECRETS_INVENTORY.md (if .env usage detected)
 - docs/reference/backlog/E00-foundation.md (if gaps found)
 - docs/reference/BACKLOG_INDEX.md (initialized)
 - docs/progress.md (baseline metrics)
+- docs/technical-debt.md (detected debt items)
+- docs/context/error-patterns.md (seeded from debt scan)
+- llms.txt (project-specific summary)
 
 **Hooks Configured:**
 - [list of enabled hooks]
