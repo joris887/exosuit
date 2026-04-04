@@ -4,7 +4,8 @@ set -euo pipefail
 # JD-LLM Development Framework — Installer
 #
 # Copies the framework into the current project directory.
-# Won't overwrite existing project files (except settings.json which is framework-managed).
+# Won't overwrite existing project files unless --force is used.
+# settings.json is always overwritten (framework-managed).
 #
 # Usage:
 #   curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
@@ -12,6 +13,7 @@ set -euo pipefail
 #   bash install.sh --mode=plugin
 #   bash install.sh --components=hooks,rules
 #   bash install.sh --dry-run
+#   bash install.sh --force
 #
 # Modes:
 #   --mode=template  (default) Install core framework (.claude/) + project scaffold
@@ -21,11 +23,17 @@ set -euo pipefail
 #   --components=X   Comma-separated .claude/ subdirectories to install (template mode only).
 #                    Default: all. Components are auto-detected from the framework — no
 #                    hardcoded list. Run --dry-run to see what's available.
+#   --force          Overwrite existing framework files (clean reinstall).
 #   --dry-run        Preview what would be installed without making changes.
+#
+# Environment:
+#   REPO_URL         Override the default repository URL (e.g., for SSH access).
 
-REPO_URL="https://github.com/joris887/JD-LLM-Development_framework.git"
+REPO_HTTPS="https://github.com/joris887/JD-LLM-Development_framework.git"
+REPO_SSH="git@github.com:joris887/JD-LLM-Development_framework.git"
 MODE="template"
 DRY_RUN=false
+FORCE=false
 COMPONENTS="all"
 
 for arg in "$@"; do
@@ -33,6 +41,7 @@ for arg in "$@"; do
         --mode=template) MODE="template" ;;
         --mode=plugin)   MODE="plugin" ;;
         --dry-run)       DRY_RUN=true ;;
+        --force)         FORCE=true ;;
         --components=*)  COMPONENTS="${arg#--components=}" ;;
         --help|-h)
             echo "Usage: install.sh [OPTIONS]"
@@ -44,7 +53,11 @@ for arg in "$@"; do
             echo "Options:"
             echo "  --components=X   Comma-separated .claude/ subdirectories (template mode)"
             echo "                   Default: all. Auto-detected from framework contents."
+            echo "  --force          Overwrite existing framework files (clean reinstall)"
             echo "  --dry-run        Preview without making changes"
+            echo ""
+            echo "Environment:"
+            echo "  REPO_URL         Override the default repository URL"
             exit 0
             ;;
     esac
@@ -53,6 +66,7 @@ done
 echo "=== JD-LLM Development Framework ==="
 echo "Mode: $MODE"
 $DRY_RUN && echo "Dry run: yes"
+$FORCE && echo "Force: yes (overwriting existing files)"
 [ "$COMPONENTS" != "all" ] && echo "Components: $COMPONENTS"
 echo "Target: $(pwd)"
 echo ""
@@ -61,10 +75,30 @@ echo ""
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 echo "Fetching framework..."
-git clone --quiet --depth 1 "$REPO_URL" "$TMP/fw"
+
+# Use REPO_URL env var if set, otherwise try HTTPS then fall back to SSH
+if [ -n "${REPO_URL:-}" ]; then
+    git clone --quiet --depth 1 "$REPO_URL" "$TMP/fw"
+elif git clone --quiet --depth 1 "$REPO_HTTPS" "$TMP/fw" 2>/dev/null; then
+    : # HTTPS succeeded
+else
+    rm -rf "$TMP/fw"  # clean up partial HTTPS clone
+    echo "  HTTPS clone failed, trying SSH..."
+    git clone --quiet --depth 1 "$REPO_SSH" "$TMP/fw"
+fi
 SRC="$TMP/fw"
 
 # --- Helpers ---
+# --force: overwrite existing files; default: no-clobber
+# Note: variables are intentionally unquoted in cp calls so empty strings vanish
+if $FORCE; then
+    CP_DIR="-r"
+    CP_FILE=
+else
+    CP_DIR="-rn"
+    CP_FILE="-n"
+fi
+
 run() {
     if $DRY_RUN; then
         # Show clean paths instead of temp directory
@@ -81,14 +115,14 @@ if [ "$MODE" = "template" ]; then
 
     if [ "$COMPONENTS" = "all" ]; then
         # Copy everything — any new skill/rule/hook is auto-included
-        run cp -rn "$SRC/.claude" .
+        run cp $CP_DIR "$SRC/.claude" .
     else
         # Selective: copy only requested subdirectories + root-level files
         mkdir -p .claude
         # Always copy root-level files in .claude/ (settings, templates, CLAUDE.md)
         for f in "$SRC/.claude"/*; do
             if [ -f "$f" ]; then
-                run cp -n "$f" .claude/
+                run cp $CP_FILE "$f" .claude/
             fi
         done
         # Copy each requested component (auto-validated against what exists)
@@ -97,7 +131,7 @@ if [ "$MODE" = "template" ]; then
             comp=$(echo "$comp" | tr -d ' ')
             if [ -d "$SRC/.claude/$comp" ]; then
                 echo "  Installing $comp..."
-                run cp -rn "$SRC/.claude/$comp" .claude/
+                run cp $CP_DIR "$SRC/.claude/$comp" .claude/
             else
                 echo "  Warning: '$comp' not found in .claude/ — skipping"
                 echo "  Available: $(ls -d "$SRC/.claude"/*/ 2>/dev/null | xargs -n1 basename | tr '\n' ' ')"
@@ -117,19 +151,19 @@ else
 fi
 
 # --- 2. Project scaffold (docs/, vision/, scripts/, etc.) ---
-# Everything in scaffold/ maps to the project root. Won't overwrite existing files.
+# Everything in scaffold/ maps to the project root. Won't overwrite unless --force.
 echo "Installing project scaffold..."
 if [ -d "$SRC/scaffold" ]; then
-    run cp -rn "$SRC/scaffold/." .
+    run cp $CP_DIR "$SRC/scaffold/." .
 else
     echo "  Warning: scaffold/ not found in framework"
 fi
 
 # --- 3. Entry point + GitHub integration ---
 echo "Installing entry point..."
-run cp -n "$SRC/CLAUDE.md" .
+run cp $CP_FILE "$SRC/CLAUDE.md" .
 if [ -d "$SRC/.github" ]; then
-    run cp -rn "$SRC/.github" .
+    run cp $CP_DIR "$SRC/.github" .
 fi
 if [ ! -e AGENTS.md ]; then
     run ln -s CLAUDE.md AGENTS.md
