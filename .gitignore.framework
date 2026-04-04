@@ -1,0 +1,27 @@
+# JD-LLM Framework — gitignore patterns
+# Appended to project .gitignore by install.sh
+# Maintain this file when adding new generated/sensitive file patterns.
+
+# User-local configuration (not shared)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Secrets and credentials
+.env
+.env.*
+.env.local
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Session state (machine-generated, not shared)
+docs/sessions/.activity-log.jsonl
+docs/sessions/.auto-save.md
+docs/sessions/.failure-state.md
+docs/sessions/.failure-log.jsonl
+docs/sessions/.story-outcomes.tsv
+docs/sessions/.optimization-log.tsv
+docs/sessions/.refine-log.tsv
+docs/sessions/.audit-log.jsonl
+*.session-handoff.md
