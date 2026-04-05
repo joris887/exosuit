@@ -23,26 +23,55 @@ If you prefer to skip the tour: run `/bootstrap` directly.
 
 `/bootstrap` configures the framework for your specific project:
 
-- **Existing repo:** Detects your languages, test framework, linter, formatter, CI/CD. Generates CLAUDE.md, coding standards, ground rules, and architecture docs. Recommends a profile.
-- **New project:** Guides you through project discovery — describe your idea and the framework helps you make informed decisions about technology, design, and architecture. Generates a complete project scaffold with epics and stories.
+### Existing repo with code
 
-Bootstrap recommends a **profile** based on your project:
+Bootstrap detects your languages, test framework, linter, formatter, and CI/CD. It generates project documentation (CLAUDE.md, coding standards, architecture, ground rules), configures hooks and rules for your stack, assesses readiness against 15 engineering principles, and creates foundation stories for any gaps it finds.
+
+### New project from an idea
+
+Bootstrap detects an empty project and launches `/discover` — a deep guided elicitation that builds your project from scratch:
+
+- **Classifies your project** into one of 11 archetypes (utility, marketplace, developer tool, creative expression, etc.) and selects questions tailored to your project type
+- **Walks through 7 phases**: classification, core identity, deep elicitation, assumption stress-testing, dimension completeness, vision synthesis, and MVP scoping
+- **Runs research checkpoints** at each phase to validate decisions against current best practices
+- **Generates a complete backlog** with scale-adapted epics, sized stories, and a Phase Transition Story that creates an ongoing build-review-discover cycle
+
+Four modes adapt depth to project scale:
+
+| Mode | Time | Best for |
+|---|---|---|
+| Quick Start | ~5 min | Small tools, scripts, hackathons |
+| Guided (default) | 20-45 min | Standard applications |
+| Platform | 60-120 min | Multi-service, regulated systems |
+| Pioneering | Variable | Novel concepts (spike-first) |
+
+### Just want to build something fast
+
+```
+/build "a REST API with authentication and rate limiting"
+```
+
+`/build` handles everything — setup, planning, implementation — with plain-English output. No framework knowledge needed.
+
+## Step 4: Choose Your Profile
+
+Bootstrap recommends a **profile** based on your project. You can accept or override it.
 
 ### Lean Profile
 **Best for:** Prototypes, MVPs, internal tools, learning projects, hackathons.
 
 What changes:
-- Story delivery is streamlined: Plan > Build > Verify (no confidence scoring, no quality agents)
+- Story delivery is streamlined: Plan > Build > Verify (no quality agents)
 - Sprint start creates a branch directly (no sprint specs, no metrics checks)
 - Sprint end runs tests and creates PR (no quality agent dispatch)
-- Bootstrap generates only CLAUDE.md and progress.md (no architecture docs, no coding standards)
+- Bootstrap generates minimal docs (CLAUDE.md and progress.md)
 - All safety hooks still run — lean is less ceremonious, never less safe
 
 ### Standard Profile (default)
 **Best for:** Production apps, APIs, libraries, team projects.
 
 What changes:
-- Full story-cycle with confidence gate, quality agents (code + tests + security), and documentation updates
+- Full story-cycle with readiness gate, quality agents (code + tests + security), and documentation updates
 - Sprint planning with capacity estimation and debt health checks
 - Sprint end dispatches 3 quality agents before PR
 - Bootstrap generates full documentation suite
@@ -59,7 +88,7 @@ What changes:
 
 You can change your profile anytime by editing the `**Profile:**` line in CLAUDE.md, or by setting `JD_PROJECT_PROFILE=lean|standard|strict` in your environment.
 
-## Step 4: Your First Sprint
+## Step 5: Your First Sprint
 
 ```
 /sprint-start          # Creates a feature branch
@@ -69,7 +98,7 @@ You can change your profile anytime by editing the `**Profile:**` line in CLAUDE
 
 That's it. The framework guides you through each step.
 
-## Step 5: Between Sessions
+## Step 6: Between Sessions
 
 When you're done for the day:
 ```
@@ -80,6 +109,17 @@ When you come back:
 ```
 /continue              # Resumes from where you left off
 ```
+
+## Step 7: After Your First Phase
+
+Once you've built and shipped your first batch of features:
+
+```
+/phase-review          # Walkthrough what you built, validate assumptions,
+                       # research refresh, plan the next phase
+```
+
+This creates the ongoing cycle: **build > review > discover > build**.
 
 ## Environment Variables
 
@@ -98,4 +138,5 @@ Customize behavior without editing files:
 - `/help-me` — describe what you want to do in plain English
 - `/dashboard` — see your sprint status at a glance
 - `/doctor` — verify the framework is set up correctly
-- See the [full README](../README.md) for the complete skill reference
+- See the [README](../README.md) for the full skill reference
+- See the [Technical Reference](FRAMEWORK_REFERENCE.md) for the complete framework documentation

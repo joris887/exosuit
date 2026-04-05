@@ -1,184 +1,455 @@
-# JD-LLM Development Framework
+<p align="center">
+  <!-- TODO: Replace with actual logo (recommended: 128px height, SVG preferred for dark mode support) -->
+  <!-- Dark mode variant:
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+    <img src="assets/logo-light.svg" alt="JD-LLM" height="128">
+  </picture>
+  -->
+  <img src="assets/logo.png" alt="JD-LLM Development Framework" height="128">
+</p>
 
-A drop-in development framework for [Claude Code](https://claude.com/claude-code) that turns ad-hoc AI conversations into structured, sprint-based software development.
+<h1 align="center">JD-LLM Development Framework</h1>
 
-## Why Use This
+<p align="center">
+  <strong>Stop vibe-coding. Start shipping.</strong><br>
+  Software engineering discipline for Claude Code — enforced, not suggested.
+</p>
 
-- **Guard rails against AI pitfalls** — blocks hallucinated packages, weakened tests, leaked secrets, code slop, and dangerous git commands automatically
-- **Sprint-based workflow** — plan, build, test, and ship in focused increments with quality gates at every stage
-- **Works for any project** — Python, TypeScript, Go, Rust, Ruby, Java, and more. Solo projects to teams. Prototypes to regulated systems
-- **Adaptive complexity** — three profiles (Lean, Standard, Strict) scale ceremony to match your project's needs
-- **Session continuity** — hand off between sessions without losing context. Pick up exactly where you left off
+<p align="center">
+  <a href="https://github.com/joris887/JD-LLM-Development_framework/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://github.com/joris887/JD-LLM-Development_framework/releases"><img src="https://img.shields.io/github/v/release/joris887/JD-LLM-Development_framework" alt="Latest Release"></a>
+  <a href="https://claude.com/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-blueviolet" alt="Built for Claude Code"></a>
+  <a href="https://github.com/joris887/JD-LLM-Development_framework/stargazers"><img src="https://img.shields.io/github/stars/joris887/JD-LLM-Development_framework?style=social" alt="GitHub Stars"></a>
+</p>
 
-## Quick Install
+<p align="center">
+  <a href="#quick-start">Quick Start</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/GETTING_STARTED.md">Getting Started</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/FRAMEWORK_REFERENCE.md">Full Reference</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://github.com/joris887/JD-LLM-Development_framework/issues">Issues</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="CONTRIBUTING.md">Contributing</a>
+</p>
+
+---
+
+<!-- TODO: Replace with a terminal recording GIF showing the install → bootstrap → first sprint flow.
+     Recommended tools: VHS (by Charm), terminalizer, or asciinema.
+     
+     The GIF should show (~30 seconds total):
+     1. Running: curl -sL ... | bash  (install completes in ~3 seconds)
+     2. Running: /bootstrap  (detecting a real project — language, frameworks, tests, generating config)
+     3. Running: /sprint-start  (creating a sprint branch)
+     4. Running: /story-cycle "add health check endpoint"  (TDD plan → implement → verify → commit)
+     
+     Place the GIF at: assets/demo.gif (keep under 5MB, 80 cols terminal width)
+     
+     Alternative: an asciinema embed (https://asciinema.org) for higher quality + copy-paste support.
+-->
+<p align="center">
+  <img src="assets/demo.gif" alt="JD-LLM Demo: install → bootstrap → sprint → ship" width="720">
+</p>
+
+---
+
+## The Problem
+
+AI-assisted coding is powerful. It's also chaos.
+
+Without structure, every Claude Code session drifts toward the same failure modes: scope creeps until the context window is exhausted. Tests get skipped because "the code looks right." Git history becomes a wasteland of `fix`, `update`, and `wip` commits. The AI claims "done" without running a single test. And when you start a new session, all context from the last one is gone.
+
+You're not building software. You're vibe-coding — generating plausible code with no engineering discipline behind it.
+
+**The JD-LLM Development Framework fixes this.** Not with guidelines the AI can ignore, but with deterministic hooks that physically block bad patterns, structured workflows that enforce TDD, and quality gates that require evidence before anything ships.
+
+## What It Does
+
+A drop-in framework for [Claude Code](https://claude.com/claude-code) that adds 43 slash commands, 13 enforcement hooks, 8 specialized agents, and a complete sprint-based development workflow to any project. Install it in 30 seconds. Run `/bootstrap`. Start building like a professional.
+
+- **Hooks block bad behavior** — force push, leaked secrets, skipped tests, premature "done" claims. These are deterministic shell scripts, not suggestions the AI can skip.
+- **TDD is the default** — tests before implementation, always. The framework plans tests first, writes them first, then implements to pass them.
+- **Sprints keep scope bounded** — small increments with forced checkpoints prevent the context window death spiral.
+- **Git stays clean** — feature branches, conventional commits, squash merge to main. Dangerous commands are blocked at the hook level.
+- **Sessions persist** — hand off with `/handoff`, resume with `/continue`. No context is lost between sessions.
+- **Any language, any project** — Python, TypeScript, Go, Rust, Ruby, Java, PHP, Dart, C#, Swift, Kotlin, C/C++. The framework detects your stack and configures itself.
+- **Verification is non-negotiable** — "it should work" is not accepted. Fresh test output is required before any completion claim.
+
+## Quick Start
 
 ```bash
-# Into an existing project:
+# Install into your project (existing repo or new)
 curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
+```
 
-# Or start a new project from scratch:
+Then open Claude Code:
+
+```
+/bootstrap          # detects your stack, configures everything
+/sprint-start       # creates a clean feature branch
+/story-cycle "add user authentication"   # plan → TDD → implement → verify → commit
+/sprint-end         # quality gates → PR → merge to main
+```
+
+That's it. Four commands from zero to shipped PR.
+
+<details>
+<summary><strong>Alternative: clone and install locally</strong></summary>
+
+```bash
+git clone https://github.com/joris887/JD-LLM-Development_framework.git
+cd your-project
+path/to/JD-LLM-Development_framework/install.sh
+```
+
+Or start a brand new project:
+
+```bash
 git clone https://github.com/joris887/JD-LLM-Development_framework.git my-project
 cd my-project && rm -rf .git && git init
 ```
 
-Then open Claude Code and run `/quickstart` for a guided tour, or `/bootstrap` to jump straight into setup.
+</details>
 
-## What Happens After Install
+## Your First 5 Minutes
 
-| Your situation | What happens |
-|---|---|
-| Existing repo with code | `/bootstrap` detects your stack, configures the framework, establishes quality standards |
-| New project with an idea | `/bootstrap` guides you through project discovery and generates architecture, stories, and scaffold |
-| First time with framework | `/quickstart` walks you through the basics before running bootstrap |
+After install, everything starts with `/bootstrap`. What happens next depends on your situation:
 
-## Architecture
+### Existing project with code
+
+`/bootstrap` scans your repository and configures everything automatically:
 
 ```
-ENFORCEMENT (deterministic — hooks and rules that can't be skipped)
-  11 hook scripts          9 auto-loaded rules
-  Safety patterns          Quality gates
-  Secrets detection        Edit recovery
-  Formatting               Git workflow
+Detecting stack...
+  Language:   Python 3.12
+  Framework:  FastAPI
+  Tests:      pytest (127 tests, 72% coverage)
+  Formatter:  ruff
+  Linter:     ruff
+  CI:         GitHub Actions
 
-WORKFLOW (advisory — skills that guide structured development)
-  39 slash-command skills     8 native agent personas
-  Sprint lifecycle            Quality analysis
-  Story delivery (TDD)        Research & planning
+Generating configuration...
+  ✓ CLAUDE.md configured
+  ✓ Architecture documented
+  ✓ Coding standards generated
+  ✓ Testing strategy populated
+  ✓ Ground rules established
 
-DOCUMENTATION (context — informs decisions across sessions)
-  CLAUDE.md (entry)        docs/ (reference)
-  progress.md (state)      sessions/ (handoff)
-  context/ (knowledge)     solutions/ (learnings)
+Framework Readiness Report:
+  TDD-first          ✓ Ready    pytest detected, 127 tests
+  Git-disciplined     ✓ Ready    main branch, remote configured
+  CI-enforced         ✗ Missing  No GitHub Actions workflow
+  Type-safe           ⚠ Risk     No type checker configured
+
+Foundation stories generated:
+  E00-001: Configure GitHub Actions CI
+  E00-002: Add type checking (mypy)
 ```
 
-## Profiles — Choose Your Level of Ceremony
+The framework tells you exactly what your project needs to be production-ready, then generates stories to get there.
 
-The framework adapts to your project. Set during `/bootstrap` or change anytime.
+### New project from an idea
 
-| | Lean | Standard | Strict |
-|---|---|---|---|
-| **For** | Prototypes, MVPs, learning, hackathons | Production apps, APIs, libraries | Regulated, high-stakes, complex systems |
-| **Story workflow** | Plan > Build > Verify | Full 5-phase with confidence gate | All phases + mandatory all-agent review |
-| **Quality gates** | Lint + test only | Code + tests + security | All 5 agents + integration tester |
-| **Documentation** | CLAUDE.md + progress.md | Full reference docs | Full + audit trail |
-| **TDD** | Advisory for small changes | Required for features/bugs/refactors | Required for everything |
-| **Safety hooks** | Always on | Always on | Always on + extended checks |
-
-All profiles enforce the same safety net: secrets detection, dangerous command blocking, git protection, and test-before-ship.
-
-## The Development Cycle
+`/bootstrap` detects an empty project and launches `/discover` — a deep guided elicitation that builds your project from the ground up:
 
 ```
-/bootstrap  >  /ideate  >  /sprint-start  >  /story-cycle (repeat)  >  /sprint-end
-  setup         plan         branch            deliver stories           PR + merge
+What are you building?
+> "A task management API with team workspaces"
+
+Classifying... → Utility/Productivity archetype, Standard scale
+
+Phase 1: Classification ████████░░░░ 2/7
+  What task does this make easier?
+  Who uses this day-to-day?
+  What's the one thing that makes someone switch from their current tool?
+
+Phase 2: Core Identity ████████████░░░░ 3/7
+  [researching competitive landscape...]
+  [5 targeted questions about your specific use case]
+
+Phase 3: Deep Elicitation ████████████████░░░░ 4/7
+  [feature mapping: MUST / IMPORTANT / NICE / CUT]
+  [edge case exploration across 6 dimensions]
+
+Phase 4: Assumption Surfacing ████████████████████░░░░ 5/7
+  [surfacing and stress-testing assumptions]
+  [pre-mortem: what could kill this project?]
+
+→ Vision synthesis, backlog generation, architecture decisions
+→ Ready for /sprint-start
 ```
 
-## Common Commands
+Not a generic questionnaire — `/discover` selects from **11 project archetypes** (utility, marketplace, developer tool, creative expression, etc.) and asks questions specific to your project type.
 
-| I want to... | Command |
-|---|---|
-| **Get started** | `/quickstart` or `/bootstrap` |
-| **Resume work** | `/continue` |
-| **Start a sprint** | `/sprint-start` |
-| **Deliver a story** | `/story-cycle "add user auth"` |
-| **Plan new work** | `/ideate "payment processing"` |
-| **Explore a design** | `/brainstorm "caching strategy"` |
-| **Deep research** | `/research "best auth library"` |
-| **Debug an issue** | `/debug-session "TypeError in checkout"` |
-| **Build (plain English)** | `/build "a REST API with auth"` |
-| **End a sprint** | `/sprint-end` |
-| **End a session** | `/handoff` |
-| **Deploy** | `/deploy` |
-| **Check status** | `/dashboard` |
-| **Run quality gates** | `/quality-check [--all]` |
-| **Fix a GitHub issue** | `/fix-issue 42` |
-| **Undo failed work** | `/undo-work` |
-| **Framework health** | `/doctor` |
+### Just want to build something fast
 
-## Skills Overview
+```
+/build "a REST API with authentication and rate limiting"
+```
 
-### Core Workflow (6)
-`/bootstrap` `/sprint-start` `/story-cycle` `/sprint-end` `/continue` `/handoff`
+`/build` handles everything — setup, planning, implementation — with plain-English output. No framework knowledge needed.
 
-### Planning & Design (4)
-`/brainstorm` `/ideate` `/research` `/skill-create`
+## What Runs Behind the Scenes
 
-### Quality & Testing (9)
-`/code-quality` `/test-validator` `/security-audit` `/architecture-check` `/performance-check` `/quality-check` `/manual-test` `/testing-cycle` `/UAT-cycle`
+While you work, the enforcement layer is always active:
 
-### Debugging & Recovery (3)
-`/debug-session` `/fix-issue` `/undo-work`
+| What happens | When | How |
+|---|---|---|
+| Code auto-formatted (prettier, ruff, rustfmt, gofmt, etc.) | Every edit | Post-edit hook |
+| Secrets scanned (AWS keys, API tokens, private keys) | Every edit | Post-edit hook |
+| Dangerous commands blocked (force push, `rm -rf`, `--no-verify`) | Before execution | Pre-command hook |
+| Quality gates run (lint, typecheck, tests) | Before task completion | Pre-stop hook |
+| Session state auto-saved | Before task completion | Pre-stop hook |
+| Activity logged for metrics | Every tool use | Post-tool hook |
 
-### Maintenance (6)
-`/weekly-maintenance` `/retrospective` `/backlog-review` `/doctor` `/framework-upgrade` `/pr-status`
-
-### Utility (6)
-`/commit` `/parallel-work` `/refine-loop` `/optimize` `/skill-eval` `/custom-hooks`
-
-### Guided Experiences (3)
-`/quickstart` `/build` `/deploy` `/help-me` `/dashboard`
-
-### Prompt Snippets (3)
-`/review-security` `/explain-pattern` `/suggest-tests`
-
-See `.claude/skills/SKILLS_INVENTORY.md` for the full reference.
-
-## What Gets Enforced Automatically
-
-These hooks run without you invoking them:
-
-| What | When |
-|---|---|
-| Code formatting (prettier, ruff, rustfmt, gofmt, etc.) | After each edit |
-| Secrets detection (AWS keys, API tokens, private keys) | After each edit |
-| Dangerous command blocking (force push, rm -rf, accidental publish) | Before bash commands |
-| Quality gates (lint, typecheck, tests) | Before task completion |
-| Session state auto-save | Before task completion |
-| Activity logging for retrospective metrics | After each tool use |
-| Environment and framework health checks | At session start |
+These aren't rules the AI reads and follows. They're shell scripts that execute deterministically. The AI cannot skip them.
 
 ## How Story Delivery Works
 
 When you run `/story-cycle "add login form"`:
 
-1. **Decomposes intent** — classifies size and risk, identifies deliverables
-2. **Plans** — researches codebase, checks ground rules, writes implementation plan
-3. **Confidence gate** — verifies files read, tests passing, patterns found, scope bounded, no conflicts
-4. **Executes by type** — TDD for features, reproduce-first for bugs, characterization tests for refactoring
-5. **Self-reviews** — quality checklists, disaster prevention, failure pattern recording
-6. **Wraps up** — runs test suite, creates conventional commit
+```
+Phase 0: Decompose — classify size (XS→XL) and risk, identify deliverables
+Phase 1: Plan     — research codebase, check ground rules, write implementation plan
+                    ↳ Confidence gate: files read? tests passing? patterns found?
+                      scope bounded? no conflicts? (≥85% to proceed)
+Phase 2: Build    — TDD for features, reproduce-first for bugs,
+                    characterization tests for refactors
+Phase 3: Review   — quality checklists, disaster prevention, failure recording
+Phase 4: Ship     — run full test suite, create conventional commit
+```
 
-Trivial changes fast-track through. High-risk changes get extra scrutiny regardless of size.
+Trivial changes (XS) fast-track through. High-risk changes get extra scrutiny regardless of size.
+
+## Profiles — Choose Your Level of Ceremony
+
+Set during `/bootstrap`. Change anytime.
+
+| | Lean | Standard | Strict |
+|---|---|---|---|
+| **Best for** | Prototypes, MVPs, hackathons | Production apps, APIs, libraries | Regulated, high-stakes systems |
+| **Story workflow** | Plan → Build → Verify | Full 5-phase with confidence gate | All phases + mandatory multi-agent review |
+| **Quality gates** | Lint + test | Code + tests + security | All 8 agents + integration tester |
+| **TDD** | Advisory for small changes | Required for features/bugs/refactors | Required for everything |
+| **Safety hooks** | Always on | Always on | Always on + extended checks |
+
+All profiles enforce the same safety net: secrets detection, dangerous command blocking, git protection.
+
+## Architecture
+
+Three layers, from most to least deterministic:
+
+```
+ENFORCEMENT — hooks and rules that cannot be skipped
+  13 hook scripts              9 auto-loaded rules
+  ├─ Auto-format on edit       ├─ Never weaken test assertions
+  ├─ Block secrets in code     ├─ CWE top-10 security checklist
+  ├─ Block force push          ├─ No AI filler comments
+  ├─ Require evidence for      ├─ Conventional commits
+  │  completion claims         └─ Evidence before "done"
+  └─ Auto-save session state
+
+WORKFLOW — skills and agents that guide structured development
+  43 slash commands            8 native agents
+  ├─ Sprint lifecycle          ├─ Code reviewer
+  ├─ Story delivery (TDD)     ├─ Security analyst
+  ├─ Planning & discovery      ├─ Test strategist
+  └─ Quality analysis          └─ Architecture advisor
+
+DOCUMENTATION — project context that persists across sessions
+  CLAUDE.md (entry)          docs/context/* (knowledge base)
+  progress.md (state)        docs/sessions/ (handoff)
+```
+
+Key insight: The enforcement layer is deterministic — hooks are shell scripts that the AI cannot bypass. The workflow layer is advisory — it guides but doesn't force. When something *must* happen, it lives in enforcement.
+
+## All Commands
+
+### Core Workflow
+| Command | What it does |
+|---|---|
+| `/bootstrap` | First-run setup — detect stack, configure framework, assess readiness |
+| `/quickstart` | Guided tour of the framework before your first sprint |
+| `/discover` | Deep guided elicitation for new projects (11 archetypes) |
+| `/sprint-start` | Create sprint branch, select stories |
+| `/story-cycle` | Deliver a story with TDD + quality gates |
+| `/sprint-end` | Quality gates → PR → merge to main |
+| `/continue` | Resume exactly where you left off |
+| `/handoff` | Save session state for next time |
+
+### Planning & Design
+| Command | What it does |
+|---|---|
+| `/ideate` | Decompose ideas into sized, estimated stories |
+| `/brainstorm` | Explore designs, tradeoffs, approaches |
+| `/research` | Deep web + codebase research with source citations |
+| `/phase-review` | Evaluate what you built, plan the next phase |
+
+### Quality & Testing
+| Command | What it does |
+|---|---|
+| `/quality-check` | Run all quality gates manually |
+| `/code-quality` | Deep code review with multi-agent analysis |
+| `/security-audit` | Security-focused review (OWASP, CWE) |
+| `/architecture-check` | Verify architecture against ground rules |
+| `/testing-cycle` | Process test feedback into fixes |
+| `/UAT-cycle` | User acceptance test case execution |
+| `/manual-test` | Generate test plans for manual verification |
+
+### Debugging & Recovery
+| Command | What it does |
+|---|---|
+| `/debug-session` | Structured debugging with hypothesis tracking |
+| `/fix-issue` | Fix a GitHub issue (reads context, plans, implements, PRs) |
+| `/undo-work` | Safely revert failed implementations |
+
+### Guided Experiences
+| Command | What it does |
+|---|---|
+| `/build` | Build from plain English — handles everything automatically |
+| `/deploy` | Guided deployment setup |
+| `/dashboard` | Visual overview of sprint progress and project health |
+| `/help-me` | Context-aware help |
+
+### Maintenance & Utilities
+| Command | What it does |
+|---|---|
+| `/doctor` | Framework health check and diagnostics |
+| `/retrospective` | Sprint retro with metric analysis |
+| `/weekly-maintenance` | Dependency updates, debt tracking, rule health |
+| `/parallel-work` | Manage git worktrees for concurrent stories |
+| `/commit` | Conventional commit with quality checks |
+| `/refine-loop` | Iterative refinement until criteria met |
+| `/optimize` | Optimize a specific metric (performance, bundle size, etc.) |
+| `/framework-upgrade` | Upgrade framework to latest version |
+| `/skill-create` | Generate project-specific skills from codebase analysis |
+| `/skill-eval` | Evaluate skill effectiveness with metrics |
+
+## Supported Languages
+
+The framework auto-detects your stack during `/bootstrap` and configures formatters, linters, test runners, and type checkers:
+
+| Language | Formatter | Linter | Test Runner | Type Checker |
+|---|---|---|---|---|
+| Python | ruff | ruff | pytest | mypy / pyright |
+| TypeScript | prettier | eslint | vitest / jest | tsc |
+| JavaScript | prettier | eslint | vitest / jest | — |
+| Go | gofmt | golangci-lint | go test | (built-in) |
+| Rust | rustfmt | clippy | cargo test | (built-in) |
+| Ruby | rubocop | rubocop | rspec / minitest | sorbet |
+| Java | google-java-format | checkstyle | junit / maven | (built-in) |
+| C# | dotnet format | dotnet analyzers | dotnet test | (built-in) |
+| PHP | php-cs-fixer | phpstan | phpunit | phpstan |
+| Dart | dart format | dart analyze | dart test | (built-in) |
+| Swift | swift-format | swiftlint | XCTest | (built-in) |
+| Kotlin | ktlint | detekt | junit | (built-in) |
+| C/C++ | clang-format | clang-tidy | ctest / gtest | — |
+
+Only tools that are already installed get configured. Bootstrap offers to install missing ones.
+
+## Design Philosophy
+
+The framework is built on a simple observation: **AI is great at generating code, but terrible at engineering discipline.** It doesn't protect existing tests, respect architectural boundaries, verify its own claims, or maintain conventions. On simple projects this is manageable. On real projects with production users and team conventions, it's a cycle of building and breaking.
+
+The framework solves this with three ideas:
+
+1. **Enforce what matters.** If something must happen (format code, scan for secrets, verify before "done"), it goes in the enforcement layer as a deterministic hook. The AI cannot skip it.
+
+2. **Guide everything else.** If something should happen (TDD workflow, confidence gates, sprint structure), it goes in the workflow layer as a skill. The AI follows it because the methodology is sound, but nothing breaks if a step is adapted.
+
+3. **Adapt to the project.** A hackathon prototype and a regulated medical system need different amounts of ceremony. Three profiles (Lean, Standard, Strict) scale the workflow. Per-story risk calibration adds scrutiny where it matters, regardless of profile.
 
 ## Prerequisites
 
-- [Claude Code](https://claude.com/claude-code) installed and working
-- [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated
-- Git configured with your identity
-- No language runtimes required — the framework is pure POSIX shell and markdown
+- **[Claude Code](https://claude.com/claude-code)** — installed and working
+- **Git** — configured with your identity
+- **[GitHub CLI](https://cli.github.com/)** (`gh`) — for PR workflow and issue management
+
+No language runtimes required. The framework itself is pure POSIX shell and markdown.
 
 ## FAQ
 
-**Does this work with my language?** Yes. The framework detects Python, TypeScript, Go, Rust, Ruby, Java, C#, Swift, Kotlin, PHP, Dart, and C/C++. It configures formatters, linters, and test commands for your stack.
+<details>
+<summary><strong>Does this work with my language?</strong></summary>
 
-**Can I use this with Cursor/Windsurf/Aider?** Skills are Claude Code-specific, but `AGENTS.md` (symlinked to `CLAUDE.md`) provides project context to any AI tool.
+Yes. The framework detects Python, TypeScript, JavaScript, Go, Rust, Ruby, Java, C#, Swift, Kotlin, PHP, Dart, and C/C++. It configures formatters, linters, test commands, and type checkers for your stack. If your language isn't listed, the safety hooks and workflow still work — you just won't get auto-formatting.
+</details>
 
-**What if bootstrap gets something wrong?** Edit `CLAUDE.md` directly — it's the source of truth. Re-run `/bootstrap` anytime.
+<details>
+<summary><strong>Can I use this with Cursor, Windsurf, or other AI tools?</strong></summary>
 
-**How do I customize?** Edit skill files in `.claude/skills/` (they're plain markdown), hook rules in `.claude/hooks/rules/`, or use `CLAUDE.local.md` for personal overrides.
+The skills (slash commands) are Claude Code-specific. However, `AGENTS.md` is symlinked to `CLAUDE.md`, so tools that read `AGENTS.md` for project context get the full project configuration. The documentation layer (architecture, coding standards, ground rules) works with any tool.
+</details>
 
-**Does this support parallel work?** Yes. `/parallel-work` manages git worktrees for concurrent stories. A worktree-aware hook ensures commands run in the right directory.
+<details>
+<summary><strong>What if bootstrap gets something wrong?</strong></summary>
 
-**What if my session ends mid-story?** The framework auto-saves state. Resume with `/continue` and it detects exactly where you left off.
+Edit `CLAUDE.md` directly — it's the source of truth for project configuration. Or re-run `/bootstrap` anytime for a fresh detection. Nothing is locked in.
+</details>
+
+<details>
+<summary><strong>How do I customize the framework?</strong></summary>
+
+Everything is plain markdown and shell scripts — edit directly:
+- **Skills:** `.claude/skills/{name}/SKILL.md` — modify workflow behavior
+- **Rules:** `.claude/rules/*.md` — add or change enforcement rules
+- **Hooks:** `.claude/hooks/rules/*.yaml` — configure hook behavior
+- **Personal overrides:** `CLAUDE.local.md` — project-specific overrides that aren't committed
+</details>
+
+<details>
+<summary><strong>Does this support parallel work on multiple stories?</strong></summary>
+
+Yes. `/parallel-work` manages git worktrees for concurrent stories. A worktree-aware hook ensures commands run in the correct directory.
+</details>
+
+<details>
+<summary><strong>What if my session ends mid-story?</strong></summary>
+
+The framework auto-saves state before every session end. Resume with `/continue` — it detects exactly where you left off, including the current phase, branch, and plan.
+</details>
+
+<details>
+<summary><strong>Is this overkill for small projects?</strong></summary>
+
+Use the **Lean** profile. It strips ceremony to the minimum (plan → build → verify) while keeping the safety net (secrets, git protection, formatting). The framework adapts to your needs, not the other way around.
+</details>
+
+<details>
+<summary><strong>What's the context window cost?</strong></summary>
+
+~100 lines for `CLAUDE.md` (loaded every session) + ~140 lines for always-active rules. Skills load on-demand only when invoked. The framework is designed to be context-efficient — it loads less than many project README files.
+</details>
+
+<!-- TODO: Uncomment and populate when you have testimonials
+
+## What Developers Are Saying
+
+> "Quote from a real user about their experience."
+>
+> — **Name**, Role at Company
+
+> "Another testimonial."
+>
+> — **Name**, Role at Company
+
+-->
+
+<!-- TODO: Uncomment and populate when you have adopters
+
+## Who's Using This
+
+JD-LLM is used by developers building:
+
+- [Project Name](link) — description
+- [Project Name](link) — description
+- [Project Name](link) — description
+
+*Using JD-LLM? [Open a PR](https://github.com/joris887/JD-LLM-Development_framework/pulls) to add your project.*
+
+-->
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, testing, and PR guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, development workflow, and PR guidelines.
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for version history.
+Found a bug or have an idea? [Open an issue](https://github.com/joris887/JD-LLM-Development_framework/issues).
 
 ## License
 
-MIT
+Licensed under the [MIT License](LICENSE).
