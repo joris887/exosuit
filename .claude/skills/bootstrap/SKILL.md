@@ -24,6 +24,7 @@ START → 0. Detect Installation Mode
   → [Plugin mode?]
     → YES: CLAUDE_PLUGIN_ROOT is set, skip .claude/ setup
     → NO: Template mode, .claude/ already in project
+  → 0.5. README Management (rename framework README → FRAMEWORK_README.md)
   → 1. Detect Project State
     → [Source files exist?]
       → YES: Path A (Existing Repository)
@@ -36,6 +37,7 @@ START → 0. Detect Installation Mode
                     → A3.8: Profile detection (recommend lean/standard/strict)
                       → [Lean?] → Skip A3.1-A3.5c, A5-A5.9, generate minimal docs
                       → A4: Generate config + populate TESTING_STRATEGY.md
+                        → A4.2: Generate or update project README.md
                       → A5: Run /skill-create → A5.5-A5.6: Configure hooks/rules + assess pre-commit + CI/CD
                         → A5.8: Framework Readiness Report → A5.9: Generate foundation backlog
                           → A6: Clean up → A7: Present summary → DONE
@@ -45,7 +47,7 @@ START → 0. Detect Installation Mode
             → After Phase 0: invoke /discover
               → [Lean profile or --quick?] → /discover --quick
               → [Otherwise] → /discover (auto-detects mode from scale)
-              → /discover handles: classification, elicitation, research, vision, backlog
+              → /discover handles: classification, elicitation, research, vision, backlog, README
             → After /discover: continue with scaffold generation + summary → DONE
 ```
 
@@ -68,6 +70,30 @@ fi
 
 This affects Path A steps A5.5 (hook configuration) and A5.6 (rule configuration) — in plugin mode, hook and rule configuration is managed by the plugin, not project-level settings.json.
 
+## 0.5. README Management
+
+Detect and handle the framework's own README before proceeding:
+
+```bash
+# Check if README.md is the framework's own README (not a project README)
+grep -q "JD-LLM Development Framework" README.md 2>/dev/null && \
+grep -q "drop-in development framework" README.md 2>/dev/null
+```
+
+**If framework README detected:** Rename to preserve it as a reference:
+```bash
+mv README.md FRAMEWORK_README.md
+```
+Report: "Renamed framework README to FRAMEWORK_README.md — reference it anytime for framework documentation."
+
+**If README.md is a scaffold template** (contains `[Project Name]` and `[Brief description`): Leave it — it will be populated in step A4.2 (Path A) or Phase 7D (Path B).
+
+**If README.md is a real project README** (neither framework nor scaffold template): Preserve it unchanged. It will be reviewed for completeness in A4.2.
+
+**If no README.md exists:** One will be generated in step A4.2 (Path A) or Phase 7D (Path B).
+
+---
+
 ## 1. Detect Project State
 
 Determine which path to follow:
@@ -83,6 +109,7 @@ find . -type f \
   -not -path './CLAUDE.md' \
   -not -path './CLAUDE.local.md*' \
   -not -path './README.md' \
+  -not -path './FRAMEWORK_README.md' \
   -not -path './AGENTS.md' \
   -not -path './llms.txt' \
   -not -path './install.sh' \
@@ -454,10 +481,11 @@ Store the chosen profile: write `**Profile:** <choice>` to CLAUDE.md in step A4.
 
 Generate only:
 - CLAUDE.md with commands section populated (test, lint, format, build, typecheck from A2)
+- README.md (project README from detected info — A4.2 still runs in lean mode)
 - docs/progress.md (minimal template)
 - .gitignore with stack-specific patterns
 
-Still perform: A1 (stack detection), A2 (command detection), A2.85 (quality tooling offer), A3.7 (default branch), A4 (CLAUDE.md configuration — lean subset).
+Still perform: A1 (stack detection), A2 (command detection), A2.85 (quality tooling offer), A3.7 (default branch), A4 (CLAUDE.md configuration — lean subset), A4.2 (README generation).
 </IF>
 
 ### A4. Generate Configuration
@@ -489,6 +517,32 @@ Update these files with detected information:
 ```
 
 All data comes from A2 (detect commands) and A2.6 (coverage assessment). If test setup files exist (conftest.py, jest.config.*, vitest.config.*, etc.), document key fixtures and configuration.
+
+### A4.2. Generate or Update Project README
+
+Ensure the project has a proper `README.md` using information gathered in A1-A3.
+
+**If no README.md exists (or only the scaffold template with `[Project Name]` placeholders):**
+Generate a complete README with these sections (cognitive funnel — broadest first):
+
+1. **Title:** Project name from `package.json` name, `pyproject.toml` [project] name, `go.mod` module, `Cargo.toml` [package] name, or git remote / directory name as fallback
+2. **Description:** From `package.json` description, `pyproject.toml` description, `Cargo.toml` description, or `go.doc` comment. If none found, write a one-liner from the Project Overview in CLAUDE.md
+3. **Prerequisites:** Detected runtime + version from A1 (e.g., "Python 3.11+", "Node 20+"). Include required system tools
+4. **Getting Started:** Clone URL (from `git remote get-url origin`), install command, and dev/run command from A2
+5. **Development:** Table of commands from A2 — test, lint, format, build, typecheck. Only include commands that were actually detected
+6. **Project Structure:** Top-level directory overview from A2.7 architecture assessment. List each top-level source directory with a one-line description of its responsibility. In lean mode (A2.7 skipped), use a basic `ls` of top-level directories instead
+7. **Contributing:** Link to `CONTRIBUTING.md` if it exists. Otherwise: "See `docs/reference/CODING_STANDARDS.md` for conventions and `docs/reference/GIT_WORKFLOW.md` for branch/commit rules."
+8. **License:** Detect from `LICENSE`, `LICENSE.md`, or `LICENSE.txt`. Show the license type (MIT, Apache-2.0, etc.). If no license file found, leave as a placeholder
+
+**If project has an existing README.md (real content, not scaffold template):**
+Do NOT overwrite. Check for these standard sections and note missing ones in the A7 summary:
+- Prerequisites / Installation / Getting Started
+- Development commands (test, lint, build)
+- Project structure
+- Contributing
+- License
+
+Report: "Existing README preserved. Consider adding: [list of missing sections]."
 
 ### A4.4. Update llms.txt
 
@@ -779,6 +833,7 @@ Also create `docs/reviews/` with a `.gitkeep` file. This directory stores phase 
 ### A6. Clean Up
 
 - Delete `vision/` directory (not needed for existing repos)
+- Delete `scaffold/` directory if present (template-mode artifact, contents already installed)
 - Remove template placeholder comments from populated docs
 - Delete any empty template sections that weren't filled
 
@@ -832,6 +887,8 @@ Also create `docs/reviews/` with a `.gitkeep` file. This directory stores phase 
 **Foundation Backlog:** [N] stories across [L] levels in E00-foundation (Framework Ready Gate after Level 2: [N] checks) — or "No gaps found — project is ready"
 
 **Files Updated:**
+- README.md (project README — generated or existing preserved)
+- FRAMEWORK_README.md (framework documentation — renamed from original README.md, if applicable)
 - CLAUDE.md (project overview, commands, architecture, profile, default branch)
 - docs/reference/CODING_STANDARDS.md (language standards)
 - docs/architecture/ARCHITECTURE.md (module overview)

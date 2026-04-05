@@ -118,13 +118,14 @@ See `.claude/skills/discover/SKILL.md` for the complete 7-phase flow.
 
 ## Post-Discovery: Remaining Scaffold
 
-`/discover` Phase 7D already populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/context/*, CLAUDE.md) from discovery decisions. After `/discover` completes, only these remaining scaffold steps are needed:
+`/discover` Phase 7D already populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/context/*, CLAUDE.md, README.md) from discovery decisions. After `/discover` completes, only these remaining scaffold steps are needed:
 
 - `.gitignore` — stack-specific patterns (from DECISION_LOG tech choices)
 - Create empty directories: `docs/research/`, `docs/solutions/`, `docs/brainstorms/`, `docs/reviews/`, `docs/plans/` with `.gitkeep`
 - If strict profile: create `docs/adr/` with initial ADRs from Platform-scale discovery decisions
+- Delete `scaffold/` directory if present (template-mode artifact, contents already installed or generated)
 
-**Verify Phase 7D ran:** Check that `docs/context/project-overview.md`, `docs/context/tech-context.md`, and `docs/architecture/ARCHITECTURE.md` contain project-specific content (not template placeholders). If they're still templates, Phase 7D was skipped — re-read the `/discover` SKILL.md Phase 7D instructions and execute them now.
+**Verify Phase 7D ran:** Check that `docs/context/project-overview.md`, `docs/context/tech-context.md`, `docs/architecture/ARCHITECTURE.md`, and `README.md` contain project-specific content (not template placeholders). If they're still templates, Phase 7D was skipped — re-read the `/discover` SKILL.md Phase 7D instructions and execute them now.
 
 ### Present Summary
 
@@ -138,7 +139,7 @@ See `.claude/skills/discover/SKILL.md` for the complete 7-phase flow.
 **Generated:**
 - [N] epics, [M] stories (including Phase Transition epic)
 - Project scaffold: [framework] + [database] + [auth] on [hosting]
-- Docs: CLAUDE.md, Architecture, Coding Standards, Ground Rules
+- Docs: README.md, CLAUDE.md, Architecture, Coding Standards, Ground Rules
 - Discovery artifacts: DECISION_LOG.md, ASSUMPTION_REGISTER.md, project-pitch.md
 
 **First sprint:** E01 foundation (project setup, database, auth, CI/CD)
