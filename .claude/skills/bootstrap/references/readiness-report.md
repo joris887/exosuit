@@ -120,6 +120,7 @@ These commands are recorded in the saved `READINESS_REPORT.md` so they can be re
 1. **Display in A7 summary** — include the readiness report table in the bootstrap completion summary
 2. **Save to file** — write to `docs/reference/READINESS_REPORT.md` for future reference
 3. **Feed into foundation backlog** — pass Risk and Missing items to A5.9 for story generation
+4. **Baseline for `/doctor`** — `/doctor` re-evaluates Risk/Missing gaps and compares against this baseline to show readiness progress
 
 ## Extensibility
 

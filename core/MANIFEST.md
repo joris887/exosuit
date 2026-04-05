@@ -219,7 +219,7 @@ These files contain project-specific content. Never replaced automatically.
 | `docs/reference/CODING_STANDARDS.md` | Language-specific conventions |
 | `docs/reference/TESTING_STRATEGY.md` | Test infrastructure |
 | `docs/reference/GROUND_RULES.md` | Architectural principles |
-| `docs/reference/READINESS_REPORT.md` | Bootstrap assessment |
+| `docs/reference/READINESS_REPORT.md` | Bootstrap readiness baseline (consumed by `/doctor`) |
 | `docs/reference/PRD_SUMMARY.md` | Product requirements (Path B) |
 | `docs/reference/BACKLOG_INDEX.md` | Epic status |
 | `docs/reference/backlog/*.md` | Epic files with stories |

@@ -136,6 +136,29 @@ echo "JD_STOP_MAX_ITERATIONS=${JD_STOP_MAX_ITERATIONS:-5}"
 - Verify `lib/hook-guard.sh` exists and is executable
 - Show effective stop iteration limit (strict defaults to 10)
 
+## 10. Readiness Progress
+
+If `docs/reference/READINESS_REPORT.md` exists, compare the bootstrap baseline against current project state:
+
+1. Read and parse the readiness assessment table (Principle / Status / Detail)
+2. For each principle classified as `⚠️ Risk` or `✗ Missing`, re-evaluate using data from sections 1–9:
+   - **TDD-first** → Test command (§1) + run coverage tool if available
+   - **Sprint-based / Git-disciplined** → Git state (§6)
+   - **Verification-driven** → Test command passes (§1)
+   - **CI-enforced** → Check for `.github/workflows/`, `.gitlab-ci.yml`, `.circleci/`, `Jenkinsfile`
+   - **Secrets-aware** → Post-edit hook (§2) + `.env*` in `.gitignore`
+   - **Anti-slop** → `code-slop.md` rule exists (§3)
+   - **Quality gates** → Formatter + linter + coverage + typecheck all available (§1)
+   - **Context-efficient** → Source files >500 LOC: `find . -name '*.{ext}' -not -path '*/node_modules/*' | xargs wc -l | awk '$1>500 && !/total$/' | wc -l`
+   - **Documentation-lean** → Core docs populated (§5)
+   - **Pre-commit hooks** → `.pre-commit-config.yaml`, `.husky/`, or `lefthook.yml` exists
+   - **Type-safe** → Typecheck command works (§1)
+   - **Contract-first / API-documented** → API spec files + `API_DOCUMENTATION.md` (skip if no API detected)
+   - **Decisions-documented** → `docs/adr/` has ≥1 accepted ADR
+3. Classify each as `✓ Ready`, `⚠️ Risk`, or `✗ Missing` using bootstrap's classification rules
+
+If the file does not exist, report: "No readiness baseline — run `/bootstrap` to generate `docs/reference/READINESS_REPORT.md`."
+
 ## Output
 
 ```markdown
@@ -193,6 +216,15 @@ echo "JD_STOP_MAX_ITERATIONS=${JD_STOP_MAX_ITERATIONS:-5}"
 | Stop Iterations | 5/10/custom | JD_STOP_MAX_ITERATIONS |
 | Guard script | PASS/FAIL | lib/hook-guard.sh |
 
+### Readiness Progress (if baseline exists)
+| Principle | Bootstrap | Current | Progress |
+|-----------|-----------|---------|----------|
+| TDD-first | ✗ Missing | ✓ Ready | ↑ Fixed |
+| CI-enforced | ⚠️ Risk | ⚠️ Risk | → Unchanged |
+
+**Progress:** X of Y gaps addressed since bootstrap ({date})
+_Only rows for principles that were Risk or Missing at bootstrap. Omit Ready principles._
+
 ### Overall: X/Y checks passed — [HEALTHY / NEEDS ATTENTION / ACTION REQUIRED]
 ```
 
@@ -202,3 +234,4 @@ Based on findings, suggest:
 - `/bootstrap` — if commands or hooks need configuration
 - Specific fixes for any FAIL items
 - `/weekly-maintenance` — if documentation is stale
+- Foundation stories from `E00-foundation.md` — if readiness gaps persist

@@ -11,7 +11,7 @@ On-demand reference files loaded by skills when needed. Not auto-loaded at sessi
 - `MCP_INTEGRATION.md` — MCP server selection and usage guide
 - `TEAM_WORKFLOW.md` — team collaboration guide (2–15 developers)
 - `WORKFLOW.md` — development workflow phases
-- `READINESS_REPORT.md` — bootstrap readiness assessment
+- `READINESS_REPORT.md` — bootstrap readiness baseline (consumed by `/doctor` for progress tracking)
 - `PRD_SUMMARY.md` — product requirements summary
 - `SECRETS_INVENTORY.md` — secret rotation tracking (loaded by security-audit, weekly-maintenance)
 - `backlog/` — individual epic files (load only the current one)
