@@ -573,11 +573,22 @@ Using all decisions, research findings, and user answers from Phases 1-6, popula
 **From vision/classification.md (if project has no source files yet):**
 - `docs/context/project-structure.md` — Proposed directory layout based on chosen stack and architecture pattern
 
+**From vision/project-pitch.md + DECISION_LOG.md (all scales):**
+- `README.md` — Project README with these sections (cognitive funnel — broadest info first):
+  1. **Title:** Project name from discovery
+  2. **Description:** One-liner from project pitch, then 2-3 sentence expanded description from project-overview
+  3. **Prerequisites:** Runtime + version from tech decisions (e.g., "Python 3.11+", "Node 20+")
+  4. **Getting Started:** Install and run commands from tech stack decisions
+  5. **Development:** Table of dev commands — test, lint, format, build, typecheck from DECISION_LOG
+  6. **Project Structure:** Proposed directory layout from project-structure.md
+  7. **Contributing:** Link to CONTRIBUTING.md or brief conventions note referencing CODING_STANDARDS.md
+  8. **License:** From user's license decision if made, otherwise placeholder
+
 **Scale-adapted depth:**
-- Quick Build: populate CLAUDE.md (commands, overview) + GROUND_RULES.md (No-Gos only) + minimal tech-context.md. Skip ARCHITECTURE.md, CODING_STANDARDS.md, system-patterns.md (fill during first sprint).
-- Standard: populate all files above
+- Quick Build: populate CLAUDE.md (commands, overview) + README.md (title, description, getting started) + GROUND_RULES.md (No-Gos only) + minimal tech-context.md. Skip ARCHITECTURE.md, CODING_STANDARDS.md, system-patterns.md (fill during first sprint).
+- Standard: populate all files above including full README.md
 - Platform: populate all files above + create initial ADRs in docs/adr/ for major architectural decisions (database, auth, hosting, API style)
-- Pioneering: populate CLAUDE.md + tech-context.md (what's known) + project-overview.md. Mark other files as "post-spike" with a note about what spikes will determine.
+- Pioneering: populate CLAUDE.md + README.md (title, description, prerequisites) + tech-context.md (what's known) + project-overview.md. Mark other files as "post-spike" with a note about what spikes will determine.
 
 ## Quick Start Mode
 
