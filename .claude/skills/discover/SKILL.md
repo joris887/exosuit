@@ -549,8 +549,13 @@ Using all decisions, research findings, and user answers from Phases 1-6, popula
 - `docs/context/project-overview.md` — What this project is, who it's for, what problem it solves, archetype + scale classification
 - `docs/context/product-context.md` — Feature priorities, user journeys from Phase 3, validation plan from ASSUMPTION_REGISTER. Reference `docs/context/personas.md` for persona details (do not duplicate persona cards here).
 
-**From vision/deep-elicitation.md:**
-- `docs/context/system-patterns.md` — Interaction patterns, UX patterns chosen in Phase 3, edge case handling decisions
+**From vision/deep-elicitation.md + DECISION_LOG.md (technical decisions):**
+- `docs/context/system-patterns.md` — Populate each section:
+  - **Implementation Patterns:** Architecture pattern from Phase 5 dimension sweep (e.g., MVC, hexagonal, event-driven). Reference the proposed module structure.
+  - **Architectural Conventions:** Naming and organization conventions from CODING_STANDARDS.md decisions. Import direction rules from the proposed module map.
+  - **Error Handling Strategy:** From Phase 3B edge case exploration (error dimension) + Phase 5 error handling decisions.
+  - **Testing Conventions:** From DECISION_LOG testing framework decisions + TESTING_STRATEGY.md choices.
+  - **Implementation Recipes:** From the proposed architecture, document how to add the project's primary entity (e.g., "To add a new API endpoint: 1. Create handler in... 2. Add route in...").
 
 **From DECISION_LOG.md (technical decisions from Phase 5 dimension sweep):**
 - `docs/context/tech-context.md` — Stack choices (frontend, backend, database, auth, hosting), key libraries, API style, data layer decisions

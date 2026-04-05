@@ -338,6 +338,12 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 
 - Deep-read the files identified in step 1b
 - Understand patterns, conventions, and existing tests in the area
+- If `docs/context/system-patterns.md` exists and is populated (not template-only), check it against the files being touched:
+  - Which **implementation patterns** apply to this story's scope? (Note reference files to follow.)
+  - Does the area's **error handling** match the documented strategy? (Flag divergence.)
+  - What **testing conventions** apply? (Test naming, fixture approach, mock strategy.)
+  - Is there an **implementation recipe** for the type of entity this story adds? (Follow it.)
+  Note applicable patterns in the plan's "patterns to follow" section. If the story will introduce a NEW pattern not yet documented, note that for post-implementation update.
 - Identify files to modify and files to create
 - Check for `CLAUDE.md` files in the target directory and parent directories — these contain module-specific patterns and conventions that supplement global CLAUDE.md
 

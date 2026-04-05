@@ -49,6 +49,7 @@ Ask clarifying questions if the idea is vague. Do NOT proceed with assumptions.
 Investigate relevant existing code:
 
 - Existing patterns and conventions that a solution must follow
+- If `docs/context/system-patterns.md` exists and is populated, load it. In Phase 3, score each approach's **Pattern Fit**: does it follow or diverge from established implementation patterns, error handling strategy, and testing conventions? Approaches that align are lower-risk. Approaches introducing new patterns must justify the divergence and note which sections of system-patterns.md would need updating.
 - Related features that this idea connects to
 - Architecture constraints from `docs/architecture/ARCHITECTURE.md`
 - Ground rules from `docs/reference/GROUND_RULES.md` (if exists) — MUST rules are hard constraints on any proposed approach
@@ -109,9 +110,12 @@ For each approach, create an option with:
 
   **Complexity:** [Low/Medium/High] — [N files, N new deps]
   **PRD Fit:** [How well this approach meets PRD success criteria and NFRs]
+  **Pattern Fit:** [Aligns with / Extends / Diverges from established patterns]
   ```
 
 **If PRD was loaded:** Score each approach against PRD success criteria (Section 3) and NFRs (Section 6). An approach that can't meet a stated NFR (e.g., performance target, accessibility requirement) should be flagged as non-viable.
+
+**If system-patterns were loaded:** Add a **Pattern Fit** line to each approach. Score: **Aligns** (follows all documented patterns), **Extends** (adds a new pattern consistent with existing ones), or **Diverges** (contradicts a documented pattern — must justify). Approaches that Diverge carry higher implementation risk and require updating system-patterns.md.
 
 **If personas were loaded:** Add a **Persona Fit** line to each approach's preview, evaluating how well the approach serves each persona:
 - Apply each persona's **EVALUATES BY** questions to the approach

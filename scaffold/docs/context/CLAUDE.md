@@ -8,7 +8,7 @@ Bootstrap-generated project knowledge. These files capture what `/bootstrap` dis
 - `tech-context.md` — stack, frameworks, infrastructure, deployment
 - `project-overview.md` — high-level project summary
 - `project-structure.md` — directory layout and module responsibilities
-- `system-patterns.md` — architectural patterns, conventions, idioms in use
+- `system-patterns.md` — implementation patterns, conventions, error handling, testing style, recipes (actively checked by /story-cycle planning + self-review, /brainstorm approach scoring, /sprint-end updates)
 - `error-patterns.md` — common error types and resolution approaches
 
 ## Conventions

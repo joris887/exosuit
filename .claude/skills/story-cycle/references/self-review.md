@@ -14,6 +14,20 @@ Reference loaded by `/story-cycle` Phase 4a. Complete before running quality gat
 - [ ] No unnecessary features added beyond acceptance criteria (YAGNI)
 - [ ] Error handling covers realistic failure modes
 
+<IF condition="docs/context/system-patterns.md is populated (not template-only)">
+### Pattern Alignment Check
+
+For each file modified, verify against `docs/context/system-patterns.md`:
+
+- [ ] **Implementation patterns:** New code follows documented patterns (cite reference file). If a new pattern was introduced, note it for system-patterns update.
+- [ ] **Naming & conventions:** Variables, functions, classes follow documented architectural conventions.
+- [ ] **Error handling:** Errors propagate per the documented strategy. No ad-hoc approaches that diverge from the standard.
+- [ ] **Testing style:** Tests follow documented conventions (naming, fixtures, assertion style, mock strategy).
+
+If deviation is justified (documented pattern doesn't fit this case), note the rationale in the commit message.
+If a NEW pattern was established (not just a deviation), flag for `system-patterns.md` update in Phase 4e.
+</IF>
+
 ## Testing
 
 - [ ] All tests pass — run the test command and show output (not from memory)
