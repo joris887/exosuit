@@ -76,6 +76,10 @@ Explore the codebase to understand:
 - Testing patterns in the relevant area
 - Dependencies on existing code
 
+### Persona Context
+
+Read `docs/context/personas.md` if it exists. When present, note each persona's goals, frustrations, and evaluation criteria — these inform story decomposition and acceptance criteria. Note the primary persona (★) for prioritization decisions.
+
 ### Product Requirements Context
 
 Read `docs/reference/PRD_SUMMARY.md` if it exists. When present, extract:
@@ -178,6 +182,7 @@ created: YYYY-MM-DD
 - **Affected files**: [Explicit list — max 5 files]
 - **Follow patterns in**: [Path to exemplar file in codebase]
 - **Dependencies**: [Story IDs that must be complete first, or "None"]
+- **Personas**: [P1 (Name — Role), P2 (Name — Role) | or "internal" for infra/refactoring stories]
 
 ## Acceptance criteria
 - [ ] [Specific, testable outcome — WHAT not HOW]
@@ -199,6 +204,18 @@ created: YYYY-MM-DD
 For TRIVIAL/SMALL stories, use the lightweight template in `references/story-template-lightweight.md`.
 
 Apply type-specific variations from `references/story-template.md` (Bug Fix → Bug section, Spike → Research questions, Refactoring → Constraints, Performance → Metrics).
+
+### Persona Linkage
+
+If `docs/context/personas.md` was loaded, link each story to persona(s):
+
+1. For each story, determine which persona(s) it primarily serves based on the story's user value and the persona's goals/frustrations
+2. Set the `Personas:` field in the story's Context section (e.g., `P1 (Marcus — Power User), P3 (Admin)`)
+3. For infrastructure, refactoring, or tooling stories with no direct user: set `Personas: internal`
+4. If ALL user-facing stories serve only ONE persona: flag potential imbalance — ask user if secondary personas are underserved in this decomposition
+5. For stories serving a specific persona, weave their frustrations and evaluation criteria into acceptance criteria where natural (don't force it — only where it adds clarity)
+
+**Skip when:** `docs/context/personas.md` doesn't exist or contains only template placeholders.
 
 ## 4. Identify Missing Skills
 

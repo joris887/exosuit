@@ -40,6 +40,8 @@ Understand the idea deeply before proposing solutions:
 
 **Product requirements context:** Read `docs/reference/PRD_SUMMARY.md` if it exists. Use Section 3 (success criteria) as evaluation criteria for approaches in Phase 3. Use Section 7 (scope boundaries) to ensure no approach violates stated non-goals or implementation boundaries. Use Section 6 (NFRs) as constraints — e.g., an approach that can't meet the performance or accessibility thresholds is disqualified.
 
+**Persona context:** Read `docs/context/personas.md` if it exists. Note each persona's goals, evaluation criteria, and failure scenarios — these inform approach scoring in Phase 3.
+
 Ask clarifying questions if the idea is vague. Do NOT proceed with assumptions.
 
 ## 2. Research the Codebase
@@ -110,6 +112,12 @@ For each approach, create an option with:
   ```
 
 **If PRD was loaded:** Score each approach against PRD success criteria (Section 3) and NFRs (Section 6). An approach that can't meet a stated NFR (e.g., performance target, accessibility requirement) should be flagged as non-viable.
+
+**If personas were loaded:** Add a **Persona Fit** line to each approach's preview, evaluating how well the approach serves each persona:
+- Apply each persona's **EVALUATES BY** questions to the approach
+- Flag approaches that would trigger a persona's **FRUSTRATIONS** (e.g., an approach requiring complex configuration when the primary persona is non-technical)
+- Note when approaches differ by persona fit: "Option A serves P1 better (speed); Option B serves P2 better (simplicity)"
+- The primary persona (★) has tiebreaker weight when approaches trade off between personas
 
 State which approach you recommend and why. The user selects their preferred approach.
 

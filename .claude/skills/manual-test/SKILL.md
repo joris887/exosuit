@@ -46,12 +46,13 @@ Check the backlog for known gaps and bugs that are still TODO:
 - Read `docs/testing/UAT_COVERAGE.md` (if it exists) for test case status
 - Identify which areas have not been tested yet
 
-### Product Requirements
+### Product Requirements & Personas
 
-- Read `docs/reference/PRD_SUMMARY.md` (if it exists) for persona and success criteria context
-- Section 2 (target users) personas inform exploratory testing in Phase 3C
+- Read `docs/context/personas.md` (if it exists) for lean persona cards — these provide CONTEXT, GOALS, FRUSTRATIONS, BEHAVIORS, EVALUATES BY, and FAILURE LOOKS LIKE fields that directly inform exploratory testing in Phase 3C
+- Read `docs/reference/PRD_SUMMARY.md` (if it exists) for success criteria and user flows
 - Section 3 (success criteria) identify what to prioritize testing
 - Section 4 (user flows) provide the core scenarios to regression test
+- If both personas.md and PRD Section 2 exist, prefer personas.md (richer behavioral detail for test generation)
 
 ## 2. Pre-Flight Checks
 
@@ -94,7 +95,11 @@ For each open issue, note it as a known limitation:
 
 Based on architecture and project knowledge, suggest areas to probe.
 
-**If PRD_SUMMARY.md was loaded:** Structure exploratory testing around each persona from Section 2. For each persona, create scenarios that exercise their primary goal, pain points, and constraints. Example: a persona with "low connectivity" constraints → test offline/slow-network behavior. A persona with "screen reader" constraints → test keyboard navigation and ARIA labels.
+**If personas.md was loaded:** Structure exploratory testing around each persona. For each persona, create scenarios that exercise their GOALS, probe their FRUSTRATIONS, use their CONTEXT constraints, and check for their FAILURE LOOKS LIKE scenarios. Apply their EVALUATES BY questions to each tested feature.
+
+**If only PRD_SUMMARY.md was loaded (no personas.md):** Structure exploratory testing around each persona from PRD Section 2. For each persona, create scenarios that exercise their primary goal, pain points, and constraints.
+
+Example: a persona with "low connectivity" context → test offline/slow-network behavior. A persona with "screen reader" context → test keyboard navigation and ARIA labels. A persona with "FAILURE LOOKS LIKE: gets stuck on jargon-filled error messages" → verify all error messages are plain English.
 
 ```markdown
 #### Exploratory: [Feature Area] (as [Persona Name])

@@ -726,6 +726,17 @@ Do NOT skip self-review for ANY story size. If any checklist item fails, go back
 
 **Ground rules re-check:** If `docs/reference/GROUND_RULES.md` exists, re-read it and verify the IMPLEMENTATION (not just the plan) complies. Plans can comply while implementation drifts. Check `git diff --name-only` against ground rules — any MUST violation requires fixing before proceeding.
 
+**Persona cross-check (medium+ risk, user-facing stories only):** If `docs/context/personas.md` exists AND the story has a `Personas:` field (not "internal"), scan the implementation for persona-mismatch issues that functional AC wouldn't catch:
+
+1. Load the persona(s) referenced in the story's `Personas:` field
+2. Check user-facing text: Do error messages, labels, or instructions use jargon that conflicts with the persona's **CONTEXT** (tech proficiency)?
+3. Check interaction patterns: Does the UI/UX match the persona's **BEHAVIORS** (e.g., keyboard navigation for accessibility, mobile-first for mobile personas)?
+4. Check the persona's **FAILURE LOOKS LIKE** scenarios: Is any of them possible in this implementation?
+
+Focus on surface-level mismatches between implementation and persona constraints — not whether the feature conceptually serves the persona (the AC already covers that).
+
+**Skip when:** Story is TRIVIAL or low risk (3-4), story has `Personas: internal`, or `personas.md` doesn't exist.
+
 **If sub-agents are available:** Dispatch quality gates via `/quality-check` based on the risk matrix from Size & Risk Classification:
 
 | Risk Level | `/quality-check` Invocation | Notes |

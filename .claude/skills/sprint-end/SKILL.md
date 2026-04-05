@@ -291,6 +291,12 @@ If `docs/reference/PRD_SUMMARY.md` exists, review it against sprint learnings:
 
 If changes are needed, update PRD_SUMMARY.md and bump the version in the header comment.
 
+### Persona Assumption Update
+
+If `docs/context/personas.md` exists and user-facing stories were delivered this sprint: check the Persona Assumptions table. Were any assumptions validated or invalidated by this sprint's work? Update their Confidence column (`ASSUMED` → `CONFIRMED` or `INVALIDATED`) with a brief note of the evidence. Bump the `updated:` date in frontmatter.
+
+**Skip when:** No user-facing stories were delivered (pure infrastructure/refactoring sprint), or `personas.md` doesn't exist.
+
 ## 3.5 Commit Documentation Artifacts
 
 Commit all documentation changes as a separate commit. This ensures documentation is preserved even if the push or PR step fails or is skipped.

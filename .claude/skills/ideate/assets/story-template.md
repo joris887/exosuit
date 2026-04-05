@@ -18,6 +18,7 @@ created: {{date}}
 - **Affected files**: {{affected_files}}
 - **Follow patterns in**: {{pattern_reference}}
 - **Dependencies**: {{dependencies}}
+- **Personas**: {{personas}}
 
 ## Acceptance criteria
 - [ ] {{criterion_1}}
