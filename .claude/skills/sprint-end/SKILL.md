@@ -271,6 +271,7 @@ Based on what was done in the sprint, update relevant documentation:
   - Update `## Next Steps` with post-sprint actions
 - **CLAUDE.md**: Update Current Focus if epic status changed
 - **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
+- **System patterns** (`docs/context/system-patterns.md`): Review commit messages and story plans from this sprint for pattern-related changes. If any story introduced a new implementation pattern, established a new convention, or changed the error handling/testing approach, update the relevant section. Add new implementation recipes when a repeated entity type was added for the first time (e.g., first API endpoint, first background job). Remove patterns for approaches no longer used.
 - **Architecture doc** (`docs/architecture/ARCHITECTURE.md`): If any story in this sprint changed architecture (check the Update Triggers section), verify the doc was updated during story-cycle Phase 4e. If not, update it now and set `Last Verified` date to today.
 - **SBOM (informational):** If CycloneDX or Syft tools are available, generate or update `sbom.json` to reflect current dependencies. If no SBOM tool is available, skip — note "SBOM generation: no tool available" in the PR body. This is informational, not blocking.
 - **Technical debt register** (`docs/technical-debt.md`):

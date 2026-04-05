@@ -19,8 +19,9 @@ Verify each check as PASS or FAIL with specific evidence. All 5 must pass to pro
 ### 3. Pattern Match (am I following existing conventions?)
 
 - The plan must reference at least one existing file as a pattern source ("following the pattern in src/auth/middleware.ts")
+- If `docs/context/system-patterns.md` is populated: the plan's "patterns to follow" section should align with documented patterns. New patterns must be noted as intentional.
 - For new projects with no existing code, PASS by default
-- PASS: plan cites existing code as pattern. FAIL: plan introduces patterns without referencing existing ones
+- PASS: plan cites existing code as pattern, and aligns with system-patterns.md (if populated). FAIL: plan introduces patterns without referencing existing ones or contradicts documented patterns without justification
 
 ### 4. Scope Bounded (is the change appropriately sized?)
 

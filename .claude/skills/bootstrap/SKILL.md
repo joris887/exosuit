@@ -261,7 +261,12 @@ Populate `docs/context/` files by analyzing the codebase. Apply accuracy safegua
 
 - `project-overview.md` — What the project does, who it's for, core workflows
 - `tech-context.md` — Stack, key libraries, API contracts, data layer
-- `system-patterns.md` — Design patterns, conventions, error handling
+- `system-patterns.md` — Populate each section with codebase evidence:
+  - **Implementation Patterns:** Grep for structural patterns (Controller/Service/Repository classes, middleware chains, factory functions, event handlers). For each, cite a reference file.
+  - **Architectural Conventions:** Extract naming conventions from file/class/function names across 10+ files. Note import direction rules from the A3.5 dependency graph.
+  - **Error Handling Strategy:** Grep for try/catch, error middleware, custom error classes, logging calls. Trace error propagation from data layer to user-facing response.
+  - **Testing Conventions:** Analyze test file naming, co-location vs separate dir, assertion library, mock/stub patterns, fixture setup.
+  - **Implementation Recipes:** Identify the most common entity type (API endpoint, service, component) and document the step-by-step to add a new one. Reference exemplar files.
 - `project-structure.md` — Directory layout, module responsibilities, data flow
 - `product-context.md` — Domain terminology, feature areas, constraints
 - `personas.md` — User personas (see below)
