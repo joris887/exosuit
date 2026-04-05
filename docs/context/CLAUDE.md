@@ -3,7 +3,8 @@
 Bootstrap-generated project knowledge. These files capture what `/bootstrap` discovered about the project.
 
 ## Files
-- `product-context.md` — what the product does, who it serves, key workflows
+- `product-context.md` — what the product does, key workflows, constraints
+- `personas.md` — user personas in lean 6-field format (loaded by /ideate, /story-cycle, /brainstorm, /manual-test, /UAT-cycle, /sprint-end)
 - `tech-context.md` — stack, frameworks, infrastructure, deployment
 - `project-overview.md` — high-level project summary
 - `project-structure.md` — directory layout and module responsibilities

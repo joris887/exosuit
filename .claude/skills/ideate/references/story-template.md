@@ -25,6 +25,7 @@ created: YYYY-MM-DD
 - **Affected files**: [Explicit list of files/modules that will change — max 5]
 - **Follow patterns in**: [Path to exemplar file the AI should read and follow]
 - **Dependencies**: [Story IDs that must be complete first, or "None"]
+- **Personas**: [P1 (Name — Role), P2 (Name — Role) | or "internal" for infra/refactoring]
 
 ## Acceptance criteria
 - [ ] [Specific, testable outcome — state WHAT not HOW]

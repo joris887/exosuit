@@ -8,7 +8,7 @@ Read `docs/reference/DECISION_LOG.md`. For each dimension, check: is there alrea
 
 Typical post-elicitation coverage:
 - D01 Problem & Vision: ✅ COVERED (Phase 2)
-- D02 User Personas: ✅ COVERED (Phase 3)
+- D02 User Personas: ✅ COVERED (Phase 3D — `docs/context/personas.md` generated and user-verified)
 - D03 Features & MVP: ✅ COVERED (Phase 3)
 - D04 UX & Design: ⚠️ PARTIAL (may have emerged during elicitation)
 - D05-D10: ❌ NOT YET (unless emerged during elicitation)

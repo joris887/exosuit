@@ -249,6 +249,75 @@ Additional: domain modeling, multi-user-type journeys, API surface design, integ
 
 Save to `vision/deep-elicitation.md`. Log decisions to DECISION_LOG.
 
+### 3D. Persona Synthesis
+
+After deep elicitation completes, synthesize user personas from ALL Phase 2-3 answers. Personas generated here are richer than the early D02 user notes because they're informed by feature maps, user journeys, and edge cases.
+
+**Generate 2-4 personas** in the lean 6-field format:
+
+```markdown
+## P[N]: [Name] — [Role] ([key context])
+- **CONTEXT:** [Environment, tech proficiency, device, constraints]
+- **GOALS:** [What they're trying to achieve — observable outcomes]
+- **FRUSTRATIONS:** [What blocks them today — drives acceptance criteria]
+- **BEHAVIORS:** [How they interact with similar products — informs UX]
+- **EVALUATES BY:** "[Question 1]?" / "[Question 2]?"
+- **FAILURE LOOKS LIKE:** [What goes wrong for this persona — informs testing]
+```
+
+**Rules for persona generation:**
+- Derive from what the user SAID, not from archetypes or assumptions
+- Each persona must have a DISTINCT behavior pattern — if two personas differ only by demographics, merge them
+- Mark one as primary (★) — the persona the MVP is built for
+- Cap at 4 personas; more usually means overlapping segments
+- Scale adapts: Quick Build = 1 persona, Standard = 2-3, Platform = 3-4, Pioneering = 1-2 proto-personas
+
+**Verify with user** via **AskUserQuestion** (`multiSelect`):
+
+```
+header: "User personas"
+question: "Based on our conversation, I've identified these user types. Uncheck any
+           that don't fit, or select 'Other' to add a user type I missed.
+           I'll show the full persona cards after you confirm."
+multiSelect: true
+options:
+  - label: "P1: [Name] — [Role] (Recommended as primary)"
+    description: "GOALS: [goals]. FRUSTRATIONS: [frustrations].
+                  EVALUATES BY: '[key question]?'"
+  - label: "P2: [Name] — [Role]"
+    description: "GOALS: [goals]. FRUSTRATIONS: [frustrations].
+                  EVALUATES BY: '[key question]?'"
+  - label: "P3: [Name] — [Role]"
+    description: "GOALS: [goals]. FRUSTRATIONS: [frustrations].
+                  EVALUATES BY: '[key question]?'"
+```
+
+After user confirms persona selection, if more than one persona confirmed, ask primary selection via **AskUserQuestion**:
+
+```
+header: "Primary persona"
+question: "Which user should we prioritize when features conflict between personas?"
+options: [one per confirmed persona, recommended = most frequently referenced in Phase 2-3]
+```
+
+For "Other" additions: ask 2-3 follow-up questions (context, goal, frustration), generate card, present for confirmation.
+
+**Save** generated personas to `docs/context/personas.md` using the template format. Log persona decisions to DECISION_LOG with confidence `CONFIRMED` (user-verified) or `ASSUMED` (auto-generated in Quick mode).
+
+**Transition:**
+
+```
+---
+Phase 3 Complete: Deep Elicitation + Personas
+---
+
+**User personas confirmed:**
+- ★ P1: [Name] — [Role] (primary)
+- P2: [Name] — [Role]
+
+**Moving to Phase 4:** Stress Testing — we'll test assumptions and identify risks.
+```
+
 ## Phase 4: Assumption Surfacing & Stress Testing
 
 ```
@@ -473,9 +542,12 @@ This step is MANDATORY. Do NOT skip it. Every file below must be populated with 
 
 Using all decisions, research findings, and user answers from Phases 1-6, populate these files. Each file must contain project-specific content, not placeholder comments.
 
+**From Phase 3D persona synthesis (already generated — verify exists):**
+- `docs/context/personas.md` — Should already exist from Phase 3D. Verify it contains project-specific personas, not template placeholders. If missing (e.g., Phase 3D was skipped), generate now from Phase 2-3 user notes.
+
 **From vision/classification.md + vision/core-identity.md:**
 - `docs/context/project-overview.md` — What this project is, who it's for, what problem it solves, archetype + scale classification
-- `docs/context/product-context.md` — User personas, workflows, feature priorities, user journeys from Phase 3, validation plan from ASSUMPTION_REGISTER
+- `docs/context/product-context.md` — Feature priorities, user journeys from Phase 3, validation plan from ASSUMPTION_REGISTER. Reference `docs/context/personas.md` for persona details (do not duplicate persona cards here).
 
 **From vision/deep-elicitation.md:**
 - `docs/context/system-patterns.md` — Interaction patterns, UX patterns chosen in Phase 3, edge case handling decisions
@@ -509,9 +581,10 @@ For Quick Build scale, or `--quick` flag, or user says "just start" / "skip the 
 1. Phase 1 classification (3 questions: archetype + scale + "X meets Y")
 2. 3-5 essential questions ONLY (archetype core question + who/device + ONE thing to nail)
 3. 1 quick research: landscape scan (2-3 searches)
-4. Auto-pick all technical decisions (mark as ASSUMED in DECISION_LOG)
-5. Generate minimal pitch + minimal backlog: E01 Core Build (3-5 stories) + E02-REVIEW Quick Phase Transition (3 stories)
-6. Start building immediately
+4. Auto-generate 1 persona from answers (mark as ASSUMED). Confirm with user: "Your main user seems to be [X]. Sound right?" Save to `docs/context/personas.md`.
+5. Auto-pick all technical decisions (mark as ASSUMED in DECISION_LOG)
+6. Generate minimal pitch + minimal backlog: E01 Core Build (3-5 stories) + E02-REVIEW Quick Phase Transition (3 stories)
+7. Start building immediately
 
 Key: "Document as you go, not before you start." Phase Transition Stories still trigger a review loop.
 
@@ -520,9 +593,10 @@ Key: "Document as you go, not before you start." Phase Transition Stories still 
 For Pioneering scale, or `--pioneer` flag, or Uncategorized archetype.
 
 1. Core Identity questions + DEEP research (academic, patents, adjacent tech)
-2. Spike Planning: identify 2-3 time-boxed experiments
-3. Generate spike-first backlog: E01 Spikes (2-3 experiments) + E02-REVIEW Post-Spike Review
-4. After spikes: re-enter /discover with real findings → clearer archetype + scale → GUIDED or PLATFORM mode
+2. Generate 1-2 proto-personas from core identity answers, mark as ASSUMED. Save to `docs/context/personas.md` with note: "Proto-personas — refine after spikes."
+3. Spike Planning: identify 2-3 time-boxed experiments
+4. Generate spike-first backlog: E01 Spikes (2-3 experiments) + E02-REVIEW Post-Spike Review
+5. After spikes: re-enter /discover with real findings → clearer archetype + scale → GUIDED or PLATFORM mode → regenerate personas with real data
 
 ## Graceful Degradation
 

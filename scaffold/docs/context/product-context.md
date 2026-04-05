@@ -9,7 +9,9 @@ updated: <!-- filled by /sprint-end -->
 <!-- Key terms and their definitions as used in this project -->
 
 ## User Personas
-<!-- Who uses the system and their primary goals -->
+<!-- See docs/context/personas.md for full persona cards (lean 6-field format).
+     Reference persona names here; do not duplicate the full cards. -->
+<!-- Primary persona: [Name] — [Role] (★) -->
 
 ## Feature Areas
 <!-- Major feature areas and their current state -->

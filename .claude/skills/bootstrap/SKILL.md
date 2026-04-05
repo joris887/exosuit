@@ -263,9 +263,27 @@ Populate `docs/context/` files by analyzing the codebase. Apply accuracy safegua
 - `tech-context.md` — Stack, key libraries, API contracts, data layer
 - `system-patterns.md` — Design patterns, conventions, error handling
 - `project-structure.md` — Directory layout, module responsibilities, data flow
-- `product-context.md` — Domain terminology, user personas, feature areas
+- `product-context.md` — Domain terminology, feature areas, constraints
+- `personas.md` — User personas (see below)
 
 Each file: ≤200 lines, evidence-based claims only, update YAML frontmatter timestamps.
+
+**Persona Generation (Path A):** For projects with user-facing features (web apps, APIs with end users, CLIs with distinct user types), generate `docs/context/personas.md`:
+
+1. **Infer personas** from codebase signals: role-based directories (admin/, user/), auth roles in code, distinct UI sections, README user descriptions, existing persona docs
+2. **Ask the user** via AskUserQuestion:
+   ```
+   header: "User personas"
+   question: "I've identified these user types from your codebase. Are they correct?
+              Uncheck any that don't exist, or select 'Other' to add missing ones."
+   multiSelect: true
+   options: [one per inferred persona with description]
+   ```
+3. **Generate lean persona cards** (6-field format) for confirmed user types
+4. **Ask for primary persona** if more than one confirmed
+5. **Save** to `docs/context/personas.md`
+
+**Skip when:** Project is a library, internal tool with a single user type, or the user says "no personas needed." In these cases, leave `personas.md` as the template with a note: "Single user type — personas not applicable."
 
 ### A3.5b. Establish Project Ground Rules
 

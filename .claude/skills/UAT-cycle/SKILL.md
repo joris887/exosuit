@@ -47,18 +47,33 @@ Executing UAT cycle: **$ARGUMENTS**
 
 ## Phase 2: Execute Test
 
+### Persona Context Loading
+
+If the test case's parent story has a `Personas:` field (not "internal"), load the referenced persona(s) from `docs/context/personas.md`. When persona context is available:
+
+- **Frame test guidance** from the persona's perspective — use their context (device, proficiency, constraints) to inform how the test should be performed
+- **Present steps** with persona awareness — e.g., "As [Name] ([Role]), try to [step]. Given their [constraint], watch for [specific friction point]."
+- **Evaluate results** against the persona's **EVALUATES BY** questions in addition to the acceptance criteria
+- **Flag FAILURE LOOKS LIKE** matches — if a test result resembles the persona's failure scenario, escalate severity
+
+**Skip when:** No `Personas:` field on the story, personas.md doesn't exist, or the test case is purely technical (API contract, data migration, etc.).
+
+### Test Execution
+
 The user performs the test steps manually (or with automation tooling). Claude assists by:
 
 1. **Ensuring prerequisites**: Check that required services, data, or environments are available
    - If prerequisites aren't met, help the user set them up
-1. **Guiding through steps**: Present steps one at a time or all at once (user preference)
+1. **Guiding through steps**: Present steps one at a time or all at once (user preference). If persona context was loaded, annotate steps with persona perspective where relevant.
 1. **Collecting results**: After the user completes testing, ask for results on each acceptance criterion:
    - Pass / Fail / Blocked / Not Applicable
    - Any observations, screenshots, or feedback per criterion
+   - If persona context loaded: "From [persona name]'s perspective, did this meet their expectations?"
 1. **Recording findings**: For each failing criterion, ask:
    - What happened vs. what was expected?
    - Severity: Critical / Major / Minor / Cosmetic
    - Any error messages or unexpected behavior?
+   - If persona context loaded: note which persona is most affected
 
 ## Phase 3: Process Findings
 
