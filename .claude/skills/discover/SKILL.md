@@ -5,7 +5,7 @@ description: Deep guided elicitation for new projects. Archetype-aware, research
 trigger: manual
 depends-on: []
 calls: [ideate]
-references: [references/scale-guide.md, references/question-scaffolding.md, references/dimension-sweep.md, references/phase-transition-template.md, references/engineering-by-archetype.md, references/research-protocols.md]
+references: [references/scale-guide.md, references/question-scaffolding.md, references/dimension-sweep.md, references/external-dependencies.md, references/phase-transition-template.md, references/engineering-by-archetype.md, references/research-protocols.md]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent, AskUserQuestion
@@ -429,6 +429,14 @@ Search stack project structure, architecture patterns, testing strategy for the 
 
 Cross-dimension constraint check: detect contradictions (serverless + WebSocket, static + SSR, etc.). Present conflicts → resolve with user.
 
+### External Dependency Summary (conditional)
+
+After cross-constraints are resolved, if ANY dimension decisions involve external services (accounts, API keys, external setup), run the external dependency summary from `references/external-dependencies.md`. This presents every external service commitment in one view so the user can confirm or revise choices before proceeding.
+
+**Skip when:** All tech choices are self-hosted, open-source, or local — no external accounts needed.
+
+Output saved to `vision/external-dependencies.md` — consumed by `/ideate` to generate setup prerequisite stories ordered before the features that depend on them.
+
 ## Phase 6: Vision Synthesis
 
 ```
@@ -512,6 +520,8 @@ Define SUCCESS and FAIL thresholds + circuit breaker date per the archetype succ
 ### 7C. Epic & Story Generation
 
 Read `references/scale-guide.md` for scale-adapted epic structures. Read `references/phase-transition-template.md` for the Phase Transition epic. Generate epics with Phase Transition as the LAST epic. For each story include: standard AC + archetype-specific AC layers, relevant decisions from DECISION_LOG, relevant assumptions from ASSUMPTION_REGISTER, No-Gos from project-pitch.md.
+
+If `vision/external-dependencies.md` exists, generate an **Infrastructure** setup story for each external service. Each setup story: type `infra`, size `SMALL`, AC = account created + credentials in `.env` + connectivity verified, ordered immediately BEFORE the first feature story that depends on that service.
 
 <HARD-GATE>
 Use **AskUserQuestion** for story approval:
@@ -599,8 +609,9 @@ For Quick Build scale, or `--quick` flag, or user says "just start" / "skip the 
 3. 1 quick research: landscape scan (2-3 searches)
 4. Auto-generate 1 persona from answers (mark as ASSUMED). Confirm with user: "Your main user seems to be [X]. Sound right?" Save to `docs/context/personas.md`.
 5. Auto-pick all technical decisions (mark as ASSUMED in DECISION_LOG)
-6. Generate minimal pitch + minimal backlog: E01 Core Build (3-5 stories) + E02-REVIEW Quick Phase Transition (3 stories)
-7. Start building immediately
+6. If any auto-picked decisions involve external services (accounts, API keys, external setup), show a brief notice listing each service with its role, setup summary, and estimated time. No approval gate — informational only. Save to `vision/external-dependencies.md` so `/ideate` generates setup stories.
+7. Generate minimal pitch + minimal backlog: E01 Core Build (3-5 stories) + E02-REVIEW Quick Phase Transition (3 stories). Include setup stories for any external services (from step 6) before the features that depend on them.
+8. Start building immediately
 
 Key: "Document as you go, not before you start." Phase Transition Stories still trigger a review loop.
 

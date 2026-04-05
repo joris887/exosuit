@@ -89,6 +89,14 @@ After all dimensions are decided, detect contradictions:
 
 Present conflicts with explanation. Let user choose resolution. Log resolved conflicts in DECISION_LOG with rationale.
 
+## External Dependency Summary
+
+After cross-constraints are resolved, check whether any dimension decisions involve external services (services requiring accounts, API keys, or external setup). If yes, run the external dependency summary from `references/external-dependencies.md`.
+
+**Skip entirely** if all choices are self-hosted, open-source-only, or local — proceed straight to Phase 6.
+
+When triggered: compile all external services, present setup requirements, and let the user confirm or revise choices via **AskUserQuestion** before moving on. Output is saved to `vision/external-dependencies.md` for `/ideate` to generate setup prerequisite stories.
+
 ## Progress Within Phase 5
 
 Update the progress bar after each dimension is decided:
