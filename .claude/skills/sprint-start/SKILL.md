@@ -26,7 +26,9 @@ Starting a new sprint.
 Read the `**Profile:**` line from CLAUDE.md to determine the active project profile.
 
 <IF condition="Profile is lean">
-**Lean mode:** Skip steps 1.5 (Metrics Health Check), 1.6 (Debt Health Check), and step 3 (Sprint Planning ceremony — no sprint spec generation, no story selection, no PRD check). Perform only: 1a-1d (pre-flight checks), step 2 (create feature branch), and update `docs/progress.md` with branch name and sprint number.
+**Lean mode:** Skip steps 1.5 (Metrics Health Check), 1.6 (Debt Health Check), step 3 (Sprint Planning ceremony — no sprint spec generation, no story selection, no PRD check), and step 3.5 (Story Re-Refinement — no selected stories to refine). Perform only: 1a-1d (pre-flight checks), step 2 (create feature branch), and update `docs/progress.md` with branch name and sprint number.
+
+If the user wants story re-refinement against the brain without the full sprint ceremony, they can invoke `/story-cycle` directly — Phase 1 will re-explore against the brain on demand.
 </IF>
 
 <IF condition="Profile is strict">

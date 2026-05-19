@@ -57,7 +57,8 @@ All skills in the framework are CORE except technology-specific skills generated
 | Category | Skills |
 |----------|--------|
 | Core Workflow | bootstrap, sprint-start, story-cycle, sprint-end, continue, handoff |
-| Planning | brainstorm, ideate, research, skill-create |
+| Planning | brainstorm, ideate, research, skill-create, discover, phase-review |
+| Brain (v5.0) | brain-update |
 | Quality | code-quality, test-validator, security-audit, architecture-check, performance-check |
 | Testing | manual-test, testing-cycle, UAT-cycle, claude-sense-check |
 | Debugging | debug-session, fix-issue, undo-work |
@@ -223,7 +224,7 @@ These files contain project-specific content. Never replaced automatically.
 | `docs/reference/PRD_SUMMARY.md` | Product requirements (Path B) |
 | `docs/reference/BACKLOG_INDEX.md` | Epic status |
 | `docs/reference/backlog/*.md` | Epic files with stories |
-| `docs/brain/*.md` | Project knowledge base (6 files) |
+| `docs/brain/*.md` | Repo brain (v5.0): index.md + log.md + current-state.md + 7 stable pages (project-overview, product-context, personas, tech-context, system-patterns, project-structure, error-patterns) |
 | `docs/progress.md` | Sprint history |
 | `docs/technical-debt.md` | Debt inventory |
 

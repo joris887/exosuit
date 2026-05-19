@@ -5,6 +5,12 @@
 # If no test-command given, attempts auto-detection.
 # If no --base-branch given, detects from CLAUDE.md or git.
 # Outputs structured result to stdout.
+#
+# v5.0: ADVISORY. The script always exits 0 when it runs successfully; the
+# PASS/WARN/FAIL string in the output is informational. The real quality
+# signal is AC coverage (every AC has a covering test), enforced by
+# /story-cycle Phase 4b and /sprint-end Step 2. Use exit 1 only on script
+# errors (cannot run), never on a test-count regression.
 
 set -euo pipefail
 
@@ -153,12 +159,13 @@ echo "| Delta | $DELTA |"
 echo ""
 
 if [[ "$DELTA" -lt 0 ]]; then
-  echo "**FAIL:** Test count decreased by ${DELTA#-}. Tests may have been deleted."
-  exit 1
+  echo "**REGRESSION (advisory):** Test count decreased by ${DELTA#-}. v5.0 — this is NOT a blocking signal. Confirm whether the deleted tests covered ACs that still exist; if so, restore coverage. If they were tautological or their ACs are gone, the decrease is fine."
 elif [[ "$DELTA" -eq 0 ]]; then
-  echo "**WARN:** Test count unchanged."
-  exit 0
+  echo "**WARN:** Test count unchanged. AC coverage is the real gate — confirm every new AC has a covering test."
 else
-  echo "**PASS:** Test count increased by $DELTA."
-  exit 0
+  echo "**INFO:** Test count increased by $DELTA."
 fi
+
+# Advisory script: always exit 0 if the script ran successfully.
+# Real quality enforcement happens in /story-cycle Phase 4b and /sprint-end Step 2 (AC coverage check).
+exit 0

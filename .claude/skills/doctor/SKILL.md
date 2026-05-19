@@ -1,6 +1,6 @@
 ---
 name: doctor
-version: 3.0.0
+version: 3.1.0
 description: Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup.
 trigger: manual
 depends-on: []
@@ -73,6 +73,22 @@ Check key framework files:
 - docs/reference/GROUND_RULES.md: Does it exist and have principles?
 
 Report: CURRENT/STALE/MISSING for each
+
+## 5.5. Brain Health (v5.0)
+
+Check the repo brain (`docs/brain/`):
+
+- **Structure:** Does `docs/brain/` exist with `index.md`, `log.md`, `current-state.md` plus the 7 stable pages? Missing files → FAIL with: "Run `/framework-upgrade` Step 5.5 to migrate from v4 layout."
+- **Log freshness:** Days since the last `docs/brain/log.md` entry. Grep `^## \[` and read the most recent date.
+  - <7 days → GREEN
+  - 7-30 days → YELLOW (brain may be drifting; encourage a `/sprint-end` or manual review)
+  - >30 days → RED (brain is stale; new stories will refine against rotting data)
+- **Stable page populated:** For each stable page (`project-overview`, `tech-context`, `system-patterns`, `project-structure`, `product-context`, `personas`, `error-patterns`), is it still pure template (`<!-- filled by -->` only)?
+  - Report which pages remain template-only. These are gaps — surface them so the user knows to backfill or accept the gap.
+- **Citation density (advisory):** Sample `system-patterns.md`. Count claims (bullet points starting with `**...**`) vs citations (`file:line` matches). If citation rate <50%, flag: "Brain claims lack file:line evidence — drift risk. Run `/brain-update` after the next story."
+- **`[Assumed]` claims:** Grep `\[Assumed` across `docs/brain/`. List pages with `[Assumed]` claims — these are pending re-verification.
+
+Report each check: PASS / WARN / FAIL.
 
 ## 6. Git State
 
@@ -194,6 +210,15 @@ If the file does not exist, report: "No readiness baseline — run `/bootstrap` 
 |------|--------|-------------|
 | CLAUDE.md | CURRENT/STALE | [date] |
 | ... | | |
+
+### Brain Health (v5.0)
+| Check | Status | Detail |
+|-------|--------|--------|
+| Structure (`docs/brain/` + index, log, current-state, 7 stable pages) | PASS/FAIL | [missing files or "all present"] |
+| Log freshness | GREEN/YELLOW/RED | [N days since last entry] |
+| Pages populated | [N]/7 populated | [list of template-only pages] |
+| Citation density (system-patterns sample) | OK/LOW | [N]% citations |
+| `[Assumed]` claims pending re-verification | [N] | [pages with assumptions] |
 
 ### Skill Conformance
 | Skill | Frontmatter | Lines | References | Registry |

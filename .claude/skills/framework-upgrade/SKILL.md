@@ -1,6 +1,6 @@
 ---
 name: framework-upgrade
-version: 1.1.0
+version: 1.2.0
 description: Upgrade JD-LLM Development Framework to a newer version while preserving project customizations.
 trigger: manual
 depends-on: [doctor]

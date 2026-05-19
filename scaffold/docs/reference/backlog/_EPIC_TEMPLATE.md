@@ -29,30 +29,36 @@ target: YYYY-MM-DD
 
 ## Story Details
 
-<!-- Full story specs go below, one subsection per story -->
+<!-- Full story specs go below, one subsection per story. v5.0 four-section format:
+     Outcome (stable) + Verification (stable) + Implementation Hints (STALE BY DEFAULT — refined at sprint-start) -->
 <!-- Use this format for each story:
 
-### PROJ-001: Story title
-**Type:** feature · **Size:** SMALL · **Priority:** P0 · **Status:** ready · **Created:** YYYY-MM-DD
+### PROJ-001: Outcome the user gets (not the implementation)
+**Type:** feature · **Size:** STANDARD · **Priority:** P0 · **Status:** ready · **Created:** YYYY-MM-DD · **Refined:** —
 
-#### Why
-[1-2 sentences]
+#### Outcome
+##### Why
+[1-2 sentences: what user/business value]
 
-#### Context
-- **Current state**: [description]
-- **Affected files**: [list, max 5]
-- **Follow patterns in**: [exemplar file path]
-- **Dependencies**: [story IDs or "None"]
+##### Acceptance Criteria
+- [ ] [Outcome-asserting — WHAT user can do/observe, not HOW the code does it]
+- [ ] [Edge case the user might hit]
 
-#### Acceptance criteria
-- [ ] [Testable outcome]
-- [ ] [Edge case]
+##### Out of Scope
+- [Explicit exclusion]
+
+##### Personas
+[P1 (Name — Role) | "internal" for infra/refactor]
 
 #### Verification
 ```bash
-[commands that prove completion]
+[commands that prove the outcome — stable; do not change between ideate and execution]
 ```
 
-#### Out of scope
-- [Explicit exclusion]
+#### Implementation Hints (STALE BY DEFAULT — refined at sprint-start)
+<!-- These freeze at ideate time. /sprint-start step 3.5 re-derives them against the current brain. -->
+- Affected files (suggested): [explicit list]
+- Pattern to follow: [exemplar file:line]
+- Existing helpers to reuse: [helpers found in codebase]
+- Dependencies: [Story IDs or "None"]
 -->

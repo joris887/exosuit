@@ -1,6 +1,6 @@
 ---
 name: sprint-end
-version: 2.10.0
+version: 3.0.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit, brain-update]

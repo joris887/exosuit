@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-version: 2.7.0
+version: 2.8.0
 description: Use when the user has a complex idea that needs design exploration before story decomposition.
 trigger: manual
 depends-on: [ideate, brain-update]

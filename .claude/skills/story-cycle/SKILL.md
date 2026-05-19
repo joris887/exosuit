@@ -136,8 +136,16 @@ If `$ARGUMENTS` matches a story ID pattern (e.g., `PROJ-001`, `S01`, `E01-S03`),
 
 1. Find the story in the epic checklist: `- [ ] ID — Title (Priority, Status)`
 2. Find the detailed story section: `### ID: Title` with inline metadata
-3. Extract metadata: **Type**, **Size**, **Priority**, **Status**, **Dependencies**, **Affected files**, **Acceptance criteria**, **Verification commands**
-4. Use extracted type/size/priority as starting classification (validated in the Size & Risk Classification step)
+3. Extract metadata. v5.0 four-section format:
+   - **Frontmatter**: Type, Size, Priority, Status, Created, `refined_at`, `outcome_invalidated_by` (if set)
+   - **Outcome section** (stable): Why, Acceptance Criteria, Out of Scope, Personas
+   - **Verification section** (stable): the commands that prove the outcome
+   - **Implementation Hints section** (stale-by-default): Affected files, Pattern to follow, Helpers to reuse, Dependencies
+   - v4 legacy format also supported: `## Why`, `## Context`, `## Acceptance criteria`, `## Verification`, `## Out of scope` — extract from these directly. If size is `SMALL`, treat as STANDARD (see Size & Risk Classification).
+4. **Implementation Hints freshness check:**
+   - If `refined_at` matches today's date (or this session's sprint-start), trust the hints as the starting plan in Phase 1.
+   - If `refined_at` is unset, blank, or older than the most recent `docs/brain/log.md` entry, treat the hints as stale — Phase 1 must re-derive them against the current brain before using them.
+5. Use extracted type/size/priority as starting classification (validated in the Size & Risk Classification step).
 
 **Definition of Ready check:** If the story has `status: draft` or is missing verification commands, affected files, or out-of-scope section, warn the user:
 > "This story doesn't meet the Definition of Ready. Missing: [list]. Consider running `/ideate` to refine it, or proceed with caution."
@@ -210,6 +218,8 @@ This prevents missing later parts of compound requests (e.g., "refactor auth AND
 After Phase 0 decomposition, classify by **size** then **risk**.
 
 **Size classification — use the story's frontmatter `size` field as starting point** (if the story came from `/ideate`). Validate against actual scope after decomposition. Reclassify only when the actual scope is materially different from the declared size.
+
+**Legacy compatibility:** If a story declares `size: SMALL` (v4 tier — no longer exists in v5), treat it as `STANDARD` for routing purposes and surface a one-line note: "Note: story size `SMALL` is a v4 tier — using STANDARD path. Run `/framework-upgrade` Step 5.5 to bulk-relabel SMALL → STANDARD across the backlog."
 
 | Size | Criteria (v5.0 — verification-budget bounds) | Default Workflow |
 |------|---------------------------------------------|------------------|

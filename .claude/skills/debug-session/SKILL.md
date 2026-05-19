@@ -1,9 +1,9 @@
 ---
 name: debug-session
-version: 2.9.0
+version: 2.10.0
 description: Use when the user reports a bug, error, or unexpected behavior that needs investigation.
 trigger: manual
-depends-on: []
+depends-on: [brain-update]
 references: [references/root-cause-tracing.md, references/condition-based-waiting.md, references/error-recovery.md]
 micro-components:
   phase-4: [record-failure]
@@ -172,6 +172,8 @@ See `references/condition-based-waiting.md` — search for `## Patterns by Langu
 ## Phase 4.5: Error Learning
 
 If the root cause was initially misdiagnosed or the fix required changing approach, invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md` to record the pattern in `docs/brain/error-patterns.md`. This helps future sessions avoid the same diagnostic mistakes.
+
+After recording, if running standalone (not nested inside `/story-cycle`), invoke `/brain-update debug-session learned <bug-slug>` so the brain log records this learning event. (When nested inside `/story-cycle`, Phase 4.7.5's `/brain-update story-cycle done` will absorb the error-pattern delta — no separate call needed.)
 
 ## Phase 5: Verify and Document
 

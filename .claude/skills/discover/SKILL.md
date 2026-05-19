@@ -1,6 +1,6 @@
 ---
 name: discover
-version: 1.0.0
+version: 1.1.0
 description: Deep guided elicitation for new projects. Archetype-aware, research-backed, multi-phase discovery with assumption tracking and Phase Transition Stories.
 trigger: manual
 depends-on: [brain-update]

@@ -15,7 +15,7 @@
 - docs/GETTING_STARTED.md: Getting started guide with per-profile walkthrough (Lean/Standard/Strict)
 - docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference
 - docs/reference/MCP_INTEGRATION.md: MCP server selection guide with categories, decision tree, and integration patterns
-- docs/brain/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
+- docs/brain/: Repo brain — LLM-maintained source of truth. index.md (catalog), log.md (append-only changelog), current-state.md (what's working / in progress / changed recently), plus stable pages (project-overview, product-context, personas, tech-context, system-patterns, project-structure, error-patterns) with file:line citations on every technical claim. Written only by /brain-update.
 - docs/solutions/: Searchable solutions database — learnings from completed stories with YAML frontmatter (title, tags, module, component)
 - docs/brainstorms/: Persisted design exploration documents from /brainstorm with YAML frontmatter (title, date, status, decision)
 
