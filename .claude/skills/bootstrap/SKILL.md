@@ -96,20 +96,26 @@ Report: "Renamed framework README to FRAMEWORK_README.md — reference it anytim
 
 ## 1. Detect Project State
 
-Determine which path to follow:
+This is a **deterministic routing step**, not a judgment call. Run the command, count the result, route. **Do NOT ask the user to confirm the project state** — the command output is the answer.
 
 ```bash
-# Count non-framework source files
+# Count non-framework source files. Exclude every path install.sh creates.
 find . -type f \
   -not -path './.git/*' \
   -not -path './.claude/*' \
   -not -path './vision/*' \
   -not -path './docs/*' \
   -not -path './scripts/*' \
+  -not -path './scaffold/*' \
+  -not -path './core/*' \
+  -not -path './.github/*' \
+  -not -path './.claude-plugin/*' \
   -not -path './CLAUDE.md' \
   -not -path './CLAUDE.local.md*' \
   -not -path './README.md' \
   -not -path './FRAMEWORK_README.md' \
+  -not -path './CONTRIBUTING.md' \
+  -not -path './CHANGELOG.md' \
   -not -path './AGENTS.md' \
   -not -path './llms.txt' \
   -not -path './install.sh' \
@@ -118,8 +124,14 @@ find . -type f \
   -not -name '.DS_Store' | head -20
 ```
 
-**If source files exist:** → Path A (Existing Repository)
-**If no source files (or only framework files):** → Path B — Read `references/new-project.md` for Phase 0 (Idea Capture), then invoke `/discover` for deep guided elicitation (replaces legacy Phases 1-4).
+**Routing rule:**
+
+- **Output empty (0 source files):** → Path B (New Project). This is the expected, normal state immediately after `./install.sh` on a fresh project. The presence of `.claude/`, `docs/`, `vision/`, `scripts/`, `scaffold/`, README scaffold templates, populated `docs/brain/` templates, etc. is **not unusual** — it's exactly what `install.sh` creates. Proceed directly to Path B without asking the user to confirm or pick between routes.
+- **Output non-empty (any source files found):** → Path A (Existing Repository).
+
+For Path B: Read `references/new-project.md` for Phase 0 (Idea Capture), then invoke `/discover` for deep guided elicitation.
+
+**Never present a "what is this project?" multiple-choice question.** If genuinely ambiguous (e.g. the find command returns files but they look like framework debris), pick the route the command output indicates and surface a one-line note in the summary instead of blocking on a confirmation prompt.
 
 ---
 
