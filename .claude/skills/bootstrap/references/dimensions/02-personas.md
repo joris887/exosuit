@@ -50,7 +50,7 @@ Record to `vision/idea-capture.md` or `vision/core-identity.md`:
 - **Secondary user(s):** Same structure (if applicable)
 - **Accessibility notes:** Any specific needs mentioned (mobile-first, low-bandwidth, accessibility requirements)
 
-These raw notes feed into Phase 3D: Persona Synthesis, which generates the full `docs/context/personas.md` file with the 6-field lean format (context, goals, frustrations, behaviors, evaluates-by, failure-looks-like).
+These raw notes feed into Phase 3D: Persona Synthesis, which generates the full `docs/brain/personas.md` file with the 6-field lean format (context, goals, frustrations, behaviors, evaluates-by, failure-looks-like).
 
 ## Recommendation Logic
 

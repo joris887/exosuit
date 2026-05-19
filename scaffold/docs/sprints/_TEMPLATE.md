@@ -13,9 +13,9 @@ This is the scope-protection anchor — stories can be dropped, but the goal can
 
 | # | Story ID | Title | Type | Size | Status | Session |
 |---|----------|-------|------|------|--------|---------|
-| 1 | PROJ-### | [title] | [type] | S/M/L | 🔲 | - |
+| 1 | PROJ-### | [title] | [type] | TRIVIAL/STANDARD/LARGE | 🔲 | - |
 
-**Size:** S (1 session) · M (2-3 sessions) · L (3-5 sessions)
+**Size:** TRIVIAL · STANDARD (default) · LARGE — bounded by verification breadth + PR reviewability, not time
 **Status:** 🔲 todo · 🔄 in-progress · ✅ done · ⏭️ carried over
 
 ## Boundaries

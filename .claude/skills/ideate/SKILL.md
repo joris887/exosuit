@@ -1,9 +1,9 @@
 ---
 name: ideate
-version: 2.10.0
-description: Use when the user has an idea or requirement to decompose into backlog stories.
+version: 3.0.0
+description: Decompose ideas into outcome-first backlog stories. Stories carry stable Outcome/Verification sections + stale-by-default Implementation Hints (refined at sprint-start).
 trigger: manual
-depends-on: []
+depends-on: [brain-update]
 references: [references/story-template.md]
 disable-model-invocation: true
 user-invocable: true
@@ -78,7 +78,7 @@ Explore the codebase to understand:
 
 ### Persona Context
 
-Read `docs/context/personas.md` if it exists. When present, note each persona's goals, frustrations, and evaluation criteria — these inform story decomposition and acceptance criteria. Note the primary persona (★) for prioritization decisions.
+Read `docs/brain/personas.md` if it exists. When present, note each persona's goals, frustrations, and evaluation criteria — these inform story decomposition and acceptance criteria. Note the primary persona (★) for prioritization decisions.
 
 ### Product Requirements Context
 
@@ -136,7 +136,7 @@ Break the idea into properly typed stories. For each story, determine the best t
 | **Feature**        | "As a \[user\], I want \[capability\], so that \[benefit\]."                  | Working code + tests          |
 | **Bug Fix**        | "Fix: \[defect description\]. Expected: \[behavior\]. Actual: \[behavior\]."  | Fix + regression test         |
 | **Refactoring**    | "Refactor \[component\] to \[improvement\] without changing behavior."        | Restructured code             |
-| **Spike/Research** | "Investigate \[question\]. Time-box: \[hours\]. Decision criteria: \[list\]." | Decision document or ADR      |
+| **Spike/Research** | "Investigate \[question\]. Stopping condition: \[observable outcome that ends the spike\]. Decision criteria: \[list\]." | Decision document or ADR      |
 | **Infrastructure** | "Set up \[tooling/config\] to enable \[capability\]."                         | Scripts/config + verification |
 | **Testing**        | "Add \[test type\] coverage for \[component/feature\]."                       | Test code + coverage          |
 | **Documentation**  | "Document \[topic\] for \[audience\]."                                        | Updated docs                  |
@@ -144,78 +144,93 @@ Break the idea into properly typed stories. For each story, determine the best t
 | **Performance**    | "Optimize \[operation\] to meet \[target\]. Baseline: \[current\]."           | Optimized code + benchmarks   |
 | **Skill/Tooling**  | "Create \[skill/tool\] to automate \[workflow\]."                             | New skill + docs              |
 
-### Story Sizing Constraint
+### Story Sizing Constraint (v5.0 — verification-budget bounds)
 
-**Each story must fit within a single Claude Code context window.** This means:
+Each story is **one vertical user-observable outcome**. Sizing is bounded by what the outcome can be re-verified against in `/story-cycle` Phase 4.5, not by hours or files.
 
-- 1-3 hours of focused work maximum
-- Touches no more than 5-8 files
-- Has a clear, atomic deliverable
-- Can be fully tested within the story
+**Upper bounds for STANDARD (default):**
 
-If a story feels too large, split it further. Prefer many small stories over few large ones.
+- **Verification breadth:** 3-7 AC, each individually re-checkable with command output or file:line evidence.
+- **PR size:** target ≤500 LOC delta, ceiling 1000 LOC. Beyond this, splitting recovers reviewer signal.
+- **Context budget:** implementation + verification fits one session with context still <60% full at end.
 
-### Story Structure
+**LARGE tier** (use sparingly — exceeds STANDARD on one bound intentionally):
+- 8-12 AC, big migrations or multi-module features that don't usefully split, explicit user approval required at ideate-time. `/story-cycle` adds per-AC checkpoints and mandatory integration-tester dispatch for LARGE stories.
 
-Follow the story template in `references/story-template.md`. Use YAML frontmatter for machine-parseable metadata, checklist-style AC as the default, and explicit verification commands.
+**TRIVIAL tier** — single-file change, no behavioral complexity (rename, typo, config tweak). Fast-track in `/story-cycle`.
+
+**No estimation in hours, days, or "sessions."** Claude Code's velocity isn't human velocity; time anchors produce systematically wrong predictions. Estimate by what can be verified, not by clock.
+
+The old SMALL tier from v4.x has been collapsed into STANDARD — STANDARD now naturally absorbs what SMALL used to cover without the three-tier ceremony.
+
+### Story Structure (outcome-first, four-section)
+
+Follow the story template in `references/story-template.md`. The structure separates **outcome** (stable) from **implementation hints** (stale by default — refined at sprint-start).
 
 For each story, produce:
 
 ```markdown
 ---
 id: [PROJECT]-[NUMBER]
-title: [Clear, one-line summary of what changes]
+title: [The OUTCOME — what the user gets, not what the code does]
 type: feature|bugfix|refactor|spike|infra|testing|docs|security|performance|skill
 priority: P0|P1|P2|P3
-size: TRIVIAL|SMALL|STANDARD
+size: TRIVIAL|STANDARD|LARGE
 status: draft
 created: YYYY-MM-DD
+refined_at:
 ---
 
 # [Title]
 
-## Why
-[1-2 sentences: What problem does this solve? What user/business value?]
+## Outcome
 
-## Context
-- **Current state**: [What exists now — behavior, relevant code, prior decisions]
-- **Affected files**: [Explicit list — max 5 files]
-- **Follow patterns in**: [Path to exemplar file in codebase]
-- **Dependencies**: [Story IDs that must be complete first, or "None"]
-- **Personas**: [P1 (Name — Role), P2 (Name — Role) | or "internal" for infra/refactoring stories]
+### Why
+[1-2 sentences: what user/business value]
 
-## Acceptance criteria
-- [ ] [Specific, testable outcome — WHAT not HOW]
-- [ ] [Edge case or error condition]
+### Acceptance Criteria
+- [ ] [Outcome-asserting — WHAT user can do/observe, not HOW the code does it]
+- [ ] [Edge case the user might hit]
 - [ ] Given [precondition], when [action], then [verifiable result]
+
+### Out of Scope
+- [Thing that might seem related but is NOT part of this outcome]
+
+### Personas
+[P1 (Name — Role) | "internal" for infra/refactor]
 
 ## Verification
 ```bash
-[exact commands that prove completion]
+[exact commands that prove the outcome — these stay stable]
 ```
 
-## Out of scope
-- [Explicit exclusion to prevent scope creep]
-- [Constraint: Must NOT modify X]
+## Implementation Hints (STALE BY DEFAULT — refined at sprint-start)
+<!-- These freeze at ideate time and rot. /sprint-start step 3.5 re-derives against the current brain. -->
+- Affected files (suggested): [explicit list]
+- Pattern to follow: [exemplar file:line]
+- Existing helpers to reuse: [helpers found in codebase]
+- Dependencies: [Story IDs, or "None"]
 ```
 
-**Checklist AC is the default** — each item maps to a testable assertion. Use Given/When/Then only for complex behavioral scenarios with multiple preconditions. Target 3–7 AC per story; more than 7 means the story needs splitting.
+**AC must be outcome-asserting, not implementation-prescriptive.** If an AC names a class/function/file, rewrite it as observable behavior. See `references/story-template.md` for the anti-patterns table with examples.
 
-For TRIVIAL/SMALL stories, use the lightweight template in `references/story-template-lightweight.md`.
+Target 3-7 AC per STANDARD story; 8-12 per LARGE. If more, split.
+
+For TRIVIAL stories, use the lightweight template in `references/story-template-lightweight.md` (which has only Outcome + Verification + a single-line Implementation Hint).
 
 Apply type-specific variations from `references/story-template.md` (Bug Fix → Bug section, Spike → Research questions, Refactoring → Constraints, Performance → Metrics).
 
 ### Persona Linkage
 
-If `docs/context/personas.md` was loaded, link each story to persona(s):
+If `docs/brain/personas.md` was loaded, link each story to persona(s):
 
 1. For each story, determine which persona(s) it primarily serves based on the story's user value and the persona's goals/frustrations
-2. Set the `Personas:` field in the story's Context section (e.g., `P1 (Marcus — Power User), P3 (Admin)`)
+2. Set the `Personas:` field in the story's Outcome section (e.g., `P1 (Marcus — Power User), P3 (Admin)`)
 3. For infrastructure, refactoring, or tooling stories with no direct user: set `Personas: internal`
 4. If ALL user-facing stories serve only ONE persona: flag potential imbalance — ask user if secondary personas are underserved in this decomposition
 5. For stories serving a specific persona, weave their frustrations and evaluation criteria into acceptance criteria where natural (don't force it — only where it adds clarity)
 
-**Skip when:** `docs/context/personas.md` doesn't exist or contains only template placeholders.
+**Skip when:** `docs/brain/personas.md` doesn't exist or contains only template placeholders.
 
 ## 4. Identify Missing Skills
 
@@ -265,7 +280,7 @@ If `vision/external-dependencies.md` exists (generated by `/discover`), read it 
 
 Each setup story:
 - Uses story type `infra` with clear setup instructions in the body
-- Is sized `SMALL` (most setups take 15-30 min)
+- Is sized `TRIVIAL` (single concern, single account/config)
 - Has acceptance criteria: account created, credentials stored in `.env` (or project secrets), connectivity verified with a smoke test
 - Includes the setup steps, credentials needed, and free tier info from the external dependency summary
 - Is ordered immediately BEFORE the first feature story that depends on that service — not all bunched at the start
@@ -301,13 +316,13 @@ Present the decomposed stories to the user:
 ```markdown
 ### Backlog: <Idea Title>
 
-**Stories:** [count] | **Sizes:** [X TRIVIAL, Y SMALL, Z STANDARD]
+**Stories:** [count] | **Sizes:** [X TRIVIAL, Y STANDARD, Z LARGE]
 
 #### Story Order (dependency-resolved):
 | # | ID | Title | Type | Size | Priority | Depends On |
 |---|-----|-------|------|------|----------|------------|
-| 1 | PROJ-001 | [Title] | feature | SMALL | P0 | None |
-| 2 | PROJ-002 | [Title] | feature | STANDARD | P1 | PROJ-001 |
+| 1 | PROJ-001 | [Title] | feature | STANDARD | P0 | None |
+| 2 | PROJ-002 | [Title] | feature | LARGE | P1 | PROJ-001 |
 
 #### Detailed Stories:
 [Full story definitions using the template structure above]
@@ -320,16 +335,16 @@ Present the decomposed stories to the user:
 
 Before presenting stories, validate each against the Definition of Ready checklist (from `references/story-template.md`):
 
-- [ ] Title clear and specific
+- [ ] Title describes the OUTCOME (what user gets), not the implementation
 - [ ] Type assigned (one of 10 types)
-- [ ] Size classified (TRIVIAL/SMALL/STANDARD)
-- [ ] 3-7 acceptance criteria, all testable
+- [ ] Size classified (TRIVIAL/STANDARD/LARGE)
+- [ ] 3-7 (STANDARD) or 8-12 (LARGE) acceptance criteria, all outcome-asserting
+- [ ] No AC names a specific file/class/function (except infra/refactor/bugfix)
 - [ ] Verification commands specified
 - [ ] Out of scope defined (at least one exclusion)
-- [ ] Affected files listed (max 5)
-- [ ] Pattern references included (where applicable)
-- [ ] Dependencies resolved or documented
-- [ ] No ambiguous language
+- [ ] Implementation Hints section present (marked STALE BY DEFAULT)
+- [ ] Personas linked (or marked "internal")
+- [ ] No ambiguous language ("should be fast", "handle errors properly", "make it work")
 - [ ] Self-contained
 
 Stories passing all criteria → `status: ready`. Stories missing criteria → `status: draft` with a note listing what's missing.
@@ -375,6 +390,7 @@ Use the epic template from `docs/reference/backlog/_EPIC_TEMPLATE.md`. Each epic
   ```bash
   echo "{\"type\":\"story\",\"event\":\"created\",\"id\":\"<id>\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"priority\":\"<priority>\",\"status\":\"<ready|draft>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
   ```
+- **Update the repo brain:** Invoke `/brain-update ideate stories-added <epic-id>`. This seeds outcome-level intent (what's coming) into `docs/brain/current-state.md` "What's In Progress / What's Coming" section so future sprints have the context. Skip if `docs/brain/` doesn't exist.
 
 ## Example
 
@@ -395,14 +411,16 @@ Next Steps:
 
 ## Rules
 
-- Each story must fit in a single AI context window — max 5 affected files, describable in one sentence with one measurable outcome
-- Acceptance criteria must be machine-verifiable — exact commands in the Verification section that prove completion
-- 3–7 acceptance criteria per story. Fewer = insufficient guidance. More than 7 = story needs splitting.
-- Out of scope section is mandatory — at least one explicit exclusion to prevent AI scope creep
-- No ambiguous language in AC — reject "should be fast", "handle errors properly", "make it work"
-- Every story must have a size classification (TRIVIAL/SMALL/STANDARD) in frontmatter — this drives /story-cycle workflow depth
-- Spike stories must have a time-box and explicit research questions
-- Testing stories come before feature stories in the order
+- Each story is **one vertical user-observable outcome**. The Outcome section is stable; the Implementation Hints section is stale by default and refined at sprint-start.
+- Acceptance criteria are **outcome-asserting, not implementation-prescriptive** — describe what the user gets/observes, not which file/class/function does it. (Exceptions: infra/refactor/bugfix stories may name internals.)
+- 3-7 AC per STANDARD story; 8-12 per LARGE. Fewer = insufficient guidance. More = story needs splitting.
+- Verification commands must be machine-runnable and stable — they should not need to change between ideate-time and execution-time.
+- Out of scope section is mandatory — at least one explicit exclusion to prevent AI scope creep.
+- No ambiguous language in AC — reject "should be fast", "handle errors properly", "make it work".
+- Every story has a size classification (TRIVIAL/STANDARD/LARGE) — this drives /story-cycle workflow depth.
+- **No estimation in hours, days, or "sessions."** Time anchors produce wrong predictions for Claude Code.
+- Spike stories use a **stopping condition** (observable outcome that ends the spike), not a clock-based time-box.
+- Testing stories come before feature stories in the order.
 - Follow coding standards in `docs/reference/CODING_STANDARDS.md`
 - Follow testing strategy in `docs/reference/TESTING_STRATEGY.md`
 - Follow architecture constraints in `docs/architecture/ARCHITECTURE.md`

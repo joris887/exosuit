@@ -49,7 +49,7 @@ Executing UAT cycle: **$ARGUMENTS**
 
 ### Persona Context Loading
 
-If the test case's parent story has a `Personas:` field (not "internal"), load the referenced persona(s) from `docs/context/personas.md`. When persona context is available:
+If the test case's parent story has a `Personas:` field (not "internal"), load the referenced persona(s) from `docs/brain/personas.md`. When persona context is available:
 
 - **Frame test guidance** from the persona's perspective — use their context (device, proficiency, constraints) to inform how the test should be performed
 - **Present steps** with persona awareness — e.g., "As [Name] ([Role]), try to [step]. Given their [constraint], watch for [specific friction point]."

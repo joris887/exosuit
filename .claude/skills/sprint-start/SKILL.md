@@ -1,10 +1,10 @@
 ---
 name: sprint-start
-version: 2.7.0
-description: Pre-sprint checks, feature branch creation, and sprint planning. Ensures clean state, defines sprint goal and scope, creates sprint spec document.
+version: 3.0.0
+description: Pre-sprint checks, feature branch creation, sprint planning, and story re-refinement against the current brain.
 trigger: manual
 depends-on: []
-references: []
+references: [references/story-refinement.md]
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write
@@ -205,7 +205,7 @@ Ask the user to select stories for this sprint and define a sprint goal. Guide t
 
 - **Sprint goal**: One sentence describing the outcome (not a list of stories). Example: "Enable users to authenticate via OAuth2"
 - **Story selection**: Based on ready stories, capacity (estimated sessions available), and priority order
-- **Sizing**: S (1 session), M (2-3 sessions), L (3-5 sessions) — based on complexity, not effort hours
+- **Sizing**: TRIVIAL / STANDARD (default) / LARGE — bounded by verification breadth and PR reviewability. **No time estimates.** Typical sprint capacity: 3-6 STANDARD outcomes (LARGE counts as 2).
 - **Buffer**: Reserve ~15% of sessions for unplanned work
 
 <IF condition="docs/reference/PRD_SUMMARY.md exists">
@@ -235,6 +235,69 @@ Update `docs/progress.md` → `## Current Sprint` section with:
 - Branch name and status
 - Compact stories table (just #, title, size, status)
 - Notes: empty (filled during sprint)
+
+## 3.5. Story Re-Refinement (against the current brain)
+
+Stories may have been written weeks ago. Their **Outcome** sections (Why, Acceptance Criteria, Out of Scope) are stable — those still apply. But their **Implementation Hints** (file lists, pattern references, dependencies) freeze at write-time and rot as the code moves. This step re-derives them.
+
+**Skip when:** `docs/brain/` doesn't exist (pre-bootstrap project, or framework v4 project pre-migration). Note in summary: "Brain not present — skipping re-refinement. Stories will use frozen hints."
+
+For each story selected for this sprint:
+
+### 3.5a. Load context (fast — grep + brain reads only, no agents)
+
+- Read the story's Outcome + Verification sections from the epic file (these stay).
+- Read `docs/brain/index.md` to find the brain pages most relevant to the story's domain.
+- Read those pages (≤3) plus `docs/brain/current-state.md`.
+- Check `docs/brain/log.md` for entries since the story's `created:` date — these are the changes the story's hints don't know about.
+
+### 3.5b. Re-derive Implementation Hints
+
+Rewrite the story's `## Implementation Hints (refined at sprint-start)` section:
+
+- **Affected files (now):** grep + brain to find which files the outcome touches *today*. The frozen list may be stale; the new list overwrites it.
+- **Pattern to follow:** cite a current exemplar (file:line) from `system-patterns.md` or the codebase. If the pattern shifted since story creation, the new pattern wins.
+- **Existing helpers to reuse:** anything the story can compose from rather than rebuild — pulled from brain or grep.
+- **Dependencies (now):** check that listed story dependencies are still relevant; remove any that are now done, add any that emerged.
+
+Bump the story's frontmatter `refined_at:` to today.
+
+### 3.5c. Invalidation & Block flags
+
+Apply two checks against the brain:
+
+- **Outcome invalidated**: the world moved. E.g., the story is "add OAuth login" but `current-state.md` shows OAuth is already shipped (a previous sprint already delivered it). Flag for the user — kill or keep?
+- **Outcome blocked**: the story is implementable but a load-bearing constraint changed. E.g., the story assumes the old session model but `system-patterns.md` shows session storage was migrated. Flag for the user — defer, re-scope, or proceed with brain-aware re-scoping?
+
+Surface flags as:
+
+```
+Re-refinement found 1 flag:
+  [INVALID] PROJ-014 — "Add OAuth login" — current-state.md says OAuth shipped in sprint 12 (src/auth/oauth.ts:1)
+    Options: [K] Kill (mark won't-do), [D] Defer to backlog review, [E] Edit outcome
+```
+
+Wait for user decision before continuing.
+
+### 3.5d. Update epic file
+
+Write the refined Implementation Hints back to the story's section in `docs/reference/backlog/E##-*.md`. Set frontmatter `refined_at: YYYY-MM-DD` and `outcome_invalidated_by:` if the user kept an invalidated story (records the conflict for next time).
+
+### 3.5e. Emit refinement events
+
+```bash
+for story in <selected-stories>; do
+  echo "{\"type\":\"story\",\"event\":\"refined\",\"id\":\"<id>\",\"flags\":\"<none|invalid|blocked>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+done
+```
+
+### Profile adaptation
+
+- **Lean profile:** Re-refinement is best-effort. Skip on stories with no Implementation Hints section (old format).
+- **Standard profile (default):** Re-refine all selected stories.
+- **Strict profile:** Re-refinement is mandatory. If any story lacks Implementation Hints structure, regenerate it from scratch using `/ideate` semantics before the sprint begins.
+
+Target: ≤2 minutes per story. If a story consistently needs longer, that's a signal to split it.
 
 ## 4. Done
 

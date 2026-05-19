@@ -53,7 +53,7 @@ ls install.sh AGENTS.md llms.txt CLAUDE.local.md.template 2>/dev/null
 ### Project-Specific Content (will be PRESERVED)
 ```bash
 echo "=== Preserved ==="
-ls docs/architecture/ docs/reference/ docs/context/ docs/testing/ docs/sessions/ docs/adr/ docs/progress.md docs/technical-debt.md CLAUDE.md 2>/dev/null
+ls docs/architecture/ docs/reference/ docs/brain/ docs/testing/ docs/sessions/ docs/adr/ docs/progress.md docs/technical-debt.md CLAUDE.md 2>/dev/null
 ```
 
 ### Technology-Specific Skills (ask user)
@@ -103,7 +103,7 @@ Same as above, but ALSO preserve:
 - `docs/reference/CODING_STANDARDS.md`
 - `docs/reference/TESTING_STRATEGY.md`
 - `docs/reference/GROUND_RULES.md`
-- `docs/context/*`
+- `docs/brain/*`
 - `docs/progress.md`
 - `docs/technical-debt.md`
 

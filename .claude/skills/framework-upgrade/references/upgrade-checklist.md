@@ -126,7 +126,7 @@ For each: check SKILL.md version + references/ subdirectory.
 - [ ] `docs/reference/GROUND_RULES.md`
 - [ ] `docs/reference/GIT_WORKFLOW.md`
 - [ ] `docs/reference/WORKFLOW.md`
-- [ ] `docs/context/` — template files (preserve if populated)
+- [ ] `docs/brain/` — template files (preserve if populated)
 - [ ] `docs/plans/` — Ensure directory exists (new)
 - [ ] `docs/solutions/` — Ensure directory exists
 - [ ] `docs/brainstorms/` — Ensure directory exists

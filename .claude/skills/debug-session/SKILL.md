@@ -171,7 +171,7 @@ See `references/condition-based-waiting.md` — search for `## Patterns by Langu
 
 ## Phase 4.5: Error Learning
 
-If the root cause was initially misdiagnosed or the fix required changing approach, invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md` to record the pattern in `docs/context/error-patterns.md`. This helps future sessions avoid the same diagnostic mistakes.
+If the root cause was initially misdiagnosed or the fix required changing approach, invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md` to record the pattern in `docs/brain/error-patterns.md`. This helps future sessions avoid the same diagnostic mistakes.
 
 ## Phase 5: Verify and Document
 

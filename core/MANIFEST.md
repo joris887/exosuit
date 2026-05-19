@@ -223,7 +223,7 @@ These files contain project-specific content. Never replaced automatically.
 | `docs/reference/PRD_SUMMARY.md` | Product requirements (Path B) |
 | `docs/reference/BACKLOG_INDEX.md` | Epic status |
 | `docs/reference/backlog/*.md` | Epic files with stories |
-| `docs/context/*.md` | Project knowledge base (6 files) |
+| `docs/brain/*.md` | Project knowledge base (6 files) |
 | `docs/progress.md` | Sprint history |
 | `docs/technical-debt.md` | Debt inventory |
 

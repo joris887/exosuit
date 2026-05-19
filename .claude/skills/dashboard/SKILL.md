@@ -147,7 +147,7 @@ Skip this section — not enough sprint data yet.
 
 ### Sprint N: [Sprint Goal]
 - **Progress:** 3/5 stories done (2 remaining: E01-004 🔄, E01-005 🔲)
-- **Capacity:** ~6/8 sessions used (buffer: 1 session)
+- **Capacity:** 3/5 STANDARD outcomes shipped (typical capacity 3-6 STANDARD)
 - **Out of scope:** [from boundaries]
 - ⚠️ E01-004 in-progress for 3 days (avg cycle time: 1.5 days)
 

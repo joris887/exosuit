@@ -3,7 +3,7 @@ name: sprint-end
 version: 2.10.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
-depends-on: [code-quality, test-validator, security-audit]
+depends-on: [code-quality, test-validator, security-audit, brain-update]
 references: [references/quality-gates.md, references/error-recovery.md]
 micro-components:
   step-1: [discover-commands, verify-clean-git-state]
@@ -169,7 +169,7 @@ Present available check levels using AskUserQuestion:
 - **Standard quality gates (Recommended)** — description: "Code quality + test validation + security audit"
 - **All quality gates** — description: "All 5 quality agents + independent verification"
 - **Run test suite only** — description: "Execute all tests, verify zero failures"
-- **Test count protection** — description: "Verify test count did not decrease from last sprint"
+- **Test count delta (advisory)** — description: "Surface test count change vs default branch — informational, asks for confirmation on decreases instead of blocking"
 - **Ground rules compliance** — description: "Check against GROUND_RULES.md principles"
 - **UAT coverage check** — description: "Check UAT test case pass/fail summary (advisory, does not block)"
 - **Skip all quality gates** — description: "Skip all gates (not recommended)"
@@ -270,8 +270,7 @@ Based on what was done in the sprint, update relevant documentation:
   - **Sprint note**: If any metric is 🟡 or 🔴, write a one-sentence explanation of the likely cause. Include Δ3avg context when relative change triggered the status (e.g., "CFR doubled from 3-sprint average despite being within absolute target"). Check for three-sprint trends (3 consecutive sprints in same direction = strong signal requiring action). When code churn ratio is 🟡 or 🔴, run `scripts/pm/metrics.sh --churn` and include the top 3 hotspot files in the note (e.g., "Churn 🟡 — hotspots: src/auth/session.ts (7 changes), src/api/routes.ts (5 changes)").
   - Update `## Next Steps` with post-sprint actions
 - **CLAUDE.md**: Update Current Focus if epic status changed
-- **Project context** (`docs/context/`): If sprint changes affect architecture, patterns, or tech stack, incrementally update the relevant context files (use `git diff $DEFAULT_BRANCH...HEAD --name-only` to identify affected areas). Update `updated:` timestamps in YAML frontmatter.
-- **System patterns** (`docs/context/system-patterns.md`): Review commit messages and story plans from this sprint for pattern-related changes. If any story introduced a new implementation pattern, established a new convention, or changed the error handling/testing approach, update the relevant section. Add new implementation recipes when a repeated entity type was added for the first time (e.g., first API endpoint, first background job). Remove patterns for approaches no longer used.
+- **Repo brain reconciliation:** Invoke `/brain-update sprint-end shipped sprint-<N>`. This is the aggregate update — distills the sprint's shipped stories into edits on `docs/brain/` with file:line citations, refreshes `current-state.md` ("What Works Now" + "What Changed Recently"), and appends one summary entry to `log.md`. Individual story-level brain updates were already made by each `/story-cycle` Phase 4 invocation — this step catches sprint-aggregate changes (cumulative pattern shifts, architectural drift the per-story updates missed).
 - **Architecture doc** (`docs/architecture/ARCHITECTURE.md`): If any story in this sprint changed architecture (check the Update Triggers section), verify the doc was updated during story-cycle Phase 4e. If not, update it now and set `Last Verified` date to today.
 - **SBOM (informational):** If CycloneDX or Syft tools are available, generate or update `sbom.json` to reflect current dependencies. If no SBOM tool is available, skip — note "SBOM generation: no tool available" in the PR body. This is informational, not blocking.
 - **Technical debt register** (`docs/technical-debt.md`):
@@ -294,7 +293,7 @@ If changes are needed, update PRD_SUMMARY.md and bump the version in the header 
 
 ### Persona Assumption Update
 
-If `docs/context/personas.md` exists and user-facing stories were delivered this sprint: check the Persona Assumptions table. Were any assumptions validated or invalidated by this sprint's work? Update their Confidence column (`ASSUMED` → `CONFIRMED` or `INVALIDATED`) with a brief note of the evidence. Bump the `updated:` date in frontmatter.
+If `docs/brain/personas.md` exists and user-facing stories were delivered this sprint: check the Persona Assumptions table. Were any assumptions validated or invalidated by this sprint's work? Update their Confidence column (`ASSUMED` → `CONFIRMED` or `INVALIDATED`) with a brief note of the evidence. Bump the `updated:` date in frontmatter.
 
 **Skip when:** No user-facing stories were delivered (pure infrastructure/refactoring sprint), or `personas.md` doesn't exist.
 
@@ -343,7 +342,7 @@ Offer to proceed as-is or help split the PR.
    git push -u origin feat/<story-description>
    gh pr create --title "<type>(<scope>): <story summary>"
    ```
-   Repeat for each story. Each PR should be ≤400 LOC.
+   Repeat for each story. Each PR should target ≤500 LOC (ceiling 1000).
 
 2. **By layer:** Split into backend/frontend/infrastructure PRs if changes span layers.
 
@@ -540,7 +539,7 @@ Skip build step.
 - NEVER merge without CI passing (or local gates if no CI)
 - NEVER force push or skip hooks
 - NEVER merge without running quality agents
-- NEVER merge if test count decreased (without explicit user approval)
+- NEVER merge if any AC introduced this sprint lacks a covering test (AC coverage rule from testing.md). Test count decrease alone is fine if the deleted tests were tautological or their ACs are gone — confirm with the user, don't auto-block.
 - ALWAYS discover state from git — assume no prior context
 - ALWAYS update documentation for completed stories
 - ALWAYS squash merge to keep main history clean

@@ -104,7 +104,7 @@ Need type-aware refactoring across many files?
 
 All framework skills function without MCP servers:
 - Documentation verification → rely on training data + `--help` flags
-- Memory persistence → use `docs/sessions/` handoff files and `docs/context/` knowledge base
+- Memory persistence → use `docs/sessions/` handoff files and `docs/brain/` knowledge base
 - Search → use WebSearch/WebFetch built-in tools
 - Browser automation → manual testing with `/manual-test`
 - Code intelligence → Glob + Grep + careful manual refactoring

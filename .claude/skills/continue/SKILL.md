@@ -141,7 +141,7 @@ If other PRs touch files related to your current story, flag potential **agentic
 
 Load the project context knowledge base for deep project understanding (use the `context-prime` micro-component from `.claude/prompts/context-prime.md`):
 
-- Read `docs/context/` files in priority order: overview + tech first, patterns + structure second, product last
+- Read `docs/brain/` files in priority order: overview + tech first, patterns + structure second, product last
 - Skip files that are still template placeholders (contain only `<!-- filled by -->` comments)
 - This provides persistent project knowledge that compounds across sessions
 
@@ -171,7 +171,7 @@ If on a sprint branch (branch name matches `sprint-*`):
 2. Read it and extract:
    - **Sprint goal** — display prominently in the continuation summary
    - **Stories table** — current status of all sprint stories
-   - **Capacity** — sessions available vs sessions consumed (count ✅ stories by size: S=1, M=2, L=4)
+   - **Capacity** — count remaining ⏭️ stories vs sprint plan; STANDARD = 1, LARGE = 2 toward capacity; typical sprint capacity is 3-6 STANDARD
    - **Decisions log** — any decisions made in prior sessions that constrain current work
    - **Boundaries** — out of scope items and risks
 3. If a session handoff file exists, cross-reference `sprint_capacity` from its frontmatter

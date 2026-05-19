@@ -51,6 +51,12 @@ For technology skill generation: `/skill-create`
 | `/phase-review` | `[phase-number]`                             | Phase transition review — walkthrough, assumption validation, and next-phase planning |
 | `/research`     | `<topic-or-question>`   | Deep online research with parallel sub-question investigation, source evaluation, and structured reports |
 
+### Repo Brain (Plumbing, Auto-only)
+
+| Skill            | When invoked                                                                                | Description |
+| ---------------- | ------------------------------------------------------------------------------------------- | ----------- |
+| `/brain-update`  | After /story-cycle Phase 4, /sprint-end Step 3, /brainstorm decided, /ideate Step 7, /discover Phase 7D | Distill recent conversation into `docs/brain/` edits with file:line citations + a log entry. Not user-invocable. |
+
 ### Quality & Testing (Manual + Auto)
 
 | Skill             | Auto-triggers         | Agent Type          |

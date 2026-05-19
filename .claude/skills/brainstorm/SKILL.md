@@ -3,7 +3,7 @@ name: brainstorm
 version: 2.7.0
 description: Use when the user has a complex idea that needs design exploration before story decomposition.
 trigger: manual
-depends-on: [ideate]
+depends-on: [ideate, brain-update]
 references: []
 disable-model-invocation: true
 user-invocable: true
@@ -40,7 +40,7 @@ Understand the idea deeply before proposing solutions:
 
 **Product requirements context:** Read `docs/reference/PRD_SUMMARY.md` if it exists. Use Section 3 (success criteria) as evaluation criteria for approaches in Phase 3. Use Section 7 (scope boundaries) to ensure no approach violates stated non-goals or implementation boundaries. Use Section 6 (NFRs) as constraints — e.g., an approach that can't meet the performance or accessibility thresholds is disqualified.
 
-**Persona context:** Read `docs/context/personas.md` if it exists. Note each persona's goals, evaluation criteria, and failure scenarios — these inform approach scoring in Phase 3.
+**Persona context:** Read `docs/brain/personas.md` if it exists. Note each persona's goals, evaluation criteria, and failure scenarios — these inform approach scoring in Phase 3.
 
 Ask clarifying questions if the idea is vague. Do NOT proceed with assumptions.
 
@@ -49,7 +49,7 @@ Ask clarifying questions if the idea is vague. Do NOT proceed with assumptions.
 Investigate relevant existing code:
 
 - Existing patterns and conventions that a solution must follow
-- If `docs/context/system-patterns.md` exists and is populated, load it. In Phase 3, score each approach's **Pattern Fit**: does it follow or diverge from established implementation patterns, error handling strategy, and testing conventions? Approaches that align are lower-risk. Approaches introducing new patterns must justify the divergence and note which sections of system-patterns.md would need updating.
+- If `docs/brain/system-patterns.md` exists and is populated, load it. In Phase 3, score each approach's **Pattern Fit**: does it follow or diverge from established implementation patterns, error handling strategy, and testing conventions? Approaches that align are lower-risk. Approaches introducing new patterns must justify the divergence and note which sections of system-patterns.md would need updating.
 - Related features that this idea connects to
 - Architecture constraints from `docs/architecture/ARCHITECTURE.md`
 - Ground rules from `docs/reference/GROUND_RULES.md` (if exists) — MUST rules are hard constraints on any proposed approach
@@ -182,6 +182,8 @@ decision: "<Chosen approach name>"
 Include the design brief (from Phase 5), the approaches explored (from Phase 3), and the risks identified (from Phase 4). This document is referenced by `/ideate` and `/story-cycle` when the idea becomes a story.
 
 **If the decision is architecturally significant** (from Phase 4 assessment): also create an ADR using `docs/adr/TEMPLATE.md`. The brainstorm document captures the exploration; the ADR captures the decision in machine-parseable format with rejected alternatives and compliance checks. Map the brainstorm's approaches to the ADR's Alternatives Considered section (chosen → ✅, rejected → ❌ with rationale and reconsider-when conditions).
+
+**Update the repo brain:** When the status is `decided`, invoke `/brain-update brainstorm decided <topic-slug>`. This records the design decision (chosen approach, rejected alternatives with reasons) in `docs/brain/system-patterns.md` and appends a log entry. Skip if `docs/brain/` doesn't exist.
 
 ## 7. Next Steps
 

@@ -3,8 +3,8 @@ name: discover
 version: 1.0.0
 description: Deep guided elicitation for new projects. Archetype-aware, research-backed, multi-phase discovery with assumption tracking and Phase Transition Stories.
 trigger: manual
-depends-on: []
-calls: [ideate]
+depends-on: [brain-update]
+calls: [ideate, brain-update]
 references: [references/scale-guide.md, references/question-scaffolding.md, references/dimension-sweep.md, references/external-dependencies.md, references/phase-transition-template.md, references/engineering-by-archetype.md, references/research-protocols.md]
 disable-model-invocation: true
 user-invocable: true
@@ -302,7 +302,7 @@ options: [one per confirmed persona, recommended = most frequently referenced in
 
 For "Other" additions: ask 2-3 follow-up questions (context, goal, frustration), generate card, present for confirmation.
 
-**Save** generated personas to `docs/context/personas.md` using the template format. Log persona decisions to DECISION_LOG with confidence `CONFIRMED` (user-verified) or `ASSUMED` (auto-generated in Quick mode).
+**Save** generated personas to `docs/brain/personas.md` using the template format. Log persona decisions to DECISION_LOG with confidence `CONFIRMED` (user-verified) or `ASSUMED` (auto-generated in Quick mode).
 
 **Transition:**
 
@@ -553,14 +553,14 @@ This step is MANDATORY. Do NOT skip it. Every file below must be populated with 
 Using all decisions, research findings, and user answers from Phases 1-6, populate these files. Each file must contain project-specific content, not placeholder comments.
 
 **From Phase 3D persona synthesis (already generated — verify exists):**
-- `docs/context/personas.md` — Should already exist from Phase 3D. Verify it contains project-specific personas, not template placeholders. If missing (e.g., Phase 3D was skipped), generate now from Phase 2-3 user notes.
+- `docs/brain/personas.md` — Should already exist from Phase 3D. Verify it contains project-specific personas, not template placeholders. If missing (e.g., Phase 3D was skipped), generate now from Phase 2-3 user notes.
 
 **From vision/classification.md + vision/core-identity.md:**
-- `docs/context/project-overview.md` — What this project is, who it's for, what problem it solves, archetype + scale classification
-- `docs/context/product-context.md` — Feature priorities, user journeys from Phase 3, validation plan from ASSUMPTION_REGISTER. Reference `docs/context/personas.md` for persona details (do not duplicate persona cards here).
+- `docs/brain/project-overview.md` — What this project is, who it's for, what problem it solves, archetype + scale classification
+- `docs/brain/product-context.md` — Feature priorities, user journeys from Phase 3, validation plan from ASSUMPTION_REGISTER. Reference `docs/brain/personas.md` for persona details (do not duplicate persona cards here).
 
 **From vision/deep-elicitation.md + DECISION_LOG.md (technical decisions):**
-- `docs/context/system-patterns.md` — Populate each section:
+- `docs/brain/system-patterns.md` — Populate each section:
   - **Implementation Patterns:** Architecture pattern from Phase 5 dimension sweep (e.g., MVC, hexagonal, event-driven). Reference the proposed module structure.
   - **Architectural Conventions:** Naming and organization conventions from CODING_STANDARDS.md decisions. Import direction rules from the proposed module map.
   - **Error Handling Strategy:** From Phase 3B edge case exploration (error dimension) + Phase 5 error handling decisions.
@@ -568,20 +568,25 @@ Using all decisions, research findings, and user answers from Phases 1-6, popula
   - **Implementation Recipes:** From the proposed architecture, document how to add the project's primary entity (e.g., "To add a new API endpoint: 1. Create handler in... 2. Add route in...").
 
 **From DECISION_LOG.md (technical decisions from Phase 5 dimension sweep):**
-- `docs/context/tech-context.md` — Stack choices (frontend, backend, database, auth, hosting), key libraries, API style, data layer decisions
+- `docs/brain/tech-context.md` — Stack choices (frontend, backend, database, auth, hosting), key libraries, API style, data layer decisions
 - `docs/architecture/ARCHITECTURE.md` — Proposed architecture: tech stack table, architecture overview (Mermaid diagram from stack decisions), module map, dependency rules, deployment strategy
 - `docs/reference/CODING_STANDARDS.md` — Language-specific conventions for the chosen stack, naming conventions, formatting tool, linter, quality gates
 - `CLAUDE.md` — Fill in: Project Overview, Tech Stack (versions), Commands (for chosen stack), Architecture one-liner, Profile
 
 **From vision/stress-test.md + vision/project-pitch.md:**
 - `docs/reference/GROUND_RULES.md` — No-Gos become MUST-NOT rules, key architectural constraints from dimension decisions become MUST rules, add 3-5 principles from the chosen architecture pattern
-- `docs/context/error-patterns.md` — Pre-mortem risks from Phase 4B as potential failure modes to watch for
+- `docs/brain/error-patterns.md` — Pre-mortem risks from Phase 4B as potential failure modes to watch for
 
 **From DECISION_LOG.md (if test framework was decided):**
 - `docs/reference/TESTING_STRATEGY.md` — Test Infrastructure section filled with chosen test runner, coverage tool, test command, test location. Testing approach from `references/engineering-by-archetype.md` for the project's archetype.
 
 **From vision/classification.md (if project has no source files yet):**
-- `docs/context/project-structure.md` — Proposed directory layout based on chosen stack and architecture pattern
+- `docs/brain/project-structure.md` — Proposed directory layout based on chosen stack and architecture pattern
+
+**Seed the volatile brain pages:**
+- `docs/brain/index.md` — Update Pages tables with last-updated dates set to today. Populate Coverage with the stable pages that just got written.
+- `docs/brain/log.md` — Append: `## [YYYY-MM-DD HH:MM] discover seeded | phase-7d vision synthesis` with the list of pages written.
+- `docs/brain/current-state.md` — Populate "Architectural Constraints" from system-patterns.md. Leave "What Works Now" empty (greenfield) with a note: `(Greenfield — populated as stories ship.)`. Leave "What's In Progress" and "What Changed Recently" empty.
 
 **From vision/project-pitch.md + DECISION_LOG.md (all scales):**
 - `README.md` — Project README with these sections (cognitive funnel — broadest info first):
@@ -607,7 +612,7 @@ For Quick Build scale, or `--quick` flag, or user says "just start" / "skip the 
 1. Phase 1 classification (3 questions: archetype + scale + "X meets Y")
 2. 3-5 essential questions ONLY (archetype core question + who/device + ONE thing to nail)
 3. 1 quick research: landscape scan (2-3 searches)
-4. Auto-generate 1 persona from answers (mark as ASSUMED). Confirm with user: "Your main user seems to be [X]. Sound right?" Save to `docs/context/personas.md`.
+4. Auto-generate 1 persona from answers (mark as ASSUMED). Confirm with user: "Your main user seems to be [X]. Sound right?" Save to `docs/brain/personas.md`.
 5. Auto-pick all technical decisions (mark as ASSUMED in DECISION_LOG)
 6. If any auto-picked decisions involve external services (accounts, API keys, external setup), show a brief notice listing each service with its role, setup summary, and estimated time. No approval gate — informational only. Save to `vision/external-dependencies.md` so `/ideate` generates setup stories.
 7. Generate minimal pitch + minimal backlog: E01 Core Build (3-5 stories) + E02-REVIEW Quick Phase Transition (3 stories). Include setup stories for any external services (from step 6) before the features that depend on them.
@@ -620,7 +625,7 @@ Key: "Document as you go, not before you start." Phase Transition Stories still 
 For Pioneering scale, or `--pioneer` flag, or Uncategorized archetype.
 
 1. Core Identity questions + DEEP research (academic, patents, adjacent tech)
-2. Generate 1-2 proto-personas from core identity answers, mark as ASSUMED. Save to `docs/context/personas.md` with note: "Proto-personas — refine after spikes."
+2. Generate 1-2 proto-personas from core identity answers, mark as ASSUMED. Save to `docs/brain/personas.md` with note: "Proto-personas — refine after spikes."
 3. Spike Planning: identify 2-3 time-boxed experiments
 4. Generate spike-first backlog: E01 Spikes (2-3 experiments) + E02-REVIEW Post-Spike Review
 5. After spikes: re-enter /discover with real findings → clearer archetype + scale → GUIDED or PLATFORM mode → regenerate personas with real data

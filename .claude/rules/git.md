@@ -30,9 +30,9 @@ echo "{\"type\":\"rule\",\"rule\":\"git\",\"action\":\"<what-it-caused>\",\"ts\"
 
 ## Merge Rules
 
-- Always squash merge to main for clean history (exception: merge commit allowed for PRs >400 LOC or infrastructure changes needing debug granularity)
+- Always squash merge to main for clean history (exception: merge commit allowed for PRs >1000 LOC or infrastructure changes needing debug granularity)
 - Delete feature branches after merge
-- Keep PRs under 400 LOC (target ≤200) — defect detection drops beyond 400 lines
+- Keep PRs at target ≤500 LOC, ceiling 1000 LOC. Beyond 1000, split to recover reviewer signal — defect detection drops sharply at large diffs.
 
 ## Safety Rules (blocked by hooks — these are redundant guardrails)
 

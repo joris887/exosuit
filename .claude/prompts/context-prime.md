@@ -18,7 +18,7 @@ Extract 2-3 keywords from the current task and map to an intent category:
 
 Load files in the classified priority order. Stop if context budget is tight. For each file: skip if it contains only template placeholders (`<!-- filled by -->`). Only load files that have been populated with actual project content.
 
-All files live in `docs/context/` unless noted:
+All files live in `docs/brain/` unless noted:
 - `project-overview.md` — what the project does
 - `tech-context.md` — stack and integration patterns
 - `system-patterns.md` — design patterns and conventions

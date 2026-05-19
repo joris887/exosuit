@@ -6,7 +6,7 @@ Select the best tool for the current operation. Prefer MCP servers when availabl
 |------|--------------------------|-------------------|
 | Verify API/library docs | Documentation server | Training data + `--help` |
 | Web research | Search server | WebSearch / WebFetch |
-| Cross-session memory | Memory server | `docs/sessions/` handoffs + `docs/context/` |
+| Cross-session memory | Memory server | `docs/sessions/` handoffs + `docs/brain/` |
 | Browser testing | Browser automation server | Manual testing via `/manual-test` |
 | Symbol refactoring | Code intelligence server | Grep + manual edit |
 | Multi-file pattern edits | Pattern edit server | Edit tool file-by-file |

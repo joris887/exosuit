@@ -14,7 +14,7 @@
 - docs/progress.md: Sprint history and metrics
 - docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference (v3.4)
 - docs/reference/MCP_INTEGRATION.md: MCP server selection guide with categories, decision tree, and integration patterns
-- docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
+- docs/brain/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
 
 ## Skills (invoked via /skill-name in Claude Code)
 - .claude/skills/bootstrap/SKILL.md: First-run setup, auto-detect stack, generate project context knowledge base, optional MCP server detection
