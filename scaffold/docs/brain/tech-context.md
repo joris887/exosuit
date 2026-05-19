@@ -1,9 +1,11 @@
 ---
 created: <!-- filled by /bootstrap -->
-updated: <!-- filled by /sprint-end -->
+updated: <!-- filled by /brain-update -->
 ---
 
 # Technical Context
+
+> Every claim below must cite the code that proves it (e.g. `package.json:14`, `Cargo.toml:8`). Uncited claims are `[Assumed]` and pending re-verification at next `/brain-update`.
 
 ## Stack
 <!-- Languages, frameworks, runtime versions -->

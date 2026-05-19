@@ -8,33 +8,44 @@ Run the project's test command (from CLAUDE.md Commands section). If the project
 
 **If tests fail:** Stop. Fix failures first, then re-run `/sprint-end`.
 
-## 2b. Test Protection
+## 2b. AC Coverage Check (the real quality signal in v5.0)
 
-Run `.claude/skills/sprint-end/scripts/test-count-delta.sh` — do NOT perform the test count comparison manually.
+Quality is "outcomes covered by tests," not "number of tests." Run `test-count-delta.sh` as an informational signal — but the load-bearing check is **AC coverage**.
 
-The script auto-detects the base branch from CLAUDE.md, git remote HEAD, or common branch names. Run `--help` first if unsure about arguments:
+### AC coverage (HARD GATE)
+
+For every story shipped in this sprint, verify each AC has at least one test that would fail if the AC is not met. For each story:
+
+1. List the story's ACs (from epic file).
+2. For each AC: identify the test(s) that cover it. Format: `[AC1] covered by test_<name> (file:line)`.
+3. If any AC has no covering test → BLOCK. Either add a test or, with explicit user approval, mark the AC as "verified by observation" with file:line evidence.
+
+```
+Example output:
+Story PROJ-014 OAuth login:
+  [AC1] User signs in with Google → tested by test_google_oauth_flow (tests/auth_test.ts:42)
+  [AC2] Invalid token rejected → tested by test_oauth_invalid_token (tests/auth_test.ts:88)
+  [AC3] Session persists across restart → NOT COVERED — block until covered
+```
+
+### Test count delta (ADVISORY — v5.0 demoted from HARD GATE)
+
+Run `.claude/skills/sprint-end/scripts/test-count-delta.sh` — informational only.
 
 ```bash
 bash .claude/skills/sprint-end/scripts/test-count-delta.sh
+# Use --base-branch and -- testcmd if auto-detection fails.
 ```
 
-If base branch detection fails, pass it explicitly:
+- **Test count increased / equal:** Note in PR body, continue.
+- **Test count decreased:** Present the deleted tests. Ask:
+  > "These tests were removed. For each: is its AC still covered by another test, or was the AC removed too? [y per test / N to investigate]"
+  Block only if any deleted test covered a still-active AC. **A drop in test count is not itself a failure** — what matters is whether outcomes lost coverage.
+- **Assertion density:** Run the weakened-assertion scan (`toBeTruthy` replacing specific `toBe`, broad regex catches narrowed). These remain blocking.
 
-```bash
-bash .claude/skills/sprint-end/scripts/test-count-delta.sh --base-branch master
-```
+### Coverage delta
 
-If test framework auto-detection fails, pass the test command explicitly:
-
-```bash
-bash .claude/skills/sprint-end/scripts/test-count-delta.sh -- pytest --collect-only -q
-```
-
-- **Test count gate:** Total tests on branch must be >= total on base branch. Fail if tests were deleted.
-- **Coverage delta gate:** Coverage for touched files must not decrease. Warn if overall coverage drops.
-- **Assertion density:** Check for weakened assertions (e.g., `toBeTruthy` replacing specific `toBe` checks).
-
-If test count decreased, present the deleted tests and ask user to confirm before proceeding.
+Coverage for touched files should not decrease. Treat as advisory in lean profile, hard gate in strict profile.
 
 ## 2c. Quality Agent Skills (Scope-Scaled Dispatch)
 
@@ -132,7 +143,7 @@ Verify each story's acceptance criteria with concrete command output.
 ```
 
 **Integration with other gates:**
-- If integration-tester reports VERIFIED: its test run satisfies gate 2a (no need to re-run tests in main context). Gate 2b (test count protection) still runs independently via script.
+- If integration-tester reports VERIFIED: its test run satisfies gate 2a (no need to re-run tests in main context). Gate 2b (AC coverage check) still runs in main context — it requires the story/AC list from the epic files. Test count delta script remains advisory.
 - If integration-tester reports NEEDS WORK: gate 2a MUST still run in the main context to reproduce the failure for debugging.
 - Integration-tester findings are treated like quality skill findings: NEEDS WORK blocks progression.
 

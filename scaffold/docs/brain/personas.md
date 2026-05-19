@@ -1,6 +1,6 @@
 ---
 created: <!-- filled by /discover Phase 3D or /bootstrap -->
-updated: <!-- filled by /sprint-end -->
+updated: <!-- filled by /brain-update -->
 source: <!-- /discover Phase 3D | /bootstrap Path A -->
 validation: <!-- user-approved | user-modified | assumed -->
 persona-count: <!-- N -->

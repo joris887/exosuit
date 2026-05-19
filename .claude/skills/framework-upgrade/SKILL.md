@@ -1,6 +1,6 @@
 ---
 name: framework-upgrade
-version: 1.1.0
+version: 1.2.0
 description: Upgrade JD-LLM Development Framework to a newer version while preserving project customizations.
 trigger: manual
 depends-on: [doctor]
@@ -77,7 +77,7 @@ Run 4 parallel exploration agents to build a complete diff inventory:
 
 **Agent 3 — Agents + Prompts + Commands diff**: Compare `.claude/agents/`, `.claude/prompts/`, `.claude/commands/`. Classify each file.
 
-**Agent 4 — Rules + Docs diff**: Compare `.claude/rules/`, `docs/reference/` (TESTING_STRATEGY, MCP_INTEGRATION, CODING_STANDARDS, GROUND_RULES, GIT_WORKFLOW, WORKFLOW), `docs/context/` template structure, `scripts/pm/`, `llms.txt`.
+**Agent 4 — Rules + Docs diff**: Compare `.claude/rules/`, `docs/reference/` (TESTING_STRATEGY, MCP_INTEGRATION, CODING_STANDARDS, GROUND_RULES, GIT_WORKFLOW, WORKFLOW), `docs/brain/` template structure, `scripts/pm/`, `llms.txt`.
 
 Compile results into a structured upgrade plan:
 
@@ -135,9 +135,23 @@ Work through the approved plan in dependency order:
 **Step 5 — Documentation**
 
 - UPDATE: TESTING_STRATEGY.md, MCP_INTEGRATION.md, CODING_STANDARDS.md (if changed)
-- POPULATE: Any new `docs/context/` templates → write project-specific content
+- POPULATE: Any new `docs/brain/` templates → write project-specific content
 - ADD: new directories (docs/solutions/, docs/brainstorms/, scripts/pm/)
 - UPDATE: llms.txt with current project stats
+
+**Step 5.5 — v4 → v5 migration (when upgrading from any v4.x)**
+
+If the project still has `docs/context/` (v4 layout) and no `docs/brain/`:
+
+1. `git mv docs/context docs/brain` (preserves history).
+2. Add the three new volatile pages from the framework template:
+   - `docs/brain/index.md` — populate Pages tables with last-updated dates from each existing page's `updated:` frontmatter.
+   - `docs/brain/log.md` — append seed entry: `## [YYYY-MM-DD HH:MM] framework-upgrade migrated | docs/context → docs/brain (v4 → v5)`.
+   - `docs/brain/current-state.md` — populate "Architectural Constraints" by mirroring load-bearing claims from `system-patterns.md`; leave "What Works Now" empty (subsequent `/brain-update` calls will populate it).
+3. Update every stale `updated:` frontmatter line from `<!-- filled by /sprint-end -->` to `<!-- filled by /brain-update -->`.
+4. Existing stories with `size: SMALL` in epic frontmatter: bulk-update to `size: STANDARD`. v5 collapsed SMALL into STANDARD.
+
+If the project already had `docs/brain/` (was on v4.2+ pre-release): only steps 2-4 apply.
 
 **Step 6 — Inventory & Config**
 

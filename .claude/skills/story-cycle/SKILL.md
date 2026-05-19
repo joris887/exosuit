@@ -1,9 +1,9 @@
 ---
 name: story-cycle
-version: 4.4.0
+version: 5.0.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
-depends-on: [code-quality, test-validator, security-audit]
+depends-on: [code-quality, test-validator, security-audit, brain-update]
 requires: [git]
 optional-requires: [test-command, lint-command, typecheck-command]
 references: [references/story-types.md, references/self-review.md, references/disaster-prevention.md, references/reasoning-tools.md, references/elicitation-techniques.md, references/error-recovery.md, references/plan-template.md, references/parallel-streams.md]
@@ -42,11 +42,11 @@ At each phase boundary, mark the current task completed and the next task in_pro
 ```
 START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncertainties)
   → Size Classification:
-    → [TRIVIAL: single-file, <10 lines, no behavioral change]
+    → [TRIVIAL: single-file, no behavioral change]
       → Phase 3-lite: Make change → Run tests → Abbreviated self-review → Commit → DONE
-    → [SMALL: single-file, <50 lines, clear AC]
-      → Lightweight Phase 1 (skip 1f-1g) → Phase 2 → Phase 3 → Phase 4 → DONE
-    → [STANDARD: everything else]
+    → [STANDARD: one vertical user-observable outcome — default]
+      → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
+    → [LARGE: big migration / multi-module — STANDARD path + per-AC checkpoints + integration-tester]
       → Phase 1: Plan Mode (research, identify type, write plan with WHAT/HOW separation)
         → Phase 1c.5: Online Verification → `*** HARD GATE: must print Research Decision block ***`
           → 1c.5+: Dependency Freshness Check (always, if story touches external deps)
@@ -76,7 +76,7 @@ START → Phase 0: Intent Decomposition (identify ALL deliverables, mark uncerta
 Read the `**Profile:**` line from CLAUDE.md to determine the active project profile.
 
 <IF condition="Profile is lean">
-**Lean mode active.** Simplified workflow: Plan (optional for SMALL) -> Build -> Verify.
+**Lean mode active.** Simplified workflow: Plan -> Build -> Verify.
 
 Skip these phases/steps entirely:
 - Phase 0a.5 (sprint context loading)
@@ -88,13 +88,13 @@ Skip these phases/steps entirely:
 
 Keep these (non-negotiable):
 - Phase 0 (intent decomposition and size classification)
-- Phase 1 core (1a-1e for STANDARD stories; skip Phase 1 entirely for SMALL — go directly to Build)
+- Phase 1 core (1a-1e for STANDARD and LARGE stories)
 - Phase 3 (implementation with TDD for Feature/Bug Fix/Refactoring story types)
 - Phase 4b quality-gate-sequence (lint + test from CLAUDE.md Commands)
 - Phase 4d (completion verification — all AC met with evidence)
 - Phase 4e commit and completion report
+- LARGE-only: per-AC checkpoints stay even in lean — they are the safety net for big-scope work.
 
-Plan is optional for SMALL stories — if the task is clear, go directly to Phase 3 (Build).
 Safety is unchanged in Lean mode: TDD enforcement, test-before-ship, all hooks active. Lean is less ceremony, not less safe.
 </IF>
 
@@ -114,7 +114,7 @@ Additions beyond standard behavior:
 
 ## Plan Mode for Phases 0-2 (Optional)
 
-For STANDARD stories, consider entering Plan Mode at the start of Phase 0 and remaining in it through Phase 2 (Context Transition). This prevents accidental implementation during the planning phases and provides a natural approval checkpoint.
+For STANDARD and LARGE stories, consider entering Plan Mode at the start of Phase 0 and remaining in it through Phase 2 (Context Transition). This prevents accidental implementation during the planning phases and provides a natural approval checkpoint.
 
 **When to use:** Complex stories, high-risk changes, or when the user requests careful planning.
 
@@ -136,8 +136,16 @@ If `$ARGUMENTS` matches a story ID pattern (e.g., `PROJ-001`, `S01`, `E01-S03`),
 
 1. Find the story in the epic checklist: `- [ ] ID — Title (Priority, Status)`
 2. Find the detailed story section: `### ID: Title` with inline metadata
-3. Extract metadata: **Type**, **Size**, **Priority**, **Status**, **Dependencies**, **Affected files**, **Acceptance criteria**, **Verification commands**
-4. Use extracted type/size/priority as starting classification (validated in the Size & Risk Classification step)
+3. Extract metadata. v5.0 four-section format:
+   - **Frontmatter**: Type, Size, Priority, Status, Created, `refined_at`, `outcome_invalidated_by` (if set)
+   - **Outcome section** (stable): Why, Acceptance Criteria, Out of Scope, Personas
+   - **Verification section** (stable): the commands that prove the outcome
+   - **Implementation Hints section** (stale-by-default): Affected files, Pattern to follow, Helpers to reuse, Dependencies
+   - v4 legacy format also supported: `## Why`, `## Context`, `## Acceptance criteria`, `## Verification`, `## Out of scope` — extract from these directly. If size is `SMALL`, treat as STANDARD (see Size & Risk Classification).
+4. **Implementation Hints freshness check:**
+   - If `refined_at` matches today's date (or this session's sprint-start), trust the hints as the starting plan in Phase 1.
+   - If `refined_at` is unset, blank, or older than the most recent `docs/brain/log.md` entry, treat the hints as stale — Phase 1 must re-derive them against the current brain before using them.
+5. Use extracted type/size/priority as starting classification (validated in the Size & Risk Classification step).
 
 **Definition of Ready check:** If the story has `status: draft` or is missing verification commands, affected files, or out-of-scope section, warn the user:
 > "This story doesn't meet the Definition of Ready. Missing: [list]. Consider running `/ideate` to refine it, or proceed with caution."
@@ -158,18 +166,16 @@ If on a sprint branch (branch name matches `sprint-*`), load the sprint spec for
 2. Extract and hold in context:
    - **Sprint goal** — the primary decision-making context for this story. When implementation choices are ambiguous, the sprint goal breaks the tie.
    - **Boundaries** — out-of-scope items. If this story drifts toward an out-of-scope area, flag it.
-   - **Remaining capacity** — count stories by status and size (S=1, M=2, L=4 sessions). Compare against total available sessions to determine sprint health.
+   - **Remaining capacity** — count stories by status. Sprint capacity in v5.0 is "how many STANDARD outcomes fit before verification depth degrades" — typical is 3-6 STANDARD per sprint. No clock-based estimation.
    - **Decisions log** — prior decisions in this sprint that may constrain this story's approach.
 
 **Sprint-aware risk modifier:** If the sprint goal explicitly relates to this story's domain (e.g., sprint goal is "auth integration" and story is about auth), note "sprint-aligned" — this story is goal-critical and deserves full depth. If the story is peripheral to the sprint goal (e.g., sprint goal is "auth integration" but story is "update error messages"), note "sprint-peripheral" — keep scope minimal.
 
-**Capacity check:** If remaining stories (🔲 + 🔄) require more sessions than remain in sprint capacity:
-> "⚠️ Sprint capacity at risk — [N] stories remaining ([M] sessions needed), [K] sessions available. Consider carrying over the lowest-priority ⏭️ story."
+**Capacity check:** If remaining STANDARD/LARGE stories exceed the typical sprint capacity (3-6 STANDARD; LARGE counts as 2):
+> "⚠️ Sprint capacity at risk — [N] outcomes remaining vs. typical capacity. Consider carrying over the lowest-priority story to preserve verification depth."
 
-**M/L story session guidance:** If this story is sized M or L, suggest the three-session pattern:
-> "This is a [M/L] story (~[2-3/3-5] sessions). Consider: Session 1 = Phase 0-1 (plan + approve), Session 2 = Phase 3 (implement), Session 3 = Phase 4 (verify + commit). Use `/handoff` at natural break points to preserve context."
-
-This is guidance, not enforcement — the developer may complete it in fewer sessions.
+**LARGE story handoff guidance:** LARGE stories may span more than one Claude Code session not because they take "longer" but because context budget fills up. Suggest:
+> "This is a LARGE story. Consider using `/handoff` after Phase 1 (plan approved) and again after each per-AC checkpoint batch in Phase 3. Each handoff preserves context for verification depth."
 
 ### 0b. PRD Scope Guard
 
@@ -209,25 +215,28 @@ This prevents missing later parts of compound requests (e.g., "refactor auth AND
 
 ## Size & Risk Classification (Fast-Track Gate)
 
-After Phase 0 decomposition, classify by **size** then **risk**:
+After Phase 0 decomposition, classify by **size** then **risk**.
 
-**Size classification — use the story's frontmatter `size` field as starting point** (if the story came from the backlog via /ideate). Validate against actual scope after decomposition — reclassify if the scope doesn't match:
+**Size classification — use the story's frontmatter `size` field as starting point** (if the story came from `/ideate`). Validate against actual scope after decomposition. Reclassify only when the actual scope is materially different from the declared size.
 
-| Size | Criteria | Default Workflow |
-|------|----------|----------|
-| **TRIVIAL** | Single-file, <10 lines changed, no behavioral change (typo, config, comment) | Phase 3-lite (below) |
-| **SMALL** | 1-2 files, <50 lines changed, clear acceptance criteria | Lightweight Phase 1 (skip 1f, 1g) → Phase 2 → Phase 3 → Phase 4 |
-| **STANDARD** | Everything else (3-5 files, requires plan) | Full workflow (unchanged) |
+**Legacy compatibility:** If a story declares `size: SMALL` (v4 tier — no longer exists in v5), treat it as `STANDARD` for routing purposes and surface a one-line note: "Note: story size `SMALL` is a v4 tier — using STANDARD path. Run `/framework-upgrade` Step 5.5 to bulk-relabel SMALL → STANDARD across the backlog."
+
+| Size | Criteria (v5.0 — verification-budget bounds) | Default Workflow |
+|------|---------------------------------------------|------------------|
+| **TRIVIAL** | Single-file, no behavioral change (typo, config, comment, rename) | Phase 3-lite (below) |
+| **STANDARD** | One vertical user-observable outcome. 3-7 AC, each individually re-checkable in Phase 4.5. PR target ≤500 LOC, ceiling 1000. Context budget <60% at end. **Default for all non-trivial stories.** | Full workflow |
+| **LARGE** | Exceeds STANDARD intentionally (big migration, multi-module feature that doesn't usefully split). 8-12 AC. | Full workflow + per-AC checkpoints + mandatory integration-tester |
+
+The v4.x SMALL tier was collapsed into STANDARD. There is no separate SMALL tier in v5.0 — STANDARD already absorbs what SMALL covered, with full quality gates intact.
 
 **Adaptive calibration:** If `docs/sessions/.activity-log.jsonl` contains 10+ skill execution records, check historical data for this story type/scope:
-- If stories matching this type consistently required full workflow despite SMALL classification → escalate to STANDARD
-- If STANDARD stories in this area consistently completed without issues → note as candidate for lightweight treatment
-- Log calibration adjustment in plan for transparency: `Depth calibration: [escalated/standard/downgraded] based on [N] prior executions`
+- If stories matching this type consistently required extra checkpoints despite STANDARD classification → escalate to LARGE
+- If LARGE stories in this area consistently completed without using the extra checkpoints → flag as splitting candidate for next /ideate
+- Log calibration adjustment in plan for transparency: `Depth calibration: [escalated/standard/split-candidate] based on [N] prior executions`
 
 **Sprint context modifier** (from Phase 0a.5): If sprint context was loaded, apply:
 - **Sprint-aligned** stories: maintain or escalate depth — these are goal-critical, quality matters most
-- **Sprint-peripheral** stories: consider downgrading depth if sprint capacity is tight — keep scope minimal, defer stretch goals to next sprint
-- Log: `Sprint alignment: [aligned/peripheral] — sprint goal: "[goal]"`
+- **Sprint-peripheral** stories: keep scope minimal, defer stretch outcomes to next sprint
 
 **Risk classification** (apply `risk_classification` reasoning tool from `references/reasoning-tools.md`):
 
@@ -235,26 +244,22 @@ Score domain risk, integration surface, and reversibility (1-3 each). Sum determ
 
 | | Low risk (3-4) | Medium risk (5-6) | High risk (7-9) |
 |---|---|---|---|
-| **TRIVIAL** | Phase 3-lite | Phase 3-lite + full test suite | Reclassify as SMALL |
-| **SMALL** | Lightweight Phase 1 | Standard workflow | Standard + mandatory security-audit |
+| **TRIVIAL** | Phase 3-lite | Phase 3-lite + full test suite | Reclassify as STANDARD |
 | **STANDARD** | Standard workflow | Standard + all quality agents | Standard + all agents + architecture-check |
+| **LARGE** | Standard + per-AC checkpoints + integration-tester | Standard + all agents + per-AC checkpoints + integration-tester | All agents + per-AC checkpoints + integration-tester + architecture-check |
 
 <HARD-GATE>
-**Red flag:** If editing multiple files or changing observable behavior, STOP and reclassify as STANDARD. Fast-track is for genuinely trivial changes only.
+**Red flag:** If a story declared TRIVIAL turns out to edit multiple files or change observable behavior, STOP and reclassify as STANDARD. Fast-track is for genuinely trivial changes only.
 </HARD-GATE>
 
-### SMALL Story Checklist
+### LARGE Story Extra Checkpoints
 
-SMALL stories skip Phase 1f (clarification check) and 1g (plan completeness) **only**.
-All other phases are **REQUIRED** — do NOT skip them because the story feels simple:
+LARGE stories follow the full workflow plus:
 
-- [ ] Phase 0: Intent decomposition
-- [ ] Phase 1: Lightweight analysis + plan (includes 1c.5 Research Decision — MANDATORY output) → `*** HARD GATE: user approval ***`
-- [ ] Phase 2: Context transition + readiness gate (5 objective checks) → `*** HARD GATE ***`
-- [ ] Phase 3: Implementation (TDD by story type)
-- [ ] Phase 4: Self-review + quality gates + completion verification with evidence → `*** HARD GATE ***`
-
-**Why this matters:** Testing proved that SMALL stories get their quality gates skipped when the agent optimizes for speed. The code may be fine, but the process guarantees are missing. Every gate exists for a reason.
+- **Per-AC checkpoint after every 3 ACs implemented:** stop, run the targeted verification for those ACs, confirm pass before continuing. Prevents the "ship 12 ACs, discover #2 was wrong" failure mode.
+- **Mandatory integration-tester dispatch in Phase 4** regardless of risk level. The implementing context is too deep to self-verify reliably at LARGE scope.
+- **Explicit Phase 3.5 self-review per file group** rather than one whole-story pass. A 12-file change reviewed as one block becomes a skim.
+- **Pre-commit `/quality-check --all`** (not the profile-default subset). Catches architectural drift that emerges only at scale.
 
 ### Phase 3-lite (TRIVIAL only)
 
@@ -308,9 +313,9 @@ Use the `grep-first-explore` micro-component from `.claude/prompts/grep-first-ex
 | Size | Exploration Strategy |
 |------|---------------------|
 | **TRIVIAL** | Skip Phase 1b entirely (already fast-tracked) |
-| **SMALL** | Single grep-first pass: extract terms from the story, run parallel Grep calls, read top 5-7 files |
-| **STANDARD** | Grep-first pass + 1-2 codebase-explorer agents for broader context (architecture focus, test focus) |
+| **STANDARD** | Grep-first pass + 1-2 codebase-explorer agents for broader context (architecture focus, test focus). Use `docs/brain/` as the first stop for known patterns. |
 | **STANDARD + High-risk** | Grep-first pass + 2 agents + security-focused grep (search for auth patterns, input validation, trust boundaries in affected modules) |
+| **LARGE** | Grep-first pass + 2-3 codebase-explorer agents + brain pages for every affected module + reference per-AC checkpoint plan |
 
 **Grep-first process:**
 1. Extract key terms from the story description (function names, module names, API endpoints, error messages)
@@ -338,7 +343,7 @@ Collect all results. Deduplicate and synthesize into a focused file list (10-15 
 
 - Deep-read the files identified in step 1b
 - Understand patterns, conventions, and existing tests in the area
-- If `docs/context/system-patterns.md` exists and is populated (not template-only), check it against the files being touched:
+- If `docs/brain/system-patterns.md` exists and is populated (not template-only), check it against the files being touched:
   - Which **implementation patterns** apply to this story's scope? (Note reference files to follow.)
   - Does the area's **error handling** match the documented strategy? (Flag divergence.)
   - What **testing conventions** apply? (Test naming, fixture approach, mock strategy.)
@@ -662,7 +667,7 @@ These intermediate commits:
 - Are **squashed at sprint-end** anyway — commit freely during development
 - Should each leave the codebase in a working state (tests pass)
 
-For TRIVIAL and SMALL stories, a single commit at Phase 4e is sufficient.
+For TRIVIAL stories, a single commit at Phase 4e is sufficient. For STANDARD stories, commit at natural completion checkpoints (after a failing test passes, after a refactor). For LARGE stories, commit after each per-AC checkpoint batch — these become the rollback anchors if a later AC fails.
 
 In `references/story-types.md`, search for the `## [Your Story Type]` heading matching Phase 1 — load only that section, not the entire file.
 
@@ -732,7 +737,7 @@ Do NOT skip self-review for ANY story size. If any checklist item fails, go back
 
 **Ground rules re-check:** If `docs/reference/GROUND_RULES.md` exists, re-read it and verify the IMPLEMENTATION (not just the plan) complies. Plans can comply while implementation drifts. Check `git diff --name-only` against ground rules — any MUST violation requires fixing before proceeding.
 
-**Persona cross-check (medium+ risk, user-facing stories only):** If `docs/context/personas.md` exists AND the story has a `Personas:` field (not "internal"), scan the implementation for persona-mismatch issues that functional AC wouldn't catch:
+**Persona cross-check (medium+ risk, user-facing stories only):** If `docs/brain/personas.md` exists AND the story has a `Personas:` field (not "internal"), scan the implementation for persona-mismatch issues that functional AC wouldn't catch:
 
 1. Load the persona(s) referenced in the story's `Personas:` field
 2. Check user-facing text: Do error messages, labels, or instructions use jargon that conflicts with the persona's **CONTEXT** (tech proficiency)?
@@ -767,7 +772,7 @@ Focus on surface-level mismatches between implementation and persona constraints
 
 **Error learning:** If self-review caught a wrong approach requiring significant rework, invoke the `record-failure` micro-component from `.claude/prompts/record-failure.md`.
 
-### 4b. Quality Gates
+### 4b. Quality Gates + AC Coverage Check
 
 Run the `quality-gate-sequence` micro-component from `.claude/prompts/quality-gate-sequence.md`: execute the project's quality commands (from CLAUDE.md Commands section) in order: lint → typecheck → test. Stop on first failure, fix, and re-run.
 
@@ -778,8 +783,21 @@ Execute the configured quality commands. Verify all pass with zero failures.
 Run any configured commands (lint, typecheck). No test command configured — skip test verification, note in completion report.
 </ELSE>
 
+**AC Coverage Check (v5.0 — load-bearing quality signal):**
+
+Test count alone is not a quality signal. For each AC in the story:
+
+1. Identify the test(s) that would fail if the AC is not met. Format: `[AC1] covered by test_<name> (file:line)`.
+2. If any AC has no covering test, you must do one of:
+   - Add a covering test (preferred), OR
+   - With explicit user approval, mark the AC as "verified by observation" with concrete evidence (file:line, command output).
+
+Surface the AC-to-test mapping in the completion report.
+
+If you wrote tests during implementation that don't map to any AC, list them in the report as "consider deleting — unmapped to outcome." Do not delete automatically; surface for review.
+
 <HARD-GATE>
-Do NOT proceed to Phase 4c/4d until ALL configured quality gates pass with zero failures. Show the passing output in the current turn. "It passed earlier" is not evidence — re-run if any code changed since the last run.
+Do NOT proceed to Phase 4c/4d until ALL configured quality gates pass with zero failures AND every AC has at least one mapped test (or user-approved observation). Show the passing output and the AC-to-test mapping in the current turn. "It passed earlier" is not evidence — re-run if any code changed since the last run.
 </HARD-GATE>
 
 ### 4c. Generate UAT Test Case (Optional)
@@ -875,6 +893,7 @@ Do NOT print the completion report until every acceptance criterion has been ver
    - If a significant architectural choice was made → add to Key Decisions with trade-off
    - If no Update Trigger matches, skip
 7. **Capture learnings** (optional): If non-obvious patterns discovered, run the `capture-learnings` micro-component from `.claude/prompts/capture-learnings.md` to save to `docs/solutions/<topic-slug>.md`
+7.5. **Update the repo brain:** Invoke `/brain-update story-cycle done <story-id>`. This distills the just-shipped story into edits on `docs/brain/` with file:line citations + a log entry. Skip if `docs/brain/` doesn't exist (pre-bootstrap project).
 8. **Clean up checkpoint:** Delete the git checkpoint tag from Phase 3.pre: `git tag -l 'story-checkpoint-*' | xargs -r git tag -d`
 9. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job.
 

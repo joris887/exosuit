@@ -5,7 +5,7 @@
 - `sessions/` — handoff files for `/continue`, `.auto-save.md`, `.activity-log.jsonl`
 - `progress.md` — loaded every session via CLAUDE.md, keep lean
 - `plans/` — temporary planning documents, delete when implemented
-- `context/` — project knowledge base (product context, tech context, patterns)
+- `brain/` — repo brain (LLM-maintained source of truth: index, log, current-state + product/tech context, patterns)
 - `testing/` — UAT coverage and test case tracking
 
 Follow rules in `.claude/rules/documentation.md` when editing files here.

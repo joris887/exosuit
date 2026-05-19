@@ -110,7 +110,7 @@ After Phase 0 (Idea Capture):
       - MVP scoping + backlog generation with Phase Transition Stories
 ```
 
-**Output:** `/discover` generates all vision documents, DECISION_LOG.md, ASSUMPTION_REGISTER.md, PRD_SUMMARY.md, BACKLOG_INDEX.md, epic files, AND populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/context/*, CLAUDE.md) from discovery decisions in its Phase 7D step.
+**Output:** `/discover` generates all vision documents, DECISION_LOG.md, ASSUMPTION_REGISTER.md, PRD_SUMMARY.md, BACKLOG_INDEX.md, epic files, AND populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/brain/*, CLAUDE.md) from discovery decisions in its Phase 7D step.
 
 See `.claude/skills/discover/SKILL.md` for the complete 7-phase flow.
 
@@ -118,14 +118,14 @@ See `.claude/skills/discover/SKILL.md` for the complete 7-phase flow.
 
 ## Post-Discovery: Remaining Scaffold
 
-`/discover` Phase 7D already populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/context/*, CLAUDE.md, README.md) from discovery decisions. After `/discover` completes, only these remaining scaffold steps are needed:
+`/discover` Phase 7D already populates all project documentation (ARCHITECTURE.md, CODING_STANDARDS.md, GROUND_RULES.md, TESTING_STRATEGY.md, docs/brain/*, CLAUDE.md, README.md) from discovery decisions. After `/discover` completes, only these remaining scaffold steps are needed:
 
 - `.gitignore` — stack-specific patterns (from DECISION_LOG tech choices)
 - Create empty directories: `docs/research/`, `docs/solutions/`, `docs/brainstorms/`, `docs/reviews/`, `docs/plans/` with `.gitkeep`
 - If strict profile: create `docs/adr/` with initial ADRs from Platform-scale discovery decisions
 - Delete `scaffold/` directory if present (template-mode artifact, contents already installed or generated)
 
-**Verify Phase 7D ran:** Check that `docs/context/project-overview.md`, `docs/context/tech-context.md`, `docs/architecture/ARCHITECTURE.md`, and `README.md` contain project-specific content (not template placeholders). If they're still templates, Phase 7D was skipped — re-read the `/discover` SKILL.md Phase 7D instructions and execute them now.
+**Verify Phase 7D ran:** Check that `docs/brain/project-overview.md`, `docs/brain/tech-context.md`, `docs/architecture/ARCHITECTURE.md`, and `README.md` contain project-specific content (not template placeholders). If they're still templates, Phase 7D was skipped — re-read the `/discover` SKILL.md Phase 7D instructions and execute them now.
 
 ### Present Summary
 

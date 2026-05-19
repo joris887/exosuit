@@ -48,7 +48,7 @@
 - **Flow:** Modified GitHub Flow (sprint branches → squash merge to main)
 - **Branches:** `<type>/<description>` (feat, fix, hotfix, refactor, docs, test, chore) or `sprint-<N>`
 - **Commits:** Conventional Commits: `<type>(<scope>): <description>` — atomic, one logical unit each
-- **PRs:** ≤400 LOC (target ≤200). Squash merge to main. Delete branch after merge.
+- **PRs:** target ≤500 LOC, ceiling 1000 LOC. Squash merge to main. Delete branch after merge. Beyond ceiling, split to recover reviewer signal.
 - **Safety:** Force push, reset --hard, clean -f, branch -D, --no-verify, checkout . — all blocked by hooks
 - **Rollback:** `/rewind` → `reset --soft` → `stash` → `revert` → (reset --hard blocked)
 - **Reference:** See `docs/reference/GIT_WORKFLOW.md` for full guide
@@ -64,7 +64,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v4.1
+## Skills — JD-LLM Development Framework v5.0
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow

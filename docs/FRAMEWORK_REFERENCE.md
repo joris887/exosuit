@@ -2,8 +2,8 @@
 
 The complete reference for every element of the framework, structured as the user journey from installation through ongoing maintenance. Start with the [README](../README.md) for an overview, or [Getting Started](GETTING_STARTED.md) for your first 5 minutes.
 
-**Framework version:** v4.1.0
-**Date:** 2026-04-05
+**Framework version:** v5.0.0
+**Date:** 2026-05-19
 
 ---
 
@@ -73,7 +73,10 @@ No language runtimes required. The framework itself is pure POSIX shell and mark
 
 | Principle | What It Prevents |
 |---|---|
+| **Outcome-driven** | Stories that ship implementation without delivering user value |
+| **Brain-maintained** | Knowledge dying in chat; stories rotting against stale codebases |
 | **TDD-first** | Code that "looks right" but doesn't work |
+| **AC-coverage** | High test counts with low outcome coverage |
 | **Sprint-based** | Unbounded scope, context exhaustion |
 | **Git-disciplined** | Messy history, broken main, lost work |
 | **Documentation-lean** | Context budget wasted on stale docs |
@@ -172,7 +175,7 @@ Skills load on-demand (only when invoked) with a lean entry point (~150 lines) a
 │   ┌──────────────────────────────────────────────────────────────────┐   │
 │   │                    DOCUMENTATION LAYER                           │   │
 │   │                                                                  │   │
-│   │   CLAUDE.md (entry)  →  docs/context/* (knowledge base)          │   │
+│   │   CLAUDE.md (entry)  →  docs/brain/* (knowledge base)          │   │
 │   │   progress.md (state) →  docs/sessions/ (handoff + auto-save)    │   │
 │   │   docs/reference/*    →  docs/solutions/ (learnings)             │   │
 │   │                                                                  │   │
@@ -479,7 +482,7 @@ A3-A3.2: Assess Codebase Quality
      ▼
 A3.5-A3.6: Generate Core Documentation
      ├──→ ARCHITECTURE.md (module structure derived from code)
-     ├──→ docs/context/* (6 knowledge base files from codebase analysis)
+     ├──→ docs/brain/* (6 knowledge base files from codebase analysis)
      └──→ GROUND_RULES.md (ask user for 3-7 architectural principles)
      │
      ▼
@@ -643,7 +646,7 @@ Phase 0: Idea Capture (bootstrap)
             └── generate: PRD, BACKLOG_INDEX, DECISION_LOG, ASSUMPTION_REGISTER
      │
      ├──→ Phase 7D: Populate Project Documentation (MANDATORY)
-     │       ├── docs/context/* (6 files) populated from vision/ + decisions
+     │       ├── docs/brain/* (6 files) populated from vision/ + decisions
      │       │     project-overview, product-context, tech-context,
      │       │     system-patterns, project-structure, error-patterns
      │       ├── README.md (project README from discovery decisions)
@@ -705,7 +708,7 @@ Post-discovery (bootstrap continues)
 | FRAMEWORK_README.md | Framework README renamed (if present) | Framework README renamed (if present) |
 | CLAUDE.md | Filled from detected stack | Filled from vision decisions |
 | ARCHITECTURE.md | Derived from existing code | Proposed from vision synthesis |
-| docs/context/* (6 files) | Analyzed from codebase | Generated from vision |
+| docs/brain/* (6 files) | Analyzed from codebase | Generated from vision |
 | CODING_STANDARDS.md | Language-specific from detection | Populated by /discover Phase 7D from stack decisions |
 | TESTING_STRATEGY.md | Test infrastructure populated | Populated by /discover Phase 7D with archetype testing strategy |
 | GROUND_RULES.md | User-provided principles | Populated by /discover Phase 7D (No-Gos + architectural constraints) |
@@ -780,7 +783,8 @@ Simple idea                        Complex idea
      ├──→ research codebase + PRD context (requirements, scope, NFRs)
      ├──→ feasibility research (if unfamiliar tech, QUICK depth)
      ├──→ decompose via SPIDR splitting (Spike/Path/Interface/Data/Rules)
-     │       each story: 1-3 hours, ≤5-8 files, vertical slice
+     │       each story: one vertical user-observable outcome,
+     │       3-7 AC, PR target ≤500 LOC / ceiling 1000
      ├──→ classify: Feature / Bug Fix / Refactoring / Spike / Infra /
      │    Testing / Documentation / Security / Performance / Skill
      ├──→ auto-append security AC for auth/data/API stories
@@ -937,12 +941,18 @@ TIME ─────────────────────────
      │       ├── worktree: git worktree add ../<project>-sprint-N
      │       └── optional: draft PR for early CI feedback
      │
-     └──→ 3. Sprint Planning
-            ├── show ready stories from backlog (grouped by priority)
-            ├── define sprint goal (one sentence outcome)
-            ├── select stories + estimate capacity (S=1, M=2, L=4 sessions)
-            ├── PRD integration (if exists): NFRs as sprint DoD, scope boundaries
-            └── create sprint spec (docs/sprints/sprint-N.md)
+     ├──→ 3. Sprint Planning
+     │      ├── show ready stories from backlog (grouped by priority)
+     │      ├── define sprint goal (one sentence outcome)
+     │      ├── select stories — typical capacity 3-6 STANDARD outcomes (LARGE counts as 2)
+     │      ├── PRD integration (if exists): NFRs as sprint DoD, scope boundaries
+     │      └── create sprint spec (docs/sprints/sprint-N.md)
+     │
+     └──→ 3.5. Story Re-Refinement (v5.0)
+            ├── for each selected story: load Outcome (stable), re-derive Implementation Hints against docs/brain/
+            ├── flag invalidated outcomes (already-shipped, world moved on) → user kill/keep
+            ├── flag blocked outcomes (load-bearing constraint changed) → user defer/re-scope
+            └── set frontmatter refined_at = today
 ```
 
 ### 7.2 Story Delivery — /story-cycle
@@ -1000,7 +1010,7 @@ Phase 0: Classify size + risk
 
 ```
 Phase 0: Intent Decomposition
-     │  ├──→ context-prime loads docs/context/* (intent-aware priority)
+     │  ├──→ context-prime loads docs/brain/* (intent-aware priority)
      │  ├──→ backlog story lookup (if ID provided) + dependency check
      │  ├──→ sprint context load (if on sprint branch: goal, boundaries, capacity)
      │  ├──→ PRD scope guard (if PRD_SUMMARY.md exists: non-goals, boundaries)
@@ -1016,7 +1026,7 @@ Phase 0: Intent Decomposition
      ▼
 Phase 1: Story Analysis (Plan Mode)
      │  ├──→ pre-flight: discover-commands + verify-clean-git-state
-     │  ├──→ context-prime loads docs/context/* (intent-aware)
+     │  ├──→ context-prime loads docs/brain/* (intent-aware)
      │  ├──→ identify story type
      │  ├──→ grep-first codebase exploration (depth scales with size)
      │  │       + check docs/solutions/ for prior learnings
@@ -1237,14 +1247,14 @@ Task: "add OAuth login"  →  Intent: Security/Auth
      │       ├── sprint spec outcome (metrics: throughput, churn, coverage, etc.)
      │       ├── progress.md (metrics, sprint history row, satisfaction rating)
      │       ├── CLAUDE.md Current Focus
-     │       ├── docs/context/* (if architecture/patterns changed)
+     │       ├── docs/brain/* (if architecture/patterns changed)
      │       ├── ARCHITECTURE.md (if update triggers hit)
      │       ├── PRD Living Document Review (assumptions, scope creep check)
      │       ├── technical-debt.md (new items, resolved items, AI-origin tracking)
      │       └── SBOM update (informational, if CycloneDX/Syft available)
      │
      ├──→ Step 3.5: Commit documentation artifacts (separate commit)
-     │       └── PR size check (warn >400 LOC, offer splitting strategies)
+     │       └── PR size check (warn >1000 LOC ceiling, offer splitting strategies)
      │
      ├──→ Step 4: Push + PR
      │       ├── git push → gh pr create (uses pull_request_template.md)
@@ -1470,7 +1480,7 @@ Captures: branch, work completed, decisions, blockers, files accessed (modified/
 │  [Phase fail] ─┤──→ docs/sessions/                         │                  │
 │                │    .failure-state.md ────────────────────→├── resume skill   │
 │                │                                           │                  │
-│  record-failure┤──→ docs/context/                          │                  │
+│  record-failure┤──→ docs/brain/                          │                  │
 │                │    error-patterns.md ────────────────────→├── avoid pitfalls │
 │                │                                           │                  │
 │  capture-      │──→ docs/solutions/                        │                  │
@@ -1483,7 +1493,7 @@ Captures: branch, work completed, decisions, blockers, files accessed (modified/
 │                │    .activity-log.jsonl ──────────────────→├── metrics        │
 │                │                                           │                  │
 │  /sprint-end ──┘──→ docs/progress.md ─────────────────────→├── sprint state   │
-│                     docs/context/* ───────────────────────→└── project KB     │
+│                     docs/brain/* ───────────────────────→└── project KB     │
 │                                                                               │
 │  ┌────────────────── Persistence Categories ────────────────────────────┐     │
 │  │ VOLATILE (per-session):  .auto-save.md, .failure-state.md            │     │
@@ -1504,14 +1514,14 @@ Captures: branch, work completed, decisions, blockers, files accessed (modified/
 Session N:
   /story-cycle Phase 3.5 self-review catches rework
        ──→ record-failure micro-component
-            ──→ appends to docs/context/error-patterns.md
+            ──→ appends to docs/brain/error-patterns.md
                  (wrong approach, root cause, correct approach, prevention)
 
   /debug-session Phase 4.5 catches misdiagnosis
        ──→ same record-failure flow
 
 Session N+1:
-  /continue ──→ context-prime loads docs/context/error-patterns.md
+  /continue ──→ context-prime loads docs/brain/error-patterns.md
        ──→ prevention strategies available during planning
 
   /story-cycle Phase 1 ──→ error patterns checked against current task
@@ -2306,7 +2316,7 @@ Reusable prompt snippets in `.claude/prompts/` composed into skills. Not directl
 | `discover-commands` | Extract test/lint/format/build/typecheck from CLAUDE.md | story-cycle P1, sprint-end S1, continue S5 |
 | `quality-gate-sequence` | Run lint → typecheck → test in order | story-cycle P4, sprint-end S2 |
 | `verify-clean-git-state` | Check no uncommitted changes, on expected branch | story-cycle P1, sprint-end S1 |
-| `context-prime` | Intent-aware loading of docs/context/* knowledge base | story-cycle P1, continue S1.5 |
+| `context-prime` | Intent-aware loading of docs/brain/* knowledge base | story-cycle P1, continue S1.5 |
 | `confidence-gate` | 5 objective pre-condition checks (PASS/FAIL) — files read, tests baseline, pattern match, scope bounded, no conflicts | story-cycle P2.5 |
 | `record-failure` | Append error patterns to error-patterns.md | story-cycle P3.5, debug-session P4.5 |
 | `wave-execution` | Parallel execution: Wave 1 (reads) → Checkpoint → Wave 2 (actions) | story-cycle P1 |
@@ -2357,7 +2367,7 @@ The framework adapts its behavior based on project complexity via a three-tier p
 
 ### 13.8 Documentation Layer
 
-#### Project Knowledge Base (docs/context/)
+#### Project Knowledge Base (docs/brain/)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -2613,6 +2623,14 @@ project-root/
 
 | Term | Definition |
 |---|---|
+| **Brain** | `docs/brain/` — the LLM-maintained source of truth for repo state. Index + log + current-state + stable pages (project-overview, product-context, tech-context, system-patterns, project-structure, personas, error-patterns). The code wins on conflict; the brain is a structured projection of the code that other skills can read without re-deriving it every session. |
+| **Brain Page** | A single markdown file in `docs/brain/`. Every technical claim must cite a `file:line` or commit hash. Uncited claims are `[Assumed]` and pending re-verification. |
+| **Brain Update** | The act of writing changes to the brain via the `/brain-update` skill — called by `/story-cycle`, `/sprint-end`, `/brainstorm`, `/ideate`, `/discover`. Refuses to write without a citation. |
+| **Story Re-Refinement** | `/sprint-start` Step 3.5 — re-derives a story's Implementation Hints against the current brain when the story enters a sprint. Catches outcomes that are now invalid (already shipped) or blocked (load-bearing constraint changed). |
+| **Outcome-First Story** | Story format (v5.0): Outcome (Why + AC + Out of Scope, stable) + Verification (commands, stable) + Implementation Hints (STALE BY DEFAULT — refined at sprint-start) + Frontmatter. ACs are outcome-asserting, not implementation-prescriptive. |
+| **Implementation Hints (Stale)** | The section of a story that freezes at write-time: file lists, exemplar patterns, dependency stories. Marked stale by default; re-derived against the current brain by `/sprint-start` Step 3.5. |
+| **AC Coverage** | v5.0 quality signal replacing test-count enforcement. Every acceptance criterion must have at least one test that would fail if the AC is not met. Test count itself is informational only. |
+| **Verification-Budget Sizing** | Stories sized by what can be verified at Phase 4.5 (3-7 AC, PR ≤500 LOC target / 1000 ceiling, context <60% at end), not by hours or "sessions." Tiers: TRIVIAL / STANDARD (default) / LARGE. |
 | **Skill** | Markdown-based slash command (`.claude/skills/<name>/SKILL.md`) providing workflow instructions |
 | **Rule** | Path-scoped markdown in `.claude/rules/` — advisory, auto-loaded on file match |
 | **Hook** | POSIX shell script on Claude Code events — deterministic, cannot be bypassed |
@@ -2624,6 +2642,7 @@ project-root/
 | **Plan Mode** | Claude Code's built-in planning mode used during story-cycle Phase 1 |
 | **HARD GATE** | Mandatory checkpoint that cannot be skipped regardless of story size/risk |
 | **Fast-track** | TRIVIAL + low-risk path: skip Phases 1, 2, 2.5 → direct to Phase 3 |
+| **LARGE story** | Story tier exceeding STANDARD intentionally (big migration, multi-module feature). 8-12 AC. Adds per-AC checkpoints, mandatory integration-tester dispatch, per-file-group self-review, and `/quality-check --all`. |
 | **Readiness Gate** | 5 objective pre-condition checks (PASS/FAIL) replacing the old subjective confidence scoring. All must pass to proceed. User can override specific failures. |
 | **Hook Guard** | Profile-based gating system (`lib/hook-guard.sh`) — determines whether a hook should run based on project profile, hook profile override, and per-hook disable list |
 | **Project Profile** | `lean\|standard\|strict` — controls skill ceremony depth and hook defaults. Set via `JD_PROJECT_PROFILE` env var or CLAUDE.md `**Profile:**` line |

@@ -48,7 +48,7 @@ Check the backlog for known gaps and bugs that are still TODO:
 
 ### Product Requirements & Personas
 
-- Read `docs/context/personas.md` (if it exists) for lean persona cards — these provide CONTEXT, GOALS, FRUSTRATIONS, BEHAVIORS, EVALUATES BY, and FAILURE LOOKS LIKE fields that directly inform exploratory testing in Phase 3C
+- Read `docs/brain/personas.md` (if it exists) for lean persona cards — these provide CONTEXT, GOALS, FRUSTRATIONS, BEHAVIORS, EVALUATES BY, and FAILURE LOOKS LIKE fields that directly inform exploratory testing in Phase 3C
 - Read `docs/reference/PRD_SUMMARY.md` (if it exists) for success criteria and user flows
 - Section 3 (success criteria) identify what to prioritize testing
 - Section 4 (user flows) provide the core scenarios to regression test

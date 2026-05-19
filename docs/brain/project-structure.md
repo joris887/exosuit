@@ -1,9 +1,11 @@
 ---
 created: <!-- filled by /bootstrap -->
-updated: <!-- filled by /sprint-end -->
+updated: <!-- filled by /brain-update -->
 ---
 
 # Project Structure
+
+> Every claim below must cite the code that proves it (`src/handlers/` exists, `package.json:6` declares the module name). Uncited claims are `[Assumed]` and pending re-verification at next `/brain-update`.
 
 ## Directory Layout
 <!-- Top-level directories and their responsibilities -->

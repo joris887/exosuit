@@ -1,57 +1,69 @@
-# Story Template
+# Story Template (v5.0 — Outcome-First)
 
-Stories are the unit of AI implementation. Each story must be completable in a single context window, have machine-verifiable acceptance criteria, and include explicit scope boundaries. This template produces zero-ambiguity stories that an AI agent implements correctly on the first attempt.
+Stories are the unit of AI implementation. **The outcome is stable; the implementation is volatile.** This template separates the two so stories can be written at backlog-time and re-refined against the current codebase at sprint-start without losing their meaning.
+
+## Four-section structure
+
+1. **Outcome** (stable): Why, Acceptance Criteria, Out of Scope, Personas. Never re-written between ideate and execution.
+2. **Verification** (stable): commands and observables that prove the outcome was met.
+3. **Implementation Hints** (STALE BY DEFAULT — refined at sprint-start): file lists, exemplar patterns, dependencies. Frozen at write-time; will be re-derived.
+4. **Frontmatter**: machine-parseable metadata.
 
 ## Full Story Structure (STANDARD)
 
 ```markdown
 ---
 id: [PROJECT]-[NUMBER]
-title: [Clear, one-line summary of what changes]
+title: [Clear, one-line summary of the OUTCOME the user gets]
 type: feature|bugfix|refactor|spike|infra|testing|docs|security|performance|skill
 priority: P0|P1|P2|P3
-size: TRIVIAL|SMALL|STANDARD
+size: TRIVIAL|STANDARD|LARGE
 status: draft|ready|in-progress|review|done|blocked
 created: YYYY-MM-DD
+refined_at: <!-- set by /sprint-start step 3.5 when story is picked for a sprint -->
+outcome_invalidated_by: <!-- set by /sprint-start if user kept an invalidated story -->
 ---
 
 # [Title]
 
-## Why
-[1-2 sentences: What problem does this solve? What user/business value?]
+## Outcome
 
-## Context
-- **Current state**: [What exists now — behavior, relevant code, prior decisions]
-- **Affected files**: [Explicit list of files/modules that will change — max 5]
-- **Follow patterns in**: [Path to exemplar file the AI should read and follow]
-- **Dependencies**: [Story IDs that must be complete first, or "None"]
-- **Personas**: [P1 (Name — Role), P2 (Name — Role) | or "internal" for infra/refactoring]
+### Why
+[1-2 sentences: What user/business value does this deliver? Anchor on the user, not the implementation.]
 
-## Acceptance criteria
-- [ ] [Specific, testable outcome — state WHAT not HOW]
-- [ ] [Edge case or error condition]
-- [ ] [Another testable outcome]
+### Acceptance Criteria
+- [ ] [Outcome-asserting, testable condition — WHAT the user can do or observe, not HOW the system does it]
+- [ ] [Edge case or error condition the user might hit]
+- [ ] [Another outcome the user gets]
 - [ ] Given [precondition], when [action], then [verifiable result]
 
+### Out of Scope
+- [Thing that might seem related but is NOT part of this outcome]
+- [Future enhancement tracked in PROJ-XXX]
+
+### Personas
+[P1 (Name — Role), P2 (Name — Role) | or "internal" for infra/refactoring stories]
+
 ## Verification
+
 ```bash
-# Targeted tests pass
+# Commands that prove the outcome is met. These do not change between sprint-start refinements.
 [test command] -- --grep "[feature-name]"
-# No lint errors
 [lint command]
-# Build succeeds
-[build command]
 ```
 
-## Out of scope
-- [Thing that might seem related but is NOT part of this story]
-- [Future enhancement tracked in PROJ-XXX]
-- [Constraint: Must NOT modify X]
+## Implementation Hints (STALE BY DEFAULT — refined at sprint-start)
+
+<!-- These hints freeze at ideate time and rot as the code changes. /sprint-start step 3.5 re-derives them against the current brain. Until refined_at is set, treat as starting suggestions only. -->
+
+- **Affected files (suggested):** [explicit list — re-derived at sprint-start]
+- **Pattern to follow:** [Path to exemplar `file:line` — re-derived at sprint-start]
+- **Existing helpers to reuse:** [helpers found at ideate time — re-derived at sprint-start]
+- **Dependencies:** [Story IDs that must be complete first, or "None"]
 
 ## Relevant Decisions
 <!-- Auto-populated from DECISION_LOG.md during story generation. Omit section if no discovery was run. -->
 - D003: Database — PostgreSQL on Supabase (CONFIRMED)
-- D007: Auth — Supabase Auth with magic links (CONFIRMED)
 
 ## Relevant Assumptions
 <!-- Auto-populated from ASSUMPTION_REGISTER.md. Omit section if no discovery was run. -->
@@ -60,86 +72,99 @@ created: YYYY-MM-DD
 ## No-Gos for This Story
 <!-- Auto-populated from vision/project-pitch.md. Omit section if no discovery was run. -->
 - Do NOT implement social login (Phase 2)
-- Do NOT add admin dashboard (Phase 2)
-
-## Notes
-[Optional: implementation hints, known gotchas, links to designs or ADRs]
 ```
 
-## Acceptance Criteria Guidelines
+## Acceptance Criteria Guidelines — Outcome-Asserting, Not Implementation-Prescriptive
 
-**Checklist-style AC is the default.** Each item maps to a discrete testable assertion. Use 3–7 criteria per story. Fewer means insufficient guidance; more than 7 means the story needs splitting.
+Each AC must describe **what the user gets or observes**, not **how the code does it**. If the AC names a class, function, or file, it's prescriptive — rewrite as observable behavior.
 
-**Use Given/When/Then only when preconditions matter** — complex behavioral scenarios involving multiple states or setup steps. Most AC should be direct outcome statements.
+### Anti-patterns and replacements
 
-**The Goldilocks zone:**
-- Specify (always): expected behavior, edge cases, error conditions, data formats, verification commands
-- Don't specify (usually): implementation approach, internal architecture, specific algorithms
+| Implementation-prescriptive (WRONG) | Outcome-asserting (RIGHT) |
+|--------------------------------------|---------------------------|
+| `LoginController.handle()` returns a session token | User who submits valid credentials receives a session and lands on the home screen |
+| Add a `validateEmail()` function in `src/auth/validators.ts` | An invalid email format is rejected at form submit with a visible error message |
+| Refactor `UserService` to use Repository pattern | (this is a refactor — the outcome should be observable behavior unchanged; if there's no user-facing outcome, type this as a refactor story, not a feature) |
+| Tests call `mockOAuthProvider.success()` | Users can sign in with Google and Apple |
+| Response time should be fast | Search returns first results in <200ms p95 over 100 trial queries |
+| Handle errors properly | When the upstream API returns 5xx, the user sees a retry button and the request is queued |
+| Use Redis for caching | Sessions survive a single backend restart (verified by restart-and-recall test) |
+| Should work | Listed concrete observable: e.g. "user can complete checkout end-to-end with a single test card" |
 
-**Anti-patterns:**
-- "Should be fast" → Replace with measurable: "Response time < 200ms at p95"
-- "Handle errors properly" → Replace with specific: "Returns 400 with validation error body when email is missing"
-- "Make it work" → Replace with observable: "User sees confirmation message after form submission"
+### When prescription is OK
+
+- **Infra/Refactor stories** — these have no user-facing outcome by definition. AC can reference internal contracts.
+- **Bug fix stories** — AC includes the regression test which IS prescriptive (file:test name).
+- **Spike stories** — AC is "a decision is documented" not user-observable; that's the outcome.
+
+### How specific is "specific enough"
+
+Specify (always): expected behavior, edge cases, error conditions, data formats, verification commands.
+Don't specify (usually): which file, which class, which algorithm.
+
+The rule of thumb: **if a future code refactor would invalidate the AC even though the user-visible behavior is unchanged, the AC is too prescriptive.**
 
 ## Type-Specific Variations
 
 ### Bug Fix
-Replace the `## Why` section with:
+Replace the `### Why` section with:
 
 ```markdown
-## Bug
+### Bug
 - **Current behavior**: [What happens now — include error message if applicable]
-- **Expected behavior**: [What should happen]
+- **Expected behavior**: [What should happen — user-observable]
 - **Steps to reproduce**: 1. ... 2. ... 3. ...
-- **Root cause** (if known): [Description or "Unknown — investigate first"]
 ```
 
 ### Spike / Research
-Replace `## Acceptance criteria` with:
+Replace `### Acceptance Criteria` with:
 
 ```markdown
-## Research questions
+### Research questions
 1. [Specific question to answer]
 2. [Specific question to answer]
 
-## Output
+### Output
 - [ ] Decision document at [path] with recommendation
-- [ ] Timebox: [X hours]
+- [ ] Stopping condition: [observable condition that ends the spike — not a clock value]
 ```
 
 ### Refactoring
-Add after `## Acceptance criteria`:
+Add inside `### Out of Scope`:
 
 ```markdown
-## Constraints
+### Constraints
 - No changes to external behavior (refactor only)
 - All existing tests must pass without modification
 ```
 
 ### Performance
-Add after `## Acceptance criteria`:
+Add after `### Acceptance Criteria`:
 
 ```markdown
-## Metrics
+### Metrics
 - **Current**: [Measured baseline, e.g., p95 = 450ms]
 - **Target**: [Required outcome, e.g., p95 < 200ms]
 - **Benchmark command**: `[benchmark command]`
 ```
 
-## Size Classification
+## Size Classification (v5.0 — verification-budget bounds)
 
-| Size | Criteria | AI Workflow |
-|------|----------|-------------|
-| **TRIVIAL** | Single-file, <10 lines, no behavioral change (typo, config, comment) | Direct implementation, minimal review |
-| **SMALL** | 1-2 files, <50 lines, follows existing patterns, clear AC | Implement → test → review |
-| **STANDARD** | 3-5 files, requires plan, integrates with existing code | Plan → review plan → implement → test → review |
-| **Too large** | >5 files or scope unclear | **Must split** before implementation |
+Sizing is by **what the outcome can be re-verified against** at completion, not by hours or files.
 
-Key sizing factors: number of files (context window pressure), degree of implicit knowledge required, whether established patterns exist, integration surface area.
+| Size | When to use | /story-cycle path |
+|------|-------------|-------------------|
+| **TRIVIAL** | Single-file change, no AC needed beyond observation (rename, typo, config tweak) | Fast-track (skip Phase 1, 2, 2.5) |
+| **STANDARD** | One vertical user-observable outcome. 3-7 AC, each individually verifiable in Phase 4.5 with command output or file:line evidence. PR target ≤500 LOC, ceiling 1000 LOC. Default. | Full phases |
+| **LARGE** | Exceeds STANDARD intentionally (big migration, multi-module feature that doesn't usefully split). 8-12 AC. Requires explicit user approval at ideate-time. Adds per-AC checkpoints and mandatory integration-tester dispatch. | Full phases + extra checkpoints |
+
+Beyond LARGE — split. No story should exceed the verification budget where every AC can be re-checked in one Phase 4.5 pass.
+
+**No estimation in hours, days, or "sessions."** Those anchor to human pace and produce systematically wrong predictions for Claude Code.
 
 ## Splitting Strategy (SPIDR)
 
-When a story is too large, split in this order of preference:
+When a story exceeds the size bounds, split in this order:
 
 1. **Paths** — Separate happy path from alternate/error flows
 2. **Data** — Restrict data scope (one type first, add others later)
@@ -151,7 +176,7 @@ Each resulting story must be a **vertical slice** (UI + logic + data), not a hor
 
 ## Embedded Format (Stories in Epic Files)
 
-When stories are embedded in epic files (`docs/reference/backlog/E##-*.md`), use inline metadata instead of YAML frontmatter (since `---` becomes a horizontal rule in nested markdown):
+When stories are embedded in epic files (`docs/reference/backlog/E##-*.md`), use inline metadata instead of YAML frontmatter:
 
 **Epic story checklist** (top of epic, for quick scanning):
 ```markdown
@@ -166,35 +191,35 @@ Format: `- [ ] ID — Title (Priority, Status)` — mark done stories with `[x]`
 **Detailed story sections** (below the checklist):
 ```markdown
 ### PROJ-001: User login with email
-**Type:** feature · **Size:** SMALL · **Priority:** P0 · **Status:** ready · **Created:** 2026-03-25
+**Type:** feature · **Size:** STANDARD · **Priority:** P0 · **Status:** ready · **Created:** 2026-03-25 · **Refined:** —
 
-#### Why
+#### Outcome
+##### Why
 [content]
-
-#### Acceptance criteria
-- [ ] [criterion]
+##### Acceptance Criteria
+- [ ] [outcome-asserting criterion]
+##### Out of Scope
+- [exclusion]
 
 #### Verification
 [commands]
 
-#### Out of scope
-- [exclusion]
+#### Implementation Hints (STALE BY DEFAULT — refined at sprint-start)
+- Affected files: ...
+- Pattern: ...
 ```
-
-See `docs/reference/backlog/_EPIC_TEMPLATE.md` for the complete epic file structure.
 
 ## Story Quality Checklist (Definition of Ready)
 
-A story is ready for AI implementation when ALL of these are true:
+A story is ready when ALL of these are true:
 
-- [ ] Title is clear and specific — describes the change, not the problem
-- [ ] Type is assigned — one of the 10 supported types
-- [ ] Size is classified — TRIVIAL, SMALL, or STANDARD
-- [ ] Acceptance criteria exist — 3-7 specific, testable conditions
-- [ ] Verification commands specified — exact commands that prove completion
-- [ ] Out of scope is defined — at least one explicit exclusion
-- [ ] Affected files listed — max 5 files
-- [ ] Pattern references included — "Follow patterns in [file]" where applicable
-- [ ] Dependencies resolved or documented — no unresolved blockers
-- [ ] No ambiguous language — no "should be fast," "handle errors properly," "make it work"
-- [ ] Self-contained — all referenced context is included or linked
+- [ ] Title describes the OUTCOME, not the implementation
+- [ ] Type assigned (one of the 10 types)
+- [ ] Size classified (TRIVIAL/STANDARD/LARGE)
+- [ ] 3-7 (STANDARD) or 8-12 (LARGE) acceptance criteria — all outcome-asserting
+- [ ] No AC names a specific file, class, or function (unless type is infra/refactor/bugfix)
+- [ ] Verification commands specified
+- [ ] Out of scope includes at least one explicit exclusion
+- [ ] Implementation Hints section present (even if "TBD at sprint-start")
+- [ ] Personas linked (or marked "internal")
+- [ ] No ambiguous language ("should be fast", "handle errors properly", "make it work")

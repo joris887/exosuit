@@ -138,7 +138,7 @@ How to merge framework updates with project-specific customizations for each com
 - **If project has customized**: PRESERVE project version
 - **If project uses framework template**: REPLACE
 
-### docs/context/ files
+### docs/brain/ files
 
 - **Strategy**: PRESERVE if populated with project content
 - **If new template added**: ADD new file, populate with project content

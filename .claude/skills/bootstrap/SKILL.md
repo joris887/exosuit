@@ -243,7 +243,7 @@ Read `references/technical-debt-assessment.md` for the complete assessment flow.
 
 Record detected items in `docs/technical-debt.md` under the matching severity heading, using the full item format (category, severity, origin, location, quantified impact, interest rate, effort, resolution). Set origin to `legacy` for all bootstrap-detected items. Critical/High-severity items generate foundation stories in the foundation backlog (A5.9).
 
-**Seed `docs/context/error-patterns.md`:** For files with 3+ stale markers (TODO/FIXME/HACK) or detected unsafe patterns, add an entry to error-patterns.md noting the affected area and common failure patterns for that module. This gives debug-session and context-prime useful context from day one. Format follows the template in error-patterns.md (Brief description, Affected area, Prevention note). Only seed 3-5 entries maximum from the most problematic areas — this file grows organically via record-failure during normal development.
+**Seed `docs/brain/error-patterns.md`:** For files with 3+ stale markers (TODO/FIXME/HACK) or detected unsafe patterns, add an entry to error-patterns.md noting the affected area and common failure patterns for that module. This gives debug-session and context-prime useful context from day one. Format follows the template in error-patterns.md (Brief description, Affected area, Prevention note). Only seed 3-5 entries maximum from the most problematic areas — this file grows organically via record-failure during normal development.
 
 ### A3.5. Generate Architecture Overview
 
@@ -282,25 +282,37 @@ Auto-populate `docs/architecture/ARCHITECTURE.md` from code structure. Apply acc
 
 **Update Triggers:** Pre-populated (generic, applies to all projects): new modules/services added, data stores changed, API boundaries changed, dependency rules violated intentionally, deployment topology changed.
 
-### A3.55. Generate Project Context Knowledge Base
+### A3.55. Seed the Repo Brain
 
-Populate `docs/context/` files by analyzing the codebase. Apply accuracy safeguards from `references/accuracy-safeguards.md`:
+Populate `docs/brain/` (the LLM-maintained source of truth — see `docs/brain/CLAUDE.md` for the operating model). Every technical claim MUST cite `file:line` or a commit hash. Uncited claims are flagged `[Assumed]` and pending re-verification.
+
+Apply accuracy safeguards from `references/accuracy-safeguards.md`.
+
+**Stable pages** (analyzed once at bootstrap, refined by `/brain-update` later):
 
 - `project-overview.md` — What the project does, who it's for, core workflows
-- `tech-context.md` — Stack, key libraries, API contracts, data layer
+- `tech-context.md` — Stack, key libraries, API contracts, data layer (cite `package.json:N`, `Cargo.toml:N`, etc.)
 - `system-patterns.md` — Populate each section with codebase evidence:
-  - **Implementation Patterns:** Grep for structural patterns (Controller/Service/Repository classes, middleware chains, factory functions, event handlers). For each, cite a reference file.
+  - **Implementation Patterns:** Grep for structural patterns (Controller/Service/Repository classes, middleware chains, factory functions, event handlers). For each, cite a reference file:line.
   - **Architectural Conventions:** Extract naming conventions from file/class/function names across 10+ files. Note import direction rules from the A3.5 dependency graph.
   - **Error Handling Strategy:** Grep for try/catch, error middleware, custom error classes, logging calls. Trace error propagation from data layer to user-facing response.
   - **Testing Conventions:** Analyze test file naming, co-location vs separate dir, assertion library, mock/stub patterns, fixture setup.
-  - **Implementation Recipes:** Identify the most common entity type (API endpoint, service, component) and document the step-by-step to add a new one. Reference exemplar files.
+  - **Implementation Recipes:** Identify the most common entity type (API endpoint, service, component) and document the step-by-step to add a new one. Reference exemplar file:line.
 - `project-structure.md` — Directory layout, module responsibilities, data flow
 - `product-context.md` — Domain terminology, feature areas, constraints
 - `personas.md` — User personas (see below)
 
-Each file: ≤200 lines, evidence-based claims only, update YAML frontmatter timestamps.
+**Volatile pages** (re-derived by `/brain-update` going forward — seed once here):
 
-**Persona Generation (Path A):** For projects with user-facing features (web apps, APIs with end users, CLIs with distinct user types), generate `docs/context/personas.md`:
+- `index.md` — Catalog. Populate the Pages tables with last-updated dates set to today. Populate Coverage with the areas the stable pages cover. Leave Gaps empty (will surface from `/ideate`).
+- `log.md` — Append the first entry: `## [YYYY-MM-DD HH:MM] bootstrap seed | initial repo brain seeded from codebase analysis` with the list of pages written.
+- `current-state.md` — Populate "What Works Now" from existing tests passing + obvious user-facing features. Leave "What's In Progress" and "What Changed Recently" empty (no sprint history yet). Populate "Architectural Constraints" by mirroring the load-bearing patterns from system-patterns.md.
+
+**Append-only pages:** `error-patterns.md` (seeded in A3.2 — see above).
+
+Each stable file: ≤200 lines, evidence-based claims only. Update YAML frontmatter timestamps.
+
+**Persona Generation (Path A):** For projects with user-facing features (web apps, APIs with end users, CLIs with distinct user types), generate `docs/brain/personas.md`:
 
 1. **Infer personas** from codebase signals: role-based directories (admin/, user/), auth roles in code, distinct UI sections, README user descriptions, existing persona docs
 2. **Ask the user** via AskUserQuestion:
@@ -313,7 +325,7 @@ Each file: ≤200 lines, evidence-based claims only, update YAML frontmatter tim
    ```
 3. **Generate lean persona cards** (6-field format) for confirmed user types
 4. **Ask for primary persona** if more than one confirmed
-5. **Save** to `docs/context/personas.md`
+5. **Save** to `docs/brain/personas.md`
 
 **Skip when:** Project is a library, internal tool with a single user type, or the user says "no personas needed." In these cases, leave `personas.md` as the template with a note: "Single user type — personas not applicable."
 
@@ -892,7 +904,7 @@ Also create `docs/reviews/` with a `.gitkeep` file. This directory stores phase 
 - CLAUDE.md (project overview, commands, architecture, profile, default branch)
 - docs/reference/CODING_STANDARDS.md (language standards)
 - docs/architecture/ARCHITECTURE.md (module overview)
-- docs/context/* (project knowledge base — 5-6 files)
+- docs/brain/* (repo brain — 7 stable pages + index.md + log.md + current-state.md)
 - docs/reference/GROUND_RULES.md (architectural principles)
 - docs/reference/TESTING_STRATEGY.md (test infrastructure)
 - docs/reference/READINESS_REPORT.md (principle assessment)
@@ -902,7 +914,7 @@ Also create `docs/reviews/` with a `.gitkeep` file. This directory stores phase 
 - docs/reference/BACKLOG_INDEX.md (initialized)
 - docs/progress.md (baseline metrics)
 - docs/technical-debt.md (detected debt items)
-- docs/context/error-patterns.md (seeded from debt scan)
+- docs/brain/error-patterns.md (seeded from debt scan)
 - llms.txt (project-specific summary)
 
 **Hooks Configured:**

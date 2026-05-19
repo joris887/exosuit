@@ -117,9 +117,9 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ### Size Limits
 
-- **Target:** ≤200 LOC per PR
-- **Hard limit:** 400 LOC (research shows defect detection drops 70% beyond this)
-- AI tools increase PR sizes by 30-154% — scope AI work explicitly to stay under 400 lines
+- **Target:** ≤500 LOC per PR
+- **Ceiling:** 1000 LOC. Beyond ceiling, split to recover reviewer signal — defect detection drops sharply at large diffs.
+- AI tools deliver larger vertical slices than humans — that's a benefit, not a problem to suppress. Scope by *outcome* (one user-observable thing), not by LOC count, and split only when the outcome itself can be split.
 
 ### Template
 
@@ -151,7 +151,7 @@ Not every change needs the same review depth:
 |----------|------|--------|
 | **Ship** | Trivial fixes, typos, docs, formatting | Merge directly (CI must still pass) |
 | **Show** | Standard features, bug fixes | Create PR, merge after CI, review async |
-| **Ask** | Architecture changes, security, >400 LOC, breaking changes | Create PR, wait for review before merge |
+| **Ask** | Architecture changes, security, >1000 LOC, breaking changes | Create PR, wait for review before merge |
 
 - **Solo developers:** Default to Ship/Show. Use Ask for architectural changes.
 - **Teams:** Default to Show/Ask. See `TEAM_WORKFLOW.md` for risk-calibrated review requirements.
@@ -160,15 +160,15 @@ Not every change needs the same review depth:
 ## Merging
 
 - **Default:** Squash and merge (enforced via GitHub repository settings)
-- **Exception:** Merge commit allowed for PRs >400 LOC or infrastructure changes needing debug granularity
+- **Exception:** Merge commit allowed for PRs >1000 LOC or infrastructure changes needing debug granularity
 - **Post-merge:** Auto-delete head branches; local cleanup via `git fetch --prune`
 - **Merge queue:** Enable when team exceeds 3 contributors
 
 ### Stacked PRs for Large Features
 
-When a feature exceeds 400 LOC, break it into 3-5 stacked PRs:
+When a feature genuinely cannot be delivered as one outcome under 1000 LOC, break it into 2-4 stacked PRs:
 
-1. Each PR builds on the previous, targeting ≤200 LOC
+1. Each PR builds on the previous, targeting ≤500 LOC
 2. Base each subsequent branch on the previous PR's branch
 3. Review and merge bottom-up (base PR first)
 4. Use `git rebase --update-refs` (Git 2.38+) to maintain the stack after rebasing
@@ -309,6 +309,6 @@ Migrate to **GitHub Rulesets** for organization-wide rules and evaluate mode.
 - Delete feature branches after merge
 - Never skip hooks (`--no-verify`)
 - When a hook fails, the commit did NOT happen — create a NEW commit after fixing
-- Keep PRs under 400 LOC (target ≤200)
+- Keep PRs at target ≤500 LOC, ceiling 1000 LOC. Beyond ceiling, split to recover reviewer signal.
 - Commit after each logical unit of work during development
 - Never auto-push — pushing requires explicit instruction

@@ -11,7 +11,7 @@ Do NOT record: normal TDD red-green cycles, expected test failures, or routine c
 
 ## Recording Protocol
 
-Append a new entry to `docs/context/error-patterns.md`:
+Append a new entry to `docs/brain/error-patterns.md`:
 
 ```markdown
 ## [Brief description of the error pattern]

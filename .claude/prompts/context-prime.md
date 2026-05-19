@@ -16,14 +16,21 @@ Extract 2-3 keywords from the current task and map to an intent category:
 
 ## Loading
 
-Load files in the classified priority order. Stop if context budget is tight. For each file: skip if it contains only template placeholders (`<!-- filled by -->`). Only load files that have been populated with actual project content.
+**v5.0 entry points (load first, before the intent-priority stable pages):**
 
-All files live in `docs/context/` unless noted:
+1. `docs/brain/index.md` — catalog. Tells you which pages exist and which are still template stubs.
+2. `docs/brain/current-state.md` — snapshot: what's working / in progress / changed recently.
+3. Optional (when resuming after a gap): tail of `docs/brain/log.md` via `grep '^## \[' docs/brain/log.md | tail -5` — see what changed since last session.
+
+Then load the stable pages in the classified priority order. Stop if context budget is tight. For each file: skip if it contains only template placeholders (`<!-- filled by -->`). Only load files that have been populated with actual project content.
+
+All files live in `docs/brain/` unless noted:
 - `project-overview.md` — what the project does
 - `tech-context.md` — stack and integration patterns
 - `system-patterns.md` — design patterns and conventions
 - `project-structure.md` — directory layout and module responsibilities
 - `product-context.md` — domain terminology and user personas
+- `personas.md` — user persona cards (lean 6-field format)
 - `error-patterns.md` — cross-session error learning (always load last, low priority but valuable for avoiding known mistakes)
 - `API_DOCUMENTATION` → `docs/reference/API_DOCUMENTATION.md` — API contracts, operations, schemas (load for Data/API intent only; skip if template-only)
 

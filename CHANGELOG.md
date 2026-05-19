@@ -13,6 +13,56 @@ Each version entry lists:
 
 ---
 
+## [5.0.0] - 2026-05-19
+
+### Summary
+
+**Outcome-Driven Framework.** Five interlocking changes:
+
+1. **Repo brain** — `docs/context/` becomes `docs/brain/` with an operating model: `index.md` (catalog), `log.md` (append-only changelog), `current-state.md` (volatile snapshot), plus the existing 6 stable pages now requiring file:line citations on every technical claim. The brain is the LLM-maintained source of truth — code wins on conflict, but the brain is what every other skill reads and writes to.
+2. **`/brain-update` skill** — plumbing skill called by `/story-cycle`, `/sprint-end`, `/brainstorm`, `/ideate`, `/discover`. Distills the relevant slice of conversation into brain edits with citations + a log entry. Refuses to write claims without citations.
+3. **Sprint-start story re-refinement** — new Step 3.5 in `/sprint-start` re-derives Implementation Hints for every selected story against the current brain. Catches stories whose outcomes are now invalid (already shipped) or blocked (load-bearing constraint changed) before they enter `/story-cycle`.
+4. **Outcome-first story format** — stories now have four sections: Outcome (stable), Verification (stable), Implementation Hints (STALE BY DEFAULT — refined at sprint-start), Frontmatter. ACs must be outcome-asserting (what user gets/observes), not implementation-prescriptive (which file/class).
+5. **Verification-budget sizing + AC-coverage tests.** Size tiers TRIVIAL / STANDARD / LARGE (the v4.x SMALL tier collapses into STANDARD). Bounds by verification breadth + PR reviewability (target ≤500 LOC, ceiling 1000), not time. **Test count is no longer a quality gate** — every AC must be covered by a test that would fail without the AC met; test count delta is now advisory.
+
+### Added
+- `.claude/skills/brain-update/SKILL.md` + `references/brain-update-protocol.md` — the brain writer
+- `docs/brain/index.md` — brain catalog (replaces ad-hoc navigation of context files)
+- `docs/brain/log.md` — append-only chronological log of brain updates
+- `docs/brain/current-state.md` — what's working / in progress / changed recently
+- `.claude/skills/sprint-start/references/story-refinement.md` — Step 3.5 algorithm reference
+
+### Changed
+- `docs/context/` → `docs/brain/` (renamed; all skill/rule/template references updated; `/framework-upgrade` handles the migration for existing projects)
+- Story format: `references/story-template.md` and `references/story-template-lightweight.md` rewritten to outcome-first four-section structure
+- Story sizing: TRIVIAL / STANDARD / LARGE (was TRIVIAL / SMALL / STANDARD); SMALL collapsed into STANDARD
+- PR size rule: target ≤500 LOC, ceiling 1000 LOC (was target ≤200, ceiling 400)
+- `testing.md` rule: "Never reduce the total test count" REMOVED; "Every AC has at least one test that would fail if the AC is not met" ADDED
+- `/sprint-end` quality gate 2b: test count delta demoted from HARD GATE to ADVISORY (asks per-test, not unconditional block); AC coverage check is the new HARD GATE
+- `/story-cycle` Phase 4b: AC-to-test coverage check added as HARD GATE
+- All human-time anchors removed (`1-3 hours`, `S=1,M=2,L=4 sessions`, `Time-box: hours`); spike stopping conditions are now observable, not clock-based
+- `/sprint-start` v3.0.0 — adds Step 3.5 Story Re-Refinement
+- `/story-cycle` v5.0.0 — new size tiers, LARGE extra checkpoints, AC coverage gate
+- `/ideate` v3.0.0 — outcome-first stories, new size guidance
+
+### Removed
+- Story tier SMALL — collapsed into STANDARD
+- `Never reduce the total test count` from `testing.md`
+- Hard-gate behavior of `test-count-delta.sh` (script remains as advisory tool)
+- Human-time language across skills, templates, and docs
+
+### Project file changes (for existing v4.x projects)
+- `/framework-upgrade` migrates `docs/context/` → `docs/brain/` and seeds `index.md`, `log.md`, `current-state.md`
+- Existing v4-format stories still parse — only new stories use the four-section format
+- Existing stories with `size: SMALL` should be re-labeled to `STANDARD` at next refinement
+- Existing tests are not modified by the upgrade — the AC coverage check applies to ACs introduced from v5.0 onward
+
+### Breaking changes
+- Skills and rules that referenced `docs/context/` directly will fail until updated (all framework skills are updated; user-customized skills must be re-targeted manually — see migration notes in `/framework-upgrade`)
+- `size: SMALL` is no longer a recognized value in story templates (parsers should treat as STANDARD)
+
+---
+
 ## [4.1.0] - 2026-04-03
 
 ### Summary
@@ -321,7 +371,7 @@ Confidence gate, four-question evidence protocol, cross-session error learning, 
 ### Added
 - `.claude/prompts/confidence-gate.md` -- pre-implementation confidence assessment (OPT-119)
 - `.claude/prompts/record-failure.md` -- record failure patterns (OPT-121)
-- `docs/context/error-patterns.md` -- persistent error knowledge base (OPT-121)
+- `docs/brain/error-patterns.md` -- persistent error knowledge base (OPT-121)
 - `.claude/prompts/wave-execution.md` -- parallel execution pattern (OPT-122)
 - `docs/reference/MCP_INTEGRATION.md` -- MCP server integration guide (OPT-123)
 - `.claude/prompts/select-tool.md` -- MCP vs built-in tool selection (OPT-123)
@@ -360,7 +410,7 @@ CORE_MERGE:
 PROJECT_UPDATE_INSTRUCTIONS:
   - If docs/reference/ exists: copy MCP_INTEGRATION.md from scaffold
   - Add MCP_INTEGRATION.md to CLAUDE.md Important Files section
-  - Bootstrap will scaffold docs/context/error-patterns.md on next run
+  - Bootstrap will scaffold docs/brain/error-patterns.md on next run
 ```
 
 ---
@@ -423,7 +473,7 @@ Worktree-aware bash hook, parallel stream decomposition, project context knowled
 ### Added
 - `.claude/hooks/worktree-bash-fix.sh` -- worktree directory fix (OPT-103)
 - `.claude/skills/story-cycle/references/parallel-streams.md` -- parallel stream reference (OPT-104)
-- `docs/context/project-overview.md`, `docs/context/tech-context.md`, `docs/context/system-patterns.md`, `docs/context/project-structure.md`, `docs/context/product-context.md` -- project context knowledge base (OPT-105)
+- `docs/brain/project-overview.md`, `docs/brain/tech-context.md`, `docs/brain/system-patterns.md`, `docs/brain/project-structure.md`, `docs/brain/product-context.md` -- project context knowledge base (OPT-105)
 - `.claude/prompts/context-prime.md` -- priority-ordered context loading (OPT-105)
 - `scripts/pm/status.sh`, `scripts/pm/next-story.sh`, `scripts/pm/standup.sh` -- PM scripts (OPT-106)
 - `.claude/skills/bootstrap/references/accuracy-safeguards.md` -- anti-hallucination protocol (OPT-107)
@@ -460,7 +510,7 @@ CORE_MERGE:
   .claude/settings.json (new hook entry for worktree-bash-fix)
 
 PROJECT_UPDATE_INSTRUCTIONS:
-  - Bootstrap will scaffold docs/context/ directory with 5 knowledge base files on next run
+  - Bootstrap will scaffold docs/brain/ directory with 5 knowledge base files on next run
   - Copy scripts/pm/ scripts to project if not present
 ```
 

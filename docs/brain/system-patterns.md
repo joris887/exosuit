@@ -1,9 +1,11 @@
 ---
 created: <!-- filled by /bootstrap -->
-updated: <!-- filled by /sprint-end -->
+updated: <!-- filled by /brain-update -->
 ---
 
 # System Patterns
+
+> Every claim below must cite the code that proves it (`src/path/to/file.ts:42`). Uncited claims are `[Assumed]` and pending re-verification at next `/brain-update`. This page is where compounding architectural knowledge lives — keep it precise.
 
 ## Implementation Patterns
 <!-- For each pattern: name, where used, reference file. Use positive formulation.

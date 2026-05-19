@@ -14,10 +14,10 @@ Reference loaded by `/story-cycle` Phase 4a. Complete before running quality gat
 - [ ] No unnecessary features added beyond acceptance criteria (YAGNI)
 - [ ] Error handling covers realistic failure modes
 
-<IF condition="docs/context/system-patterns.md is populated (not template-only)">
+<IF condition="docs/brain/system-patterns.md is populated (not template-only)">
 ### Pattern Alignment Check
 
-For each file modified, verify against `docs/context/system-patterns.md`:
+For each file modified, verify against `docs/brain/system-patterns.md`:
 
 - [ ] **Implementation patterns:** New code follows documented patterns (cite reference file). If a new pattern was introduced, note it for system-patterns update.
 - [ ] **Naming & conventions:** Variables, functions, classes follow documented architectural conventions.

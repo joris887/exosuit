@@ -94,7 +94,7 @@ Also scan for API framework indicators in detected stack:
 - **Contract-first status:** spec file exists (contract-first) vs framework-only (code-first)
 
 This data feeds into:
-- `docs/context/tech-context.md` → `## API Contracts` section (A4)
+- `docs/brain/tech-context.md` → `## API Contracts` section (A4)
 - Readiness Report (A5.8) → Contract-first and API-documented checks
 - Foundation backlog (A5.9) → contract testing and API documentation stories
 

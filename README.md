@@ -252,7 +252,7 @@ WORKFLOW — skills and agents that guide structured development
   └─ Quality analysis          └─ Architecture advisor
 
 DOCUMENTATION — project context that persists across sessions
-  CLAUDE.md (entry)          docs/context/* (knowledge base)
+  CLAUDE.md (entry)          docs/brain/* (knowledge base)
   progress.md (state)        docs/sessions/ (handoff)
 ```
 
