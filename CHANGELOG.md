@@ -72,6 +72,11 @@ PROJECT_UPDATE_INSTRUCTIONS:
   - Copy scaffold/docs/reference/STORY_SIZING.md to docs/reference/STORY_SIZING.md.
     It is optional — without it the framework default applies. Leave the
     "Project Deviations" section empty unless the project genuinely differs.
+  - If the project ALREADY has a docs/reference/STORY_SIZING.md that restates a
+    full size table (written to override the pre-4.2.0 file-count rule), replace it
+    with the scaffold version. That override is now redundant, and keeping a second
+    copy of the table is how the two silently drift apart. Carry over only genuine
+    project deviations into the "Project Deviations" section.
   - Add to the CLAUDE.md Important Files list:
     - `docs/reference/STORY_SIZING.md` — Project sizing policy (sizing is by cohesion, not file count)
   - Existing stories need no change. LARGE and XL are additive; TRIVIAL, SMALL,
