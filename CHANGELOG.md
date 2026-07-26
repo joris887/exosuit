@@ -13,6 +13,81 @@ Each version entry lists:
 
 ---
 
+## [4.2.0] - 2026-07-26
+
+### Summary
+Story sizing now follows **conceptual cohesion, not file count**. The previous ceiling — "more than
+5 files, must split" — was a proxy for context-window limits that no longer bind at current model
+context sizes, and it forced coherent mechanisms to be split into pieces that produced broken
+intermediate states. Adds `LARGE` and `XL` sizes, replaces the file-count threshold with a cohesion
+test, and introduces `docs/reference/STORY_SIZING.md` as a project-level deviation point.
+
+### Added
+- `scaffold/docs/reference/STORY_SIZING.md` — project sizing policy. Deliberately thin: it states
+  the principle and points at the canonical table rather than restating it, so the two cannot drift.
+- `LARGE` and `XL` sizes across the size enum, workflow-depth table, and risk matrix
+
+### Changed
+- `.claude/skills/ideate/references/story-template.md` — Size Classification rewritten around a
+  cohesion test with worked examples; `Too large | >5 files` row replaced by a `Bundle` row
+  (unrelated topics, split by topic); AC guidance now scales with size; affected-files cap removed;
+  DoR gains a cohesion check
+- `.claude/skills/story-cycle/SKILL.md` — size→workflow table and size×risk matrix extended with
+  LARGE and XL rows; explicit instruction not to split on file count
+- `.claude/skills/ideate/SKILL.md` — size enum, DoR checklist, affected-files guidance
+- `.claude/skills/backlog-review/SKILL.md` — DoR splitting criterion now topic-based, not file-count;
+  cycle-time metrics cover all five sizes
+- `.claude/agents/spec-reviewer.md` — size enum in the DoR check
+- `CLAUDE.md`, `scaffold/docs/reference/CLAUDE.md` — reference the new sizing file
+
+### Project File Changes
+- Existing projects: `docs/reference/STORY_SIZING.md` is new and optional. Without it, the framework
+  default applies. Existing stories keep their sizes — `LARGE` and `XL` are additive.
+- Stories previously split to satisfy the 5-file rule may now be worth recombining, but nothing
+  requires it.
+
+### Breaking changes
+None. The enum is extended, not redefined; TRIVIAL, SMALL, and STANDARD keep their meaning.
+
+### Files Changed (for framework-upgrade)
+
+```
+CORE_REPLACE:
+  .claude/skills/ideate/references/story-template.md (CHANGED)
+  .claude/skills/ideate/SKILL.md (CHANGED)
+  .claude/skills/story-cycle/SKILL.md (CHANGED)
+  .claude/skills/backlog-review/SKILL.md (CHANGED)
+  .claude/agents/spec-reviewer.md (CHANGED)
+  scaffold/docs/reference/STORY_SIZING.md (NEW)
+  scaffold/docs/reference/CLAUDE.md (CHANGED)
+  docs/FRAMEWORK_REFERENCE.md (CHANGED)
+  CHANGELOG.md (CHANGED)
+
+CORE_MERGE:
+  CLAUDE.md (Important Files section — add the STORY_SIZING.md line; preserve
+             all project-specific sections: Project Overview, Tech Stack,
+             Critical Rules, Commands, Architecture, Current Focus)
+
+PROJECT_UPDATE_INSTRUCTIONS:
+  - Copy scaffold/docs/reference/STORY_SIZING.md to docs/reference/STORY_SIZING.md.
+    It is optional — without it the framework default applies. Leave the
+    "Project Deviations" section empty unless the project genuinely differs.
+  - If the project ALREADY has a docs/reference/STORY_SIZING.md that restates a
+    full size table (written to override the pre-4.2.0 file-count rule), replace it
+    with the scaffold version. That override is now redundant, and keeping a second
+    copy of the table is how the two silently drift apart. Carry over only genuine
+    project deviations into the "Project Deviations" section.
+  - Add to the CLAUDE.md Important Files list:
+    - `docs/reference/STORY_SIZING.md` — Project sizing policy (sizing is by cohesion, not file count)
+  - Existing stories need no change. LARGE and XL are additive; TRIVIAL, SMALL,
+    and STANDARD keep their exact meaning.
+  - Stories previously split only to satisfy the 5-file rule may now be worth
+    recombining. This is optional and should be judged per story against the
+    cohesion test, not applied in bulk.
+```
+
+---
+
 ## [4.1.1] - 2026-07-26
 
 ### Summary

@@ -50,7 +50,7 @@ For each non-done story, validate against the **Definition of Ready** checklist:
 |-----------|-------|
 | Title clear and specific | Describes the change, not the problem |
 | Type assigned | One of: feature, bugfix, refactor, spike, infra, testing, docs, security, performance, skill |
-| Size classified | TRIVIAL, SMALL, or STANDARD. If >5 affected files → flag for splitting |
+| Size classified | TRIVIAL, SMALL, STANDARD, LARGE, or XL. Flag for splitting only when the story spans *unrelated topics* — file count is not a threshold. See the cohesion test in `ideate/references/story-template.md` |
 | 3-7 acceptance criteria | Each testable and specific. No "should be fast" or "handle errors properly" |
 | Verification commands | Exact commands that prove completion |
 | Out of scope defined | At least one explicit exclusion |
@@ -97,7 +97,7 @@ For each zombie, recommend: **Split** (too large), **Kill** (no longer needed), 
 If `docs/sessions/.activity-log.jsonl` exists and contains story events:
 
 - **Throughput**: Stories completed per sprint (from story events with `to: done`)
-- **Cycle time by size**: Average time from `in-progress` to `done` for TRIVIAL/SMALL/STANDARD
+- **Cycle time by size**: Average time from `in-progress` to `done` for TRIVIAL/SMALL/STANDARD/LARGE/XL
 - **Completion rate**: Stories started vs completed
 - **Type distribution**: Which story types are most common
 

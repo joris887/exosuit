@@ -167,7 +167,7 @@ id: [PROJECT]-[NUMBER]
 title: [Clear, one-line summary of what changes]
 type: feature|bugfix|refactor|spike|infra|testing|docs|security|performance|skill
 priority: P0|P1|P2|P3
-size: TRIVIAL|SMALL|STANDARD
+size: TRIVIAL|SMALL|STANDARD|LARGE|XL
 status: draft
 created: YYYY-MM-DD
 ---
@@ -179,7 +179,7 @@ created: YYYY-MM-DD
 
 ## Context
 - **Current state**: [What exists now — behavior, relevant code, prior decisions]
-- **Affected files**: [Explicit list — max 5 files]
+- **Affected files**: [Explicit list. Short for TRIVIAL–STANDARD; LARGE and XL legitimately touch more]
 - **Follow patterns in**: [Path to exemplar file in codebase]
 - **Dependencies**: [Story IDs that must be complete first, or "None"]
 - **Personas**: [P1 (Name — Role), P2 (Name — Role) | or "internal" for infra/refactoring stories]
@@ -322,7 +322,7 @@ Before presenting stories, validate each against the Definition of Ready checkli
 
 - [ ] Title clear and specific
 - [ ] Type assigned (one of 10 types)
-- [ ] Size classified (TRIVIAL/SMALL/STANDARD)
+- [ ] Size classified (TRIVIAL/SMALL/STANDARD/LARGE/XL)
 - [ ] 3-7 acceptance criteria, all testable
 - [ ] Verification commands specified
 - [ ] Out of scope defined (at least one exclusion)
@@ -400,7 +400,7 @@ Next Steps:
 - 3–7 acceptance criteria per story. Fewer = insufficient guidance. More than 7 = story needs splitting.
 - Out of scope section is mandatory — at least one explicit exclusion to prevent AI scope creep
 - No ambiguous language in AC — reject "should be fast", "handle errors properly", "make it work"
-- Every story must have a size classification (TRIVIAL/SMALL/STANDARD) in frontmatter — this drives /story-cycle workflow depth
+- Every story must have a size classification (TRIVIAL/SMALL/STANDARD/LARGE/XL) in frontmatter — this drives /story-cycle workflow depth
 - Spike stories must have a time-box and explicit research questions
 - Testing stories come before feature stories in the order
 - Follow coding standards in `docs/reference/CODING_STANDARDS.md`

@@ -10,7 +10,7 @@ id: [PROJECT]-[NUMBER]
 title: [Clear, one-line summary of what changes]
 type: feature|bugfix|refactor|spike|infra|testing|docs|security|performance|skill
 priority: P0|P1|P2|P3
-size: TRIVIAL|SMALL|STANDARD
+size: TRIVIAL|SMALL|STANDARD|LARGE|XL
 status: draft|ready|in-progress|review|done|blocked
 created: YYYY-MM-DD
 ---
@@ -22,7 +22,7 @@ created: YYYY-MM-DD
 
 ## Context
 - **Current state**: [What exists now — behavior, relevant code, prior decisions]
-- **Affected files**: [Explicit list of files/modules that will change — max 5]
+- **Affected files**: [Explicit list of files/modules that will change. Keep it short for TRIVIAL–STANDARD; LARGE and XL stories legitimately touch more]
 - **Follow patterns in**: [Path to exemplar file the AI should read and follow]
 - **Dependencies**: [Story IDs that must be complete first, or "None"]
 - **Personas**: [P1 (Name — Role), P2 (Name — Role) | or "internal" for infra/refactoring]
@@ -68,7 +68,9 @@ created: YYYY-MM-DD
 
 ## Acceptance Criteria Guidelines
 
-**Checklist-style AC is the default.** Each item maps to a discrete testable assertion. Use 3–7 criteria per story. Fewer means insufficient guidance; more than 7 means the story needs splitting.
+**Checklist-style AC is the default.** Each item maps to a discrete testable assertion. Use 3–7 criteria for TRIVIAL through STANDARD stories — fewer means insufficient guidance.
+
+For **LARGE and XL** stories, criteria count scales with the mechanism: group them under sub-headings by the mechanism's parts rather than forcing a split. A long AC list is only a splitting signal when the criteria describe *unrelated topics* — see the cohesion test under Size Classification.
 
 **Use Given/When/Then only when preconditions matter** — complex behavioral scenarios involving multiple states or setup steps. Most AC should be direct outcome statements.
 
@@ -128,18 +130,60 @@ Add after `## Acceptance criteria`:
 
 ## Size Classification
 
+**Size follows conceptual cohesion, not file count.**
+
+The old ceiling — "more than 5 files, must split" — was a proxy for context-window limits that no
+longer bind. A story is one coherent unit of work with a single conceptual center; splitting it by
+an arbitrary file count produces artificial seams and broken intermediate states.
+
+### The test
+
+> If I split this story, do I get two independently meaningful pieces — or artificial seams and a
+> broken intermediate state?
+
+- **Two meaningful pieces → split.**
+- **Artificial seams → keep it whole**, however many files it touches.
+
 | Size | Criteria | AI Workflow |
 |------|----------|-------------|
-| **TRIVIAL** | Single-file, <10 lines, no behavioral change (typo, config, comment) | Direct implementation, minimal review |
-| **SMALL** | 1-2 files, <50 lines, follows existing patterns, clear AC | Implement → test → review |
-| **STANDARD** | 3-5 files, requires plan, integrates with existing code | Plan → review plan → implement → test → review |
-| **Too large** | >5 files or scope unclear | **Must split** before implementation |
+| **TRIVIAL** | Single file, <10 lines, no behavioral change (typo, config, comment) | Direct implementation, minimal review |
+| **SMALL** | One clear change following an existing pattern | Implement → test → review |
+| **STANDARD** | One coherent feature, requires a plan, integrates with existing code | Plan → review plan → implement → test → review |
+| **LARGE** | One coherent mechanism whose parts interlock and cannot be meaningfully tested in isolation | Plan → review plan → implement → integration test → review |
+| **XL** | A complete subsystem with a single conceptual center | Plan → review plan → staged implementation → full test suite → review |
+| **Bundle** | Multiple *unrelated* topics sharing one story ID | **Not a size — split by topic** |
 
-Key sizing factors: number of files (context window pressure), degree of implicit knowledge required, whether established patterns exist, integration surface area.
+### Worked examples
+
+**Legitimately XL** — *"The complete lease lifecycle: claim, heartbeat, renewal, expiry, watchdog,
+fencing-token validation, revocation."*
+Every part interlocks. A claim that cannot expire is not half a feature; it is a non-feature that
+cannot be meaningfully tested. Splitting produces broken intermediate states.
+
+**Not a story, just a bundle** — *"Lease lifecycle + OAuth + CLI output formatting."*
+Three unrelated topics sharing one ID. Worse than three stories, not better.
+
+**Correctly SMALL** — *"Add `--json` flag to CLI read commands."*
+Small because it genuinely is. Do not inflate a small story to look substantial.
+
+### Rules
+
+- **Large is permitted, never mandated.** Do not create XL stories because they are allowed.
+- **Split by topic, not by layer.** Every story stays a vertical slice — never "the database part"
+  and "the API part" of one feature.
+- **Acceptance criteria scale with size.** LARGE and XL stories may exceed the usual 3-7 criteria;
+  group them under sub-headings by the mechanism's parts.
+- **When genuinely uncertain, prefer the larger coherent story.** Re-splitting later is cheap;
+  reassembling artificially severed work is not.
+
+Remaining sizing factors: degree of implicit knowledge required, whether established patterns
+exist, and integration surface area. File count is an input to judgement, never a threshold.
+
+Projects may override this section — see `docs/reference/STORY_SIZING.md` in the project scaffold.
 
 ## Splitting Strategy (SPIDR)
 
-When a story is too large, split in this order of preference:
+When a story fails the cohesion test above, split in this order of preference:
 
 1. **Paths** — Separate happy path from alternate/error flows
 2. **Data** — Restrict data scope (one type first, add others later)
@@ -189,11 +233,12 @@ A story is ready for AI implementation when ALL of these are true:
 
 - [ ] Title is clear and specific — describes the change, not the problem
 - [ ] Type is assigned — one of the 10 supported types
-- [ ] Size is classified — TRIVIAL, SMALL, or STANDARD
+- [ ] Size is classified — TRIVIAL, SMALL, STANDARD, LARGE, or XL
+- [ ] Story passes the cohesion test — splitting it would create artificial seams, not two meaningful pieces
 - [ ] Acceptance criteria exist — 3-7 specific, testable conditions
 - [ ] Verification commands specified — exact commands that prove completion
 - [ ] Out of scope is defined — at least one explicit exclusion
-- [ ] Affected files listed — max 5 files
+- [ ] Affected files listed — proportionate to size, not capped at a fixed number
 - [ ] Pattern references included — "Follow patterns in [file]" where applicable
 - [ ] Dependencies resolved or documented — no unresolved blockers
 - [ ] No ambiguous language — no "should be fast," "handle errors properly," "make it work"

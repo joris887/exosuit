@@ -2,7 +2,7 @@
 
 The complete reference for every element of the framework, structured as the user journey from installation through ongoing maintenance. Start with the [README](../README.md) for an overview, or [Getting Started](GETTING_STARTED.md) for your first 5 minutes.
 
-**Framework version:** v4.1.1
+**Framework version:** v4.2.0
 **Date:** 2026-04-05
 
 ---
