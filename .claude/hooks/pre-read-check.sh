@@ -12,7 +12,11 @@ RULES_DIR="$HOOKS_DIR/rules"
 PATTERNS_FILE="$RULES_DIR/sensitive-files.patterns"
 
 # --- Hook guard: profile + disable check ---
-"$HOOKS_DIR/lib/hook-guard.sh" "pre-read-check" "standard" || exit 0
+# Raised from "standard" to "strict": this fires on EVERY Read to match a path
+# regex, and is advisory only (never blocks). The cost is latency on every file
+# read across a whole session; the benefit is a warning the model can also reach
+# by reading .claude/rules/security.md. Strict projects still get it.
+"$HOOKS_DIR/lib/hook-guard.sh" "pre-read-check" "strict" || exit 0
 
 # --- JSON field extraction ---
 extract_json_string() {

@@ -2,6 +2,10 @@
 # Appended to project .gitignore by install.sh
 # Maintain this file when adding new generated/sensitive file patterns.
 
+# OS junk
+.DS_Store
+Thumbs.db
+
 # User-local configuration (not shared)
 CLAUDE.local.md
 .claude/settings.local.json

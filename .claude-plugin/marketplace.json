@@ -9,7 +9,7 @@
     {
       "name": "jd-llm-development-framework",
       "description": "Structured development framework — TDD, sprints, quality gates, 45 skills, 8 agents, 11 hooks, path-scoped rules. Language-agnostic, works for any project.",
-      "version": "4.1.0",
+      "version": "4.1.1",
       "source": "./"
     }
   ]

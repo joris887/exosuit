@@ -28,4 +28,9 @@ dbg-macro@@\bdbg!\(@@Rust dbg! macro left in code
 fmt-println-debug@@fmt\.Println\(.*[Dd]ebug@@Go debug print left in code
 
 # --- General ---
-todo-fixme-hack@@\b(TODO|FIXME|HACK|XXX)\b@@TODO/FIXME marker left in code (review before shipping)
+# DISABLED by default — this was the noisiest pattern in the set.
+# TODO/FIXME markers in real code are usually deliberate, and the bare word
+# matches ordinary prose. Even with the source-file filter now applied in
+# stop.sh, this fires on almost every substantial change.
+# Uncomment if your team treats TODO markers as ship-blockers.
+# todo-fixme-hack@@\b(TODO|FIXME|HACK|XXX)\b@@TODO/FIXME marker left in code (review before shipping)
