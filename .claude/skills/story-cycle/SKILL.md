@@ -215,9 +215,15 @@ After Phase 0 decomposition, classify by **size** then **risk**:
 
 | Size | Criteria | Default Workflow |
 |------|----------|----------|
-| **TRIVIAL** | Single-file, <10 lines changed, no behavioral change (typo, config, comment) | Phase 3-lite (below) |
-| **SMALL** | 1-2 files, <50 lines changed, clear acceptance criteria | Lightweight Phase 1 (skip 1f, 1g) → Phase 2 → Phase 3 → Phase 4 |
-| **STANDARD** | Everything else (3-5 files, requires plan) | Full workflow (unchanged) |
+| **TRIVIAL** | Single file, <10 lines changed, no behavioral change (typo, config, comment) | Phase 3-lite (below) |
+| **SMALL** | One clear change following an existing pattern | Lightweight Phase 1 (skip 1f, 1g) → Phase 2 → Phase 3 → Phase 4 |
+| **STANDARD** | One coherent feature, requires a plan | Full workflow (unchanged) |
+| **LARGE** | One coherent mechanism whose parts interlock and cannot be meaningfully tested in isolation | Full workflow + integration test pass before Phase 4 |
+| **XL** | A complete subsystem with a single conceptual center | Full workflow, staged implementation — build and verify one part of the mechanism at a time, then a full-suite pass before Phase 4 |
+
+**Sizing is by conceptual cohesion, not file count** — see `../ideate/references/story-template.md`.
+Do not reclassify a LARGE or XL story downward, or split it, merely because it touches many files.
+Split only when it spans genuinely unrelated topics.
 
 **Adaptive calibration:** If `docs/sessions/.activity-log.jsonl` contains 10+ skill execution records, check historical data for this story type/scope:
 - If stories matching this type consistently required full workflow despite SMALL classification → escalate to STANDARD
@@ -238,6 +244,8 @@ Score domain risk, integration surface, and reversibility (1-3 each). Sum determ
 | **TRIVIAL** | Phase 3-lite | Phase 3-lite + full test suite | Reclassify as SMALL |
 | **SMALL** | Lightweight Phase 1 | Standard workflow | Standard + mandatory security-audit |
 | **STANDARD** | Standard workflow | Standard + all quality agents | Standard + all agents + architecture-check |
+| **LARGE** | Standard + integration tests | Standard + all quality agents + integration tests | Standard + all agents + architecture-check + security-audit |
+| **XL** | Staged build + all quality agents | Staged build + all agents + architecture-check | Staged build + all agents + architecture-check + security-audit + integration-tester |
 
 <HARD-GATE>
 **Red flag:** If editing multiple files or changing observable behavior, STOP and reclassify as STANDARD. Fast-track is for genuinely trivial changes only.

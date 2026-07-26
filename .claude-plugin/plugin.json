@@ -1,6 +1,6 @@
 {
   "name": "jd-llm-development-framework",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "Structured development framework for Claude Code — TDD, sprints, quality gates, 45 skills, 8 agents, 11 hooks, path-scoped rules",
   "homepage": "https://github.com/joris887/JD-LLM-Development_framework",
   "author": "Joris de Umens",
