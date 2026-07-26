@@ -49,6 +49,38 @@ test, and introduces `docs/reference/STORY_SIZING.md` as a project-level deviati
 ### Breaking changes
 None. The enum is extended, not redefined; TRIVIAL, SMALL, and STANDARD keep their meaning.
 
+### Files Changed (for framework-upgrade)
+
+```
+CORE_REPLACE:
+  .claude/skills/ideate/references/story-template.md (CHANGED)
+  .claude/skills/ideate/SKILL.md (CHANGED)
+  .claude/skills/story-cycle/SKILL.md (CHANGED)
+  .claude/skills/backlog-review/SKILL.md (CHANGED)
+  .claude/agents/spec-reviewer.md (CHANGED)
+  scaffold/docs/reference/STORY_SIZING.md (NEW)
+  scaffold/docs/reference/CLAUDE.md (CHANGED)
+  docs/FRAMEWORK_REFERENCE.md (CHANGED)
+  CHANGELOG.md (CHANGED)
+
+CORE_MERGE:
+  CLAUDE.md (Important Files section — add the STORY_SIZING.md line; preserve
+             all project-specific sections: Project Overview, Tech Stack,
+             Critical Rules, Commands, Architecture, Current Focus)
+
+PROJECT_UPDATE_INSTRUCTIONS:
+  - Copy scaffold/docs/reference/STORY_SIZING.md to docs/reference/STORY_SIZING.md.
+    It is optional — without it the framework default applies. Leave the
+    "Project Deviations" section empty unless the project genuinely differs.
+  - Add to the CLAUDE.md Important Files list:
+    - `docs/reference/STORY_SIZING.md` — Project sizing policy (sizing is by cohesion, not file count)
+  - Existing stories need no change. LARGE and XL are additive; TRIVIAL, SMALL,
+    and STANDARD keep their exact meaning.
+  - Stories previously split only to satisfy the 5-file rule may now be worth
+    recombining. This is optional and should be judged per story against the
+    cohesion test, not applied in bulk.
+```
+
 ---
 
 ## [4.1.1] - 2026-07-26
