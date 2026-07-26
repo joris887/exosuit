@@ -44,8 +44,35 @@ Control hook strictness via the `JD_HOOK_PROFILE` environment variable:
 | Profile | Level | What's Active |
 |---------|-------|---------------|
 | `minimal` | 1 | Critical safety blocks only (force push, rm -rf, --no-verify), activity logging, session checks |
-| `standard` | 2 | Everything in minimal + completion evidence, intent warnings, formatting, subagent checks, skill tracking, sensitive file warnings (default) |
-| `strict` | 3 | Everything in standard + strict-only patterns |
+| `standard` | 2 | Everything in minimal + completion evidence, intent warnings, formatting, subagent checks, skill tracking (default) |
+| `strict` | 3 | Everything in standard + strict-only patterns + sensitive-file read warnings |
+
+### Noise Control (stop hook)
+
+The stop hook is deliberately narrow about when it speaks. Both its checks —
+the debug audit and the completion-evidence gate — are **skipped entirely**
+unless the session changed at least one file matching `source_extensions` in
+`rules/quality.conf`. A docs, config, or planning session has nothing to audit
+and no tests to run.
+
+Three further guards:
+
+- The debug audit scans **only source files**, never the whole diff. Scanning
+  everything meant a markdown table column named `TODO` tripped the code-debug
+  patterns.
+- The evidence gate is skipped when the project has **no detectable test suite**
+  (`has_test_suite` in `stop.sh`). Demanding test output from a repo with no
+  test runner is unfixable by the model.
+- `completion_regex` requires a **subject** — "implementation is complete", not
+  the bare word "complete". The bare-word form matched ordinary prose and fired
+  on nearly every summary.
+
+`todo-fixme-hack` in `rules/debug.patterns` is **commented out by default** —
+TODO markers in real code are usually deliberate. Uncomment it if your team
+treats them as ship-blockers.
+
+`pre-read-check` was raised from `standard` to `strict`: it fired on every Read
+to match a path regex and never blocked anything.
 
 ```bash
 # Examples:

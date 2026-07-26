@@ -13,6 +13,43 @@ Each version entry lists:
 
 ---
 
+## [4.1.1] - 2026-07-26
+
+### Summary
+Stop-hook noise reduction. The completion-evidence gate and debug audit fired constantly on sessions
+they had no business inspecting — documentation work, planning sessions, and repositories with no
+test runner at all. Both checks are now gated on actual source-file changes, the completion regex
+requires a subject instead of matching bare prose, and the TODO/FIXME pattern is opt-in. Also fixes
+`.gitignore.framework` missing OS-junk patterns, which made `test-install.sh` fail in every
+installed project while passing in the framework repo.
+
+### Changed
+- `.claude/hooks/stop.sh` — added `changed_source_files()` and `has_test_suite()` guards; both the
+  debug audit and the evidence gate now exit early unless the session changed a source file; the
+  debug audit scans only source files instead of the entire diff
+- `.claude/hooks/rules/quality.conf` — `completion_regex` now requires a subject
+  ("implementation is complete") rather than matching the bare word "complete" anywhere in prose;
+  added `source_extensions` key; `max_iterations` 5 → 3
+- `.claude/hooks/rules/debug.patterns` — `todo-fixme-hack` commented out by default (noisiest
+  pattern in the set; TODO markers in real code are usually deliberate)
+- `.claude/hooks/pre-read-check.sh` — minimum profile raised `standard` → `strict`; it fired on
+  every Read to match a path regex and never blocked anything
+- `.claude/hooks/tests/test-stop.sh` — rewritten to run against isolated temp git repos instead of
+  the live working tree; 4 original cases retained, 5 regression cases added
+- `.claude/hooks/README.md` — documented the noise-control guards and the profile change
+- `.gitignore.framework` — added `.DS_Store` and `Thumbs.db`
+
+### Project File Changes
+- Existing projects: re-run `install.sh` or copy the four changed hook files into `.claude/hooks/`.
+  No configuration changes required — the new guards are self-activating.
+- Projects that *want* TODO/FIXME flagged can uncomment `todo-fixme-hack` in `rules/debug.patterns`.
+- Projects on the `strict` profile keep `pre-read-check` behaviour unchanged.
+
+### Breaking changes
+None. All changes reduce hook firing; no previously-passing session will newly fail.
+
+---
+
 ## [4.1.0] - 2026-04-03
 
 ### Summary

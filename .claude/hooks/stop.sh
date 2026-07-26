@@ -37,6 +37,37 @@ read_conf() {
     printf '%s\n' "$_default"
 }
 
+# --- Helper: list changed SOURCE files (code only, not docs/config) ---
+# Both the debug audit and the evidence check are meaningless for a
+# docs-only change. This is the single biggest source of false positives.
+changed_source_files() {
+    _ext=$(read_conf "source_extensions" \
+        'go|ts|tsx|js|jsx|mjs|cjs|py|rb|rs|java|kt|kts|cs|php|swift|c|h|cc|cpp|hpp|m|scala|ex|exs|dart|vue|svelte')
+    {
+        git diff --name-only 2>/dev/null
+        git diff --cached --name-only 2>/dev/null
+    } | sort -u | grep -E "\.(${_ext})$" 2>/dev/null
+}
+
+# --- Helper: does this project have a test suite at all? ---
+# Demanding test output from a repo with no test runner is incoherent.
+# Cheap file-existence checks only — hooks must stay under 5s.
+has_test_suite() {
+    [ -f "go.mod" ] && return 0
+    [ -f "Cargo.toml" ] && return 0
+    [ -f "pyproject.toml" ] && return 0
+    [ -f "pytest.ini" ] && return 0
+    [ -f "tox.ini" ] && return 0
+    [ -f "Gemfile" ] && return 0
+    [ -f "pom.xml" ] && return 0
+    [ -f "build.gradle" ] && return 0
+    [ -f "build.gradle.kts" ] && return 0
+    if [ -f "package.json" ]; then
+        grep -q '"test"[[:space:]]*:' package.json 2>/dev/null && return 0
+    fi
+    return 1
+}
+
 # --- JSON field extraction ---
 extract_json_string() {
     _field="$1"
@@ -140,6 +171,13 @@ if [ -f "$TESTS_PASSED_FILE" ]; then
     exit 0
 fi
 
+# Skip entirely when no source files changed. A docs-only, config-only, or
+# planning session has nothing to audit and no tests to run.
+SOURCE_CHANGED=$(changed_source_files)
+if [ -z "$SOURCE_CHANGED" ]; then
+    exit 0
+fi
+
 LAST_MESSAGE=$(printf '%s' "$INPUT" | extract_json_string "last_assistant_message")
 
 if [ -n "$LAST_MESSAGE" ]; then
@@ -158,8 +196,16 @@ if [ -n "$LAST_MESSAGE" ]; then
 
     # --- 3a. Debug statement audit (advisory, only when claiming completion) ---
     if [ "$CLAIMS_COMPLETION" = "true" ] && [ -f "$DEBUG_PATTERNS_FILE" ] && [ -d ".git" ]; then
-        # Scan added lines in git diff for debug patterns
-        DIFF_ADDED=$(git diff 2>/dev/null | grep '^+[^+]' ; git diff --cached 2>/dev/null | grep '^+[^+]')
+        # Scan added lines for debug patterns — SOURCE FILES ONLY.
+        # Scanning the whole diff meant a markdown table column named "TODO"
+        # tripped the code-debug patterns. Restrict to files that are code.
+        DIFF_ADDED=$(
+            printf '%s\n' "$SOURCE_CHANGED" | while IFS= read -r sf; do
+                [ -n "$sf" ] || continue
+                git diff -- "$sf" 2>/dev/null | grep '^+[^+]'
+                git diff --cached -- "$sf" 2>/dev/null | grep '^+[^+]'
+            done
+        )
         if [ -n "$DIFF_ADDED" ]; then
             DEBUG_WARNINGS=""
             while IFS= read -r pline; do
@@ -186,7 +232,9 @@ if [ -n "$LAST_MESSAGE" ]; then
     fi
 
     # --- 3b. Block completion without evidence ---
-    if [ "$CLAIMS_COMPLETION" = "true" ] && [ "$HAS_EVIDENCE" = "false" ]; then
+    # Only when the project actually has a test suite. Asking for test output
+    # from a repo with no test runner is incoherent and unfixable by the model.
+    if [ "$CLAIMS_COMPLETION" = "true" ] && [ "$HAS_EVIDENCE" = "false" ] && has_test_suite; then
         # Increment iteration counter
         NEW_ITER=$((ITERATION + 1))
         echo "$NEW_ITER" > "$ITER_FILE" 2>/dev/null
