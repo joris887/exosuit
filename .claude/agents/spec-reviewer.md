@@ -29,7 +29,7 @@ For EACH acceptance criterion:
 If the dispatch prompt includes a story specification, validate its structure:
 
 - [ ] Has type assigned (feature, bugfix, refactor, spike, infra, testing, docs, security, performance, skill)
-- [ ] Has size classified (TRIVIAL, SMALL, STANDARD)
+- [ ] Has size classified (TRIVIAL, SMALL, STANDARD, LARGE, XL)
 - [ ] Has 3-7 acceptance criteria, each testable and specific
 - [ ] Has verification commands (exact bash commands)
 - [ ] Has out of scope section with at least one exclusion
