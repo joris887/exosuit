@@ -1,8 +1,8 @@
-# JD-LLM Development Framework — Technical Reference
+# Exosuit — Technical Reference
 
 The complete reference for every element of the framework, structured as the user journey from installation through ongoing maintenance. Start with the [README](../README.md) for an overview, or [Getting Started](GETTING_STARTED.md) for your first 5 minutes.
 
-**Framework version:** v4.2.0
+**Framework version:** v5.0.0
 **Date:** 2026-04-05
 
 ---
@@ -38,7 +38,7 @@ This is the core challenge of AI-assisted development. Language models optimize 
 
 ### The Vision
 
-The JD-LLM Development Framework exists to solve this. It imposes software engineering methodology on AI-assisted development, not through guidelines the AI can choose to ignore, but through deterministic enforcement hooks, structured workflows, and quality gates at every level.
+Exosuit exists to solve this. It imposes software engineering methodology on AI-assisted development, not through guidelines the AI can choose to ignore, but through deterministic enforcement hooks, structured workflows, and quality gates at every level.
 
 The goal: make AI-assisted development viable for real projects. Not just prototypes and demos, but complex applications with existing codebases, production users, and team conventions. Any language. Any project size. Any developer.
 
@@ -122,11 +122,11 @@ Skills load on-demand (only when invoked) with a lean entry point (~150 lines) a
 
 | Variable | Values | Default | Purpose |
 |---|---|---|---|
-| `JD_PROJECT_PROFILE` | `lean\|standard\|strict` | `standard` | Controls skill ceremony depth and agent dispatch |
-| `JD_HOOK_PROFILE` | `minimal\|standard\|strict` | Derived from project profile | Controls hook behavior; overrides project-derived default |
-| `JD_DISABLED_HOOKS` | Comma-separated hook IDs | (empty) | Disable specific hooks at runtime |
-| `JD_EXPLAIN_MODE` | `off\|brief\|verbose` | `brief` | Hook message verbosity — `verbose` adds WHY/INSTEAD explanations |
-| `JD_STOP_MAX_ITERATIONS` | Integer (≤0 = no limit) | `5` (`10` for strict) | Stop hook safety valve iteration limit |
+| `EXOSUIT_PROJECT_PROFILE` | `lean\|standard\|strict` | `standard` | Controls skill ceremony depth and agent dispatch |
+| `EXOSUIT_HOOK_PROFILE` | `minimal\|standard\|strict` | Derived from project profile | Controls hook behavior; overrides project-derived default |
+| `EXOSUIT_DISABLED_HOOKS` | Comma-separated hook IDs | (empty) | Disable specific hooks at runtime |
+| `EXOSUIT_EXPLAIN_MODE` | `off\|brief\|verbose` | `brief` | Hook message verbosity — `verbose` adds WHY/INSTEAD explanations |
+| `EXOSUIT_STOP_MAX_ITERATIONS` | Integer (≤0 = no limit) | `5` (`10` for strict) | Stop hook safety valve iteration limit |
 
 ---
 
@@ -1837,7 +1837,7 @@ Hooks are POSIX shell scripts that execute automatically on Claude Code events. 
 Claude Code Event
      │
      ├──→ hook-guard.sh (called by each hook)
-     │       ├── Check JD_DISABLED_HOOKS → skip if disabled
+     │       ├── Check EXOSUIT_DISABLED_HOOKS → skip if disabled
      │       ├── Resolve profile (project → hook)
      │       └── Current level >= minimum? → run or skip
      │
@@ -1899,15 +1899,15 @@ Hook invocation:
      │
      ├──→ hook-guard.sh "<hook-id>" "<minimum-profile>"
      │       │
-     │       ├── Check JD_DISABLED_HOOKS → skip if hook ID in list
+     │       ├── Check EXOSUIT_DISABLED_HOOKS → skip if hook ID in list
      │       │
      │       ├── Resolve project profile:
-     │       │     1. JD_PROJECT_PROFILE env var
+     │       │     1. EXOSUIT_PROJECT_PROFILE env var
      │       │     2. CLAUDE.md **Profile:** line
      │       │     3. Default: standard
      │       │
      │       ├── Resolve hook profile:
-     │       │     JD_HOOK_PROFILE env var → overrides project-derived default
+     │       │     EXOSUIT_HOOK_PROFILE env var → overrides project-derived default
      │       │     OR derive from project: lean→minimal, standard→standard, strict→strict
      │       │
      │       └── Compare: current level >= minimum level?
@@ -1943,7 +1943,7 @@ Checks: tool availability (parses CLAUDE.md Commands section), stale session det
 
 Loads patterns from `rules/safety.patterns` (blocking) and `rules/advisory.patterns` (warnings). Also includes framework repo protection — blocks push/PR if remote points to the template repository.
 
-**Explanation mode (v4.0):** When `JD_EXPLAIN_MODE=verbose`, blocked commands include WHY (what damage it causes) and INSTEAD (safer alternative). Controlled per-pattern via a 5th field in safety.patterns: `id@@regex@@message@@severity@@explanation`.
+**Explanation mode (v4.0):** When `EXOSUIT_EXPLAIN_MODE=verbose`, blocked commands include WHY (what damage it causes) and INSTEAD (safer alternative). Controlled per-pattern via a 5th field in safety.patterns: `id@@regex@@message@@severity@@explanation`.
 
 **Blocked patterns (safety.patterns):**
 
@@ -2006,7 +2006,7 @@ Missing tool: report ONCE per session, then silently skip
 Four functions:
 
 1. **Auto-save** — When uncommitted changes exist, saves branch, commits, and changes to `.auto-save.md`. Skipped when there are no uncommitted changes.
-2. **Safety valve** — Max iteration counter (default 5, configurable via `JD_STOP_MAX_ITERATIONS`; strict profile defaults to 10), then allows stop unconditionally. Set to ≤0 for no limit.
+2. **Safety valve** — Max iteration counter (default 5, configurable via `EXOSUIT_STOP_MAX_ITERATIONS`; strict profile defaults to 10), then allows stop unconditionally. Set to ≤0 for no limit.
 3. **Completion evidence** — Scans for unverified claims ("complete/done/finished" without test output). Flags weak language ("should work", "looks correct"). Blocks (exit 2) if completion claimed without evidence.
 4. **Debug statement audit** — Scans `git diff` output against `rules/debug.patterns` for leftover debug statements (`console.log`, `pdb.set_trace`, `debugger`, `dbg!`, `TODO/FIXME`, etc.). Advisory only — warns but never blocks.
 
@@ -2351,7 +2351,7 @@ The framework adapts its behavior based on project complexity via a three-tier p
 └──────────┴────────────────────┴───────────────────┴─────────────────────────┘
 ```
 
-**Profile detection:** Bootstrap auto-detects based on codebase characteristics (compliance files → strict, domain complexity, CI/CD presence, LOC). Override per-session via `JD_PROJECT_PROFILE=lean|standard|strict`.
+**Profile detection:** Bootstrap auto-detects based on codebase characteristics (compliance files → strict, domain complexity, CI/CD presence, LOC). Override per-session via `EXOSUIT_PROJECT_PROFILE=lean|standard|strict`.
 
 **Safety is constant across profiles:** TDD enforcement, test-before-ship, all blocking hooks, and secrets detection run identically in all profiles. Lean reduces ceremony, not safety.
 
@@ -2626,9 +2626,9 @@ project-root/
 | **Fast-track** | TRIVIAL + low-risk path: skip Phases 1, 2, 2.5 → direct to Phase 3 |
 | **Readiness Gate** | 5 objective pre-condition checks (PASS/FAIL) replacing the old subjective confidence scoring. All must pass to proceed. User can override specific failures. |
 | **Hook Guard** | Profile-based gating system (`lib/hook-guard.sh`) — determines whether a hook should run based on project profile, hook profile override, and per-hook disable list |
-| **Project Profile** | `lean\|standard\|strict` — controls skill ceremony depth and hook defaults. Set via `JD_PROJECT_PROFILE` env var or CLAUDE.md `**Profile:**` line |
-| **Hook Profile** | `minimal\|standard\|strict` — controls hook behavior. Derived from project profile (lean→minimal, standard→standard, strict→strict) or overridden via `JD_HOOK_PROFILE` |
-| **Explanation Mode** | `JD_EXPLAIN_MODE=off\|brief\|verbose` — controls hook message verbosity. `verbose` adds WHY (what damage a blocked command causes) and INSTEAD (safer alternative) |
+| **Project Profile** | `lean\|standard\|strict` — controls skill ceremony depth and hook defaults. Set via `EXOSUIT_PROJECT_PROFILE` env var or CLAUDE.md `**Profile:**` line |
+| **Hook Profile** | `minimal\|standard\|strict` — controls hook behavior. Derived from project profile (lean→minimal, standard→standard, strict→strict) or overridden via `EXOSUIT_HOOK_PROFILE` |
+| **Explanation Mode** | `EXOSUIT_EXPLAIN_MODE=off\|brief\|verbose` — controls hook message verbosity. `verbose` adds WHY (what damage a blocked command causes) and INSTEAD (safer alternative) |
 | **Ralph Loop** | Stop hook workflow enforcement — blocks exit when `.failure-state.md` is active (safety valve at configurable iterations, default 5, strict 10) |
 | **Archetype** | Project classification (1 of 10+1 types) that drives elicitation style — what questions to ask, what research to run, what success looks like. Examples: Utility, Experiential, Viral, Marketplace |
 | **Scale** | Project size classification (Quick Build / Standard / Platform / Pioneering) that drives discovery depth — question count, research depth, documentation level |
@@ -2655,10 +2655,10 @@ project-root/
 | Missing formatter warnings | Expected — reports once per session, then skips | Install the tool, or run `/doctor` |
 | Context exhaustion | Too many large files read | Use `/handoff` + new session; prefer grep-first |
 | Stale session state | Old `.auto-save.md` | Delete stale files, run `/continue` fresh |
-| Stop hook blocks exit | Ralph Loop: incomplete `.failure-state.md` | Complete workflow, or wait for safety valve (5 iterations default), or set `JD_STOP_MAX_ITERATIONS=1` |
-| Hooks too noisy | Explanation mode on, or hooks running at wrong profile | Set `JD_EXPLAIN_MODE=off`, or `JD_HOOK_PROFILE=minimal` for lean projects |
-| Hooks too silent | Profile too lean for your needs | Set `JD_HOOK_PROFILE=strict` or `JD_PROJECT_PROFILE=strict` |
-| Specific hook annoying | Want to disable one hook without changing profile | `JD_DISABLED_HOOKS="hook-id"` (comma-separated for multiple) |
+| Stop hook blocks exit | Ralph Loop: incomplete `.failure-state.md` | Complete workflow, or wait for safety valve (5 iterations default), or set `EXOSUIT_STOP_MAX_ITERATIONS=1` |
+| Hooks too noisy | Explanation mode on, or hooks running at wrong profile | Set `EXOSUIT_EXPLAIN_MODE=off`, or `EXOSUIT_HOOK_PROFILE=minimal` for lean projects |
+| Hooks too silent | Profile too lean for your needs | Set `EXOSUIT_HOOK_PROFILE=strict` or `EXOSUIT_PROJECT_PROFILE=strict` |
+| Specific hook annoying | Want to disable one hook without changing profile | `EXOSUIT_DISABLED_HOOKS="hook-id"` (comma-separated for multiple) |
 | Worktree commands fail | `worktree-bash-fix.sh` not registered | Check `settings.json` hook entries |
 | Push blocked (framework repo) | Remote still points to template repo | `git remote set-url origin <your-repo>` |
-| Sensitive file warnings | `pre-read-check.sh` warns on .env etc. | Expected behavior — secrets shouldn't enter context. Disable with `JD_DISABLED_HOOKS="pre-read-check"` |
+| Sensitive file warnings | `pre-read-check.sh` warns on .env etc. | Expected behavior — secrets shouldn't enter context. Disable with `EXOSUIT_DISABLED_HOOKS="pre-read-check"` |

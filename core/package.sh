@@ -11,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT_DIR="${1:-$REPO_ROOT/dist}"
 
-echo "=== Packaging JD-LLM Framework Core ==="
+echo "=== Packaging Exosuit Core ==="
 echo "Source: $REPO_ROOT/core/"
 echo "Output: $OUTPUT_DIR/"
 echo ""

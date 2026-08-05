@@ -4,7 +4,7 @@
 #   Optional 5th field: id@@regex@@message@@severity@@explanation
 #   Severity: critical (all profiles), standard (default), strict (strict only)
 #   If omitted, defaults to "standard".
-#   Explanation: shown when JD_EXPLAIN_MODE=verbose (WHY + safer alternative)
+#   Explanation: shown when EXOSUIT_EXPLAIN_MODE=verbose (WHY + safer alternative)
 # Each line's regex is checked against the command string via grep -E.
 # Matched commands are blocked (exit 2) with the given message.
 # Lines starting with # are comments. Empty lines are skipped.

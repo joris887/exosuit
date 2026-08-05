@@ -28,9 +28,9 @@ echo "Testing user-prompt.sh"
 echo "======================"
 
 # Ensure standard profile (the hook requires it)
-export JD_HOOK_PROFILE="standard"
-export JD_DISABLED_HOOKS=""
-export JD_PROJECT_PROFILE="standard"
+export EXOSUIT_HOOK_PROFILE="standard"
+export EXOSUIT_DISABLED_HOOKS=""
+export EXOSUIT_PROJECT_PROFILE="standard"
 
 # --- Intent pattern matching ---
 echo ""

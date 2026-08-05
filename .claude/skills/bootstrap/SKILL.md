@@ -13,7 +13,7 @@ ______________________________________________________________________
 
 ## bootstrap
 
-Setting up the JD-LLM Development Framework for this project.
+Setting up the Exosuit framework for this project.
 
 **Interactive UX:** Read `@.claude/prompts/interactive-ux.md` for the shared protocol. Use AskUserQuestion for all closed-choice interactions. Show progress between major steps. Read `references/question-scaffolding.md` (in the discover skill) for question formatting rules — Rules 7-8 apply here too.
 
@@ -76,7 +76,7 @@ Detect and handle the framework's own README before proceeding:
 
 ```bash
 # Check if README.md is the framework's own README (not a project README)
-grep -q "JD-LLM Development Framework" README.md 2>/dev/null && \
+grep -qE "Exosuit|JD-LLM Development Framework" README.md 2>/dev/null && \
 grep -q "drop-in development framework" README.md 2>/dev/null
 ```
 

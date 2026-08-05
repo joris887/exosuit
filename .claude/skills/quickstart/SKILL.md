@@ -13,7 +13,7 @@ ______________________________________________________________________
 
 ## quickstart
 
-Welcome to the JD-LLM Development Framework. This guided tour walks you through your first complete sprint — from planning to shipped PR.
+Welcome to the Exosuit framework. This guided tour walks you through your first complete sprint — from planning to shipped PR.
 
 ## Phase 1: Orientation (2 minutes)
 

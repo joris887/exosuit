@@ -119,11 +119,11 @@ Report the current project profile and hook configuration:
 
 ```bash
 echo "Project profile: $(cat .claude/hooks/state/project-profile 2>/dev/null || echo 'standard (default)')"
-echo "JD_PROJECT_PROFILE=${JD_PROJECT_PROFILE:-<not set, reading from CLAUDE.md>}"
-echo "JD_HOOK_PROFILE=${JD_HOOK_PROFILE:-<derived from project profile>}"
-echo "JD_DISABLED_HOOKS=${JD_DISABLED_HOOKS:-<none>}"
-echo "JD_EXPLAIN_MODE=${JD_EXPLAIN_MODE:-brief}"
-echo "JD_STOP_MAX_ITERATIONS=${JD_STOP_MAX_ITERATIONS:-5}"
+echo "EXOSUIT_PROJECT_PROFILE=${EXOSUIT_PROJECT_PROFILE:-<not set, reading from CLAUDE.md>}"
+echo "EXOSUIT_HOOK_PROFILE=${EXOSUIT_HOOK_PROFILE:-<derived from project profile>}"
+echo "EXOSUIT_DISABLED_HOOKS=${EXOSUIT_DISABLED_HOOKS:-<none>}"
+echo "EXOSUIT_EXPLAIN_MODE=${EXOSUIT_EXPLAIN_MODE:-brief}"
+echo "EXOSUIT_STOP_MAX_ITERATIONS=${EXOSUIT_STOP_MAX_ITERATIONS:-5}"
 ```
 
 - Show current project profile and its source (env var, CLAUDE.md `**Profile:**` line, or default)
@@ -211,9 +211,9 @@ If the file does not exist, report: "No readiness baseline — run `/bootstrap` 
 |---------|-------|--------|
 | Project Profile | lean/standard/strict | env var / CLAUDE.md / default |
 | Hook Profile | minimal/standard/strict | env var / derived from project |
-| Disabled Hooks | none or list | JD_DISABLED_HOOKS |
-| Explain Mode | off/brief/verbose | JD_EXPLAIN_MODE |
-| Stop Iterations | 5/10/custom | JD_STOP_MAX_ITERATIONS |
+| Disabled Hooks | none or list | EXOSUIT_DISABLED_HOOKS |
+| Explain Mode | off/brief/verbose | EXOSUIT_EXPLAIN_MODE |
+| Stop Iterations | 5/10/custom | EXOSUIT_STOP_MAX_ITERATIONS |
 | Guard script | PASS/FAIL | lib/hook-guard.sh |
 
 ### Readiness Progress (if baseline exists)

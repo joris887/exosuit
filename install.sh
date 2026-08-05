@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# JD-LLM Development Framework — Installer
+# Exosuit — Installer
 #
 # Copies the framework into the current project directory.
 # Won't overwrite existing project files unless --force is used.
 # settings.json is always overwritten (framework-managed).
 #
 # Usage:
-#   curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
+#   curl -sL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
 #   bash install.sh
 #   bash install.sh --mode=plugin
 #   bash install.sh --components=hooks,rules
@@ -29,8 +29,8 @@ set -euo pipefail
 # Environment:
 #   REPO_URL         Override the default repository URL (e.g., for SSH access).
 
-REPO_HTTPS="https://github.com/joris887/JD-LLM-Development_framework.git"
-REPO_SSH="git@github.com:joris887/JD-LLM-Development_framework.git"
+REPO_HTTPS="https://github.com/joris887/exosuit.git"
+REPO_SSH="git@github.com:joris887/exosuit.git"
 MODE="template"
 DRY_RUN=false
 FORCE=false
@@ -63,7 +63,7 @@ for arg in "$@"; do
     esac
 done
 
-echo "=== JD-LLM Development Framework ==="
+echo "=== Exosuit — Development Framework for Claude Code ==="
 echo "Mode: $MODE"
 $DRY_RUN && echo "Dry run: yes"
 $FORCE && echo "Force: yes (overwriting existing files)"

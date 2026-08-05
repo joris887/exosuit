@@ -1,6 +1,6 @@
 # Team Workflow Guide
 
-How to use the JD-LLM Development Framework with a team of 2–15 developers. AI-assisted development shifts the bottleneck from code production to code verification — this guide structures your team around that reality.
+How to use the Exosuit framework with a team of 2–15 developers. AI-assisted development shifts the bottleneck from code production to code verification — this guide structures your team around that reality.
 
 ## Branch Strategy
 

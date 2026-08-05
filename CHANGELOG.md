@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the JD-LLM Development Framework. Used by `/framework-upgrade` for targeted version upgrades.
+All notable changes to the Exosuit framework. Used by `/framework-upgrade` for targeted version upgrades.
 
 ## Format
 
@@ -10,6 +10,94 @@ Each version entry lists:
 - **Files removed:** CORE files removed
 - **Project file changes:** Instructions for updating PROJECT files (if needed)
 - **Breaking changes:** Changes that require manual intervention
+
+---
+
+## [5.0.0] - 2026-08-05
+
+### Summary
+The framework is now called **Exosuit**. The JD-LLM Development Framework name is retired
+everywhere: repository, plugin, marketplace, environment variables, and all documentation.
+No workflow, skill, hook, or rule behavior changes — this release is the rebrand only.
+The major version bump reflects the breaking rename of the plugin identifier and the
+`JD_*` environment variable prefix.
+
+### Changed
+- Repository renamed to `joris887/exosuit` — GitHub redirects the old
+  `joris887/JD-LLM-Development_framework` URLs and git remotes automatically
+- Plugin name `jd-llm-development-framework` → `exosuit`; marketplace name
+  `jd-llm-framework` → `exosuit`
+- All `JD_*` environment variables renamed to `EXOSUIT_*`: `EXOSUIT_HOOK_PROFILE`,
+  `EXOSUIT_PROJECT_PROFILE`, `EXOSUIT_DISABLED_HOOKS`, `EXOSUIT_STOP_MAX_ITERATIONS`,
+  `EXOSUIT_EXPLAIN_MODE`, `EXOSUIT_FRAMEWORK_REPO`
+- `/bootstrap` README detection now matches both "Exosuit" and the legacy
+  "JD-LLM Development Framework" string, so pre-5.0 installs are still recognized
+- All prose, banners, output-style name, and doc references updated to Exosuit
+
+### Project File Changes
+- If your shell profile, CI config, or `.claude/settings.json` sets any `JD_*` variable,
+  rename it to the `EXOSUIT_*` equivalent — the old names are no longer read
+- If installed as a plugin: remove `jd-llm-development-framework`, then install `exosuit`
+  from the `exosuit` marketplace
+- Git remotes pointing at the old repo URL keep working via GitHub redirect, but update
+  them anyway: `git remote set-url <name> https://github.com/joris887/exosuit.git`
+
+### Breaking changes
+- `JD_*` environment variables are no longer read — rename to `EXOSUIT_*` (see above)
+- Plugin/marketplace identifiers changed — reinstall under the new name
+
+### Files Changed (for framework-upgrade)
+
+```
+CORE_REPLACE:
+  .claude-plugin/marketplace.json (CHANGED)
+  .claude-plugin/plugin.json (CHANGED)
+  .claude/hooks/CLAUDE.md (CHANGED)
+  .claude/hooks/README.md (CHANGED)
+  .claude/hooks/lib/hook-guard.sh (CHANGED)
+  .claude/hooks/pre-tool-use.sh (CHANGED)
+  .claude/hooks/rules/quality.conf (CHANGED)
+  .claude/hooks/rules/safety.patterns (CHANGED)
+  .claude/hooks/stop.sh (CHANGED)
+  .claude/hooks/tests/test-hook-guard.sh (CHANGED)
+  .claude/hooks/tests/test-pre-tool-use.sh (CHANGED)
+  .claude/hooks/tests/test-user-prompt.sh (CHANGED)
+  .claude/output-styles/framework.md (CHANGED)
+  .claude/settings.local.json.template (CHANGED)
+  .claude/skills/SKILLS_INVENTORY.md (CHANGED)
+  .claude/skills/bootstrap/SKILL.md (CHANGED)
+  .claude/skills/doctor/SKILL.md (CHANGED)
+  .claude/skills/framework-upgrade/SKILL.md (CHANGED)
+  .claude/skills/quickstart/SKILL.md (CHANGED)
+  .claude/skills/skills-registry.json (CHANGED)
+  .claude/skills/uninstall/SKILL.md (CHANGED)
+  .gitignore.framework (CHANGED)
+  CHANGELOG.md (CHANGED)
+  CONTRIBUTING.md (CHANGED)
+  README.md (CHANGED)
+  core/package.sh (CHANGED)
+  docs/FRAMEWORK_REFERENCE.md (CHANGED)
+  docs/GETTING_STARTED.md (CHANGED)
+  docs/reference/TEAM_WORKFLOW.md (CHANGED)
+  install.sh (CHANGED)
+  llms.txt (CHANGED)
+  scaffold/docs/reference/TEAM_WORKFLOW.md (CHANGED)
+  scaffold/llms.txt (CHANGED)
+
+CORE_MERGE:
+  CLAUDE.md (Skills section header now "Exosuit v5.0"; preserve all
+             project-specific sections)
+  .claude/settings.json (env var names JD_* → EXOSUIT_* in the env block;
+             preserve project-specific hooks and permissions)
+
+PROJECT_UPDATE_INSTRUCTIONS:
+  - Rename any JD_* environment variable the project sets (shell profile, CI,
+    .claude/settings.json, .claude/settings.local.json) to EXOSUIT_*.
+  - Update git remotes to https://github.com/joris887/exosuit.git (old URLs
+    redirect, so this is not urgent).
+  - If the project README references the framework by its old name, update the
+    mention — /bootstrap recognizes both names, so nothing breaks either way.
+```
 
 ---
 
@@ -144,7 +232,7 @@ PROJECT_UPDATE_INSTRUCTIONS:
     and the completion-evidence gate now skip sessions that changed no source files.
   - Projects that want TODO/FIXME flagged as ship-blockers should uncomment `todo-fixme-hack`
     in `.claude/hooks/rules/debug.patterns` after upgrading.
-  - Projects relying on sensitive-file read warnings must set JD_HOOK_PROFILE=strict, or set
+  - Projects relying on sensitive-file read warnings must set EXOSUIT_HOOK_PROFILE=strict, or set
     the project profile to strict — `pre-read-check` no longer runs at the standard profile.
   - Append `.DS_Store` and `Thumbs.db` to the project `.gitignore` if not already present;
     re-running install.sh does this automatically.
@@ -198,8 +286,8 @@ Open source readiness: critical bug fixes (macOS md5sum, BSD grep Unicode, plugi
 
 ### Added
 - `CONTRIBUTING.md` -- open source contribution guide
-- Explanation mode (`JD_EXPLAIN_MODE=off|brief|verbose`) for hook messages with WHY/INSTEAD explanations
-- `JD_STOP_MAX_ITERATIONS` env var to override stop hook safety valve
+- Explanation mode (`EXOSUIT_EXPLAIN_MODE=off|brief|verbose`) for hook messages with WHY/INSTEAD explanations
+- `EXOSUIT_STOP_MAX_ITERATIONS` env var to override stop hook safety valve
 - First-run detection in session-start.sh (suggests `/quickstart`)
 
 ### Changed
@@ -236,7 +324,7 @@ CORE_MERGE:
   (none)
 
 PROJECT_UPDATE_INSTRUCTIONS:
-  - Set JD_EXPLAIN_MODE=verbose in your shell profile if you want beginner-friendly hook explanations
+  - Set EXOSUIT_EXPLAIN_MODE=verbose in your shell profile if you want beginner-friendly hook explanations
   - The confidence gate in story-cycle now uses objective checks instead of self-assessed scoring
 ```
 

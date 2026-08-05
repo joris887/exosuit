@@ -4,9 +4,9 @@ Last updated: 2026-03-30
 
 ## Overview
 
-This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
+This project uses the Exosuit framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 4.1
+**Framework Version:** 5.0
 
 ## Core Workflow
 
@@ -267,6 +267,7 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 5.0     | 2026-08-05 | Rebrand: framework renamed to Exosuit (repo `joris887/exosuit`, plugin/marketplace `exosuit`, env vars `JD_*` → `EXOSUIT_*`). No functional changes |
 | 4.1     | 2026-04-03 | Deep guided elicitation: `/discover` skill with 11 archetype-aware question banks, 4 discovery modes (Quick/Guided/Platform/Pioneering), DECISION_LOG + ASSUMPTION_REGISTER tracking, Phase Transition Stories (infinite build→review→discover cycle), `/phase-review` skill, "Review" story type, discovery context loading in story-cycle/ideate/build, question scaffolding rules, engineering adaptation by archetype |
 | 3.8     | 2026-03-23 | Comprehensive upgrade: `/quickstart`, `/help-me`, `/dashboard`, `/custom-hooks`, `/uninstall`, `/performance-check` skills, centralized error recovery, standardized argument validation, framework test suite for hooks, team workflow support (human review, CODEOWNERS, TEAM_WORKFLOW.md), security enhancements (SBOM, .env template, secret rotation), architecture documentation (C4+Mermaid templates, MADR ADRs, API docs), developer experience (status line skill indicator, keybindings), framework versioning (MANIFEST.md, machine-parseable CHANGELOG), CLAUDE.md lazy-loading (renamed .claude-context.md to CLAUDE.md), skill lifecycle events for metrics, coverage tool reference table, universal coding standards, lightweight story template |
 | 3.7     | 2026-03-20 | Metric-driven optimization: `/optimize` skill with git checkpointing and automatic rollback, story-cycle git checkpoint + auto-rollback on verification failure, story-scoped file boundaries, simplicity assessment in `/code-quality`, `capture-outcome` micro-component for structured story outcome tracking, `/refine-loop` autonomous mode with TSV logging and diminishing-returns detection |
