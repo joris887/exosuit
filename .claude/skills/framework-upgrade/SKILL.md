@@ -1,7 +1,7 @@
 ---
 name: framework-upgrade
 version: 1.1.0
-description: Upgrade JD-LLM Development Framework to a newer version while preserving project customizations.
+description: Upgrade Exosuit to a newer version while preserving project customizations.
 trigger: manual
 depends-on: [doctor]
 references: [references/upgrade-checklist.md, references/merge-strategy.md]
@@ -17,14 +17,14 @@ ______________________________________________________________________
 
 ## framework-upgrade
 
-Upgrades the JD-LLM Development Framework to a newer version while preserving all project-specific customizations (skills, rules, hooks, settings).
+Upgrades the Exosuit framework to a newer version while preserving all project-specific customizations (skills, rules, hooks, settings).
 
 ### Phase 0: Validate & Discover
 
 1. **Fetch new framework version:**
    - **Default (no argument or `--branch <branch>`):** Clone the framework repo from GitHub into a temp directory. Use `main` branch unless `--branch` specifies otherwise.
      ```bash
-     FRAMEWORK_REPO="https://github.com/joris887/JD-LLM-Development_framework.git"
+     FRAMEWORK_REPO="https://github.com/joris887/exosuit.git"
      TEMP_DIR=$(mktemp -d)
      git clone --depth 1 [--branch <branch>] "$FRAMEWORK_REPO" "$TEMP_DIR"
      ```

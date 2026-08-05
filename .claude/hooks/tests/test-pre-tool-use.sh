@@ -27,7 +27,7 @@ echo "Testing pre-tool-use.sh"
 echo "========================"
 
 # Override framework repo check so it doesn't interfere with safety pattern tests
-export JD_FRAMEWORK_REPO="nonexistent/repo-that-wont-match"
+export EXOSUIT_FRAMEWORK_REPO="nonexistent/repo-that-wont-match"
 
 # Should BLOCK (exit 2)
 test_case "Block git push --force" '{"command":"git push --force origin main"}' 2

@@ -1,4 +1,4 @@
-# JD-LLM Development Framework
+# Exosuit
 
 > A drop-in development framework for Claude Code with structured sprint workflows, TDD practices, quality gates, and backlog management. Three profiles (Lean/Standard/Strict) adapt ceremony to your project. After installing, run `/quickstart` to get started.
 

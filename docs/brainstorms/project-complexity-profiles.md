@@ -37,7 +37,7 @@ The framework needs adaptive complexity based on **project characteristics**, no
 - Shared via git (team-wide consistency)
 - Human-readable and human-editable
 
-**Override:** `JD_PROJECT_PROFILE` environment variable (session-level).
+**Override:** `EXOSUIT_PROJECT_PROFILE` environment variable (session-level).
 - Takes precedence over CLAUDE.md
 - For temporary needs (e.g., strict mode for a sensitive feature on a standard project)
 - Set in `.claude/settings.local.json` (per-user, gitignored)
@@ -47,15 +47,15 @@ The framework needs adaptive complexity based on **project characteristics**, no
 ### 3. Hook Profile vs Project Profile
 
 Two separate concepts:
-- `JD_PROJECT_PROFILE` (lean/standard/strict) — controls **skill** behavior (ceremony depth, agent dispatch, doc generation)
-- `JD_HOOK_PROFILE` (minimal/standard/strict) — controls **hook** behavior (which hooks run based on minimum profile)
+- `EXOSUIT_PROJECT_PROFILE` (lean/standard/strict) — controls **skill** behavior (ceremony depth, agent dispatch, doc generation)
+- `EXOSUIT_HOOK_PROFILE` (minimal/standard/strict) — controls **hook** behavior (which hooks run based on minimum profile)
 
 Default mapping (project -> hook):
 - lean -> minimal
 - standard -> standard
 - strict -> strict
 
-Both independently overridable. A developer on a lean project can set `JD_HOOK_PROFILE=strict` for personal rigor without changing the project profile.
+Both independently overridable. A developer on a lean project can set `EXOSUIT_HOOK_PROFILE=strict` for personal rigor without changing the project profile.
 
 ### 4. Profile Detection in Skills
 

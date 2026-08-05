@@ -3,13 +3,13 @@
   <!-- Dark mode variant:
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-    <img src="assets/logo-light.svg" alt="JD-LLM" height="128">
+    <img src="assets/logo-light.svg" alt="Exosuit" height="128">
   </picture>
   -->
-  <img src="assets/logo.png" alt="JD-LLM Development Framework" height="128">
+  <img src="assets/logo.png" alt="Exosuit" height="128">
 </p>
 
-<h1 align="center">JD-LLM Development Framework</h1>
+<h1 align="center">Exosuit</h1>
 
 <p align="center">
   <strong>Stop vibe-coding. Start shipping.</strong><br>
@@ -17,14 +17,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/joris887/JD-LLM-Development_framework/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
-  <a href="https://github.com/joris887/JD-LLM-Development_framework/releases"><img src="https://img.shields.io/github/v/release/joris887/JD-LLM-Development_framework" alt="Latest Release"></a>
+  <a href="https://github.com/joris887/exosuit/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://github.com/joris887/exosuit/releases"><img src="https://img.shields.io/github/v/release/joris887/exosuit" alt="Latest Release"></a>
   <a href="https://claude.com/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-blueviolet" alt="Built for Claude Code"></a>
-  <a href="https://github.com/joris887/JD-LLM-Development_framework/stargazers"><img src="https://img.shields.io/github/stars/joris887/JD-LLM-Development_framework?style=social" alt="GitHub Stars"></a>
+  <a href="https://github.com/joris887/exosuit/stargazers"><img src="https://img.shields.io/github/stars/joris887/exosuit?style=social" alt="GitHub Stars"></a>
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/GETTING_STARTED.md">Getting Started</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/FRAMEWORK_REFERENCE.md">Full Reference</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://github.com/joris887/JD-LLM-Development_framework/issues">Issues</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="CONTRIBUTING.md">Contributing</a>
+  <a href="#quick-start">Quick Start</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/GETTING_STARTED.md">Getting Started</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/FRAMEWORK_REFERENCE.md">Full Reference</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://github.com/joris887/exosuit/issues">Issues</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
@@ -43,7 +43,7 @@
      Alternative: an asciinema embed (https://asciinema.org) for higher quality + copy-paste support.
 -->
 <p align="center">
-  <img src="assets/demo.gif" alt="JD-LLM Demo: install → bootstrap → sprint → ship" width="720">
+  <img src="assets/demo.gif" alt="Exosuit Demo: install → bootstrap → sprint → ship" width="720">
 </p>
 
 ---
@@ -56,7 +56,7 @@ Without structure, every Claude Code session drifts toward the same failure mode
 
 You're not building software. You're vibe-coding — generating plausible code with no engineering discipline behind it.
 
-**The JD-LLM Development Framework fixes this.** Not with guidelines the AI can ignore, but with deterministic hooks that physically block bad patterns, structured workflows that enforce TDD, and quality gates that require evidence before anything ships.
+**Exosuit fixes this.** Not with guidelines the AI can ignore, but with deterministic hooks that physically block bad patterns, structured workflows that enforce TDD, and quality gates that require evidence before anything ships.
 
 ## What It Does
 
@@ -74,7 +74,7 @@ A drop-in framework for [Claude Code](https://claude.com/claude-code) that adds 
 
 ```bash
 # Install into your project (existing repo or new)
-curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
 ```
 
 Then open Claude Code:
@@ -92,15 +92,15 @@ That's it. Four commands from zero to shipped PR.
 <summary><strong>Alternative: clone and install locally</strong></summary>
 
 ```bash
-git clone https://github.com/joris887/JD-LLM-Development_framework.git
+git clone https://github.com/joris887/exosuit.git
 cd your-project
-path/to/JD-LLM-Development_framework/install.sh
+path/to/exosuit/install.sh
 ```
 
 Or start a brand new project:
 
 ```bash
-git clone https://github.com/joris887/JD-LLM-Development_framework.git my-project
+git clone https://github.com/joris887/exosuit.git my-project
 cd my-project && rm -rf .git && git init
 ```
 
@@ -434,13 +434,13 @@ Use the **Lean** profile. It strips ceremony to the minimum (plan → build → 
 
 ## Who's Using This
 
-JD-LLM is used by developers building:
+Exosuit is used by developers building:
 
 - [Project Name](link) — description
 - [Project Name](link) — description
 - [Project Name](link) — description
 
-*Using JD-LLM? [Open a PR](https://github.com/joris887/JD-LLM-Development_framework/pulls) to add your project.*
+*Using Exosuit? [Open a PR](https://github.com/joris887/exosuit/pulls) to add your project.*
 
 -->
 
@@ -448,7 +448,7 @@ JD-LLM is used by developers building:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, development workflow, and PR guidelines.
 
-Found a bug or have an idea? [Open an issue](https://github.com/joris887/JD-LLM-Development_framework/issues).
+Found a bug or have an idea? [Open an issue](https://github.com/joris887/exosuit/issues).
 
 ## License
 

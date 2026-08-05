@@ -1,8 +1,8 @@
 {
-  "name": "jd-llm-development-framework",
-  "version": "4.2.0",
+  "name": "exosuit",
+  "version": "5.0.0",
   "description": "Structured development framework for Claude Code — TDD, sprints, quality gates, 45 skills, 8 agents, 11 hooks, path-scoped rules",
-  "homepage": "https://github.com/joris887/JD-LLM-Development_framework",
+  "homepage": "https://github.com/joris887/exosuit",
   "author": "Joris de Umens",
   "license": "MIT",
   "permissions": {
@@ -18,9 +18,9 @@
     "plansDirectory": "docs/plans",
     "outputStyle": "${CLAUDE_PLUGIN_ROOT}/output-styles/framework.md",
     "env": {
-      "JD_PROJECT_PROFILE": "standard",
-      "JD_EXPLAIN_MODE": "brief",
-      "JD_STOP_MAX_ITERATIONS": "5"
+      "EXOSUIT_PROJECT_PROFILE": "standard",
+      "EXOSUIT_EXPLAIN_MODE": "brief",
+      "EXOSUIT_STOP_MAX_ITERATIONS": "5"
     },
     "statusLine": {
       "type": "command",

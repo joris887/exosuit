@@ -1,15 +1,15 @@
 # Getting Started
 
-This guide walks you through your first session with the JD-LLM Development Framework.
+This guide walks you through your first session with the Exosuit framework.
 
 ## Step 1: Install
 
 ```bash
 # Into an existing project:
-curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
 
 # Or clone for a new project:
-git clone https://github.com/joris887/JD-LLM-Development_framework.git my-project
+git clone https://github.com/joris887/exosuit.git my-project
 cd my-project && rm -rf .git && git init
 ```
 
@@ -86,7 +86,7 @@ What changes:
 - Audit trail logged to `.audit-log.jsonl`
 - Ground rules and ADR compliance checks mandatory at sprint end
 
-You can change your profile anytime by editing the `**Profile:**` line in CLAUDE.md, or by setting `JD_PROJECT_PROFILE=lean|standard|strict` in your environment.
+You can change your profile anytime by editing the `**Profile:**` line in CLAUDE.md, or by setting `EXOSUIT_PROJECT_PROFILE=lean|standard|strict` in your environment.
 
 ## Step 5: Your First Sprint
 
@@ -127,11 +127,11 @@ Customize behavior without editing files:
 
 | Variable | Values | Purpose |
 |---|---|---|
-| `JD_PROJECT_PROFILE` | `lean`, `standard`, `strict` | Override project profile for this session |
-| `JD_HOOK_PROFILE` | `minimal`, `standard`, `strict` | Override hook strictness independently |
-| `JD_EXPLAIN_MODE` | `off`, `brief`, `verbose` | Control hook message detail level |
-| `JD_DISABLED_HOOKS` | comma-separated IDs | Disable specific hooks (e.g., `slop-check,debug-audit`) |
-| `JD_STOP_MAX_ITERATIONS` | number (default: 5) | Max stop-hook blocks before allowing exit |
+| `EXOSUIT_PROJECT_PROFILE` | `lean`, `standard`, `strict` | Override project profile for this session |
+| `EXOSUIT_HOOK_PROFILE` | `minimal`, `standard`, `strict` | Override hook strictness independently |
+| `EXOSUIT_EXPLAIN_MODE` | `off`, `brief`, `verbose` | Control hook message detail level |
+| `EXOSUIT_DISABLED_HOOKS` | comma-separated IDs | Disable specific hooks (e.g., `slop-check,debug-audit`) |
+| `EXOSUIT_STOP_MAX_ITERATIONS` | number (default: 5) | Max stop-hook blocks before allowing exit |
 
 ## Next Steps
 

@@ -5,7 +5,7 @@
 
 **Profile:** standard
 <!-- Project complexity profile: lean | standard | strict. Set by /bootstrap or manually. -->
-<!-- Override per-session: JD_PROJECT_PROFILE=lean|standard|strict -->
+<!-- Override per-session: EXOSUIT_PROJECT_PROFILE=lean|standard|strict -->
 
 ## Tech Stack
 <!-- /bootstrap: Fill with detected versions. Prevents AI from mixing incompatible API versions. -->
@@ -64,7 +64,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v4.2
+## Skills — Exosuit v5.0
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow

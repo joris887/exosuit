@@ -1,4 +1,4 @@
-# Contributing to JD-LLM Development Framework
+# Contributing to Exosuit
 
 Thank you for your interest in contributing! This guide explains how to set up, test, and submit changes.
 
@@ -6,8 +6,8 @@ Thank you for your interest in contributing! This guide explains how to set up, 
 
 ```bash
 # 1. Clone and enter the repo
-git clone https://github.com/joris887/JD-LLM-Development_framework.git
-cd JD-LLM-Development_framework
+git clone https://github.com/joris887/exosuit.git
+cd exosuit
 
 # 2. Run the hook test suite
 bash .claude/hooks/tests/run-all.sh
@@ -101,7 +101,7 @@ Hook patterns use `@@` as a delimiter:
 # 5-field: id@@regex@@message@@severity@@explanation
 
 # severity: critical | standard (default) | strict
-# explanation: shown when JD_EXPLAIN_MODE=verbose
+# explanation: shown when EXOSUIT_EXPLAIN_MODE=verbose
 ```
 
 ## Testing

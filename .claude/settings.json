@@ -5,9 +5,9 @@
     "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
   },
   "env": {
-    "JD_PROJECT_PROFILE": "standard",
-    "JD_EXPLAIN_MODE": "brief",
-    "JD_STOP_MAX_ITERATIONS": "5"
+    "EXOSUIT_PROJECT_PROFILE": "standard",
+    "EXOSUIT_EXPLAIN_MODE": "brief",
+    "EXOSUIT_STOP_MAX_ITERATIONS": "5"
   },
   "plansDirectory": "docs/plans",
   "outputStyle": ".claude/output-styles/framework.md",

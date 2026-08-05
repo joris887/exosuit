@@ -7,7 +7,7 @@
 #    a successful test run (state/tests-passed). This prevents redundant
 #    re-runs when story-cycle Phase 4b already verified tests.
 # Safety valve: max iterations (default 5), then allows stop unconditionally.
-# Override via JD_STOP_MAX_ITERATIONS env var, or quality.conf max_iterations.
+# Override via EXOSUIT_STOP_MAX_ITERATIONS env var, or quality.conf max_iterations.
 # Values <=0 disable the safety valve (infinite retries).
 # POSIX-compliant — no bash required.
 #
@@ -137,10 +137,10 @@ AUTOSAVE_EOF
 fi
 
 # --- 2. Safety valve: max iterations ---
-# Priority: JD_STOP_MAX_ITERATIONS env var > quality.conf > default (5)
+# Priority: EXOSUIT_STOP_MAX_ITERATIONS env var > quality.conf > default (5)
 # Values <=0 mean "no limit" (infinite retries — use with caution)
-if [ -n "${JD_STOP_MAX_ITERATIONS:-}" ]; then
-    MAX_ITER="$JD_STOP_MAX_ITERATIONS"
+if [ -n "${EXOSUIT_STOP_MAX_ITERATIONS:-}" ]; then
+    MAX_ITER="$EXOSUIT_STOP_MAX_ITERATIONS"
 else
     MAX_ITER=$(read_conf "max_iterations" "5")
 fi
@@ -238,7 +238,7 @@ if [ -n "$LAST_MESSAGE" ]; then
         # Increment iteration counter
         NEW_ITER=$((ITERATION + 1))
         echo "$NEW_ITER" > "$ITER_FILE" 2>/dev/null
-        EXPLAIN_MODE="${JD_EXPLAIN_MODE:-brief}"
+        EXPLAIN_MODE="${EXOSUIT_EXPLAIN_MODE:-brief}"
         if [ "$EXPLAIN_MODE" = "verbose" ]; then
             printf 'Quality check before completion:\n  - Task claimed complete but no test output found. Run tests and show output.\n  WHY: The framework requires evidence that tests pass before marking work complete. This prevents shipping untested code. Run your project'\''s test command (check CLAUDE.md Commands section) and include the passing output in your response.\n' >&2
         else

@@ -2,7 +2,7 @@
 # PreToolUse handler: block dangerous Bash commands + advisory warnings.
 # Loads blocking patterns from rules/safety.patterns (exit 2 on match).
 # Loads advisory patterns from rules/advisory.patterns (warn only, exit 0).
-# Supports profile-based severity filtering via JD_HOOK_PROFILE.
+# Supports profile-based severity filtering via EXOSUIT_HOOK_PROFILE.
 # POSIX-compliant — no bash required.
 #
 # Input:  JSON on stdin (tool_input.command)
@@ -17,10 +17,10 @@ ADVISORY_FILE="$RULES_DIR/advisory.patterns"
 "$HOOKS_DIR/lib/hook-guard.sh" "pre-tool-use" "minimal" || exit 0
 
 # --- Explain mode: off, brief (default), verbose ---
-EXPLAIN_MODE="${JD_EXPLAIN_MODE:-brief}"
+EXPLAIN_MODE="${EXOSUIT_EXPLAIN_MODE:-brief}"
 
 # --- Profile level for severity filtering ---
-CURRENT_PROFILE="${JD_HOOK_PROFILE:-standard}"
+CURRENT_PROFILE="${EXOSUIT_HOOK_PROFILE:-standard}"
 case "$CURRENT_PROFILE" in
     minimal) PROFILE_LEVEL=1 ;;
     strict)  PROFILE_LEVEL=3 ;;
@@ -117,7 +117,7 @@ fi
 
 # --- Framework template repo protection ---
 if printf '%s' "$COMMAND" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+push)'; then
-    FRAMEWORK_REPO="${JD_FRAMEWORK_REPO:-joris887/JD-LLM-Development_framework}"
+    FRAMEWORK_REPO="${EXOSUIT_FRAMEWORK_REPO:-joris887/exosuit}"
     REMOTE=$(git remote get-url origin 2>/dev/null || true)
     if [ -n "$REMOTE" ]; then
         case "$REMOTE" in
