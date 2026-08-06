@@ -11,6 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/joris887/exosuit/actions/workflows/ci.yml"><img src="https://github.com/joris887/exosuit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://discord.gg/XqBnP6mydA"><img src="https://img.shields.io/badge/Discord-join%20us-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
   <a href="https://github.com/joris887/exosuit/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://github.com/joris887/exosuit/releases"><img src="https://img.shields.io/github/v/release/joris887/exosuit" alt="Latest Release"></a>
   <a href="https://claude.com/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-blueviolet" alt="Built for Claude Code"></a>
@@ -18,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/GETTING_STARTED.md">Getting Started</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/FRAMEWORK_REFERENCE.md">Full Reference</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://github.com/joris887/exosuit/issues">Issues</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="CONTRIBUTING.md">Contributing</a>
+  <a href="#quick-start">Quick Start</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/GETTING_STARTED.md">Getting Started</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/FRAMEWORK_REFERENCE.md">Full Reference</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://discord.gg/XqBnP6mydA">Discord</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://github.com/joris887/exosuit/issues">Issues</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
@@ -35,6 +36,8 @@ Without structure, every Claude Code session drifts toward the same failure mode
 
 You're not engineering software. You're prompting and praying — generating plausible code with no discipline behind it.
 
+This isn't a niche complaint. [Veracode's 2025 GenAI report](https://www.veracode.com/blog/genai-code-security-report/) found AI models introduce an OWASP Top-10 vulnerability in **45% of code tasks**, and [Stack Overflow's 2025 survey](https://survey.stackoverflow.co/2025/) found more developers actively **distrust** AI output accuracy (46%) than trust it (33%).
+
 **Exosuit fixes this.** Not with guidelines the AI can ignore, but with deterministic hooks that physically block bad patterns, structured workflows that enforce TDD, and quality gates that require evidence before anything ships.
 
 ## What It Does
@@ -48,6 +51,21 @@ A drop-in development framework for [Claude Code](https://claude.com/claude-code
 - **Sessions persist** — hand off with `/handoff`, resume with `/continue`. No context is lost between sessions.
 - **Any language, any project** — Python, TypeScript, Go, Rust, Ruby, Java, PHP, Dart, C#, Swift, Kotlin, C/C++. The framework detects your stack and configures itself.
 - **Verification is non-negotiable** — "it should work" is not accepted. Fresh test output is required before any completion claim.
+
+## Why Exosuit?
+
+Every framework in this space has a planning step. Almost none can *enforce* anything — they're instructions the model can drift away from. Exosuit's difference is the combination: interrogate the idea before code exists, then enforce the discipline with hooks, not hopes.
+
+| | Exosuit | [Superpowers](https://github.com/obra/superpowers) | [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) | [spec-kit](https://github.com/github/spec-kit) | [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework) | [CCPM](https://github.com/automazeio/ccpm) |
+|---|---|---|---|---|---|---|
+| **Pre-code idea interrogation** | Mandatory, hard-gated — 11 archetypes, assumption stress-tests, pre-mortem, kill criteria | Strong, prompt-gated | Deepest menus, but optional phase | Optional `/clarify` | Brainstorm mode (nudge) | PRD template |
+| **Enforcement mechanism** | **Deterministic shell hooks** — dangerous commands, secrets, and force-pushes are blocked by exit codes, not requests | Instructions + a context-injecting hook | Instructions (MD/YAML) | Templates + slash commands | Instruction injection | Convention + GitHub Issues |
+| **"Done" requires fresh test evidence** | Yes — Stop-hook quality gates run lint/tests before completion | Subagent-checked (bypassable) | No | No | No | No |
+| **Session continuity** | Auto-save, `/handoff`, `/continue` | No | Partial | No | No | Via GitHub Issues |
+| **Adapts ceremony to risk** | 3 profiles + per-story risk calibration | No | 3 tracks (v6) | No | No | No |
+| **Runtime dependencies** | None — POSIX shell + markdown | None | Node.js 20+ | Python 3.11+ / uv | Python | GitHub CLI |
+
+All of these are good projects — several inspired parts of Exosuit. The gap Exosuit fills is the fusion: the frameworks with deep elicitation enforce by instruction, and the tools with deterministic hooks do no elicitation. Exosuit does both.
 
 ## Quick Start
 
