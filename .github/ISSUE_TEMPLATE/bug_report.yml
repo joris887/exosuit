@@ -8,7 +8,7 @@ body:
     attributes:
       label: Framework Version
       description: Check CLAUDE.md or CHANGELOG.md for version
-      placeholder: "e.g., 3.0.0"
+      placeholder: "e.g., 5.0.0"
     validations:
       required: true
 

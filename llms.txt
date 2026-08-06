@@ -13,7 +13,7 @@
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview
 - docs/progress.md: Sprint history and metrics
 - docs/GETTING_STARTED.md: Getting started guide with per-profile walkthrough (Lean/Standard/Strict)
-- docs/FRAMEWORK_DEEP_DIVE.md: Comprehensive framework reference
+- docs/FRAMEWORK_REFERENCE.md: Comprehensive framework reference
 - docs/reference/MCP_INTEGRATION.md: MCP server selection guide with categories, decision tree, and integration patterns
 - docs/context/: Persistent project context knowledge base (project-overview, tech-context, system-patterns, project-structure, product-context, error-patterns)
 - docs/solutions/: Searchable solutions database — learnings from completed stories with YAML frontmatter (title, tags, module, component)
