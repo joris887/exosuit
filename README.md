@@ -1,22 +1,16 @@
-<p align="center">
-  <!-- TODO: Replace with actual logo (recommended: 128px height, SVG preferred for dark mode support) -->
-  <!-- Dark mode variant:
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-    <img src="assets/logo-light.svg" alt="Exosuit" height="128">
-  </picture>
-  -->
-  <img src="assets/logo.png" alt="Exosuit" height="128">
-</p>
-
 <h1 align="center">Exosuit</h1>
 
 <p align="center">
-  <strong>Stop vibe-coding. Start shipping.</strong><br>
-  Software engineering discipline for Claude Code — enforced, not suggested.
+  <strong>Suit up. Build anything.</strong><br>
+  One idea is enough. Exosuit wraps Claude Code in a full engineering organization — it interrogates your vision, pressure-tests every assumption, plans the build, and enforces tested, verified shipping.
 </p>
 
 <p align="center">
+  <em>Founder who's never written code? Engineer with a million-line repo? Same suit. Your strength, amplified.</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/joris887/exosuit/actions/workflows/ci.yml"><img src="https://github.com/joris887/exosuit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/joris887/exosuit/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://github.com/joris887/exosuit/releases"><img src="https://img.shields.io/github/v/release/joris887/exosuit" alt="Latest Release"></a>
   <a href="https://claude.com/claude-code"><img src="https://img.shields.io/badge/built%20for-Claude%20Code-blueviolet" alt="Built for Claude Code"></a>
@@ -29,22 +23,7 @@
 
 ---
 
-<!-- TODO: Replace with a terminal recording GIF showing the install → bootstrap → first sprint flow.
-     Recommended tools: VHS (by Charm), terminalizer, or asciinema.
-     
-     The GIF should show (~30 seconds total):
-     1. Running: curl -sL ... | bash  (install completes in ~3 seconds)
-     2. Running: /bootstrap  (detecting a real project — language, frameworks, tests, generating config)
-     3. Running: /sprint-start  (creating a sprint branch)
-     4. Running: /story-cycle "add health check endpoint"  (TDD plan → implement → verify → commit)
-     
-     Place the GIF at: assets/demo.gif (keep under 5MB, 80 cols terminal width)
-     
-     Alternative: an asciinema embed (https://asciinema.org) for higher quality + copy-paste support.
--->
-<p align="center">
-  <img src="assets/demo.gif" alt="Exosuit Demo: install → bootstrap → sprint → ship" width="720">
-</p>
+<!-- demo GIF: assets/demo.gif — dropped in at launch -->
 
 ---
 
@@ -54,13 +33,13 @@ AI-assisted coding is powerful. It's also chaos.
 
 Without structure, every Claude Code session drifts toward the same failure modes: scope creeps until the context window is exhausted. Tests get skipped because "the code looks right." Git history becomes a wasteland of `fix`, `update`, and `wip` commits. The AI claims "done" without running a single test. And when you start a new session, all context from the last one is gone.
 
-You're not building software. You're vibe-coding — generating plausible code with no engineering discipline behind it.
+You're not engineering software. You're prompting and praying — generating plausible code with no discipline behind it.
 
 **Exosuit fixes this.** Not with guidelines the AI can ignore, but with deterministic hooks that physically block bad patterns, structured workflows that enforce TDD, and quality gates that require evidence before anything ships.
 
 ## What It Does
 
-A drop-in framework for [Claude Code](https://claude.com/claude-code) that adds 43 slash commands, 13 enforcement hooks, 8 specialized agents, and a complete sprint-based development workflow to any project. Install it in 30 seconds. Run `/bootstrap`. Start building like a professional.
+A drop-in development framework for [Claude Code](https://claude.com/claude-code) that adds 43 slash commands, 13 enforcement hooks, 8 specialized agents, and a complete sprint-based development workflow to any project. Install it in 30 seconds. Run `/bootstrap`. Start building like a professional.
 
 - **Hooks block bad behavior** — force push, leaked secrets, skipped tests, premature "done" claims. These are deterministic shell scripts, not suggestions the AI can skip.
 - **TDD is the default** — tests before implementation, always. The framework plans tests first, writes them first, then implements to pass them.
@@ -269,6 +248,7 @@ Key insight: The enforcement layer is deterministic — hooks are shell scripts 
 | `/sprint-start` | Create sprint branch, select stories |
 | `/story-cycle` | Deliver a story with TDD + quality gates |
 | `/sprint-end` | Quality gates → PR → merge to main |
+| `/pr-status` | Check open PRs and decide next steps |
 | `/continue` | Resume exactly where you left off |
 | `/handoff` | Save session state for next time |
 
@@ -276,6 +256,7 @@ Key insight: The enforcement layer is deterministic — hooks are shell scripts 
 | Command | What it does |
 |---|---|
 | `/ideate` | Decompose ideas into sized, estimated stories |
+| `/backlog-review` | Audit backlog health — story quality, readiness, staleness |
 | `/brainstorm` | Explore designs, tradeoffs, approaches |
 | `/research` | Deep web + codebase research with source citations |
 | `/phase-review` | Evaluate what you built, plan the next phase |
@@ -287,8 +268,11 @@ Key insight: The enforcement layer is deterministic — hooks are shell scripts 
 | `/code-quality` | Deep code review with multi-agent analysis |
 | `/security-audit` | Security-focused review (OWASP, CWE) |
 | `/architecture-check` | Verify architecture against ground rules |
+| `/test-validator` | Check coverage and assertion quality — detects weakened tests |
+| `/performance-check` | Find N+1 queries, blocking I/O, memory leaks, scaling issues |
 | `/testing-cycle` | Process test feedback into fixes |
 | `/UAT-cycle` | User acceptance test case execution |
+| `/claude-sense-check` | Batch-verify UAT test cases against actual code |
 | `/manual-test` | Generate test plans for manual verification |
 
 ### Debugging & Recovery
@@ -319,6 +303,8 @@ Key insight: The enforcement layer is deterministic — hooks are shell scripts 
 | `/framework-upgrade` | Upgrade framework to latest version |
 | `/skill-create` | Generate project-specific skills from codebase analysis |
 | `/skill-eval` | Evaluate skill effectiveness with metrics |
+| `/custom-hooks` | Create and register project-specific hooks |
+| `/uninstall` | Cleanly remove the framework, keeping your project intact |
 
 ## Supported Languages
 
@@ -415,34 +401,6 @@ Use the **Lean** profile. It strips ceremony to the minimum (plan → build → 
 
 ~100 lines for `CLAUDE.md` (loaded every session) + ~140 lines for always-active rules. Skills load on-demand only when invoked. The framework is designed to be context-efficient — it loads less than many project README files.
 </details>
-
-<!-- TODO: Uncomment and populate when you have testimonials
-
-## What Developers Are Saying
-
-> "Quote from a real user about their experience."
->
-> — **Name**, Role at Company
-
-> "Another testimonial."
->
-> — **Name**, Role at Company
-
--->
-
-<!-- TODO: Uncomment and populate when you have adopters
-
-## Who's Using This
-
-Exosuit is used by developers building:
-
-- [Project Name](link) — description
-- [Project Name](link) — description
-- [Project Name](link) — description
-
-*Using Exosuit? [Open a PR](https://github.com/joris887/exosuit/pulls) to add your project.*
-
--->
 
 ## Contributing
 

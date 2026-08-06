@@ -2,13 +2,13 @@
   "name": "exosuit",
   "description": "Exosuit marketplace — structured development with Claude Code",
   "owner": {
-    "name": "Joris de Umens",
+    "name": "Joris Deumens",
     "url": "https://github.com/joris887"
   },
   "plugins": [
     {
       "name": "exosuit",
-      "description": "Structured development framework — TDD, sprints, quality gates, 45 skills, 8 agents, 11 hooks, path-scoped rules. Language-agnostic, works for any project.",
+      "description": "Suit up. Build anything. Deep idea interrogation, TDD sprints, enforced quality gates — 43 skills, 8 agents, 13 hooks. Language-agnostic, works for any project.",
       "version": "5.0.0",
       "source": "./"
     }

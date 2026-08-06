@@ -1,6 +1,6 @@
 # Skills Inventory
 
-Last updated: 2026-03-30
+Last updated: 2026-08-06
 
 ## Overview
 
@@ -165,6 +165,7 @@ Claude Code native agents with YAML frontmatter. Discoverable via `claude agents
 | `architecture-reviewer`| inherit | Architecture validation with boundary enforcement    |
 | `codebase-explorer`    | haiku   | Fast file discovery and codebase mapping             |
 | `research-analyst`     | haiku   | Deep web research with source evaluation and reflection output |
+| `integration-tester`   | inherit | Independent dynamic verification — runs tests and acceptance criteria, breaking the self-assessment cycle |
 
 ### Technology Skills (Auto-invocable)
 
@@ -251,6 +252,10 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 - `worktree.sh` — Worktree init + cleanup
 - `worktree-bash-fix.sh` — Transparent worktree directory fix (applied to subagents)
 - `post-edit-format.sh` — Auto-format after edits + secrets detection (bash)
+- `post-tool-failure.sh` — Log tool failures + inject error recovery guidance
+- `pre-compact.sh` — Preserve critical session state before context compaction
+- `pre-read-check.sh` — Warn when reading sensitive files (pattern-matched)
+- `status-line.sh` — Rich status line: sprint, branch, context bar, model, rate limits
 - `rules/safety.patterns` — PreToolUse blocking patterns (@@-delimited)
 - `rules/quality.conf` — Stop quality gate rules (key=value)
 - `state/` — Session state (plain text files: counters, timestamps)

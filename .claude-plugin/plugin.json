@@ -1,9 +1,9 @@
 {
   "name": "exosuit",
   "version": "5.0.0",
-  "description": "Structured development framework for Claude Code — TDD, sprints, quality gates, 45 skills, 8 agents, 11 hooks, path-scoped rules",
+  "description": "Suit up. Build anything. A full engineering organization for Claude Code — deep idea interrogation, TDD sprints, enforced quality gates. 43 skills, 8 agents, 13 hooks, path-scoped rules.",
   "homepage": "https://github.com/joris887/exosuit",
-  "author": "Joris de Umens",
+  "author": "Joris Deumens",
   "license": "MIT",
   "permissions": {
     "deny": [
@@ -16,7 +16,7 @@
       "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
     },
     "plansDirectory": "docs/plans",
-    "outputStyle": "${CLAUDE_PLUGIN_ROOT}/output-styles/framework.md",
+    "outputStyle": "${CLAUDE_PLUGIN_ROOT}/.claude/output-styles/framework.md",
     "env": {
       "EXOSUIT_PROJECT_PROFILE": "standard",
       "EXOSUIT_EXPLAIN_MODE": "brief",
@@ -24,7 +24,7 @@
     },
     "statusLine": {
       "type": "command",
-      "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/status-line.sh"
+      "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/status-line.sh"
     },
     "spinnerVerbs": {
       "mode": "append",
