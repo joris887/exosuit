@@ -38,7 +38,7 @@ You're not engineering software. You're prompting and praying — generating pla
 
 This isn't a niche complaint. [Veracode's 2025 GenAI report](https://www.veracode.com/blog/genai-code-security-report/) found AI models introduce an OWASP Top-10 vulnerability in **45% of code tasks**, and [Stack Overflow's 2025 survey](https://survey.stackoverflow.co/2025/) found more developers actively **distrust** AI output accuracy (46%) than trust it (33%).
 
-**Exosuit fixes this.** Not with guidelines the AI can ignore, but with deterministic hooks that physically block bad patterns, structured workflows that enforce TDD, and quality gates that require evidence before anything ships.
+**Exosuit fixes this.** Not with guidelines the AI can ignore, but with deterministic hooks that physically block bad patterns, structured workflows that enforce TDD, and quality gates that require evidence before anything ships. **Hooks, not hopes.**
 
 ## What It Does
 
@@ -142,7 +142,7 @@ The framework tells you exactly what your project needs to be production-ready, 
 
 ### New project from an idea
 
-`/bootstrap` detects an empty project and launches `/discover` — a deep guided elicitation that builds your project from the ground up:
+`/bootstrap` detects an empty project and launches `/discover` — **The Interrogation**: a deep, research-backed elicitation that pressure-tests your idea before a single line of code exists. It challenges your assumptions, runs a pre-mortem, and makes you declare kill criteria — then builds your project from what survives:
 
 ```
 What are you building?
@@ -262,7 +262,7 @@ Key insight: The enforcement layer is deterministic — hooks are shell scripts 
 |---|---|
 | `/bootstrap` | First-run setup — detect stack, configure framework, assess readiness |
 | `/quickstart` | Guided tour of the framework before your first sprint |
-| `/discover` | Deep guided elicitation for new projects (11 archetypes) |
+| `/discover` | The Interrogation — deep guided elicitation for new projects (11 archetypes) |
 | `/sprint-start` | Create sprint branch, select stories |
 | `/story-cycle` | Deliver a story with TDD + quality gates |
 | `/sprint-end` | Quality gates → PR → merge to main |
