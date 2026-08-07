@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="Exosuit — e^x monogram" height="128">
+</p>
+
 <h1 align="center">Exosuit</h1>
 
 <p align="center">
