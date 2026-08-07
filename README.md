@@ -357,6 +357,7 @@ The framework solves this with three ideas:
 - **[Claude Code](https://claude.com/claude-code)** — installed and working
 - **Git** — configured with your identity
 - **[GitHub CLI](https://cli.github.com/)** (`gh`) — for PR workflow and issue management
+- **A Claude plan that fits the workload** — Exosuit is thorough by design, and thoroughness spends tokens. **Claude Max is recommended** for daily development; Pro is enough to evaluate the framework on the Lean profile. See the [FAQ](#faq) for honest details.
 
 No language runtimes required. The framework itself is pure POSIX shell and markdown.
 
@@ -412,6 +413,18 @@ Use the **Lean** profile. It strips ceremony to the minimum (plan → build → 
 <summary><strong>What's the context window cost?</strong></summary>
 
 ~100 lines for `CLAUDE.md` (loaded every session) + ~140 lines for always-active rules. Skills load on-demand only when invoked. The framework is designed to be context-efficient — it loads less than many project README files.
+</details>
+
+<details>
+<summary><strong>Do I need a Claude Max subscription?</strong></summary>
+
+Recommended for serious use, honestly. Exosuit's value comes from doing the work most setups skip: The Interrogation researches and challenges your idea, quality gates dispatch review agents, and verification re-runs your tests before anything is called done. All of that spends tokens.
+
+- **Claude Max** — recommended for daily development and full sprints.
+- **Claude Pro** — fine for evaluating the framework and lighter projects. Pick the **Lean** profile during `/bootstrap` and expect to hit session limits on long builds.
+- **API billing** — works too; cost scales with how much of the workflow you use.
+
+Token efficiency is a known optimization area. Context budgets are already enforced (on-demand skill loading, priority-based compaction), and making the framework substantially leaner is on the roadmap — but today, don't bring a Pro plan to a Max-sized sprint.
 </details>
 
 ## Contributing
