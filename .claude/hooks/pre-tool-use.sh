@@ -167,12 +167,18 @@ if [ -f "$SAFETY_FILE" ]; then
 fi
 
 # --- Framework template repo protection ---
-if printf '%s' "$SCAN" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+push)'; then
+# The -C form is included deliberately: without it, `git -C <path> push` slipped
+# past this check while still being caught by the safety patterns above.
+if printf '%s' "$SCAN" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+(-C\s+\S+\s+)?push)'; then
     FRAMEWORK_REPO="${EXOSUIT_FRAMEWORK_REPO:-joris887/exosuit}"
     REMOTE=$(git remote get-url origin 2>/dev/null || true)
     if [ -n "$REMOTE" ]; then
-        case "$REMOTE" in
-            *"$FRAMEWORK_REPO"*)
+        # Compare owner/repo exactly. A substring test matched any repository whose
+        # name merely started with the framework's -- joris887/exosuit-homepage was
+        # treated as joris887/exosuit and could never be pushed.
+        REMOTE_PATH=$(printf '%s' "$REMOTE" | sed -e 's#\.git$##' -e 's#^.*[:/]\([^/][^/]*/[^/][^/]*\)$#\1#')
+        case "$REMOTE_PATH" in
+            "$FRAMEWORK_REPO")
                 printf 'BLOCKED: Remote points to the framework template repository (%s). Run: git remote set-url origin <your-project-repo-url>\n' "$FRAMEWORK_REPO" >&2
                 exit 2
                 ;;

@@ -108,6 +108,43 @@ test_case "Block clustered -uf flag" "$(payload '"git push -uf origin main"')" 2
 test_case "Allow git clean -n on a path containing -f" \
     "$(payload '"git clean -n src/my-feature"')" 0
 
+# --- Framework template repo protection ---
+# These need origin to resolve to the framework repo, which is true when the
+# suite runs from a framework checkout. Skipped elsewhere so consumer clones
+# do not report spurious failures.
+ORIGIN_PATH=$(git remote get-url origin 2>/dev/null \
+    | sed -e 's#\.git$##' -e 's#^.*[:/]\([^/][^/]*/[^/][^/]*\)$#\1#' || true)
+
+protection_case() {
+    local desc="$1" repo="$2" input="$3" expected_exit="$4"
+    actual_exit=0
+    echo "$input" | EXOSUIT_FRAMEWORK_REPO="$repo" sh "$HOOK" >/dev/null 2>/dev/null || actual_exit=$?
+    if [ "$actual_exit" -eq "$expected_exit" ]; then
+        echo "  PASS: $desc"
+        PASS=$((PASS + 1))
+    else
+        echo "  FAIL: $desc (expected exit $expected_exit, got $actual_exit)"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
+if [ "$ORIGIN_PATH" = "joris887/exosuit" ]; then
+    protection_case "Blocks push when origin is the framework repo" \
+        "joris887/exosuit" "$(payload '"git push -u origin main"')" 2
+
+    # `git -C <path> push` was not matched by the trigger regex, so it slipped
+    # past this check entirely while still hitting the safety patterns.
+    protection_case "Blocks git -C push (no bypass via -C)" \
+        "joris887/exosuit" "$(payload '"git -C /tmp/elsewhere push -u origin main"')" 2
+
+    # The remote was compared with a substring test, so joris887/exosuit-homepage
+    # matched joris887/exosuit and could never be pushed. Match must be exact.
+    protection_case "Exact match only: a prefix does not block" \
+        "joris887/exo" "$(payload '"git push -u origin main"')" 0
+else
+    echo "  SKIP: framework repo protection (origin is '$ORIGIN_PATH', not a framework checkout)"
+fi
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1
