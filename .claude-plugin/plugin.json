@@ -1,15 +1,25 @@
 {
   "name": "exosuit",
   "version": "5.0.0",
-  "description": "Suit up. Build anything. A full engineering organization for Claude Code — deep idea interrogation, TDD sprints, enforced quality gates. 43 skills, 8 agents, 13 hooks, path-scoped rules.",
+  "description": "Suit up. Build anything. A full engineering organization for Claude Code \u2014 deep idea interrogation, TDD sprints, enforced quality gates. 43 skills, 8 agents, 13 hooks, path-scoped rules.",
   "homepage": "https://github.com/joris887/exosuit",
-  "author": "Joris Deumens",
-  "license": "MIT",
-  "permissions": {
-    "deny": [
-      "${CLAUDE_PLUGIN_ROOT}/**"
-    ]
+  "author": {
+    "name": "Joris Deumens",
+    "url": "https://github.com/joris887"
   },
+  "license": "MIT",
+  "skills": "./.claude/skills/",
+  "agents": [
+    "./.claude/agents/architecture-reviewer.md",
+    "./.claude/agents/code-reviewer.md",
+    "./.claude/agents/codebase-explorer.md",
+    "./.claude/agents/integration-tester.md",
+    "./.claude/agents/performance-engineer.md",
+    "./.claude/agents/research-analyst.md",
+    "./.claude/agents/security-analyst.md",
+    "./.claude/agents/spec-reviewer.md"
+  ],
+  "hooks": "./.claude/hooks/hooks.json",
   "settings": {
     "includeGitInstructions": false,
     "attribution": {
@@ -46,7 +56,7 @@
         "Use /story-cycle for structured story delivery",
         "Run /doctor to check framework health",
         "Use /research for evidence-backed decisions",
-        "TDD first — write tests before implementation",
+        "TDD first \u2014 write tests before implementation",
         "Use /handoff before ending a session",
         "Run /sprint-end to ship completed work",
         "Use /bootstrap to set up a new project",

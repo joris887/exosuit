@@ -1,13 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-hooks.json",
-  "_comment": "Declarative hook definitions for plugin distribution. Uses ${CLAUDE_PLUGIN_ROOT} for portable paths. In template mode, settings.json references these hooks with __PROJECT_ROOT__ placeholders instead.",
+  "_comment": "Declarative hook definitions for plugin distribution. Uses ${CLAUDE_PLUGIN_ROOT} for portable paths (scripts live in the plugin cache) and cd's to the project root so hooks operate on project state. Drop-in installs use .claude/settings.json instead.",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/session-start.sh\"",
             "once": true,
             "statusMessage": "Checking project environment..."
           }
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/pre-tool-use.sh\"",
             "statusMessage": "Safety check..."
           }
         ]
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree-bash-fix.sh"
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/worktree-bash-fix.sh\""
           }
         ],
         "apply_to_subagents": true
@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-read-check.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/pre-read-check.sh\"",
             "statusMessage": "Checking file sensitivity..."
           }
         ]
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/post-tool-use.sh\"",
             "statusMessage": "Logging activity..."
           }
         ]
@@ -62,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-format.sh \"$FILE_PATH\"",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && bash \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/post-edit-format.sh\" \"$FILE_PATH\"",
             "statusMessage": "Auto-formatting..."
           }
         ]
@@ -73,7 +73,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/stop.sh\"",
             "statusMessage": "Quality gate..."
           }
         ]
@@ -84,7 +84,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/user-prompt.sh\"",
             "statusMessage": "Analyzing request..."
           }
         ]
@@ -95,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree.sh WorktreeCreate",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/worktree.sh\" WorktreeCreate",
             "statusMessage": "Setting up worktree..."
           }
         ]
@@ -106,7 +106,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/worktree.sh WorktreeRemove",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/worktree.sh\" WorktreeRemove",
             "statusMessage": "Cleaning up worktree..."
           }
         ]
@@ -117,7 +117,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.sh"
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/subagent-stop.sh\""
           }
         ]
       }
@@ -127,7 +127,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/pre-compact.sh\"",
             "statusMessage": "Preserving session state..."
           }
         ]
@@ -138,7 +138,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-failure.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/post-tool-failure.sh\"",
             "statusMessage": "Analyzing failure..."
           }
         ]
