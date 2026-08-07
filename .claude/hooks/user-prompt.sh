@@ -26,8 +26,9 @@ extract_json_string() {
 }
 
 # Read stdin once
+# UserPromptSubmit carries the prompt text in the top-level "prompt" field.
 INPUT=$(cat)
-PROMPT=$(printf '%s' "$INPUT" | extract_json_string "user_prompt")
+PROMPT=$(printf '%s' "$INPUT" | extract_json_string "prompt")
 [ -z "$PROMPT" ] && exit 0
 
 # --- 1. Check intent patterns ---

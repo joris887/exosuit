@@ -36,15 +36,30 @@ export EXOSUIT_PROJECT_PROFILE="standard"
 echo ""
 echo "  -- Intent pattern detection --"
 
+# UserPromptSubmit carries the prompt text in the top-level "prompt" field. Tests
+# MUST use that name — an earlier version passed "user_prompt", which matched a bug
+# in the hook and made every prompt read as empty. The hook then exited early, so
+# the "no warning" case passed for the wrong reason and the failure stayed hidden.
+prompt_payload() {
+    printf '{"session_id":"test","transcript_path":"/tmp/t.jsonl","cwd":"/tmp","hook_event_name":"UserPromptSubmit","prompt":%s}' "$1"
+}
+
 # Destructive intent should produce a warning
-OUTPUT=$(echo '{"user_prompt":"please delete all the test files and wipe everything"}' | sh "$HOOK" 2>&1 || true)
+OUTPUT=$(echo "$(prompt_payload '"please delete all the test files and wipe everything"')" | sh "$HOOK" 2>&1 || true)
 WARN_FOUND=$(echo "$OUTPUT" | grep -Ei "warning|caution|destructive" | head -1 || true)
 test_case "Destructive intent triggers warning" "true" "$([ -n "$WARN_FOUND" ] && echo true || echo false)"
 
 # Normal intent should not produce a warning
-OUTPUT=$(echo '{"user_prompt":"add a login form to the auth page"}' | sh "$HOOK" 2>&1 || true)
+OUTPUT=$(echo "$(prompt_payload '"add a login form to the auth page"')" | sh "$HOOK" 2>&1 || true)
 WARN_MATCH=$(echo "$OUTPUT" | grep -i "warning" || true)
 test_case "Normal intent no warning" "" "$WARN_MATCH"
+
+# Regression: reading the wrong field must not silently pass. A payload carrying
+# only the old "user_prompt" name has no readable prompt, so no warning fires —
+# this asserts the shape actually matters instead of passing vacuously.
+OUTPUT=$(echo '{"hook_event_name":"UserPromptSubmit","user_prompt":"delete all the test files and wipe everything"}' | sh "$HOOK" 2>&1 || true)
+WARN_LEGACY=$(echo "$OUTPUT" | grep -Ei "warning|caution|destructive" | head -1 || true)
+test_case "Legacy user_prompt field is not read" "" "$WARN_LEGACY"
 
 # --- Skill invocation tracking ---
 echo ""

@@ -28,22 +28,73 @@ case "$CURRENT_PROFILE" in
 esac
 
 # --- JSON field extraction ---
-# Try jq first, fall back to sed for simple field extraction.
-extract_json_string() {
-    _field="$1"
+# Extracts a field from JSON. Supports dotted paths with jq, flat keys with sed.
+# The sed fallback matches the key anywhere in the payload, so it finds nested
+# values too when jq is unavailable.
+extract_json() {
+    _jq_path="$1"
+    _sed_key="$2"
     if command -v jq >/dev/null 2>&1; then
-        jq -r ".$_field // empty"
+        jq -r "$_jq_path // empty"
     else
-        sed -n 's/.*"'"$_field"'"[[:space:]]*:[[:space:]]*"\(.*\)".*/\1/p' | head -1
+        sed -n 's/.*"'"$_sed_key"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1
     fi
 }
 
 # Read stdin once
 INPUT=$(cat)
-COMMAND=$(printf '%s' "$INPUT" | extract_json_string "command")
+COMMAND=$(printf '%s' "$INPUT" | extract_json ".tool_input.command" "command")
 
 # If no command, allow through
 [ -z "$COMMAND" ] && exit 0
+
+# --- Reduce the command to the part that actually executes ---
+# A message body is prose, not a command. Writing a commit message that quotes a
+# blocked command must not trip the blocker. Two narrow exclusions only:
+#
+#   1. Quoted values of message-carrying flags (-m, --body, ...). Note that -c is
+#      deliberately absent: `psql -c "DROP TABLE users"` really does execute.
+#   2. Heredoc bodies, and only for commit/PR-creation commands, where the heredoc
+#      is the message. Anything after the terminator is kept, so a dangerous
+#      command chained onto the end is still seen.
+#
+# Everything else is scanned verbatim.
+scan_target() {
+    _cmd="$1"
+
+    # Heredoc bodies first, line by line, and only for message-carrying commands.
+    case "$_cmd" in
+        *"git commit"*|*"gh pr create"*|*"gh issue create"*)
+            _cmd=$(printf '%s' "$_cmd" | awk '
+                !inhd && index($0, "<<") {
+                    s = substr($0, index($0, "<<") + 2)
+                    sub(/^[-[:space:]]*/, "", s)
+                    sub(/[[:space:]].*$/, "", s)
+                    gsub(/[^A-Za-z0-9_]/, "", s)
+                    if (s != "") { term = s; inhd = 1 }
+                    print; next
+                }
+                inhd { if ($0 == term) inhd = 0; next }
+                { print }
+            ')
+            ;;
+    esac
+
+    # Then quoted flag values. The whole command is slurped first because commit
+    # messages routinely span lines, and a line-based pass would never see the
+    # closing quote.
+    printf '%s' "$_cmd" | awk -v Q="'" '
+        { buf = buf (NR > 1 ? "\n" : "") $0 }
+        END {
+            flags = "(-m|-am|--message|--body|--body-file)[[:space:]]+"
+            gsub(flags "\"[^\"]*\"", " MESSAGE_BODY ", buf)
+            gsub(flags Q "[^" Q "]*" Q, " MESSAGE_BODY ", buf)
+            printf "%s", buf
+        }
+    '
+}
+
+SCAN=$(scan_target "$COMMAND")
 
 # --- Helper: map severity name to numeric level ---
 severity_level() {
@@ -104,7 +155,7 @@ if [ -f "$SAFETY_FILE" ]; then
         fi
 
         # Match command against regex
-        if printf '%s' "$COMMAND" | grep -qE -- "$regex"; then
+        if printf '%s' "$SCAN" | grep -qE -- "$regex"; then
             if [ "$EXPLAIN_MODE" = "verbose" ] && [ -n "$explanation" ]; then
                 printf 'BLOCKED: %s\n  %s\n' "$message" "$explanation" >&2
             elif [ "$EXPLAIN_MODE" != "off" ]; then
@@ -116,12 +167,18 @@ if [ -f "$SAFETY_FILE" ]; then
 fi
 
 # --- Framework template repo protection ---
-if printf '%s' "$COMMAND" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+push)'; then
+# The -C form is included deliberately: without it, `git -C <path> push` slipped
+# past this check while still being caught by the safety patterns above.
+if printf '%s' "$SCAN" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+(-C\s+\S+\s+)?push)'; then
     FRAMEWORK_REPO="${EXOSUIT_FRAMEWORK_REPO:-joris887/exosuit}"
     REMOTE=$(git remote get-url origin 2>/dev/null || true)
     if [ -n "$REMOTE" ]; then
-        case "$REMOTE" in
-            *"$FRAMEWORK_REPO"*)
+        # Compare owner/repo exactly. A substring test matched any repository whose
+        # name merely started with the framework's -- joris887/exosuit-homepage was
+        # treated as joris887/exosuit and could never be pushed.
+        REMOTE_PATH=$(printf '%s' "$REMOTE" | sed -e 's#\.git$##' -e 's#^.*[:/]\([^/][^/]*/[^/][^/]*\)$#\1#')
+        case "$REMOTE_PATH" in
+            "$FRAMEWORK_REPO")
                 printf 'BLOCKED: Remote points to the framework template repository (%s). Run: git remote set-url origin <your-project-repo-url>\n' "$FRAMEWORK_REPO" >&2
                 exit 2
                 ;;
@@ -145,7 +202,7 @@ if [ -f "$ADVISORY_FILE" ]; then
             continue
         fi
 
-        if printf '%s' "$COMMAND" | grep -qE -- "$regex"; then
+        if printf '%s' "$SCAN" | grep -qE -- "$regex"; then
             if [ -z "$ADVISORIES" ]; then
                 ADVISORIES="$message"
             else
