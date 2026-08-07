@@ -35,7 +35,7 @@ AI-assisted coding is powerful. It's also chaos.
 
 Without structure, every Claude Code session drifts toward the same failure modes: scope creeps until the context window is exhausted. Tests get skipped because "the code looks right." Git history becomes a wasteland of `fix`, `update`, and `wip` commits. The AI claims "done" without running a single test. And when you start a new session, all context from the last one is gone.
 
-You're not engineering software. You're prompting and praying — generating plausible code with no discipline behind it.
+You're not engineering software. You're prompting and hoping — generating plausible code with no discipline behind it.
 
 This isn't a niche complaint. [Veracode's 2025 GenAI report](https://www.veracode.com/blog/genai-code-security-report/) found AI models introduce an OWASP Top-10 vulnerability in **45% of code tasks**, and [Stack Overflow's 2025 survey](https://survey.stackoverflow.co/2025/) found more developers actively **distrust** AI output accuracy (46%) than trust it (33%).
 
