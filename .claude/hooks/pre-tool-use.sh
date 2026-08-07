@@ -28,19 +28,22 @@ case "$CURRENT_PROFILE" in
 esac
 
 # --- JSON field extraction ---
-# Try jq first, fall back to sed for simple field extraction.
-extract_json_string() {
-    _field="$1"
+# Extracts a field from JSON. Supports dotted paths with jq, flat keys with sed.
+# The sed fallback matches the key anywhere in the payload, so it finds nested
+# values too when jq is unavailable.
+extract_json() {
+    _jq_path="$1"
+    _sed_key="$2"
     if command -v jq >/dev/null 2>&1; then
-        jq -r ".$_field // empty"
+        jq -r "$_jq_path // empty"
     else
-        sed -n 's/.*"'"$_field"'"[[:space:]]*:[[:space:]]*"\(.*\)".*/\1/p' | head -1
+        sed -n 's/.*"'"$_sed_key"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1
     fi
 }
 
 # Read stdin once
 INPUT=$(cat)
-COMMAND=$(printf '%s' "$INPUT" | extract_json_string "command")
+COMMAND=$(printf '%s' "$INPUT" | extract_json ".tool_input.command" "command")
 
 # If no command, allow through
 [ -z "$COMMAND" ] && exit 0
