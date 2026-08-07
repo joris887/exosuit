@@ -1,11 +1,8 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="Exosuit — e^x monogram" height="128">
+  <img src="assets/banner.svg" alt="Exosuit — Suit up. Build anything." width="100%">
 </p>
 
-<h1 align="center">Exosuit</h1>
-
 <p align="center">
-  <strong>Suit up. Build anything.</strong><br>
   One idea is enough. Exosuit wraps Claude Code in a full engineering organization — it interrogates your vision, pressure-tests every assumption, plans the build, and enforces tested, verified shipping.
 </p>
 
@@ -56,20 +53,13 @@ A drop-in development framework for [Claude Code](https://claude.com/claude-code
 - **Any language, any project** — Python, TypeScript, Go, Rust, Ruby, Java, PHP, Dart, C#, Swift, Kotlin, C/C++. The framework detects your stack and configures itself.
 - **Verification is non-negotiable** — "it should work" is not accepted. Fresh test output is required before any completion claim.
 
-## Why Exosuit?
+## Where Exosuit Fits
 
-Every framework in this space has a planning step. Almost none can *enforce* anything — they're instructions the model can drift away from. Exosuit's difference is the combination: interrogate the idea before code exists, then enforce the discipline with hooks, not hopes.
+Structured AI development is a genuinely good neighborhood, and Exosuit stands on its shoulders. [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) pioneered deep agile planning with specialized agents. [Superpowers](https://github.com/obra/superpowers) proved a skills-based methodology could feel native to Claude Code. GitHub's [spec-kit](https://github.com/github/spec-kit) brought spec-driven development to the mainstream. [CCPM](https://github.com/automazeio/ccpm) turned GitHub Issues into a real coordination backbone for parallel agents. [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework) showed how far behavioral configuration can go, and [tdd-guard](https://github.com/nizos/tdd-guard)/[Probity](https://github.com/nizos/probity) built serious deterministic TDD gates. If one of those matches how you work, use it — they're good tools built by people who care about the same problem.
 
-| | Exosuit | [Superpowers](https://github.com/obra/superpowers) | [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) | [spec-kit](https://github.com/github/spec-kit) | [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework) | [CCPM](https://github.com/automazeio/ccpm) |
-|---|---|---|---|---|---|---|
-| **Pre-code idea interrogation** | Mandatory, hard-gated — 11 archetypes, assumption stress-tests, pre-mortem, kill criteria | Strong, prompt-gated | Deepest menus, but optional phase | Optional `/clarify` | Brainstorm mode (nudge) | PRD template |
-| **Enforcement mechanism** | **Deterministic shell hooks** — dangerous commands, secrets, and force-pushes are blocked by exit codes, not requests | Instructions + a context-injecting hook | Instructions (MD/YAML) | Templates + slash commands | Instruction injection | Convention + GitHub Issues |
-| **"Done" requires fresh test evidence** | Yes — Stop-hook quality gates run lint/tests before completion | Subagent-checked (bypassable) | No | No | No | No |
-| **Session continuity** | Auto-save, `/handoff`, `/continue` | No | Partial | No | No | Via GitHub Issues |
-| **Adapts ceremony to risk** | 3 profiles + per-story risk calibration | No | 3 tracks (v6) | No | No | No |
-| **Runtime dependencies** | None — POSIX shell + markdown | None | Node.js 20+ | Python 3.11+ / uv | Python | GitHub CLI |
+Exosuit's bet is a specific *combination* none of them focuses on: **elicitation that is mandatory** — The Interrogation happens before code exists, and everything it produces persists into files that every later command actually reads — **plus enforcement that is deterministic** — exit-code hooks rather than instructions the model can drift away from. Everything else in the framework exists to serve that pairing.
 
-All of these are good projects — several inspired parts of Exosuit. The gap Exosuit fills is the fusion: the frameworks with deep elicitation enforce by instruction, and the tools with deterministic hooks do no elicitation. Exosuit does both.
+If you build or maintain one of these projects: let's compare notes. The enforcement layer is portable, the integration-test findings are public, and there's an open door in [Discussions](https://github.com/joris887/exosuit/discussions).
 
 ## Quick Start
 
