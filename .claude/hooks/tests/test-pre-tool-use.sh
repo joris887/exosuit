@@ -91,6 +91,23 @@ test_case "Heredoc stripping does not apply to non-commit commands" \
 test_case "Still blocks -c payloads, which do execute" \
     "$(payload '"psql -c \"DROP TABLE users\""')" 2
 
+# --- Short-flag patterns must match flags, not hyphenated words ---
+# -[a-zA-Z]*f once matched the "-f" inside any hyphenated word, so ordinary
+# pushes to branches like my-feature or hot-fix were blocked, and so was
+# --force-with-lease, the remedy the block message recommends.
+test_case "Allow push to a branch containing -feature" \
+    "$(payload '"git push -u origin my-feature"')" 0
+test_case "Allow push to a branch containing -fix" \
+    "$(payload '"git push origin hot-fix"')" 0
+test_case "Allow push to a branch containing -form" \
+    "$(payload '"git push origin feat/login-form"')" 0
+test_case "Allow --force-with-lease" \
+    "$(payload '"git push --force-with-lease origin main"')" 0
+test_case "Block bare -f flag" "$(payload '"git push -f"')" 2
+test_case "Block clustered -uf flag" "$(payload '"git push -uf origin main"')" 2
+test_case "Allow git clean -n on a path containing -f" \
+    "$(payload '"git clean -n src/my-feature"')" 0
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1
