@@ -67,6 +67,30 @@ test_case "Reads tool_input, not root (dangerous nested, safe root)" \
 test_case "Ignores root command (safe nested, dangerous root)" \
     '{"hook_event_name":"PreToolUse","tool_name":"Bash","command":"git reset --hard","tool_input":{"command":"git status"}}' 0
 
+# --- Message bodies are prose, not commands ---
+# Writing about a blocked command must not trip the blocker.
+test_case "Allow commit message quoting a blocked command" \
+    "$(payload '"git commit -m \"fix: a force-push used to run unblocked\""')" 0
+test_case "Allow commit message quoting reset --hard" \
+    "$(payload '"git commit -m \"docs: explain why git reset --hard is banned\""')" 0
+test_case "Allow single-quoted commit message" \
+    "$(payload "\"git commit -m 'note: git clean -f is destructive'\"")" 0
+test_case "Allow heredoc commit body mentioning a blocked command" \
+    "$(payload '"git commit -F - <<EOF\nfix: hooks\n\nA live git push --force ran unblocked.\nEOF"')" 0
+test_case "Allow multi-line -m message mentioning a blocked command" \
+    "$(payload '"git commit -m \"fix: hooks\n\nA live git push --force ran unblocked before this.\nNow it is blocked.\""')" 0
+
+# --- The exclusions must not become a bypass ---
+# Stripping a message body must never hide a real command elsewhere in the chain.
+test_case "Still blocks a dangerous command after a safe -m" \
+    "$(payload '"git commit -m \"chore: tidy\" && git push --force origin main"')" 2
+test_case "Still blocks a dangerous command after a heredoc terminator" \
+    "$(payload '"git commit -F - <<EOF\nchore: tidy\nEOF\ngit reset --hard HEAD~3"')" 2
+test_case "Heredoc stripping does not apply to non-commit commands" \
+    "$(payload '"bash <<EOF\nrm -rf /\nEOF"')" 2
+test_case "Still blocks -c payloads, which do execute" \
+    "$(payload '"psql -c \"DROP TABLE users\""')" 2
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1

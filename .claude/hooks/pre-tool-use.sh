@@ -48,6 +48,54 @@ COMMAND=$(printf '%s' "$INPUT" | extract_json ".tool_input.command" "command")
 # If no command, allow through
 [ -z "$COMMAND" ] && exit 0
 
+# --- Reduce the command to the part that actually executes ---
+# A message body is prose, not a command. Writing a commit message that quotes a
+# blocked command must not trip the blocker. Two narrow exclusions only:
+#
+#   1. Quoted values of message-carrying flags (-m, --body, ...). Note that -c is
+#      deliberately absent: `psql -c "DROP TABLE users"` really does execute.
+#   2. Heredoc bodies, and only for commit/PR-creation commands, where the heredoc
+#      is the message. Anything after the terminator is kept, so a dangerous
+#      command chained onto the end is still seen.
+#
+# Everything else is scanned verbatim.
+scan_target() {
+    _cmd="$1"
+
+    # Heredoc bodies first, line by line, and only for message-carrying commands.
+    case "$_cmd" in
+        *"git commit"*|*"gh pr create"*|*"gh issue create"*)
+            _cmd=$(printf '%s' "$_cmd" | awk '
+                !inhd && index($0, "<<") {
+                    s = substr($0, index($0, "<<") + 2)
+                    sub(/^[-[:space:]]*/, "", s)
+                    sub(/[[:space:]].*$/, "", s)
+                    gsub(/[^A-Za-z0-9_]/, "", s)
+                    if (s != "") { term = s; inhd = 1 }
+                    print; next
+                }
+                inhd { if ($0 == term) inhd = 0; next }
+                { print }
+            ')
+            ;;
+    esac
+
+    # Then quoted flag values. The whole command is slurped first because commit
+    # messages routinely span lines, and a line-based pass would never see the
+    # closing quote.
+    printf '%s' "$_cmd" | awk -v Q="'" '
+        { buf = buf (NR > 1 ? "\n" : "") $0 }
+        END {
+            flags = "(-m|-am|--message|--body|--body-file)[[:space:]]+"
+            gsub(flags "\"[^\"]*\"", " MESSAGE_BODY ", buf)
+            gsub(flags Q "[^" Q "]*" Q, " MESSAGE_BODY ", buf)
+            printf "%s", buf
+        }
+    '
+}
+
+SCAN=$(scan_target "$COMMAND")
+
 # --- Helper: map severity name to numeric level ---
 severity_level() {
     case "$1" in
@@ -107,7 +155,7 @@ if [ -f "$SAFETY_FILE" ]; then
         fi
 
         # Match command against regex
-        if printf '%s' "$COMMAND" | grep -qE -- "$regex"; then
+        if printf '%s' "$SCAN" | grep -qE -- "$regex"; then
             if [ "$EXPLAIN_MODE" = "verbose" ] && [ -n "$explanation" ]; then
                 printf 'BLOCKED: %s\n  %s\n' "$message" "$explanation" >&2
             elif [ "$EXPLAIN_MODE" != "off" ]; then
@@ -119,7 +167,7 @@ if [ -f "$SAFETY_FILE" ]; then
 fi
 
 # --- Framework template repo protection ---
-if printf '%s' "$COMMAND" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+push)'; then
+if printf '%s' "$SCAN" | grep -qE '(gh\s+(pr|issue)\s+create|git\s+push)'; then
     FRAMEWORK_REPO="${EXOSUIT_FRAMEWORK_REPO:-joris887/exosuit}"
     REMOTE=$(git remote get-url origin 2>/dev/null || true)
     if [ -n "$REMOTE" ]; then
@@ -148,7 +196,7 @@ if [ -f "$ADVISORY_FILE" ]; then
             continue
         fi
 
-        if printf '%s' "$COMMAND" | grep -qE -- "$regex"; then
+        if printf '%s' "$SCAN" | grep -qE -- "$regex"; then
             if [ -z "$ADVISORIES" ]; then
                 ADVISORIES="$message"
             else
