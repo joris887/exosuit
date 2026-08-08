@@ -97,7 +97,7 @@ cd my-project && rm -rf .git && git init
 
 </details>
 
-## Your First 5 Minutes
+## Your First session
 
 After install, everything starts with `/bootstrap`. What happens next depends on your situation:
 
