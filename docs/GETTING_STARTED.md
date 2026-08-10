@@ -16,12 +16,7 @@ Windows (needs [Git for Windows](https://git-scm.com/download/win), which Claude
 powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/joris887/exosuit/main/install.ps1 | iex"
 ```
 
-Or clone for a new project:
-
-```bash
-git clone https://github.com/joris887/exosuit.git my-project
-cd my-project && rm -rf .git && git init
-```
+Starting from scratch? Run the same command in an empty folder — `/bootstrap` detects a new project and takes it from there.
 
 ## Step 2: Open Claude Code and Run `/quickstart`
 
