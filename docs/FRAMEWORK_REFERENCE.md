@@ -332,6 +332,9 @@ YOU ARE HERE ──→ install.sh ──→ /bootstrap ──→ /ideate ──�
 ### install.sh
 
 No prerequisites beyond POSIX shell and git. Clones via HTTPS with SSH fallback.
+On Windows, `install.ps1` is a thin wrapper that locates Git Bash (bundled with
+Git for Windows, which Claude Code on Windows requires) and runs `install.sh`
+through it — all install logic lives in one script.
 
 ```
 ./install.sh [--mode=plugin|template] [--components=X] [--force] [--dry-run]

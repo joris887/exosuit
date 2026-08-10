@@ -4,11 +4,21 @@ This guide walks you through your first session with the Exosuit framework.
 
 ## Step 1: Install
 
-```bash
-# Into an existing project:
-curl -sL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
+Into an existing project — macOS / Linux:
 
-# Or clone for a new project:
+```bash
+curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
+```
+
+Windows (needs [Git for Windows](https://git-scm.com/download/win), which Claude Code requires anyway):
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/joris887/exosuit/main/install.ps1 | iex"
+```
+
+Or clone for a new project:
+
+```bash
 git clone https://github.com/joris887/exosuit.git my-project
 cd my-project && rm -rf .git && git init
 ```

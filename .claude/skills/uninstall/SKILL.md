@@ -146,8 +146,9 @@ Only remove these if no other tool uses them.
 
 **To re-install later:**
 ```bash
-curl -sL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
 ```
+(Windows: `powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/joris887/exosuit/main/install.ps1 | iex"`)
 ```
 
 ## Rules
