@@ -63,9 +63,16 @@ If you build or maintain one of these projects: let's compare notes. The enforce
 
 ## Quick Start
 
+Install into your project — existing repo or new. **macOS / Linux:**
+
 ```bash
-# Install into your project (existing repo or new)
-curl -sL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
+```
+
+**Windows** (needs [Git for Windows](https://git-scm.com/download/win), which Claude Code requires anyway):
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/joris887/exosuit/main/install.ps1 | iex"
 ```
 
 Then open Claude Code:

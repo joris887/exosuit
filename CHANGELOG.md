@@ -13,6 +13,32 @@ Each version entry lists:
 
 ---
 
+## [5.0.1] - 2026-08-10
+
+### Summary
+Cross-platform install. Windows gets a first-class one-liner via a new `install.ps1`
+wrapper that runs the canonical `install.sh` through Git Bash — no duplicated install
+logic. The README install snippet no longer errors when pasted into stock macOS zsh
+(the `#` comment line inside the copyable block was executed by zsh, whose
+`interactivecomments` option is off by default, producing `zsh: missing end of string`).
+Found during open-source flow testing (T06-001, T06-002).
+
+### Files added
+- `install.ps1` — Windows wrapper: locates Git Bash, fetches and runs `install.sh`
+
+### Files changed
+- `install.sh` — usage header only (documents `-fsSL` and the Windows wrapper)
+- `README.md` — Quick Start: comment moved out of copyable block, `curl -sL` → `-fsSL`,
+  Windows PowerShell one-liner added
+- `docs/GETTING_STARTED.md` — same install-block update
+- `docs/FRAMEWORK_REFERENCE.md` — documents `install.ps1`
+- `.claude/skills/uninstall/SKILL.md` — re-install snippet updated
+
+### Breaking changes
+None.
+
+---
+
 ## [5.0.0] - 2026-08-05
 
 ### Summary

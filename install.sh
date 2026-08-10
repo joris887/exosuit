@@ -8,7 +8,8 @@ set -euo pipefail
 # settings.json is always overwritten (framework-managed).
 #
 # Usage:
-#   curl -sL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
+#   (Windows: install.ps1 wraps this script via Git Bash)
 #   bash install.sh
 #   bash install.sh --mode=plugin
 #   bash install.sh --components=hooks,rules
