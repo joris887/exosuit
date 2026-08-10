@@ -131,14 +131,15 @@ The framework tells you exactly what your project needs to be production-ready, 
 
 ```
 What are you building?
-> "A marketplace where neighbors rent out their driveways as parking spots"
+> "A neighborhood power grid where every solar roof, home battery,
+>  and parked EV trades energy automatically"
 
-Classifying... → Marketplace archetype, Standard scale
+Classifying... → Marketplace archetype, Platform scale
 
 Phase 1: Classification ████████░░░░ 2/7
-  Which side do you win first: drivers who need a spot, or owners with an empty driveway?
-  What does a driver do today when there is no parking near their destination?
-  Why would a homeowner let a stranger park on their property?
+  Who sets the price when your neighbor's battery powers your kettle?
+  What happens on a still, cloudy week in January?
+  Is the utility company your partner, your rival, or your customer?
 
 Phase 2: Core Identity ████████████░░░░ 3/7
   [researching competitive landscape...]
