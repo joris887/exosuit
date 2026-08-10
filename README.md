@@ -90,7 +90,7 @@ That's it. Four commands from zero to shipped PR.
 
 After install, everything starts with `/bootstrap`. What happens next depends on your situation.
 
-**Take your time with this step.** For an existing repo, bootstrap finishes in minutes. For a new project it starts the discovery interview, and that can take an hour or more. This is deliberate. It is where the deep elicitation happens: expect questions about your idea that you have never asked yourself, and your honest answers become the foundation of everything the framework builds afterwards. Rushing here trades an hour of thinking for weeks of building the wrong thing.
+**Take your time with this step.** Bootstrap is thorough on purpose. For an existing repo it researches your codebase, maps the gaps between your current setup and the framework's engineering principles, and generates your project documentation; how long that takes scales with the size of your repo. For a new project it starts the discovery interview, and that can take an hour or more. This is deliberate. It is where the deep elicitation happens: expect questions about your idea that you have never asked yourself, and your honest answers become the foundation of everything the framework builds afterwards. Rushing here trades an hour of thinking for weeks of building the wrong thing.
 
 ### Existing project with code
 
