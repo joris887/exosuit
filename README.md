@@ -192,36 +192,42 @@ Both messages are real hook output, not paraphrase. The full net: dangerous git 
 
 These are exit-code shell scripts wired into Claude Code's hook events. There is no rule to ignore and no instruction to drift from. The command simply does not run.
 
-## How Story Delivery Works
+## The Sprint Loop
 
-When you run `/story-cycle "add login form"`:
+Everything ships through the same loop of three commands. This is the framework's heartbeat:
 
 ```
-Phase 0: Decompose — classify size (XS→XL) and risk, identify deliverables
-Phase 1: Plan     — research codebase, check ground rules, write implementation plan
-                    ↳ Confidence gate: files read? tests passing? patterns found?
-                      scope bounded? no conflicts? (≥85% to proceed)
-Phase 2: Build    — TDD for features, reproduce-first for bugs,
-                    characterization tests for refactors
-Phase 3: Review   — quality checklists, disaster prevention, failure recording
-Phase 4: Ship     — run full test suite, create conventional commit
+/sprint-start
+  Pre-flight   open PRs handled, working tree clean, main pulled and green
+  Planning     you pick ready stories, set one sprint goal, keep buffer capacity
+  Branch       sprint-N created; main stays untouched from here on
+
+/story-cycle E01-S01                        (repeat, one story at a time)
+  Phase 0  Decompose   size the story (TRIVIAL to XL) and score its risk
+  Phase 1  Plan        research the codebase, check ground rules, write the plan
+                       HARD GATE: you approve the plan before any code exists
+  Phase 2  Readiness   five checks with evidence: planned files read, tests
+                       green, existing pattern cited, scope bounded, no rule
+                       conflicts. A failed check goes back to planning, not code
+  Phase 3  Build       HARD GATE: tests before implementation
+                       features: TDD | bugs: reproduce first | refactors:
+                       characterization tests
+  Phase 4  Verify      self-review, quality agents scaled to risk, fresh
+                       evidence for every acceptance criterion, then a
+                       conventional commit
+
+/sprint-end
+  Quality gates   full test suite, test-count protection, review agents
+  Documentation   epics, backlog, progress, and metrics updated
+  Ship            PR created, CI awaited, squash merge to main,
+                  branch deleted, sprint summarized
 ```
 
-Trivial changes (XS) fast-track through. High-risk changes get extra scrutiny regardless of size.
+TRIVIAL changes fast-track through a single lite pass. High-risk changes get extra scrutiny whatever their size. Between sessions, `/handoff` and `/continue` keep the loop running without losing context.
 
-## Profiles: Choose Your Level of Ceremony
+## Profiles
 
-Set during `/bootstrap`. Change anytime.
-
-| | Lean | Standard | Strict |
-|---|---|---|---|
-| **Best for** | Prototypes, MVPs, hackathons | Production apps, APIs, libraries | Regulated, high-stakes systems |
-| **Story workflow** | Plan → Build → Verify | Full 5-phase with confidence gate | All phases + mandatory multi-agent review |
-| **Quality gates** | Lint + test | Code + tests + security | All 8 agents + integration tester |
-| **TDD** | Advisory for small changes | Required for features/bugs/refactors | Required for everything |
-| **Safety hooks** | Always on | Always on | Always on + extended checks |
-
-All profiles enforce the same safety net: secrets detection, dangerous command blocking, git protection.
+Not every project needs the same ceremony. During `/bootstrap` you pick one of three profiles: **Lean** for prototypes (plan, build, verify), **Standard** for production work (the full loop above), or **Strict** for regulated systems (every gate mandatory, plus an audit trail). The workflow scales; the safety net never does. Secrets detection, dangerous command blocking, and git protection are always on. Change your profile anytime in CLAUDE.md.
 
 ## Architecture
 
