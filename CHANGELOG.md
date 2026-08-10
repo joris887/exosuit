@@ -24,6 +24,15 @@ logic. The README install snippet no longer errors when pasted into stock macOS 
 Found during open-source flow testing (T06-001, T06-002).
 
 ### Fixed
+- README first-session examples now match what /bootstrap and /discover actually do:
+  Path A example no longer contradicts itself (detection showed CI present while the
+  readiness report flagged it missing), shows the interactive decision points (profile,
+  ground rules), codebase health metrics, dependency-ordered foundation levels with the
+  Framework Ready Gate, and real story IDs (E00-S01); Path B example moves the deep
+  questions out of Phase 1 (classification) into the phases that actually ask them,
+  fixes the phase counters, and surfaces persona synthesis and No-Gos. Bootstrap A7
+  summary template updated from a stale "[N]/12" to the dynamic principle count
+  (the readiness report assesses 15, some conditionally skipped).
 - `status-line.sh` rendered `detached*+` in any directory without a git repo (every
   git call fails outside a repo and each failure was misread as detached/dirty/staged);
   now shows a dim `no git`. A genuinely detached HEAD also now shows `detached` —

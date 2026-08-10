@@ -94,36 +94,44 @@ After install, everything starts with `/bootstrap`. What happens next depends on
 
 ### Existing project with code
 
-`/bootstrap` scans your repository and configures everything automatically:
+`/bootstrap` researches your repository, then walks you through the decisions that matter: development profile, ground rules, quality tooling. Detection is automatic; the decisions stay yours:
 
 ```
 Detecting stack...
-  Language:   Python 3.12
-  Framework:  FastAPI
-  Tests:      pytest (127 tests, 72% coverage)
-  Formatter:  ruff
-  Linter:     ruff
-  CI:         GitHub Actions
+  Language:    Python 3.12
+  Framework:   FastAPI
+  Tests:       pytest (127 tests, 72% coverage)
+  Formatter:   ruff
+  Linter:      ruff
+  Type check:  not configured
+  CI:          not found
+
+Codebase health...
+  14,200 LOC across 87 files
+  3 files over 500 LOC, 12 technical debt items
+
+Profile: Standard (recommended from project signals, you confirm)
 
 Generating configuration...
   ✓ CLAUDE.md configured
-  ✓ Architecture documented
-  ✓ Coding standards generated
-  ✓ Testing strategy populated
-  ✓ Ground rules established
+  ✓ Architecture documented from the actual import graph
+  ✓ Coding standards + testing strategy populated
+  ✓ Ground rules established (interactive)
 
 Framework Readiness Report:
-  TDD-first          ✓ Ready    pytest detected, 127 tests
-  Git-disciplined     ✓ Ready    main branch, remote configured
-  CI-enforced         ✗ Missing  No GitHub Actions workflow
-  Type-safe           ⚠ Risk     No type checker configured
+  TDD-first        ✓ Ready    pytest, 72% coverage baseline
+  Git-disciplined  ✓ Ready    main branch, remote configured
+  Type-safe        ⚠ Risk     no type checker configured
+  CI-enforced      ✗ Missing  no CI pipeline found
+  ...11 more principles assessed
 
-Foundation stories generated:
-  E00-001: Configure GitHub Actions CI
-  E00-002: Add type checking (mypy)
+Foundation backlog, dependency-ordered:
+  E00-S01  Add type checking (mypy)     Level 0: tools
+  E00-S02  Configure GitHub Actions CI  Level 3: structure
+  Framework Ready Gate after Level 2
 ```
 
-The framework tells you exactly what your project needs to be production-ready, then generates stories to get there.
+The framework tells you exactly what your project needs to be production-ready, then generates stories to get there, ordered so each level unlocks the next.
 
 ### New project from an idea
 
@@ -134,27 +142,27 @@ What are you building?
 > "A neighborhood power grid where every solar roof, home battery,
 >  and parked EV trades energy automatically"
 
-Classifying... → Marketplace archetype, Platform scale
+Phase 1: Classification ███░░░░░░░░░░░░░░░░░ 1/7
+  → Marketplace archetype, Platform scale (recommended, you confirm)
 
-Phase 1: Classification ████████░░░░ 2/7
+Phase 2: Core Identity ██████░░░░░░░░░░░░░░ 2/7
+  [researching the energy-trading landscape...]
   Who sets the price when your neighbor's battery powers your kettle?
-  What happens on a still, cloudy week in January?
   Is the utility company your partner, your rival, or your customer?
 
-Phase 2: Core Identity ████████████░░░░ 3/7
-  [researching competitive landscape...]
-  [5 targeted questions about your specific use case]
+Phase 3: Deep Elicitation █████████░░░░░░░░░░░ 3/7
+  [feature map: MUST / IMPORTANT / NICE / CUT]
+  [edge cases: what happens on a still, cloudy week in January?]
+  [user personas drafted from your answers, you confirm]
 
-Phase 3: Deep Elicitation ████████████████░░░░ 4/7
-  [feature mapping: MUST / IMPORTANT / NICE / CUT]
-  [edge case exploration across 6 dimensions]
+Phase 4: Stress Testing ████████████░░░░░░░░ 4/7
+  [rating assumptions, researching the unknowns]
+  [pre-mortem: what kills this project?]
+  [No-Gos: what you are explicitly not building]
 
-Phase 4: Assumption Surfacing ████████████████████░░░░ 5/7
-  [surfacing and stress-testing assumptions]
-  [pre-mortem: what could kill this project?]
-
-→ Vision synthesis, backlog generation, architecture decisions
-→ Ready for /sprint-start
+Phases 5-7: tech decisions → vision pitch → MVP scoping
+  → Backlog: sized epics and stories, setup stories for external services
+  → Ready for /sprint-start
 ```
 
 This is not a generic questionnaire. `/discover` selects from **11 project archetypes** (utility, marketplace, developer tool, creative expression, etc.) and asks questions specific to your project type.
