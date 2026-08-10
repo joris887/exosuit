@@ -23,8 +23,17 @@ logic. The README install snippet no longer errors when pasted into stock macOS 
 `interactivecomments` option is off by default, producing `zsh: missing end of string`).
 Found during open-source flow testing (T06-001, T06-002).
 
+### Fixed
+- `status-line.sh` rendered `detached*+` in any directory without a git repo (every
+  git call fails outside a repo and each failure was misread as detached/dirty/staged);
+  now shows a dim `no git`. A genuinely detached HEAD also now shows `detached` —
+  previously the branch segment rendered empty (`--show-current` exits 0 with no
+  output on detached HEAD, so the fallback never fired).
+
 ### Files added
 - `install.ps1` — Windows wrapper: locates Git Bash, fetches and runs `install.sh`
+- `.claude/hooks/tests/test-status-line.sh` — git state rendering suite (non-git,
+  clean, dirty, staged, detached)
 
 ### Files changed
 - `install.sh` — usage header only (documents `-fsSL` and the Windows wrapper)
