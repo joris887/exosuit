@@ -23,6 +23,13 @@ logic. The README install snippet no longer errors when pasted into stock macOS 
 `interactivecomments` option is off by default, producing `zsh: missing end of string`).
 Found during open-source flow testing (T06-001, T06-002).
 
+### Changed (first-session focus)
+- "Your First Session" now leads with the new-project path (the best-tested route and
+  the framework's core differentiator); existing-repo follows. Same order applied to
+  GETTING_STARTED Step 3. The `/build` quick-path section was removed from the README
+  to keep first contact focused on bootstrap + discover; it remains documented in
+  GETTING_STARTED and the All Commands table.
+
 ### Fixed
 - README first-session examples now match what /bootstrap and /discover actually do:
   Path A example no longer contradicts itself (detection showed CI present while the

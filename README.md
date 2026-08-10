@@ -90,7 +90,41 @@ That's it. Four commands from zero to shipped PR.
 
 After install, everything starts with `/bootstrap`. What happens next depends on your situation.
 
-**Take your time with this step.** Bootstrap is thorough on purpose. For an existing repo it researches your codebase, maps the gaps between your current setup and the framework's engineering principles, and generates your project documentation; how long that takes scales with the size of your repo. For a new project it starts the discovery interview, and that can take an hour or more. This is deliberate. It is where the deep elicitation happens: expect questions about your idea that you have never asked yourself, and your honest answers become the foundation of everything the framework builds afterwards. Rushing here trades an hour of thinking for weeks of building the wrong thing.
+**Take your time with this step.** Bootstrap is thorough on purpose. For a new project it starts the discovery interview, and that can take an hour or more. This is deliberate. It is where the deep elicitation happens: expect questions about your idea that you have never asked yourself, and your honest answers become the foundation of everything the framework builds afterwards. Rushing here trades an hour of thinking for weeks of building the wrong thing. For an existing repo, bootstrap researches your codebase, maps the gaps between your current setup and the framework's engineering principles, and generates your project documentation; how long that takes scales with the size of your repo.
+
+### New project from an idea
+
+`/bootstrap` detects an empty project and launches `/discover`, **The Interrogation**: a deep, research-backed elicitation that pressure-tests your idea before a single line of code exists. It challenges your assumptions, runs a pre-mortem, and makes you declare kill criteria. Your project is built from what survives:
+
+```
+What are you building?
+> "A neighborhood power grid where every solar roof, home battery,
+>  and parked EV trades energy automatically"
+
+Phase 1: Classification ███░░░░░░░░░░░░░░░░░ 1/7
+  → Marketplace archetype, Platform scale (recommended, you confirm)
+
+Phase 2: Core Identity ██████░░░░░░░░░░░░░░ 2/7
+  [researching the energy-trading landscape...]
+  Who sets the price when your neighbor's battery powers your kettle?
+  Is the utility company your partner, your rival, or your customer?
+
+Phase 3: Deep Elicitation █████████░░░░░░░░░░░ 3/7
+  [feature map: MUST / IMPORTANT / NICE / CUT]
+  [edge cases: what happens on a still, cloudy week in January?]
+  [user personas drafted from your answers, you confirm]
+
+Phase 4: Stress Testing ████████████░░░░░░░░ 4/7
+  [rating assumptions, researching the unknowns]
+  [pre-mortem: what kills this project?]
+  [No-Gos: what you are explicitly not building]
+
+Phases 5-7: tech decisions → vision pitch → MVP scoping
+  → Backlog: sized epics and stories, setup stories for external services
+  → Ready for /sprint-start
+```
+
+This is not a generic questionnaire. `/discover` selects from **11 project archetypes** (utility, marketplace, developer tool, creative expression, etc.) and asks questions specific to your project type.
 
 ### Existing project with code
 
@@ -132,48 +166,6 @@ Foundation backlog, dependency-ordered:
 ```
 
 The framework tells you exactly what your project needs to be production-ready, then generates stories to get there, ordered so each level unlocks the next.
-
-### New project from an idea
-
-`/bootstrap` detects an empty project and launches `/discover`, **The Interrogation**: a deep, research-backed elicitation that pressure-tests your idea before a single line of code exists. It challenges your assumptions, runs a pre-mortem, and makes you declare kill criteria. Your project is built from what survives:
-
-```
-What are you building?
-> "A neighborhood power grid where every solar roof, home battery,
->  and parked EV trades energy automatically"
-
-Phase 1: Classification ███░░░░░░░░░░░░░░░░░ 1/7
-  → Marketplace archetype, Platform scale (recommended, you confirm)
-
-Phase 2: Core Identity ██████░░░░░░░░░░░░░░ 2/7
-  [researching the energy-trading landscape...]
-  Who sets the price when your neighbor's battery powers your kettle?
-  Is the utility company your partner, your rival, or your customer?
-
-Phase 3: Deep Elicitation █████████░░░░░░░░░░░ 3/7
-  [feature map: MUST / IMPORTANT / NICE / CUT]
-  [edge cases: what happens on a still, cloudy week in January?]
-  [user personas drafted from your answers, you confirm]
-
-Phase 4: Stress Testing ████████████░░░░░░░░ 4/7
-  [rating assumptions, researching the unknowns]
-  [pre-mortem: what kills this project?]
-  [No-Gos: what you are explicitly not building]
-
-Phases 5-7: tech decisions → vision pitch → MVP scoping
-  → Backlog: sized epics and stories, setup stories for external services
-  → Ready for /sprint-start
-```
-
-This is not a generic questionnaire. `/discover` selects from **11 project archetypes** (utility, marketplace, developer tool, creative expression, etc.) and asks questions specific to your project type.
-
-### Just want to build something fast
-
-```
-/build "a habit tracker with streaks and weekly progress emails"
-```
-
-`/build` handles everything (setup, planning, implementation) with plain-English output. No framework knowledge needed.
 
 ## What Runs Behind the Scenes
 
