@@ -28,10 +28,6 @@ If you prefer to skip the tour: run `/bootstrap` directly.
 
 `/bootstrap` configures the framework for your specific project:
 
-### Existing repo with code
-
-Bootstrap detects your languages, test framework, linter, formatter, and CI/CD. It generates project documentation (CLAUDE.md, coding standards, architecture, ground rules), configures hooks and rules for your stack, assesses readiness against 15 engineering principles, and creates foundation stories for any gaps it finds.
-
 ### New project from an idea
 
 Bootstrap detects an empty project and launches `/discover`, a deep guided elicitation that builds your project from scratch:
@@ -51,6 +47,10 @@ Four modes adapt depth to project scale:
 | Pioneering | Variable | Novel concepts (spike-first) |
 
 The time estimates are real, and for a new project they are the point. Do not rush this. The interview asks questions about your idea that you have never asked yourself, and the answers become the vision, backlog, and architecture that every later sprint builds on. An hour of honest thinking here saves weeks of building the wrong thing.
+
+### Existing repo with code
+
+Bootstrap detects your languages, test framework, linter, formatter, and CI/CD. It generates project documentation (CLAUDE.md, coding standards, architecture, ground rules), configures hooks and rules for your stack, assesses readiness against 15 engineering principles, and creates foundation stories for any gaps it finds.
 
 ### Just want to build something fast
 
