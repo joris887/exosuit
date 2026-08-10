@@ -29,8 +29,12 @@ Found during open-source flow testing (T06-001, T06-002).
 ### Files changed
 - `install.sh` — usage header only (documents `-fsSL` and the Windows wrapper)
 - `README.md` — Quick Start: comment moved out of copyable block, `curl -sL` → `-fsSL`,
-  Windows PowerShell one-liner added
-- `docs/GETTING_STARTED.md` — same install-block update
+  Windows PowerShell one-liner added; "clone and install locally" alternative removed
+  (the clone-as-project variant left framework repo files — LICENSE, CHANGELOG, core/,
+  assets/ — in user projects; the installer + `/bootstrap` empty-project detection is
+  the single supported path for new projects)
+- `docs/GETTING_STARTED.md` — same install-block update; clone-for-new-project
+  replaced with "run the installer in an empty folder"
 - `docs/FRAMEWORK_REFERENCE.md` — documents `install.ps1`
 - `.claude/skills/uninstall/SKILL.md` — re-install snippet updated
 

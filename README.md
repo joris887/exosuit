@@ -86,24 +86,6 @@ Then open Claude Code:
 
 That's it. Four commands from zero to shipped PR.
 
-<details>
-<summary><strong>Alternative: clone and install locally</strong></summary>
-
-```bash
-git clone https://github.com/joris887/exosuit.git
-cd your-project
-path/to/exosuit/install.sh
-```
-
-Or start a brand new project:
-
-```bash
-git clone https://github.com/joris887/exosuit.git my-project
-cd my-project && rm -rf .git && git init
-```
-
-</details>
-
 ## Your First session
 
 After install, everything starts with `/bootstrap`. What happens next depends on your situation:
