@@ -30,6 +30,11 @@ Found during open-source flow testing (T06-001, T06-002).
   to keep first contact focused on bootstrap + discover; it remains documented in
   GETTING_STARTED and the All Commands table.
 
+### Changed (README)
+- "What Runs Behind the Scenes" (hook event table) replaced by "When It Steps In":
+  two real hook interventions shown verbatim (safety.patterns force-push block and
+  stop.sh completion-evidence check) with the coverage summary moved into prose.
+
 ### Fixed
 - README first-session examples now match what /bootstrap and /discover actually do:
   Path A example no longer contradicts itself (detection showed CI present while the

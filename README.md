@@ -167,20 +167,30 @@ Foundation backlog, dependency-ordered:
 
 The framework tells you exactly what your project needs to be production-ready, then generates stories to get there, ordered so each level unlocks the next.
 
-## What Runs Behind the Scenes
+## When It Steps In
 
-While you work, the enforcement layer is always active:
+Most of the time you will not notice the enforcement layer. It formats every edit, scans every change for secrets, and saves your session state without saying a word. You notice it the moment something risky happens:
 
-| What happens | When | How |
-|---|---|---|
-| Code auto-formatted (prettier, ruff, rustfmt, gofmt, etc.) | Every edit | Post-edit hook |
-| Secrets scanned (AWS keys, API tokens, private keys) | Every edit | Post-edit hook |
-| Dangerous commands blocked (force push, `rm -rf`, `--no-verify`) | Before execution | Pre-command hook |
-| Quality gates run (lint, typecheck, tests) | Before task completion | Pre-stop hook |
-| Session state auto-saved | Before task completion | Pre-stop hook |
-| Activity logged for metrics | Every tool use | Post-tool hook |
+```
+AI: git push --force origin main
 
-These aren't rules the AI reads and follows. They're shell scripts that execute deterministically. The AI cannot skip them.
+BLOCKED: git push --force is not allowed. Use --force-with-lease if necessary.
+  WHY: Force-push rewrites the remote branch history. If anyone has pulled
+  your branch, their local copy will break with no way to reconcile.
+```
+
+```
+AI: "All tests pass, marking this story complete."
+
+Quality check before completion:
+  - Task claimed complete but no test output found. Run tests and show output.
+  WHY: The framework requires evidence that tests pass before marking work
+  complete. This prevents shipping untested code.
+```
+
+Both messages are real hook output, not paraphrase. The full net: dangerous git commands and destructive shell patterns are stopped before they execute. Every edit is auto-formatted and scanned for credentials the moment it lands. "Done" is rejected until the tests have actually run in the current session. Session state is saved before every stop, so a crash or a closed laptop costs you nothing.
+
+These are exit-code shell scripts wired into Claude Code's hook events. There is no rule to ignore and no instruction to drift from. The command simply does not run.
 
 ## How Story Delivery Works
 
