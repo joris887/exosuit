@@ -36,6 +36,14 @@ Found during open-source flow testing (T06-001, T06-002).
   stop.sh completion-evidence check) with the coverage summary moved into prose.
 
 ### Fixed
+- README "How Story Delivery Works" replaced by "The Sprint Loop": the full
+  /sprint-start → /story-cycle → /sprint-end cycle is now the centerpiece, verified
+  against all three skills. Fixes: story sizes were shown as XS→XL (skill uses
+  TRIVIAL→XL); the readiness gate was drawn inside Phase 1 (it is Phase 2 in the
+  skill, five evidence checks after plan approval); the plan-approval hard gate and
+  TDD hard gate were invisible; sprint-start's pre-flight and sprint-end's
+  ship pipeline were absent. Profiles section compressed from a 6-row table to a
+  short paragraph (details remain in GETTING_STARTED).
 - README first-session examples now match what /bootstrap and /discover actually do:
   Path A example no longer contradicts itself (detection showed CI present while the
   readiness report flagged it missing), shows the interactive decision points (profile,
