@@ -64,7 +64,7 @@ for arg in "$@"; do
     esac
 done
 
-echo "=== Exosuit — Development Framework for Claude Code ==="
+echo "=== Exosuit: Development Framework for Claude Code ==="
 echo "Mode: $MODE"
 $DRY_RUN && echo "Dry run: yes"
 $FORCE && echo "Force: yes (overwriting existing files)"

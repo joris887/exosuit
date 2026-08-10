@@ -1,7 +1,7 @@
 ---
 name: quickstart
 version: 1.0.0
-description: Guided interactive tour of the framework — walks through your first sprint from zero to shipped PR.
+description: Guided interactive tour of the framework. Walks through your first sprint from zero to shipped PR.
 trigger: manual
 depends-on: []
 references: []
@@ -13,7 +13,7 @@ ______________________________________________________________________
 
 ## quickstart
 
-Welcome to the Exosuit framework. This guided tour walks you through your first complete sprint — from planning to shipped PR.
+Welcome to the Exosuit framework. This guided tour walks you through your first complete sprint, from planning to shipped PR.
 
 ## Phase 1: Orientation (2 minutes)
 
@@ -25,9 +25,9 @@ Present the framework's core concept:
 The framework adds structure to AI-assisted development:
 
 **Three Layers:**
-1. **Enforcement** — Hooks that auto-format code, scan for secrets, block dangerous commands (automatic)
-2. **Workflow** — Skills (slash commands) that guide your development process (you invoke these)
-3. **Documentation** — Knowledge base that compounds across sessions (generated and updated)
+1. **Enforcement:** hooks that auto-format code, scan for secrets, block dangerous commands (automatic)
+2. **Workflow:** skills (slash commands) that guide your development process (you invoke these)
+3. **Documentation:** knowledge base that compounds across sessions (generated and updated)
 
 **The Core Loop:**
 ```
@@ -52,7 +52,7 @@ fi
 
 <IF condition="bootstrap not complete">
 Tell the user:
-> Your project hasn't been bootstrapped yet. Run `/bootstrap` first — it detects your stack, configures hooks, and generates project documentation. Come back to `/quickstart` after bootstrap completes.
+> Your project hasn't been bootstrapped yet. Run `/bootstrap` first; it detects your stack, configures hooks, and generates project documentation. Come back to `/quickstart` after bootstrap completes.
 Stop here.
 </IF>
 
@@ -60,10 +60,10 @@ Stop here.
 
 Present options using AskUserQuestion:
 
-- **"Walk me through a sprint"** — description: "Interactive guided sprint with explanations at each step (15 min)"
-- **"Show me all available skills"** — description: "Quick reference of every slash command grouped by purpose"
-- **"Explain the enforcement layer"** — description: "See what happens automatically (hooks, rules, quality gates)"
-- **"I want to start building"** — description: "Skip the tour, jump to /sprint-start"
+- **"Walk me through a sprint"** (description: "Interactive guided sprint with explanations at each step (15 min)")
+- **"Show me all available skills"** (description: "Quick reference of every slash command grouped by purpose")
+- **"Explain the enforcement layer"** (description: "See what happens automatically (hooks, rules, quality gates)")
+- **"I want to start building"** (description: "Skip the tour, jump to /sprint-start")
 
 ### Option A: Guided Sprint Walkthrough
 
@@ -130,7 +130,7 @@ Only findings ≥80 confidence are reported.
 Try it: `/handoff`
 
 This creates a structured session file in docs/sessions/ that /continue reads next time.
-Alternatively, just stop — the Stop hook auto-saves your git state.
+Alternatively, just stop; the Stop hook auto-saves your git state.
 ```
 
 ### Option B: Skill Reference
@@ -151,13 +151,13 @@ Walk through what happens on each event:
 ### You're Ready
 
 **Essential skills to know:**
-- `/story-cycle` — Your daily driver for delivering stories
-- `/continue` — Resume work from a previous session
-- `/debug-session` — When something breaks
-- `/doctor` — When the framework seems off
+- `/story-cycle`: your daily driver for delivering stories
+- `/continue`: resume work from a previous session
+- `/debug-session`: when something breaks
+- `/doctor`: when the framework seems off
 
 **When you need help:**
-- `/help-me "I want to..."` — Find the right skill for any task
+- `/help-me "I want to..."`: find the right skill for any task
 
 **Weekly rhythm:**
 - Monday-Thursday: `/sprint-start` → `/story-cycle` (repeat) → `/sprint-end`
@@ -166,7 +166,7 @@ Walk through what happens on each event:
 
 ## Rules
 
-- This skill is READ-ONLY — it explains, it doesn't modify
-- Let the user drive — present information, wait for them to act
-- Keep explanations concise — show, don't tell
+- This skill is READ-ONLY: it explains, it doesn't modify
+- Let the user drive: present information, wait for them to act
+- Keep explanations concise: show, don't tell
 - If the user seems experienced, offer to skip ahead

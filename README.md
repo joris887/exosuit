@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  One idea is enough. Exosuit wraps Claude Code in a full engineering organization — it interrogates your vision, pressure-tests every assumption, plans the build, and enforces tested, verified shipping.
+  One idea is enough. Exosuit wraps Claude Code in a full engineering organization: it interrogates your vision, pressure-tests every assumption, plans the build, and enforces tested, verified shipping.
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@ AI-assisted coding is powerful. It's also chaos.
 
 Without structure, every Claude Code session drifts toward the same failure modes: scope creeps until the context window is exhausted. Tests get skipped because "the code looks right." Git history becomes a wasteland of `fix`, `update`, and `wip` commits. The AI claims "done" without running a single test. And when you start a new session, all context from the last one is gone.
 
-You're not engineering software. You're prompting and hoping — generating plausible code with no discipline behind it.
+You're not engineering software. You're prompting and hoping, generating plausible code with no discipline behind it.
 
 This isn't a niche complaint. [Veracode's 2025 GenAI report](https://www.veracode.com/blog/genai-code-security-report/) found AI models introduce an OWASP Top-10 vulnerability in **45% of code tasks**, and [Stack Overflow's 2025 survey](https://survey.stackoverflow.co/2025/) found more developers actively **distrust** AI output accuracy (46%) than trust it (33%).
 
@@ -45,25 +45,25 @@ This isn't a niche complaint. [Veracode's 2025 GenAI report](https://www.veracod
 
 A drop-in development framework for [Claude Code](https://claude.com/claude-code) that adds 43 slash commands, 13 enforcement hooks, 8 specialized agents, and a complete sprint-based development workflow to any project. Install it in 30 seconds. Run `/bootstrap`. Start building like a professional.
 
-- **Hooks block bad behavior** — force push, leaked secrets, skipped tests, premature "done" claims. These are deterministic shell scripts, not suggestions the AI can skip.
-- **TDD is the default** — tests before implementation, always. The framework plans tests first, writes them first, then implements to pass them.
-- **Sprints keep scope bounded** — small increments with forced checkpoints prevent the context window death spiral.
-- **Git stays clean** — feature branches, conventional commits, squash merge to main. Dangerous commands are blocked at the hook level.
-- **Sessions persist** — hand off with `/handoff`, resume with `/continue`. No context is lost between sessions.
-- **Any language, any project** — Python, TypeScript, Go, Rust, Ruby, Java, PHP, Dart, C#, Swift, Kotlin, C/C++. The framework detects your stack and configures itself.
-- **Verification is non-negotiable** — "it should work" is not accepted. Fresh test output is required before any completion claim.
+- **Hooks block bad behavior:** force push, leaked secrets, skipped tests, premature "done" claims. These are deterministic shell scripts, not suggestions the AI can skip.
+- **TDD is the default:** tests before implementation, always. The framework plans tests first, writes them first, then implements to pass them.
+- **Sprints keep scope bounded:** small increments with forced checkpoints prevent the context window death spiral.
+- **Git stays clean:** feature branches, conventional commits, squash merge to main. Dangerous commands are blocked at the hook level.
+- **Sessions persist:** hand off with `/handoff`, resume with `/continue`. No context is lost between sessions.
+- **Any language, any project:** Python, TypeScript, Go, Rust, Ruby, Java, PHP, Dart, C#, Swift, Kotlin, C/C++. The framework detects your stack and configures itself.
+- **Verification is non-negotiable:** "it should work" is not accepted. Fresh test output is required before any completion claim.
 
 ## Where Exosuit Fits
 
-Structured AI development is a genuinely good neighborhood, and Exosuit stands on its shoulders. [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) pioneered deep agile planning with specialized agents. [Superpowers](https://github.com/obra/superpowers) proved a skills-based methodology could feel native to Claude Code. GitHub's [spec-kit](https://github.com/github/spec-kit) brought spec-driven development to the mainstream. [CCPM](https://github.com/automazeio/ccpm) turned GitHub Issues into a real coordination backbone for parallel agents. [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework) showed how far behavioral configuration can go, and [tdd-guard](https://github.com/nizos/tdd-guard)/[Probity](https://github.com/nizos/probity) built serious deterministic TDD gates. If one of those matches how you work, use it — they're good tools built by people who care about the same problem.
+Structured AI development is a genuinely good neighborhood, and Exosuit stands on its shoulders. [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) pioneered deep agile planning with specialized agents. [Superpowers](https://github.com/obra/superpowers) proved a skills-based methodology could feel native to Claude Code. GitHub's [spec-kit](https://github.com/github/spec-kit) brought spec-driven development to the mainstream. [CCPM](https://github.com/automazeio/ccpm) turned GitHub Issues into a real coordination backbone for parallel agents. [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework) showed how far behavioral configuration can go, and [tdd-guard](https://github.com/nizos/tdd-guard)/[Probity](https://github.com/nizos/probity) built serious deterministic TDD gates. If one of those matches how you work, use it. They're good tools built by people who care about the same problem.
 
-Exosuit's bet is a specific *combination* none of them focuses on: **elicitation that is mandatory** — The Interrogation happens before code exists, and everything it produces persists into files that every later command actually reads — **plus enforcement that is deterministic** — exit-code hooks rather than instructions the model can drift away from. Everything else in the framework exists to serve that pairing.
+Exosuit's bet is a specific *combination* none of them focuses on. **Elicitation is mandatory:** The Interrogation happens before code exists, and everything it produces persists into files that every later command actually reads. **Enforcement is deterministic:** exit-code hooks rather than instructions the model can drift away from. Everything else in the framework exists to serve that pairing.
 
 If you build or maintain one of these projects: let's compare notes. The enforcement layer is portable, the integration-test findings are public, and there's an open door in [Discussions](https://github.com/joris887/exosuit/discussions).
 
 ## Quick Start
 
-Install into your project — existing repo or new. **macOS / Linux:**
+Install into your project, existing repo or new. **macOS / Linux:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
@@ -86,9 +86,11 @@ Then open Claude Code:
 
 That's it. Four commands from zero to shipped PR.
 
-## Your First session
+## Your First Session
 
-After install, everything starts with `/bootstrap`. What happens next depends on your situation:
+After install, everything starts with `/bootstrap`. What happens next depends on your situation.
+
+**Take your time with this step.** For an existing repo, bootstrap finishes in minutes. For a new project it starts the discovery interview, and that can take an hour or more. This is deliberate. It is where the deep elicitation happens: expect questions about your idea that you have never asked yourself, and your honest answers become the foundation of everything the framework builds afterwards. Rushing here trades an hour of thinking for weeks of building the wrong thing.
 
 ### Existing project with code
 
@@ -125,18 +127,18 @@ The framework tells you exactly what your project needs to be production-ready, 
 
 ### New project from an idea
 
-`/bootstrap` detects an empty project and launches `/discover` — **The Interrogation**: a deep, research-backed elicitation that pressure-tests your idea before a single line of code exists. It challenges your assumptions, runs a pre-mortem, and makes you declare kill criteria — then builds your project from what survives:
+`/bootstrap` detects an empty project and launches `/discover`, **The Interrogation**: a deep, research-backed elicitation that pressure-tests your idea before a single line of code exists. It challenges your assumptions, runs a pre-mortem, and makes you declare kill criteria. Your project is built from what survives:
 
 ```
 What are you building?
-> "A task management API with team workspaces"
+> "A marketplace where neighbors rent out their driveways as parking spots"
 
-Classifying... → Utility/Productivity archetype, Standard scale
+Classifying... → Marketplace archetype, Standard scale
 
 Phase 1: Classification ████████░░░░ 2/7
-  What task does this make easier?
-  Who uses this day-to-day?
-  What's the one thing that makes someone switch from their current tool?
+  Which side do you win first: drivers who need a spot, or owners with an empty driveway?
+  What does a driver do today when there is no parking near their destination?
+  Why would a homeowner let a stranger park on their property?
 
 Phase 2: Core Identity ████████████░░░░ 3/7
   [researching competitive landscape...]
@@ -154,15 +156,15 @@ Phase 4: Assumption Surfacing ████████████████�
 → Ready for /sprint-start
 ```
 
-Not a generic questionnaire — `/discover` selects from **11 project archetypes** (utility, marketplace, developer tool, creative expression, etc.) and asks questions specific to your project type.
+This is not a generic questionnaire. `/discover` selects from **11 project archetypes** (utility, marketplace, developer tool, creative expression, etc.) and asks questions specific to your project type.
 
 ### Just want to build something fast
 
 ```
-/build "a REST API with authentication and rate limiting"
+/build "a habit tracker with streaks and weekly progress emails"
 ```
 
-`/build` handles everything — setup, planning, implementation — with plain-English output. No framework knowledge needed.
+`/build` handles everything (setup, planning, implementation) with plain-English output. No framework knowledge needed.
 
 ## What Runs Behind the Scenes
 
@@ -196,7 +198,7 @@ Phase 4: Ship     — run full test suite, create conventional commit
 
 Trivial changes (XS) fast-track through. High-risk changes get extra scrutiny regardless of size.
 
-## Profiles — Choose Your Level of Ceremony
+## Profiles: Choose Your Level of Ceremony
 
 Set during `/bootstrap`. Change anytime.
 
@@ -236,16 +238,16 @@ DOCUMENTATION — project context that persists across sessions
   progress.md (state)        docs/sessions/ (handoff)
 ```
 
-Key insight: The enforcement layer is deterministic — hooks are shell scripts that the AI cannot bypass. The workflow layer is advisory — it guides but doesn't force. When something *must* happen, it lives in enforcement.
+Key insight: the enforcement layer is deterministic; hooks are shell scripts that the AI cannot bypass. The workflow layer is advisory; it guides but doesn't force. When something *must* happen, it lives in enforcement.
 
 ## All Commands
 
 ### Core Workflow
 | Command | What it does |
 |---|---|
-| `/bootstrap` | First-run setup — detect stack, configure framework, assess readiness |
+| `/bootstrap` | First-run setup: detect stack, configure framework, assess readiness |
 | `/quickstart` | Guided tour of the framework before your first sprint |
-| `/discover` | The Interrogation — deep guided elicitation for new projects (11 archetypes) |
+| `/discover` | The Interrogation: deep guided elicitation for new projects (11 archetypes) |
 | `/sprint-start` | Create sprint branch, select stories |
 | `/story-cycle` | Deliver a story with TDD + quality gates |
 | `/sprint-end` | Quality gates → PR → merge to main |
@@ -257,7 +259,7 @@ Key insight: The enforcement layer is deterministic — hooks are shell scripts 
 | Command | What it does |
 |---|---|
 | `/ideate` | Decompose ideas into sized, estimated stories |
-| `/backlog-review` | Audit backlog health — story quality, readiness, staleness |
+| `/backlog-review` | Audit backlog health: story quality, readiness, staleness |
 | `/brainstorm` | Explore designs, tradeoffs, approaches |
 | `/research` | Deep web + codebase research with source citations |
 | `/phase-review` | Evaluate what you built, plan the next phase |
@@ -269,7 +271,7 @@ Key insight: The enforcement layer is deterministic — hooks are shell scripts 
 | `/code-quality` | Deep code review with multi-agent analysis |
 | `/security-audit` | Security-focused review (OWASP, CWE) |
 | `/architecture-check` | Verify architecture against ground rules |
-| `/test-validator` | Check coverage and assertion quality — detects weakened tests |
+| `/test-validator` | Check coverage and assertion quality; detects weakened tests |
 | `/performance-check` | Find N+1 queries, blocking I/O, memory leaks, scaling issues |
 | `/testing-cycle` | Process test feedback into fixes |
 | `/UAT-cycle` | User acceptance test case execution |
@@ -286,7 +288,7 @@ Key insight: The enforcement layer is deterministic — hooks are shell scripts 
 ### Guided Experiences
 | Command | What it does |
 |---|---|
-| `/build` | Build from plain English — handles everything automatically |
+| `/build` | Build from plain English; handles everything automatically |
 | `/deploy` | Guided deployment setup |
 | `/dashboard` | Visual overview of sprint progress and project health |
 | `/help-me` | Context-aware help |
@@ -343,10 +345,10 @@ The framework solves this with three ideas:
 
 ## Prerequisites
 
-- **[Claude Code](https://claude.com/claude-code)** — installed and working
-- **Git** — configured with your identity
-- **[GitHub CLI](https://cli.github.com/)** (`gh`) — for PR workflow and issue management
-- **A Claude plan that fits the workload** — Exosuit is thorough by design, and thoroughness spends tokens. **Claude Max is recommended** for daily development; Pro is enough to evaluate the framework on the Lean profile. See the [FAQ](#faq) for honest details.
+- **[Claude Code](https://claude.com/claude-code)**, installed and working
+- **Git**, configured with your identity
+- **[GitHub CLI](https://cli.github.com/)** (`gh`) for PR workflow and issue management
+- **A Claude plan that fits the workload.** Exosuit is thorough by design, and thoroughness spends tokens. **Claude Max is recommended** for daily development; Pro is enough to evaluate the framework on the Lean profile. See the [FAQ](#faq) for honest details.
 
 No language runtimes required. The framework itself is pure POSIX shell and markdown.
 
@@ -355,7 +357,7 @@ No language runtimes required. The framework itself is pure POSIX shell and mark
 <details>
 <summary><strong>Does this work with my language?</strong></summary>
 
-Yes. The framework detects Python, TypeScript, JavaScript, Go, Rust, Ruby, Java, C#, Swift, Kotlin, PHP, Dart, and C/C++. It configures formatters, linters, test commands, and type checkers for your stack. If your language isn't listed, the safety hooks and workflow still work — you just won't get auto-formatting.
+Yes. The framework detects Python, TypeScript, JavaScript, Go, Rust, Ruby, Java, C#, Swift, Kotlin, PHP, Dart, and C/C++. It configures formatters, linters, test commands, and type checkers for your stack. If your language isn't listed, the safety hooks and workflow still work; you just won't get auto-formatting.
 </details>
 
 <details>
@@ -367,17 +369,17 @@ The skills (slash commands) are Claude Code-specific. However, `AGENTS.md` is sy
 <details>
 <summary><strong>What if bootstrap gets something wrong?</strong></summary>
 
-Edit `CLAUDE.md` directly — it's the source of truth for project configuration. Or re-run `/bootstrap` anytime for a fresh detection. Nothing is locked in.
+Edit `CLAUDE.md` directly; it's the source of truth for project configuration. Or re-run `/bootstrap` anytime for a fresh detection. Nothing is locked in.
 </details>
 
 <details>
 <summary><strong>How do I customize the framework?</strong></summary>
 
-Everything is plain markdown and shell scripts — edit directly:
-- **Skills:** `.claude/skills/{name}/SKILL.md` — modify workflow behavior
-- **Rules:** `.claude/rules/*.md` — add or change enforcement rules
-- **Hooks:** `.claude/hooks/rules/*.yaml` — configure hook behavior
-- **Personal overrides:** `CLAUDE.local.md` — project-specific overrides that aren't committed
+Everything is plain markdown and shell scripts. Edit directly:
+- **Skills** (`.claude/skills/{name}/SKILL.md`): modify workflow behavior
+- **Rules** (`.claude/rules/*.md`): add or change enforcement rules
+- **Hooks** (`.claude/hooks/rules/*.yaml`): configure hook behavior
+- **Personal overrides** (`CLAUDE.local.md`): project-specific overrides that aren't committed
 </details>
 
 <details>
@@ -389,7 +391,7 @@ Yes. `/parallel-work` manages git worktrees for concurrent stories. A worktree-a
 <details>
 <summary><strong>What if my session ends mid-story?</strong></summary>
 
-The framework auto-saves state before every session end. Resume with `/continue` — it detects exactly where you left off, including the current phase, branch, and plan.
+The framework auto-saves state before every session end. Resume with `/continue`; it detects exactly where you left off, including the current phase, branch, and plan.
 </details>
 
 <details>
@@ -401,7 +403,7 @@ Use the **Lean** profile. It strips ceremony to the minimum (plan → build → 
 <details>
 <summary><strong>What's the context window cost?</strong></summary>
 
-~100 lines for `CLAUDE.md` (loaded every session) + ~140 lines for always-active rules. Skills load on-demand only when invoked. The framework is designed to be context-efficient — it loads less than many project README files.
+~100 lines for `CLAUDE.md` (loaded every session) + ~140 lines for always-active rules. Skills load on-demand only when invoked. The framework is designed to be context-efficient; it loads less than many project README files.
 </details>
 
 <details>
@@ -409,11 +411,11 @@ Use the **Lean** profile. It strips ceremony to the minimum (plan → build → 
 
 Recommended for serious use, honestly. Exosuit's value comes from doing the work most setups skip: The Interrogation researches and challenges your idea, quality gates dispatch review agents, and verification re-runs your tests before anything is called done. All of that spends tokens.
 
-- **Claude Max** — recommended for daily development and full sprints.
-- **Claude Pro** — fine for evaluating the framework and lighter projects. Pick the **Lean** profile during `/bootstrap` and expect to hit session limits on long builds.
-- **API billing** — works too; cost scales with how much of the workflow you use.
+- **Claude Max:** recommended for daily development and full sprints.
+- **Claude Pro:** fine for evaluating the framework and lighter projects. Pick the **Lean** profile during `/bootstrap` and expect to hit session limits on long builds.
+- **API billing:** works too; cost scales with how much of the workflow you use.
 
-Token efficiency is a known optimization area. Context budgets are already enforced (on-demand skill loading, priority-based compaction), and making the framework substantially leaner is on the roadmap — but today, don't bring a Pro plan to a Max-sized sprint.
+Token efficiency is a known optimization area. Context budgets are already enforced (on-demand skill loading, priority-based compaction), and making the framework substantially leaner is on the roadmap. But today, don't bring a Pro plan to a Max-sized sprint.
 </details>
 
 ## Contributing
