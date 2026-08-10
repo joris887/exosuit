@@ -4,7 +4,7 @@ This guide walks you through your first session with the Exosuit framework.
 
 ## Step 1: Install
 
-Into an existing project — macOS / Linux:
+Into an existing project. macOS / Linux:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
@@ -16,7 +16,7 @@ Windows (needs [Git for Windows](https://git-scm.com/download/win), which Claude
 powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/joris887/exosuit/main/install.ps1 | iex"
 ```
 
-Starting from scratch? Run the same command in an empty folder — `/bootstrap` detects a new project and takes it from there.
+Starting from scratch? Run the same command in an empty folder; `/bootstrap` detects a new project and takes it from there.
 
 ## Step 2: Open Claude Code and Run `/quickstart`
 
@@ -34,7 +34,7 @@ Bootstrap detects your languages, test framework, linter, formatter, and CI/CD. 
 
 ### New project from an idea
 
-Bootstrap detects an empty project and launches `/discover` — a deep guided elicitation that builds your project from scratch:
+Bootstrap detects an empty project and launches `/discover`, a deep guided elicitation that builds your project from scratch:
 
 - **Classifies your project** into one of 11 archetypes (utility, marketplace, developer tool, creative expression, etc.) and selects questions tailored to your project type
 - **Walks through 7 phases**: classification, core identity, deep elicitation, assumption stress-testing, dimension completeness, vision synthesis, and MVP scoping
@@ -50,13 +50,15 @@ Four modes adapt depth to project scale:
 | Platform | 60-120 min | Multi-service, regulated systems |
 | Pioneering | Variable | Novel concepts (spike-first) |
 
+The time estimates are real, and for a new project they are the point. Do not rush this. The interview asks questions about your idea that you have never asked yourself, and the answers become the vision, backlog, and architecture that every later sprint builds on. An hour of honest thinking here saves weeks of building the wrong thing.
+
 ### Just want to build something fast
 
 ```
-/build "a REST API with authentication and rate limiting"
+/build "a habit tracker with streaks and weekly progress emails"
 ```
 
-`/build` handles everything — setup, planning, implementation — with plain-English output. No framework knowledge needed.
+`/build` handles everything (setup, planning, implementation) with plain-English output. No framework knowledge needed.
 
 ## Step 4: Choose Your Profile
 
@@ -70,7 +72,7 @@ What changes:
 - Sprint start creates a branch directly (no sprint specs, no metrics checks)
 - Sprint end runs tests and creates PR (no quality agent dispatch)
 - Bootstrap generates minimal docs (CLAUDE.md and progress.md)
-- All safety hooks still run — lean is less ceremonious, never less safe
+- All safety hooks still run; lean is less ceremonious, never less safe
 
 ### Standard Profile (default)
 **Best for:** Production apps, APIs, libraries, team projects.
@@ -140,8 +142,8 @@ Customize behavior without editing files:
 
 ## Next Steps
 
-- `/help-me` — describe what you want to do in plain English
-- `/dashboard` — see your sprint status at a glance
-- `/doctor` — verify the framework is set up correctly
+- `/help-me`: describe what you want to do in plain English
+- `/dashboard`: see your sprint status at a glance
+- `/doctor`: verify the framework is set up correctly
 - See the [README](../README.md) for the full skill reference
 - See the [Technical Reference](FRAMEWORK_REFERENCE.md) for the complete framework documentation

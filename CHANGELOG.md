@@ -44,6 +44,12 @@ Found during open-source flow testing (T06-001, T06-002).
   the single supported path for new projects)
 - `docs/GETTING_STARTED.md` — same install-block update; clone-for-new-project
   replaced with "run the installer in an empty folder"
+- Starting-text pass (README, GETTING_STARTED, quickstart skill, installer banner):
+  em-dashes removed from prose (kept only as structural separators in diagrams and
+  table placeholders); "Your First Session" now tells users the discovery interview
+  is meant to take time (an hour or more for new projects); the `/discover` example
+  is a startup idea (driveway-parking marketplace) instead of a tech spec, with
+  archetype and questions matched; `/build` examples now use plain product ideas
 - `docs/FRAMEWORK_REFERENCE.md` — documents `install.ps1`
 - `.claude/skills/uninstall/SKILL.md` — re-install snippet updated
 
