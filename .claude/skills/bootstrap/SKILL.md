@@ -882,7 +882,7 @@ Also create `docs/reviews/` with a `.gitkeep` file. This directory stores phase 
 | [principle] | [✓/⚠️/✗] | [explanation] |
 | ... | ... | ... |
 
-**Summary:** [N]/12 ready, [N] at risk, [N] missing
+**Summary:** [N] of [assessed] principles ready, [N] at risk, [N] missing ([N] skipped as not applicable)
 
 **Foundation Backlog:** [N] stories across [L] levels in E00-foundation (Framework Ready Gate after Level 2: [N] checks) — or "No gaps found — project is ready"
 
