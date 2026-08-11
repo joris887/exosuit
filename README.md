@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/GETTING_STARTED.md">Getting Started</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/FRAMEWORK_REFERENCE.md">Full Reference</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://discord.gg/XqBnP6mydA">Discord</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://github.com/joris887/exosuit/issues">Issues</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="CONTRIBUTING.md">Contributing</a>
+  <a href="#install">Install</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/GETTING_STARTED.md">Getting Started</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="docs/FRAMEWORK_REFERENCE.md">Full Reference</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://discord.gg/XqBnP6mydA">Discord</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="https://github.com/joris887/exosuit/issues">Issues</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
@@ -43,7 +43,7 @@ This isn't a niche complaint. [Veracode's 2025 GenAI report](https://www.veracod
 
 ## What It Does
 
-A drop-in development framework for [Claude Code](https://claude.com/claude-code) that adds 45 slash commands, 13 enforcement hooks, 8 specialized agents, and a complete sprint-based development workflow to any project. Install it in 30 seconds. Run `/bootstrap`. Start building like a professional.
+A drop-in development framework for [Claude Code](https://claude.com/claude-code) that adds 45 slash commands, 13 enforcement hooks, 9 specialized agents, and a complete sprint-based development workflow to any project. Install it in 30 seconds. Run `/bootstrap`. Start building like a professional.
 
 - **Hooks block bad behavior:** force push, leaked secrets, skipped tests, premature "done" claims. These are deterministic shell scripts, not suggestions the AI can skip.
 - **TDD is the default:** tests before implementation, always. The framework plans tests first, writes them first, then implements to pass them.
@@ -53,17 +53,11 @@ A drop-in development framework for [Claude Code](https://claude.com/claude-code
 - **Any language, any project:** Python, TypeScript, Go, Rust, Ruby, Java, PHP, Dart, C#, Swift, Kotlin, C/C++. The framework detects your stack and configures itself.
 - **Verification is non-negotiable:** "it should work" is not accepted. Fresh test output is required before any completion claim.
 
-## Where Exosuit Fits
+One bet sits underneath all of it: **elicitation is mandatory** before code exists, and **enforcement is deterministic** while it is written. Everything else in the framework serves that pairing.
 
-Structured AI development is a genuinely good neighborhood, and Exosuit stands on its shoulders. [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) pioneered deep agile planning with specialized agents. [Superpowers](https://github.com/obra/superpowers) proved a skills-based methodology could feel native to Claude Code. GitHub's [spec-kit](https://github.com/github/spec-kit) brought spec-driven development to the mainstream. [CCPM](https://github.com/automazeio/ccpm) turned GitHub Issues into a real coordination backbone for parallel agents. [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework) showed how far behavioral configuration can go, and [tdd-guard](https://github.com/nizos/tdd-guard)/[Probity](https://github.com/nizos/probity) built serious deterministic TDD gates. If one of those matches how you work, use it. They're good tools built by people who care about the same problem.
+## Install
 
-Exosuit's bet is a specific *combination* none of them focuses on. **Elicitation is mandatory:** The Interrogation happens before code exists, and everything it produces persists into files that every later command actually reads. **Enforcement is deterministic:** exit-code hooks rather than instructions the model can drift away from. Everything else in the framework exists to serve that pairing.
-
-If you build or maintain one of these projects: let's compare notes. The enforcement layer is portable, the integration-test findings are public, and there's an open door in [Discussions](https://github.com/joris887/exosuit/discussions).
-
-## Quick Start
-
-Install into your project, existing repo or new. **macOS / Linux:**
+Into your project, existing repo or new. **macOS / Linux:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
@@ -75,20 +69,21 @@ curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | 
 powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/joris887/exosuit/main/install.ps1 | iex"
 ```
 
-Then open Claude Code:
-
-```
-/bootstrap          # detects your stack, configures everything
-/sprint-start       # creates a clean feature branch
-/story-cycle "add user authentication"   # plan → TDD → implement → verify → commit
-/sprint-end         # quality gates → PR → merge to main
-```
-
-That's it. Four commands from zero to shipped PR.
+Then open Claude Code in your project. Your first command is `/bootstrap`, and that is your first session, below.
 
 ## Your First Session
 
-After install, everything starts with `/bootstrap`. What happens next depends on your situation.
+After install, everything starts with `/bootstrap`. What happens next depends on your situation:
+
+```mermaid
+flowchart TD
+    B["/bootstrap"] --> Q{"code in<br/>the repo?"}
+    Q -->|"no: just an idea"| D["/discover<br/>The Interrogation"]
+    Q -->|"yes: existing code"| A["stack detection +<br/>readiness assessment"]
+    D --> R["vision, backlog,<br/>project docs"]
+    A --> R
+    R --> S["/sprint-start"]
+```
 
 **Take your time with this step.** Bootstrap is thorough on purpose. For a new project it starts the discovery interview, and that can take an hour or more. This is deliberate. It is where the deep elicitation happens: expect questions about your idea that you have never asked yourself, and your honest answers become the foundation of everything the framework builds afterwards. Rushing here trades an hour of thinking for weeks of building the wrong thing. For an existing repo, bootstrap researches your codebase, maps the gaps between your current setup and the framework's engineering principles, and generates your project documentation; how long that takes scales with the size of your repo.
 
@@ -167,34 +162,19 @@ Foundation backlog, dependency-ordered:
 
 The framework tells you exactly what your project needs to be production-ready, then generates stories to get there, ordered so each level unlocks the next.
 
-## When It Steps In
-
-Most of the time you will not notice the enforcement layer. It formats every edit, scans every change for secrets, and saves your session state without saying a word. You notice it the moment something risky happens:
-
-```
-AI: git push --force origin main
-
-BLOCKED: git push --force is not allowed. Use --force-with-lease if necessary.
-  WHY: Force-push rewrites the remote branch history. If anyone has pulled
-  your branch, their local copy will break with no way to reconcile.
-```
-
-```
-AI: "All tests pass, marking this story complete."
-
-Quality check before completion:
-  - Task claimed complete but no test output found. Run tests and show output.
-  WHY: The framework requires evidence that tests pass before marking work
-  complete. This prevents shipping untested code.
-```
-
-Both messages are real hook output, not paraphrase. The full net: dangerous git commands and destructive shell patterns are stopped before they execute. Every edit is auto-formatted and scanned for credentials the moment it lands. "Done" is rejected until the tests have actually run in the current session. Session state is saved before every stop, so a crash or a closed laptop costs you nothing.
-
-These are exit-code shell scripts wired into Claude Code's hook events. There is no rule to ignore and no instruction to drift from. The command simply does not run.
-
 ## The Sprint Loop
 
-Everything ships through the same loop of three commands. This is the framework's heartbeat:
+After bootstrap, everything ships through the same loop of three commands. This is the framework's heartbeat:
+
+```mermaid
+flowchart LR
+    S["/sprint-start<br/>clean branch,<br/>green baseline"] --> C["/story-cycle<br/>plan, approve,<br/>test-first, verify"]
+    C -->|next story| C
+    C --> E["/sprint-end<br/>quality gates,<br/>PR, squash merge"]
+    E -->|new sprint| S
+```
+
+Inside the loop, every step earns its place:
 
 ```
 /sprint-start
@@ -225,37 +205,59 @@ Everything ships through the same loop of three commands. This is the framework'
 
 TRIVIAL changes fast-track through a single lite pass. High-risk changes get extra scrutiny whatever their size. Between sessions, `/handoff` and `/continue` keep the loop running without losing context.
 
-## Profiles
-
-Not every project needs the same ceremony. During `/bootstrap` you pick one of three profiles: **Lean** for prototypes (plan, build, verify), **Standard** for production work (the full loop above), or **Strict** for regulated systems (every gate mandatory, plus an audit trail). The workflow scales; the safety net never does. Secrets detection, dangerous command blocking, and git protection are always on. Change your profile anytime in CLAUDE.md.
-
 ## Architecture
 
 Three layers, from most to least deterministic:
 
-```
-ENFORCEMENT — hooks and rules that cannot be skipped
-  13 hook scripts              9 auto-loaded rules
-  ├─ Auto-format on edit       ├─ Never weaken test assertions
-  ├─ Block secrets in code     ├─ CWE top-10 security checklist
-  ├─ Block force push          ├─ No AI filler comments
-  ├─ Require evidence for      ├─ Conventional commits
-  │  completion claims         └─ Evidence before "done"
-  └─ Auto-save session state
-
-WORKFLOW — skills and agents that guide structured development
-  45 slash commands            8 native agents
-  ├─ Sprint lifecycle          ├─ Code reviewer
-  ├─ Story delivery (TDD)     ├─ Security analyst
-  ├─ Planning & discovery      ├─ Test strategist
-  └─ Quality analysis          └─ Architecture advisor
-
-DOCUMENTATION — project context that persists across sessions
-  CLAUDE.md (entry)          docs/context/* (knowledge base)
-  progress.md (state)        docs/sessions/ (handoff)
+```mermaid
+flowchart TB
+    subgraph L1["ENFORCEMENT: deterministic, cannot be skipped"]
+        A["13 hook scripts<br/>format on edit, block secrets and force push,<br/>require evidence for done, auto-save session"]
+        B["9 auto-loaded rules<br/>never weaken tests, security checklist,<br/>no filler comments, conventional commits"]
+    end
+    subgraph L2["WORKFLOW: advisory, adapts to risk"]
+        C["45 slash commands<br/>sprint lifecycle, story delivery,<br/>planning and discovery, quality analysis"]
+        D["9 native agents<br/>code review, security, tests,<br/>architecture, integration"]
+    end
+    subgraph L3["DOCUMENTATION: context that persists"]
+        E["CLAUDE.md + progress.md<br/>knowledge base + session handoffs"]
+    end
+    A --- C
+    B --- D
+    C --- E
+    D --- E
 ```
 
 Key insight: the enforcement layer is deterministic; hooks are shell scripts that the AI cannot bypass. The workflow layer is advisory; it guides but doesn't force. When something *must* happen, it lives in enforcement.
+
+## Profiles
+
+Not every project needs the same ceremony. During `/bootstrap` you pick one of three profiles: **Lean** for prototypes (plan, build, verify), **Standard** for production work (the full loop above), or **Strict** for regulated systems (every gate mandatory, plus an audit trail). The workflow scales; the safety net never does. Secrets detection, dangerous command blocking, and git protection are always on. Change your profile anytime in CLAUDE.md.
+
+## When It Steps In
+
+Most of the time you will not notice the enforcement layer. It formats every edit, scans every change for secrets, and saves your session state without saying a word. You notice it the moment something risky happens:
+
+```
+AI: git push --force origin main
+
+BLOCKED: git push --force is not allowed. Use --force-with-lease if necessary.
+  WHY: Force-push rewrites the remote branch history. If anyone has pulled
+  your branch, their local copy will break with no way to reconcile.
+```
+
+```
+AI: "All tests pass, marking this story complete."
+
+Quality check before completion:
+  - Task claimed complete but no test output found. Run tests and show output.
+  WHY: The framework requires evidence that tests pass before marking work
+  complete. This prevents shipping untested code.
+```
+
+Both messages are real hook output, not paraphrase. The full net: dangerous git commands and destructive shell patterns are stopped before they execute. Every edit is auto-formatted and scanned for credentials the moment it lands. "Done" is rejected until the tests have actually run in the current session. Session state is saved before every stop, so a crash or a closed laptop costs you nothing.
+
+These are exit-code shell scripts wired into Claude Code's hook events. There is no rule to ignore and no instruction to drift from. The command simply does not run.
 
 ## All Commands
 
@@ -328,31 +330,9 @@ Key insight: the enforcement layer is deterministic; hooks are shell scripts tha
 | `/custom-hooks` | Create and register project-specific hooks |
 | `/uninstall` | Cleanly remove the framework, keeping your project intact |
 
-## Supported Languages
-
-The framework auto-detects your stack during `/bootstrap` and configures formatters, linters, test runners, and type checkers:
-
-| Language | Formatter | Linter | Test Runner | Type Checker |
-|---|---|---|---|---|
-| Python | ruff | ruff | pytest | mypy / pyright |
-| TypeScript | prettier | eslint | vitest / jest | tsc |
-| JavaScript | prettier | eslint | vitest / jest | — |
-| Go | gofmt | golangci-lint | go test | (built-in) |
-| Rust | rustfmt | clippy | cargo test | (built-in) |
-| Ruby | rubocop | rubocop | rspec / minitest | sorbet |
-| Java | google-java-format | checkstyle | junit / maven | (built-in) |
-| C# | dotnet format | dotnet analyzers | dotnet test | (built-in) |
-| PHP | php-cs-fixer | phpstan | phpunit | phpstan |
-| Dart | dart format | dart analyze | dart test | (built-in) |
-| Swift | swift-format | swiftlint | XCTest | (built-in) |
-| Kotlin | ktlint | detekt | junit | (built-in) |
-| C/C++ | clang-format | clang-tidy | ctest / gtest | — |
-
-Only tools that are already installed get configured. Bootstrap offers to install missing ones.
-
 ## Design Philosophy
 
-The framework is built on a simple observation: **AI is great at generating code, but terrible at engineering discipline.** It doesn't protect existing tests, respect architectural boundaries, verify its own claims, or maintain conventions. On simple projects this is manageable. On real projects with production users and team conventions, it's a cycle of building and breaking.
+The framework is built on a simple observation: **AI is great at generating code, but terrible at engineering discipline.** It doesn't protect existing tests, respect architectural boundaries, verify its own claims, or maintain conventions. On a weekend script you can live with that. On anything meant to last, whether that is your startup's first product or a codebase a whole team depends on, it becomes a cycle of building and breaking.
 
 The framework solves this with three ideas:
 
@@ -376,7 +356,33 @@ No language runtimes required. The framework itself is pure POSIX shell and mark
 <details>
 <summary><strong>Does this work with my language?</strong></summary>
 
-Yes. The framework detects Python, TypeScript, JavaScript, Go, Rust, Ruby, Java, C#, Swift, Kotlin, PHP, Dart, and C/C++. It configures formatters, linters, test commands, and type checkers for your stack. If your language isn't listed, the safety hooks and workflow still work; you just won't get auto-formatting.
+Yes. `/bootstrap` auto-detects your stack and configures the tools it finds (offering to install missing ones):
+
+| Language | Formatter | Linter | Test Runner | Type Checker |
+|---|---|---|---|---|
+| Python | ruff | ruff | pytest | mypy / pyright |
+| TypeScript | prettier | eslint | vitest / jest | tsc |
+| JavaScript | prettier | eslint | vitest / jest | — |
+| Go | gofmt | golangci-lint | go test | (built-in) |
+| Rust | rustfmt | clippy | cargo test | (built-in) |
+| Ruby | rubocop | rubocop | rspec / minitest | sorbet |
+| Java | google-java-format | checkstyle | junit / maven | (built-in) |
+| C# | dotnet format | dotnet analyzers | dotnet test | (built-in) |
+| PHP | php-cs-fixer | phpstan | phpunit | phpstan |
+| Dart | dart format | dart analyze | dart test | (built-in) |
+| Swift | swift-format | swiftlint | XCTest | (built-in) |
+| Kotlin | ktlint | detekt | junit | (built-in) |
+| C/C++ | clang-format | clang-tidy | ctest / gtest | — |
+
+If your language isn't listed, the safety hooks and workflow still work; you just won't get auto-formatting.
+</details>
+
+<details>
+<summary><strong>How is this different from BMAD, spec-kit, Superpowers, or CCPM?</strong></summary>
+
+They're good tools built by people who care about the same problem. [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) pioneered deep agile planning with specialized agents, [Superpowers](https://github.com/obra/superpowers) made a skills-based methodology feel native to Claude Code, GitHub's [spec-kit](https://github.com/github/spec-kit) brought spec-driven development to the mainstream, [CCPM](https://github.com/automazeio/ccpm) coordinates parallel agents through GitHub Issues, [SuperClaude](https://github.com/SuperClaude-Org/SuperClaude_Framework) shows how far behavioral configuration can go, and [tdd-guard](https://github.com/nizos/tdd-guard)/[Probity](https://github.com/nizos/probity) built serious deterministic TDD gates. If one of those matches how you work, use it.
+
+Exosuit's bet is a specific combination none of them focuses on. Elicitation is mandatory: The Interrogation happens before code exists, and everything it produces persists into files that every later command actually reads. Enforcement is deterministic: exit-code hooks rather than instructions the model can drift away from. If you build or maintain one of these projects, there's an open door in [Discussions](https://github.com/joris887/exosuit/discussions).
 </details>
 
 <details>

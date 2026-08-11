@@ -34,6 +34,16 @@ Found during open-source flow testing (T06-001, T06-002).
 - "What Runs Behind the Scenes" (hook event table) replaced by "When It Steps In":
   two real hook interventions shown verbatim (safety.patterns force-push block and
   stop.sh completion-evidence check) with the coverage summary moved into prose.
+- Full restructure for the reader's journey: Problem → What It Does → Install →
+  Your First Session → The Sprint Loop → Architecture → Profiles → When It Steps In →
+  All Commands → Design Philosophy → Prerequisites → FAQ. "Where Exosuit Fits" moved
+  to an FAQ entry (comparisons with BMAD/spec-kit/Superpowers/CCPM) with its bet-pairing
+  line kept at the end of What It Does; "Quick Start" renamed Install and reduced to
+  the install commands (the four-command block was redundant with Your First Session
+  and The Sprint Loop); Supported Languages table moved into the language FAQ; three
+  Mermaid diagrams added (bootstrap fork, sprint loop, three-layer architecture),
+  which GitHub renders natively; Design Philosophy reworded to fit solo founders as
+  much as teams; counts corrected (45 commands, 9 agents).
 
 ### Fixed
 - README "How Story Delivery Works" replaced by "The Sprint Loop": the full
