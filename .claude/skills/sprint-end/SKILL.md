@@ -138,6 +138,27 @@ git diff --name-only $DEFAULT_BRANCH...HEAD
 
 **If in a worktree:** Detect with `git rev-parse --git-common-dir`. Note the worktree path for cleanup in step 6.
 
+**Child stream check (parallel work):** Discover any streams fanned out from this branch by `/parallel-work`:
+
+```bash
+# Branches whose recorded parent is the current branch.
+# Note: git canonicalizes config keys to lowercase in --get-regexp output.
+git config --get-regexp '^branch\..*\.exosuitparent$' 2>/dev/null \
+  | awk -v P="$(git branch --show-current)" '$2==P {print $1}' \
+  | sed 's/^branch\.//; s/\.exosuitparent$//'
+```
+
+For each child branch found, count work not yet merged into this branch:
+
+```bash
+git rev-list --count HEAD..<child-branch>
+```
+
+- **If any child has unmerged commits:** STOP and report:
+  > "Stream `<child>` has [N] commits not merged into this sprint branch. Run `/merge-up` inside its worktree first, or explicitly confirm abandoning that work."
+  Proceed only when every child is merged or the user has explicitly abandoned it.
+- **If all children are merged (count 0):** note them, with their worktree paths from `git worktree list --porcelain`, for cleanup in step 6.
+
 Analyze: branch name, all commits since branching, all files changed, stories completed (parse from commit messages).
 
 ## 1.5. Pre-Ship Smoke Test (Optional)
@@ -452,12 +473,23 @@ gh pr view --json reviewRequests,reviews
 
 ## 6. Merge and Clean Up
 
+**Child stream cleanup (before the merge, while still on the sprint branch):** For each merged child stream noted in step 1:
+
+```bash
+git worktree remove <child-worktree-path>     # fails if the worktree is dirty — resolve first
+git branch -d <child-branch>                  # safe delete works: the child is merged into this branch
+git config --remove-section branch.<child-branch> 2>/dev/null || true
+```
+
+This must happen before switching to the default branch — after the squash merge, `git branch -d` would no longer recognize the children as merged. For any stream the user chose to abandon (unmerged commits), leave its branch in place and report it: safe delete will refuse, and force-deleting branches is blocked by the framework's git hooks on purpose. The user can delete it manually once they are certain.
+
 Once CI is green (or local gates passed) and any required reviews are complete:
 
 ```bash
 gh pr merge --squash --delete-branch
 git checkout $DEFAULT_BRANCH
 git pull origin $DEFAULT_BRANCH
+git worktree prune
 ```
 
 **Worktree cleanup** (if running in a worktree detected in step 1):

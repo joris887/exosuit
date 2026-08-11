@@ -46,7 +46,7 @@ Install it once. Run `/quickstart`. Start building. The framework provides that 
 
 ### What It Is
 
-A drop-in development framework for Claude Code that provides 43 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
+A drop-in development framework for Claude Code that provides 45 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
 
 ### Who It's For
 
@@ -1677,31 +1677,40 @@ Maps natural language requests ("I want to...") to the appropriate skill(s). Cov
 
 ## 12. Flow: Parallel Work & Utilities
 
-### /parallel-work — Worktree Management
+### /parallel-work — Parallel Streams
+
+Opt-in. The default workflow is one branch, one story at a time; parallel streams
+are for self-contained stories with no shared files (see the story template's
+"Self-Contained by Default" guidance).
 
 ```
 /sprint-start ──→ creates sprint branch on main worktree
      │
      ▼
-/parallel-work create ──→ creates worktree at ../<project>-<story-id>
-     │                      branch: feature/<story-id>-<description>
-     │                      [WorktreeCreate hook: copies state files]
+/parallel-work start ──→ sense-checks the plan (dependencies, overlapping files)
+     │                     creates N worktrees off the sprint branch, one branch each
+     │                     (scripts/new-worktree.sh: records parent in git config
+     │                      branch.<name>.exosuitParent, propagates .env,
+     │                      settings.local.json, CLAUDE.local.md, .mcp.json)
+     │                     offers to open each in its own Claude Code tab
+     │                     (scripts/open-worktree-terminals.sh, cross-platform)
      │
      ▼
-Open new Claude Code instance in worktree directory
-     │  ├──→ [worktree-bash-fix.sh injects cd prefix on every Bash command]
-     │  ├──→ work on story independently
-     │  └──→ /commit when done
+In each stream: /story-cycle as normal
+     │  ├──→ [settings.json hook prefix resolves the correct worktree root]
+     │  ├──→ /merge-up   — publish this stream's work into the sprint branch,
+     │  │                  then fast-forward the stream back up to it
+     │  └──→ /merge-down — pull sibling streams' merged work into this stream
      │
      ▼
-/parallel-work list ──→ see all worktrees and merge status
+/parallel-work status ──→ all streams, parents, ahead/behind counts
      │
      ▼
-/parallel-work cleanup ──→ removes merged worktrees
-     │                      [WorktreeRemove hook: merges activity logs]
+/parallel-work cleanup ──→ removes fully-merged streams (safe delete only)
      │
      ▼
-/sprint-end ──→ merges all work, prunes worktrees
+/sprint-end ──→ verifies every stream is merged up (stops on unmerged work),
+                removes child worktrees and branches, ships the sprint via PR
 ```
 
 ### /commit — Conventional Commit
@@ -2164,6 +2173,7 @@ agent: Explore             # subagent type
 
 Standalone (no dependencies):
   commit, continue, handoff, sprint-start, parallel-work,
+  merge-up, merge-down,
   manual-test, testing-cycle, UAT-cycle, debug-session,
   undo-work, pr-status, backlog-review, retrospective,
   refine-loop, skill-eval, claude-sense-check, deploy,
@@ -2198,7 +2208,9 @@ Standalone (no dependencies):
 | `/fix-issue` | v2.4.0 | GitHub issue → TDD fix → PR | Manual |
 | `/undo-work` | v3.0.1 | Safe revert (3 levels) | Manual |
 | `/commit` | v2.4.0 | Conventional commit | Manual |
-| `/parallel-work` | v2.4.0 | Worktree management | Manual |
+| `/parallel-work` | v3.0.0 | Parallel streams (create, status, cleanup) | Manual |
+| `/merge-up` | v1.0.0 | Merge stream into its parent branch | Manual |
+| `/merge-down` | v1.0.0 | Pull parent branch into stream | Manual |
 | `/weekly-maintenance` | v2.6.0 | Weekly health check | Manual |
 | `/retrospective` | v3.0.0 | Sprint review (4Ls) | Manual |
 | `/backlog-review` | v3.0.0 | Backlog health analysis | Manual |
@@ -2535,7 +2547,7 @@ project-root/
 │   ├── rules/                        # 9 path-scoped rule files
 │   ├── scripts/file-suggestions.sh   # File suggestion utility
 │   │
-│   └── skills/                       # 43 skills
+│   └── skills/                       # 45 skills
 │       ├── SKILLS_INVENTORY.md       # Human-readable index
 │       ├── SKILL_TEMPLATE.md         # Skill writing conventions
 │       ├── skills-registry.json      # Machine-readable registry

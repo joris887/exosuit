@@ -193,6 +193,24 @@ When a story fails the cohesion test above, split in this order of preference:
 
 Each resulting story must be a **vertical slice** (UI + logic + data), not a horizontal layer.
 
+## Self-Contained by Default
+
+Shape every story to stand on its own: one complete outcome, minimal dependence on
+other stories, no shared hot files where avoidable. **Outcome over output** — one
+story that ships a whole small outcome beats two half-stories that only work together.
+
+- Prefer a vertical slice that is independently shippable and testable
+- Use the Dependencies field for genuine prerequisites only. A backlog where most
+  stories depend on each other is a signal to reshape the stories, not a normal state
+- Extract shared groundwork (schema, scaffolding, external accounts) into its own
+  setup story that others depend on, instead of spreading it across feature stories
+- Independent stories are what makes parallel work possible: two stories with no
+  dependencies and no overlapping affected files can be built simultaneously in
+  separate streams (`/parallel-work`). Dependent or overlapping stories should be
+  worked sequentially in one branch
+- Never force independence at the cost of cohesion: if splitting produces artificial
+  seams (see the cohesion test above), keep the story whole and work it sequentially
+
 ## Embedded Format (Stories in Epic Files)
 
 When stories are embedded in epic files (`docs/reference/backlog/E##-*.md`), use inline metadata instead of YAML frontmatter (since `---` becomes a horizontal rule in nested markdown):

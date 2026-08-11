@@ -43,7 +43,7 @@ This isn't a niche complaint. [Veracode's 2025 GenAI report](https://www.veracod
 
 ## What It Does
 
-A drop-in development framework for [Claude Code](https://claude.com/claude-code) that adds 43 slash commands, 13 enforcement hooks, 8 specialized agents, and a complete sprint-based development workflow to any project. Install it in 30 seconds. Run `/bootstrap`. Start building like a professional.
+A drop-in development framework for [Claude Code](https://claude.com/claude-code) that adds 45 slash commands, 13 enforcement hooks, 8 specialized agents, and a complete sprint-based development workflow to any project. Install it in 30 seconds. Run `/bootstrap`. Start building like a professional.
 
 - **Hooks block bad behavior:** force push, leaked secrets, skipped tests, premature "done" claims. These are deterministic shell scripts, not suggestions the AI can skip.
 - **TDD is the default:** tests before implementation, always. The framework plans tests first, writes them first, then implements to pass them.
@@ -244,7 +244,7 @@ ENFORCEMENT — hooks and rules that cannot be skipped
   └─ Auto-save session state
 
 WORKFLOW — skills and agents that guide structured development
-  43 slash commands            8 native agents
+  45 slash commands            8 native agents
   ├─ Sprint lifecycle          ├─ Code reviewer
   ├─ Story delivery (TDD)     ├─ Security analyst
   ├─ Planning & discovery      ├─ Test strategist
@@ -316,7 +316,9 @@ Key insight: the enforcement layer is deterministic; hooks are shell scripts tha
 | `/doctor` | Framework health check and diagnostics |
 | `/retrospective` | Sprint retro with metric analysis |
 | `/weekly-maintenance` | Dependency updates, debt tracking, rule health |
-| `/parallel-work` | Manage git worktrees for concurrent stories |
+| `/parallel-work` | Work on multiple stories at once in isolated parallel streams |
+| `/merge-up` | Publish a stream's finished work to the branch it came from |
+| `/merge-down` | Pull the parent branch's accumulated work into a stream |
 | `/commit` | Conventional commit with quality checks |
 | `/refine-loop` | Iterative refinement until criteria met |
 | `/optimize` | Optimize a specific metric (performance, bundle size, etc.) |
@@ -402,7 +404,7 @@ Everything is plain markdown and shell scripts. Edit directly:
 <details>
 <summary><strong>Does this support parallel work on multiple stories?</strong></summary>
 
-Yes. `/parallel-work` manages git worktrees for concurrent stories. A worktree-aware hook ensures commands run in the correct directory.
+Yes, when the stories are independent. `/parallel-work` creates isolated streams (git worktrees) from your sprint branch, one story each, and checks first that the stories don't depend on each other or touch the same files. Inside a stream, `/merge-up` publishes finished work to the sprint branch and `/merge-down` pulls in what other streams have shipped. `/sprint-end` verifies every stream is merged before it ships, and cleans them up. Sequential single-branch work stays the default; parallel is opt-in.
 </details>
 
 <details>
