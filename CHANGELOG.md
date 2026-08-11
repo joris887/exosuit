@@ -59,8 +59,45 @@ Found during open-source flow testing (T06-001, T06-002).
   previously the branch segment rendered empty (`--show-current` exits 0 with no
   output on detached HEAD, so the fallback never fired).
 
+### Added — parallel work suite
+- `/parallel-work` v3.0.0 (rewritten): one skill for parallel development streams.
+  `start` fans out N worktrees from the current branch (sense-checks story
+  dependencies and overlapping files first, warns when sequential is the better
+  choice), records each stream's parent in `git config branch.<name>.exosuitParent`,
+  propagates gitignored local settings (`.env`, `.env.local`,
+  `.claude/settings.local.json`, `CLAUDE.local.md`, `.mcp.json` with absolute
+  paths rewritten; extend via `EXOSUIT_WORKTREE_COPY`), and offers to open each
+  stream in its own terminal tab running Claude Code (cross-platform launcher:
+  iTerm2 / Terminal.app / Windows Terminal / gnome-terminal / konsole; configure
+  with `EXOSUIT_WORKTREE_LAUNCH_CMD`, disable with `EXOSUIT_WORKTREE_TABS=0`).
+  `status` shows streams with parent and ahead/behind; `cleanup` removes fully
+  merged streams (safe delete only). Parallel work is opt-in; sequential
+  single-branch remains the default.
+- `/merge-up` (new): inside a stream, merge its committed work into the parent
+  branch it was created from (true merge, runs in the parent's worktree via
+  `git -C`), optionally push the parent (never the default branch — that goes
+  through /sprint-end's PR), then fast-forward the stream back up to the parent.
+- `/merge-down` (new): inverse of /merge-up — pull the parent's accumulated
+  commits (sibling streams' merged work) down into the current stream. Read-only
+  on the parent.
+- `/sprint-end` closes the loop: step 1 discovers child streams via the recorded
+  parent config and STOPS if any has unmerged commits (run /merge-up or
+  explicitly abandon); step 6 removes merged child worktrees and branches before
+  the squash merge (while safe delete still recognizes them as merged) and
+  prunes worktree metadata.
+- Story shaping guidance ("Self-Contained by Default") added to the ideate story
+  template, the STORY_SIZING scaffold, and /discover story generation: one
+  complete outcome per story, genuine prerequisites only, shared groundwork in
+  setup stories — independence enables parallel streams but never outranks
+  cohesion.
+- Skill count 43 → 45. SKILLS_INVENTORY, CLAUDE.md skill table, README commands
+  table and FAQ, FRAMEWORK_REFERENCE section 12 updated.
+
 ### Files added
 - `install.ps1` — Windows wrapper: locates Git Bash, fetches and runs `install.sh`
+- `.claude/skills/merge-up/SKILL.md`, `.claude/skills/merge-down/SKILL.md`
+- `.claude/skills/parallel-work/scripts/new-worktree.sh`,
+  `.claude/skills/parallel-work/scripts/open-worktree-terminals.sh`
 - `.claude/hooks/tests/test-status-line.sh` — git state rendering suite (non-git,
   clean, dirty, staged, detached)
 

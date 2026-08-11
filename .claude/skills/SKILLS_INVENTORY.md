@@ -78,9 +78,11 @@ For technology skill generation: `/skill-create`
 
 ### Parallel Development (Manual-only)
 
-| Skill            | Arguments                   | Description                              |
-| ---------------- | --------------------------- | ---------------------------------------- |
-| `/parallel-work` | `[list\|create\|cleanup]`   | Manage git worktrees for concurrent stories (worktree-aware bash hook ensures correct working directory) |
+| Skill            | Arguments                       | Description                              |
+| ---------------- | ------------------------------- | ---------------------------------------- |
+| `/parallel-work` | `[status\|start [count]\|cleanup]` | Work on multiple stories at once: creates isolated parallel streams (git worktrees) from the current branch with local settings wired up, shows stream status, cleans up finished streams (worktree-aware bash hook ensures correct working directory) |
+| `/merge-up`      | —                               | Inside a stream: merge its committed work into the parent branch it was created from, then sync the stream back up to the parent |
+| `/merge-down`    | —                               | Inside a stream: pull the parent branch's accumulated work (other streams' merged stories) down into this stream |
 
 ### Testing Workflow (Manual-only)
 

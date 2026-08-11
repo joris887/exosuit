@@ -21,6 +21,15 @@ A story spanning genuinely unrelated topics is not a size — it is a bundle, an
 
 **Large is permitted, never mandated.** Do not create XL stories because they are allowed.
 
+## Self-Contained by Default
+
+Beyond size, shape stories to stand alone where it makes sense: one complete outcome
+per story (outcome over output), genuine prerequisites only in the Dependencies field,
+shared groundwork extracted into setup stories. Independent stories can be built in
+parallel (`/parallel-work`); dependent or file-overlapping stories belong in one
+branch, worked sequentially. Independence never outranks cohesion — an artificial
+split is worse than an honest dependency.
+
 ## Project Deviations
 
 <!-- /bootstrap: leave this section empty unless the user states a specific sizing policy.
