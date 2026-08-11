@@ -41,9 +41,11 @@ Found during open-source flow testing (T06-001, T06-002).
   line kept at the end of What It Does; "Quick Start" renamed Install and reduced to
   the install commands (the four-command block was redundant with Your First Session
   and The Sprint Loop); Supported Languages table moved into the language FAQ; three
-  Mermaid diagrams added (bootstrap fork, sprint loop, three-layer architecture),
-  which GitHub renders natively; Design Philosophy reworded to fit solo founders as
-  much as teams; counts corrected (45 commands, 9 agents).
+  diagrams added (bootstrap fork, sprint loop, three-layer architecture) as
+  hand-crafted brand-palette SVGs in assets/ (Mermaid's auto-layout look was rejected;
+  the SVGs use the banner's cream/charcoal/orange identity); Design Philosophy
+  reworded to fit solo founders as much as teams; counts corrected (45 commands,
+  9 agents).
 
 ### Fixed
 - README "How Story Delivery Works" replaced by "The Sprint Loop": the full

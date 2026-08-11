@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-label="Three layers. Enforcement, deterministic and impossible to skip: 13 hook scripts and 9 auto-loaded rules. Workflow, advisory and risk-adapted: 45 slash commands and 9 native agents. Documentation, context that persists: CLAUDE.md, progress.md, knowledge base and session handoffs.">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#38342B"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="640" fill="#F1ECE1"/>
+
+  <!-- ENFORCEMENT -->
+  <rect x="40" y="30" width="1200" height="180" rx="16" fill="#FBF8F1" stroke="#38342B" stroke-width="2"/>
+  <text x="70" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="2" fill="#38342B">ENFORCEMENT</text>
+  <text x="345" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#C55B27">deterministic, cannot be skipped</text>
+
+  <rect x="70" y="92" width="560" height="94" rx="10" fill="#F1ECE1" stroke="#8A8578" stroke-width="1.5"/>
+  <text x="94" y="124" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#38342B"><tspan fill="#C55B27">13</tspan> hook scripts</text>
+  <text x="94" y="149" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#8A8578">format on edit · block secrets and force push</text>
+  <text x="94" y="170" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#8A8578">require evidence for "done" · auto-save session</text>
+
+  <rect x="650" y="92" width="560" height="94" rx="10" fill="#F1ECE1" stroke="#8A8578" stroke-width="1.5"/>
+  <text x="674" y="124" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#38342B"><tspan fill="#C55B27">9</tspan> auto-loaded rules</text>
+  <text x="674" y="149" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#8A8578">never weaken tests · security checklist</text>
+  <text x="674" y="170" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#8A8578">no filler comments · conventional commits</text>
+
+  <line x1="350" y1="210" x2="350" y2="238" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+  <line x1="930" y1="210" x2="930" y2="238" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+
+  <!-- WORKFLOW -->
+  <rect x="40" y="248" width="1200" height="180" rx="16" fill="#FBF8F1" stroke="#38342B" stroke-width="2"/>
+  <text x="70" y="286" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="2" fill="#38342B">WORKFLOW</text>
+  <text x="345" y="286" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#C55B27">advisory, adapts to risk</text>
+
+  <rect x="70" y="310" width="560" height="94" rx="10" fill="#F1ECE1" stroke="#8A8578" stroke-width="1.5"/>
+  <text x="94" y="342" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#38342B"><tspan fill="#C55B27">45</tspan> slash commands</text>
+  <text x="94" y="367" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#8A8578">sprint lifecycle · story delivery</text>
+  <text x="94" y="388" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#8A8578">planning and discovery · quality analysis</text>
+
+  <rect x="650" y="310" width="560" height="94" rx="10" fill="#F1ECE1" stroke="#8A8578" stroke-width="1.5"/>
+  <text x="674" y="342" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#38342B"><tspan fill="#C55B27">9</tspan> native agents</text>
+  <text x="674" y="367" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#8A8578">code review · security · tests</text>
+  <text x="674" y="388" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#8A8578">architecture · integration</text>
+
+  <line x1="350" y1="428" x2="350" y2="456" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+  <line x1="930" y1="428" x2="930" y2="456" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+
+  <!-- DOCUMENTATION -->
+  <rect x="40" y="466" width="1200" height="144" rx="16" fill="#FBF8F1" stroke="#38342B" stroke-width="2"/>
+  <text x="70" y="504" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="2" fill="#38342B">DOCUMENTATION</text>
+  <text x="345" y="504" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#C55B27">context that persists across sessions</text>
+
+  <rect x="70" y="522" width="1140" height="62" rx="10" fill="#F1ECE1" stroke="#8A8578" stroke-width="1.5"/>
+  <text x="94" y="560" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#38342B">CLAUDE.md · progress.md · project knowledge base · session handoffs</text>
+</svg>
