@@ -28,6 +28,10 @@ If you prefer to skip the tour: run `/bootstrap` directly.
 
 `/bootstrap` configures the framework for your specific project:
 
+<p align="center">
+  <img src="../assets/diagram-first-session.svg" alt="Your first session: /bootstrap checks whether the repo has code. A new idea leads to /discover, The Interrogation; existing code leads to stack detection and readiness assessment. Both produce vision, backlog and project docs, then /sprint-start." width="100%">
+</p>
+
 ### New project from an idea
 
 Bootstrap detects an empty project and launches `/discover`, a deep guided elicitation that builds your project from scratch:
@@ -96,6 +100,10 @@ What changes:
 You can change your profile anytime by editing the `**Profile:**` line in CLAUDE.md, or by setting `EXOSUIT_PROJECT_PROFILE=lean|standard|strict` in your environment.
 
 ## Step 5: Your First Sprint
+
+<p align="center">
+  <img src="../assets/diagram-sprint-loop.svg" alt="The sprint loop: /sprint-start creates a clean branch off main with a green test baseline; /story-cycle plans, gets approval, builds test-first and verifies, once per story; /sprint-end runs quality gates, opens the PR and squash merges to main; then the next sprint begins." width="100%">
+</p>
 
 ```
 /sprint-start          # Creates a feature branch
