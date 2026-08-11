@@ -75,15 +75,9 @@ Then open Claude Code in your project. Your first command is `/bootstrap`, and t
 
 After install, everything starts with `/bootstrap`. What happens next depends on your situation:
 
-```mermaid
-flowchart TD
-    B["/bootstrap"] --> Q{"code in<br/>the repo?"}
-    Q -->|"no: just an idea"| D["/discover<br/>The Interrogation"]
-    Q -->|"yes: existing code"| A["stack detection +<br/>readiness assessment"]
-    D --> R["vision, backlog,<br/>project docs"]
-    A --> R
-    R --> S["/sprint-start"]
-```
+<p align="center">
+  <img src="assets/diagram-first-session.svg" alt="Your first session: /bootstrap checks whether the repo has code. A new idea leads to /discover, The Interrogation; existing code leads to stack detection and readiness assessment. Both produce vision, backlog and project docs, then /sprint-start." width="100%">
+</p>
 
 **Take your time with this step.** Bootstrap is thorough on purpose. For a new project it starts the discovery interview, and that can take an hour or more. This is deliberate. It is where the deep elicitation happens: expect questions about your idea that you have never asked yourself, and your honest answers become the foundation of everything the framework builds afterwards. Rushing here trades an hour of thinking for weeks of building the wrong thing. For an existing repo, bootstrap researches your codebase, maps the gaps between your current setup and the framework's engineering principles, and generates your project documentation; how long that takes scales with the size of your repo.
 
@@ -166,13 +160,9 @@ The framework tells you exactly what your project needs to be production-ready, 
 
 After bootstrap, everything ships through the same loop of three commands. This is the framework's heartbeat:
 
-```mermaid
-flowchart LR
-    S["/sprint-start<br/>clean branch,<br/>green baseline"] --> C["/story-cycle<br/>plan, approve,<br/>test-first, verify"]
-    C -->|next story| C
-    C --> E["/sprint-end<br/>quality gates,<br/>PR, squash merge"]
-    E -->|new sprint| S
-```
+<p align="center">
+  <img src="assets/diagram-sprint-loop.svg" alt="The sprint loop: /sprint-start creates a clean branch off main with a green test baseline; /story-cycle plans, gets approval, builds test-first and verifies, once per story; /sprint-end runs quality gates, opens the PR and squash merges to main; then the next sprint begins." width="100%">
+</p>
 
 Inside the loop, every step earns its place:
 
@@ -209,24 +199,9 @@ TRIVIAL changes fast-track through a single lite pass. High-risk changes get ext
 
 Three layers, from most to least deterministic:
 
-```mermaid
-flowchart TB
-    subgraph L1["ENFORCEMENT: deterministic, cannot be skipped"]
-        A["13 hook scripts<br/>format on edit, block secrets and force push,<br/>require evidence for done, auto-save session"]
-        B["9 auto-loaded rules<br/>never weaken tests, security checklist,<br/>no filler comments, conventional commits"]
-    end
-    subgraph L2["WORKFLOW: advisory, adapts to risk"]
-        C["45 slash commands<br/>sprint lifecycle, story delivery,<br/>planning and discovery, quality analysis"]
-        D["9 native agents<br/>code review, security, tests,<br/>architecture, integration"]
-    end
-    subgraph L3["DOCUMENTATION: context that persists"]
-        E["CLAUDE.md + progress.md<br/>knowledge base + session handoffs"]
-    end
-    A --- C
-    B --- D
-    C --- E
-    D --- E
-```
+<p align="center">
+  <img src="assets/diagram-architecture.svg" alt="Three layers: Enforcement (deterministic, cannot be skipped) with 13 hook scripts and 9 auto-loaded rules; Workflow (advisory, adapts to risk) with 45 slash commands and 9 native agents; Documentation (context that persists) with CLAUDE.md, progress.md, knowledge base and session handoffs." width="100%">
+</p>
 
 Key insight: the enforcement layer is deterministic; hooks are shell scripts that the AI cannot bypass. The workflow layer is advisory; it guides but doesn't force. When something *must* happen, it lives in enforcement.
 
