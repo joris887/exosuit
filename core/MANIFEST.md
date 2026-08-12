@@ -63,7 +63,7 @@ All skills in the framework are CORE except technology-specific skills generated
 | Debugging | debug-session, fix-issue, undo-work |
 | Maintenance | weekly-maintenance, retrospective, backlog-review, doctor, framework-upgrade, pr-status |
 | Utility | commit, parallel-work, skill-eval, refine-loop, optimize, quickstart, help-me, dashboard, custom-hooks, uninstall |
-| Inventory | SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, skills-registry.json, skills-registry.schema.json |
+| Inventory | SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, FLOW_SPEC.md, skills-registry.json, skills-registry.schema.json |
 
 #### Agents (`.claude/agents/`)
 
