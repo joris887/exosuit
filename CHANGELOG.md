@@ -13,6 +13,42 @@ Each version entry lists:
 
 ---
 
+## [Unreleased]
+
+### Summary
+Telemetry integrity fixes for the activity log (#75, #76). Rotation in
+`post-tool-use.sh` is now type-aware — high-volume tool lines no longer evict
+the skill/story lifecycle events that `/sprint-end` metrics and `/story-cycle`
+calibration parse (tool lines capped at 200 as before, skill/story events get
+their own 500-line cap, original order preserved). The eight skills that
+emitted only start events (brainstorm, continue, debug-session, handoff,
+ideate, research, sprint-end, sprint-start) now emit matching completion
+events, unblocking the skill-success-rate component of the AI-effectiveness
+score — previously only story-cycle emitted `outcome:success`, structurally
+capping the metric below its green threshold.
+
+### Files changed
+- `core/hooks/post-tool-use.sh` — type-aware log rotation (fixes #75)
+- `core/skills/brainstorm/SKILL.md` — completion event; 2.7.0 → 2.7.1
+- `core/skills/continue/SKILL.md` — completion event; 2.7.0 → 2.7.1
+- `core/skills/debug-session/SKILL.md` — completion event; 2.9.0 → 2.9.1
+- `core/skills/handoff/SKILL.md` — completion event; 2.6.0 → 2.6.1
+- `core/skills/ideate/SKILL.md` — completion event; 2.10.0 → 2.10.1
+- `core/skills/research/SKILL.md` — completion event; 1.0.0 → 1.0.1
+- `core/skills/sprint-end/SKILL.md` — completion event; 2.10.0 → 2.10.1
+- `core/skills/sprint-start/SKILL.md` — completion event; 2.7.0 → 2.7.1
+- `core/skills/skills-registry.json` — version sync (fixes #76)
+
+### Files added
+- `core/hooks/tests/test-post-tool-use.sh` — rotation regression tests
+
+### Project file changes
+None required. Existing `docs/sessions/.activity-log.jsonl` files need no
+migration — the new rotation applies on the next tool use.
+
+### Breaking changes
+None.
+
 ## [5.0.1] - 2026-08-10
 
 ### Summary
