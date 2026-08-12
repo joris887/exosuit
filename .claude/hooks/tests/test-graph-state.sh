@@ -175,6 +175,41 @@ OUT=$(sh "$SESSION_START" 2>&1 || true)
 test_case "advisory ignores body ghost cursor" "true" "$(printf '%s' "$OUT" | grep -q "Interrupted /" && echo false || echo true)"
 cd "$ORIG_PWD"
 
+# --- Case 5d2: clear is byte-identical on corrupt (unclosed) files ---
+d="$(make_repo)"; cd "$d"
+mkdir -p docs/sessions
+printf -- '---\nstatus: active\nskill: story-cycle\ncursor_owned: true\nflow: story-cycle\nnode: x-node\nattempt: 1\nTRUNCATED no closing delimiter\n' > "$FS"
+BEFORE_SUM=$(cksum < "$FS")
+sh "$LIB" clear story-cycle
+test_case "clear preserves corrupt file (not deleted)" "true" "$([ -f "$FS" ] && echo true || echo false)"
+AFTER_SUM=$(cksum < "$FS")
+test_case "clear byte-identical on corrupt file" "$BEFORE_SUM" "$AFTER_SUM"
+test_case "show silent on corrupt file" "" "$(sh "$LIB" show)"
+OUT=$(sh "$SESSION_START" 2>&1 || true)
+test_case "advisory silent on corrupt file" "true" "$(printf '%s' "$OUT" | grep -q "Interrupted /" && echo false || echo true)"
+cd "$ORIG_PWD"
+
+# --- Case 5d3: degenerate '---/---' frontmatter yields no ghost advisory ---
+d="$(make_repo)"; cd "$d"
+mkdir -p docs/sessions
+printf -- '---\n---\nflow: ghost-flow\nnode: ghost-node\nattempt: 5\nbranch: "sprint-7"\n' > "$FS"
+OUT=$(sh "$SESSION_START" 2>&1 || true)
+test_case "advisory silent on degenerate frontmatter" "true" "$(printf '%s' "$OUT" | grep -q "Interrupted /" && echo false || echo true)"
+test_case "show silent on degenerate frontmatter" "" "$(sh "$LIB" show)"
+cd "$ORIG_PWD"
+
+# --- Case 5d4: CRLF files are complete no-ops ---
+d="$(make_repo)"; cd "$d"
+mkdir -p docs/sessions
+printf -- '---\r\nstatus: active\r\nskill: story-cycle\r\nbranch: "sprint-7"\r\n---\r\n\r\nbody\r\n' > "$FS"
+BEFORE_SUM=$(cksum < "$FS")
+sh "$LIB" enter story-cycle a-node
+AFTER_SUM=$(cksum < "$FS")
+test_case "enter byte-identical on CRLF file" "$BEFORE_SUM" "$AFTER_SUM"
+OUT=$(sh "$SESSION_START" 2>&1 || true)
+test_case "advisory silent on CRLF file" "true" "$(printf '%s' "$OUT" | grep -q "Interrupted /" && echo false || echo true)"
+cd "$ORIG_PWD"
+
 # --- Case 5e: invalid ids are rejected silently ---
 d="$(make_repo)"; cd "$d"
 sh "$LIB" enter "story cycle" "some node"

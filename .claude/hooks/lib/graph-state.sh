@@ -47,6 +47,18 @@ valid_id() {
 CUR_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
 TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
 
+# Well-formedness gate: frontmatter opens at line 1, a closing --- exists,
+# and the file has no CRLF endings (consistent with validate-flows.sh).
+# Every verb no-ops on files that fail this — corrupt state is preserved
+# byte-for-byte, never read, never written, never deleted.
+fs_wellformed() {
+    [ -f "$STATE_FILE" ] || return 1
+    grep -q "$(printf '\r')" "$STATE_FILE" 2>/dev/null && return 1
+    head -1 "$STATE_FILE" 2>/dev/null | grep -q '^---[[:space:]]*$' || return 1
+    [ "$(grep -c '^---[[:space:]]*$' "$STATE_FILE" 2>/dev/null)" -ge 2 ] || return 1
+    return 0
+}
+
 # Read a frontmatter value: only between the opening --- (line 1) and the
 # closing --- ; first match wins; surrounding quotes stripped.
 fs_get() {
@@ -115,11 +127,12 @@ fs_clear_cursor() {
     if awk '
         BEGIN { fm = 0 }
         NR == 1 { if ($0 ~ /^---[[:space:]]*$/) { fm = 1; print; next } else exit 1 }
-        /^---[[:space:]]*$/ { fm = 2; print; next }
+        /^---[[:space:]]*$/ { if (fm == 1) fm = 2; print; next }
         {
             if (fm == 1 && ($0 ~ /^flow:/ || $0 ~ /^node:/ || $0 ~ /^attempt:/ || $0 ~ /^cursor_owned:/)) next
             print
         }
+        END { if (fm < 2) exit 1 }
     ' "$STATE_FILE" > "$tmp" 2>/dev/null; then
         mv "$tmp" "$STATE_FILE" 2>/dev/null
     fi
@@ -157,6 +170,7 @@ may_write() {
 
 cursor_write() {
     if [ -f "$STATE_FILE" ]; then
+        fs_wellformed || return 0
         may_write || return 0
         fs_set "flow=$FLOW$(printf '\037')node=$NODE$(printf '\037')attempt=$1$(printf '\037')branch=\"$CUR_BRANCH\""
     else
@@ -171,7 +185,7 @@ case "$VERB" in
         ;;
     attempt)
         valid_id "$FLOW" && valid_id "$NODE" || exit 0
-        if [ -f "$STATE_FILE" ] && [ "$(fs_get flow)" = "$FLOW" ] && [ "$(fs_get node)" = "$NODE" ]; then
+        if fs_wellformed && [ "$(fs_get flow)" = "$FLOW" ] && [ "$(fs_get node)" = "$NODE" ]; then
             may_write || exit 0
             cur=$(fs_get attempt)
             case "$cur" in ''|*[!0-9]*) cur=0 ;; esac
@@ -182,7 +196,7 @@ case "$VERB" in
         ;;
     clear)
         valid_id "$FLOW" || exit 0
-        if [ -f "$STATE_FILE" ]; then
+        if fs_wellformed; then
             if [ "$(fs_get cursor_owned)" = "true" ] && [ "$(fs_get skill)" = "$FLOW" ]; then
                 rm -f "$STATE_FILE" 2>/dev/null
             elif may_write; then
@@ -191,7 +205,7 @@ case "$VERB" in
         fi
         ;;
     show)
-        if [ -f "$STATE_FILE" ]; then
+        if fs_wellformed; then
             sf=$(fs_get flow); sn=$(fs_get node)
             # No cursor -> no output (empty positional fields are ambiguous)
             if [ -n "$sf" ] && [ -n "$sn" ]; then

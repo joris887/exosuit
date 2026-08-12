@@ -51,19 +51,20 @@ only when the file's `branch:` matches the current branch, so worktree
 copies stay inert. Ownership rules keep the file's
 meaning intact: a cursor never touches a file owned by a different skill,
 and `clear` deletes a cursor-created file so normal completed runs leave no
-phantom "interrupted workflow". The hook-consumer extractions (stop.sh,
-pre-compact.sh, status-line.sh, standup.sh patterns) are verified
-byte-identical before/after cursor writes in the test suite.
+phantom "interrupted workflow". The hook-consumer extraction patterns (stop.sh,
+pre-compact.sh, status-line.sh) are verified byte-identical before/after
+cursor writes in the test suite.
 
 - Added: `.claude/hooks/lib/graph-state.sh` (enter/attempt/clear/show),
-  `.claude/hooks/tests/test-graph-state.sh` (24 cases incl. consumer
-  byte-compat and branch-scoping)
+  `.claude/hooks/tests/test-graph-state.sh` (consumer byte-compat,
+  ownership, corrupt-file and branch-scoping cases)
 - Changed: `.claude/hooks/session-start.sh` — additive resume advisory
   (section 2.5); `.claude/skills/FLOW_SPEC.md` — Cursor & Resume section;
   `.claude/skills/continue/SKILL.md` — cursor-first resume in step 0.5,
   dual-format (old files unchanged), 2.7.0 → 2.8.0; cursor call-sites in
   sprint-start (2.8.0), sprint-end (2.11.0), story-cycle (4.5.0);
-  registry sync
+  registry sync; `core/MANIFEST.md` and `.claude/hooks/README.md` rows
+  for the new lib file
 
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
