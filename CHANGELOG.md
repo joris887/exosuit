@@ -42,6 +42,25 @@ byte-identically; a project with no flow files validates vacuously.
 - `core/MANIFEST.md` — FLOW_SPEC.md added to the skills Inventory row
 - `.github/workflows/ci.yml` — new `flow-contracts` job
 
+### Level 4 — State & Resume (stacked on the above)
+The flow cursor: additive `flow:`/`node:`/`attempt:` keys in the existing
+`docs/sessions/.failure-state.md`, maintained via one-line calls to the new
+`lib/graph-state.sh` helper (advisory, always exit 0). Branch-scoped: the
+session-start resume advisory and `/continue`'s new cursor-first step act
+only when the file's `branch:` matches the current branch, so worktree
+copies stay inert. Every existing consumer of the file is unaffected —
+verified byte-identical extraction in the new test suite.
+
+- Added: `.claude/hooks/lib/graph-state.sh` (enter/attempt/clear/show),
+  `.claude/hooks/tests/test-graph-state.sh` (24 cases incl. consumer
+  byte-compat and branch-scoping)
+- Changed: `.claude/hooks/session-start.sh` — additive resume advisory
+  (section 2.5); `.claude/skills/FLOW_SPEC.md` — Cursor & Resume section;
+  `.claude/skills/continue/SKILL.md` — cursor-first resume in step 0.5,
+  dual-format (old files unchanged), 2.7.0 → 2.8.0; cursor call-sites in
+  sprint-start (2.8.0), sprint-end (2.11.0), story-cycle (4.5.0);
+  registry sync
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.

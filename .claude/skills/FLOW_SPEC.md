@@ -100,6 +100,41 @@ the repo root. Checks per flow file:
 A project with zero `flow.yaml` files passes vacuously — the validator changes
 nothing for skills that have not adopted flow contracts.
 
+## Cursor & Resume
+
+Skills with a flow contract keep a **flow cursor** — three additive keys in
+the YAML frontmatter of the existing `docs/sessions/.failure-state.md`:
+
+```yaml
+flow: story-cycle    # which flow contract this run follows
+node: write-plan     # the node currently executing
+attempt: 1           # attempt count at this node (loops/retries)
+```
+
+Maintained via one-line calls to the helper (advisory, always exit 0 — a
+cursor failure never breaks a skill):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter <flow> <node>    # on node transition
+sh .claude/hooks/lib/graph-state.sh attempt <flow> <node>  # on retry of the same node
+sh .claude/hooks/lib/graph-state.sh clear <flow>           # at terminal nodes
+```
+
+Rules:
+
+- The cursor stores the **(flow, node) pair** — node ids are unique per flow,
+  not globally.
+- **Branch-scoped**: readers (session-start's resume advisory, `/continue`)
+  act on the cursor only when the file's `branch:` equals
+  `git branch --show-current`. New worktrees inherit a verbatim copy of the
+  file by design; the branch check makes an inherited cursor inert.
+- `clear` removes only the cursor keys. File creation/deletion lifecycle
+  belongs to the owning skill — a file's existence still means "interrupted
+  workflow" exactly as before.
+- The keys are additive: every existing consumer of `.failure-state.md`
+  ignores them. Never name new frontmatter keys `skill:`, `phase_name:`, or
+  `goal:` — those are parsed by stop.sh, pre-compact.sh, and status-line.sh.
+
 ## Authoring a Flow Contract
 
 Transcribe what the prose **actually says today** — a flow contract is a

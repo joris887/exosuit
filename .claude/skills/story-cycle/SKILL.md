@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 4.4.0
+version: 4.5.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -27,6 +27,14 @@ Delivering story: **$ARGUMENTS**
 ```bash
 echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"story-cycle\",\"story\":\"$ARGUMENTS\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
 ```
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter story-cycle <node-id>
+```
+
+Use `attempt` instead of `enter` when retrying the same node, and `clear story-cycle` at terminal nodes.
 
 **Progress tracking:** At the start, create a task list for phase tracking:
 

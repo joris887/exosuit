@@ -1,6 +1,6 @@
 ---
 name: sprint-end
-version: 2.10.0
+version: 2.11.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -20,6 +20,14 @@ ______________________________________________________________________
 ```bash
 echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"sprint-end\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
 ```
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter sprint-end <node-id>
+```
+
+Use `attempt` instead of `enter` when retrying the same node, and `clear sprint-end` at terminal nodes.
 
 Ending the sprint. Discovering and wrapping up all work on the current branch.
 

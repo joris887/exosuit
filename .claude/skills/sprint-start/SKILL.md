@@ -1,6 +1,6 @@
 ---
 name: sprint-start
-version: 2.7.0
+version: 2.8.0
 description: Pre-sprint checks, feature branch creation, and sprint planning. Ensures clean state, defines sprint goal and scope, creates sprint spec document.
 trigger: manual
 depends-on: []
@@ -18,6 +18,14 @@ ______________________________________________________________________
 ```bash
 echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"sprint-start\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
 ```
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter sprint-start <node-id>
+```
+
+Use `attempt` instead of `enter` when retrying the same node, and `clear sprint-start` at terminal nodes.
 
 Starting a new sprint.
 

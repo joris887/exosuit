@@ -1,6 +1,6 @@
 ---
 name: continue
-version: 2.7.0
+version: 2.8.0
 description: Resume development with smart session continuation. Reads session handoff files, sprint spec, analyzes git state, and determines the best path forward.
 trigger: manual
 depends-on: []
@@ -102,6 +102,14 @@ Check `started_at` — if the failure state is older than 4 hours, flag it as po
 **Validate story status:** If the failure state references a story ID, check its status in the epic file (`docs/reference/backlog/E*.md`). If the story status is `in-progress`, recovery is valid. If it's `done` or `review`, the story may have been completed in another session — inform the user.
 
 Recommend the user resume the interrupted skill (e.g., `/story-cycle` or `/debug-session`) with the recovery context from the `next_action` and `## Context` section.
+
+**Cursor-first resume (flow contracts):** The frontmatter may additionally carry a flow cursor — `flow:`, `node:`, and `attempt:` keys (see `.claude/skills/FLOW_SPEC.md` → Cursor & Resume). If present AND the file's `branch:` matches `git branch --show-current`:
+
+1. Read `.claude/skills/<flow>/flow.yaml` and locate the `node:` id.
+2. Resume the skill AT that node — open the node's `doc:` anchor in the skill's SKILL.md for the exact step instructions. An `attempt:` greater than 1 means a retry was in progress at that node.
+3. Present it as: "Cursor: /<flow> was at node '<node>' (attempt N) — resume there."
+
+If the branch does NOT match, the file was inherited from another worktree/branch — ignore the cursor keys entirely and fall back to the standard fields above. Files without cursor keys (all pre-existing formats) follow the standard behavior above, unchanged.
 
 ## 0.6. Read Latest Session Handoff
 

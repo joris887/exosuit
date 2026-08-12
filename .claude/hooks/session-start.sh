@@ -59,6 +59,27 @@ if [ -f "$AUTO_SAVE" ]; then
     fi
 fi
 
+# --- 2.5. Flow cursor resume advisory (advisory only) ---
+# If an interrupted flow left a cursor (flow:/node: keys, see FLOW_SPEC.md)
+# AND its branch matches the current branch, point the user at the exact
+# node. Branch mismatch means the file was inherited by a worktree copy —
+# stay silent (the cursor belongs to another branch's run).
+FAILURE_STATE="docs/sessions/.failure-state.md"
+if [ -f "$FAILURE_STATE" ]; then
+    FS_FLOW=$(grep '^flow:' "$FAILURE_STATE" 2>/dev/null | head -1 | sed 's/^flow:[[:space:]]*//')
+    FS_NODE=$(grep '^node:' "$FAILURE_STATE" 2>/dev/null | head -1 | sed 's/^node:[[:space:]]*//')
+    FS_ATTEMPT=$(grep '^attempt:' "$FAILURE_STATE" 2>/dev/null | head -1 | sed 's/^attempt:[[:space:]]*//')
+    FS_BRANCH=$(grep '^branch:' "$FAILURE_STATE" 2>/dev/null | head -1 | sed 's/^branch:[[:space:]]*//; s/^"//; s/"$//')
+    CURSOR_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
+    if [ -n "$FS_FLOW" ] && [ -n "$FS_NODE" ] && [ -n "$FS_BRANCH" ] && [ "$FS_BRANCH" = "$CURSOR_BRANCH" ]; then
+        if [ -n "$FS_ATTEMPT" ] && [ "$FS_ATTEMPT" != "1" ]; then
+            warn "Interrupted /$FS_FLOW at node '$FS_NODE' (attempt $FS_ATTEMPT) on this branch -- run /continue to resume at that step"
+        else
+            warn "Interrupted /$FS_FLOW at node '$FS_NODE' on this branch -- run /continue to resume at that step"
+        fi
+    fi
+fi
+
 # --- 3. Git state checks ---
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     BRANCH=$(git branch --show-current 2>/dev/null)
