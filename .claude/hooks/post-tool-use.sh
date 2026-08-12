@@ -1,7 +1,8 @@
 #!/bin/sh
 # PostToolUse handler: log tool invocations + track test execution.
 # 1. Appends timestamped JSON lines for Edit, Write, and Bash tool use.
-#    Rotates at 200 entries.
+#    Rotates type-aware: last 200 tool lines + last 500 skill/story event
+#    lines are kept (file max ~700 lines), preserving original order.
 # 2. Detects successful test runs and sets session state so the Stop
 #    handler doesn't redundantly require test evidence in the last message.
 # Advisory only (always exit 0). POSIX-compliant — no bash required.

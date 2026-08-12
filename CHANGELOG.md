@@ -29,6 +29,8 @@ capping the metric below its green threshold.
 
 ### Files changed
 - `core/hooks/post-tool-use.sh` — type-aware log rotation (fixes #75)
+- `scripts/pm/metrics.sh` + `scaffold/scripts/pm/metrics.sh` — `--ai-effectiveness` now applies the documented `--days` window (events outlive the old accidental recency cap after the rotation fix) and counts sessions from start events only (end events would double-count; story-cycle was already double-counted before this change)
+- `core/hooks/README.md`, `docs/FRAMEWORK_REFERENCE.md` — rotation description updated to match the type-aware behavior
 - `core/skills/brainstorm/SKILL.md` — completion event; 2.7.0 → 2.7.1
 - `core/skills/continue/SKILL.md` — completion event; 2.7.0 → 2.7.1
 - `core/skills/debug-session/SKILL.md` — completion event; 2.9.0 → 2.9.1

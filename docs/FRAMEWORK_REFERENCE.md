@@ -1494,7 +1494,7 @@ Captures: branch, work completed, decisions, blockers, files accessed (modified/
 │  │                          DECISION_LOG.md, ASSUMPTION_REGISTER.md     │     │
 │  │ STRUCTURAL (snapshots):  session-*.md, progress.md, context/*        │     │
 │  │ DISCOVERY (per-phase):   vision/*.md, docs/reviews/phase-N-*.md      │     │
-│  │ METRICS (rotated):       .activity-log.jsonl (200 entry cap),        │     │
+│  │ METRICS (rotated):       .activity-log.jsonl (200+500 cap),          │     │
 │  │                          .story-outcomes.tsv, .audit-log.jsonl,     │     │
 │  │                          .failure-log.jsonl                          │     │
 │  └──────────────────────────────────────────────────────────────────────┘     │
@@ -2442,7 +2442,7 @@ Companion knowledge stores:
 | `docs/sessions/session-*.md` | Session handoffs | `/handoff` | `/continue` |
 | `docs/sessions/.auto-save.md` | Auto-saved state (volatile) | Stop hook | `/continue` |
 | `docs/sessions/.failure-state.md` | Interrupted workflow (volatile) | Phase transitions | Stop hook, `/continue` |
-| `docs/sessions/.activity-log.jsonl` | Tool usage log (rotated 200) | PostToolUse hook | `/retrospective`, `/weekly-maintenance` |
+| `docs/sessions/.activity-log.jsonl` | Tool usage log (rotated: 200 tool + 500 skill/story lines) | PostToolUse hook | `/retrospective`, `/weekly-maintenance` |
 | `docs/sessions/.story-outcomes.tsv` | Story metrics (code delta, tests, coverage) | `capture-outcome` | `/retrospective` |
 | `docs/sessions/.optimization-log.tsv` | Optimization experiment results | `/optimize` | Reference |
 | `docs/sessions/.failure-log.jsonl` | Tool failure log (cascading failure detection) | PostToolUseFailure hook | `post-tool-failure.sh` (recovery) |
