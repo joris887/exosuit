@@ -28,3 +28,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Lint shell scripts
         run: shellcheck -S error .claude/hooks/*.sh install.sh
+
+  flow-contracts:
+    name: Flow contract validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate flow contracts
+        run: bash .claude/skills/doctor/scripts/validate-flows.sh
