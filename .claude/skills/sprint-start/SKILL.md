@@ -1,6 +1,6 @@
 ---
 name: sprint-start
-version: 2.7.0
+version: 2.7.1
 description: Pre-sprint checks, feature branch creation, and sprint planning. Ensures clean state, defines sprint goal and scope, creates sprint spec document.
 trigger: manual
 depends-on: []
@@ -259,6 +259,12 @@ Ready to start work.
 ```
 
 Always show the actual first story ID from the sprint plan (e.g., `/story-cycle E01-S01`), not a placeholder.
+
+**Skill metrics:** Emit a completion event:
+
+```bash
+echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"sprint-start\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
 
 ## What This Skill Does NOT Do
 

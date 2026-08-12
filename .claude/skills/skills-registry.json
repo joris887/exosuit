@@ -69,7 +69,7 @@
   },
   {
     "name": "brainstorm",
-    "version": "2.7.0",
+    "version": "2.7.1",
     "description": "Use when the user has a complex idea that needs design exploration before story decomposition.",
     "trigger": "manual",
     "depends_on": [
@@ -103,7 +103,7 @@
   },
   {
     "name": "continue",
-    "version": "2.7.0",
+    "version": "2.7.1",
     "description": "Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.",
     "trigger": "manual",
     "depends_on": [],
@@ -152,7 +152,7 @@
   },
   {
     "name": "debug-session",
-    "version": "2.9.0",
+    "version": "2.9.1",
     "description": "Use when the user reports a bug, error, or unexpected behavior that needs investigation.",
     "trigger": "manual",
     "depends_on": [],
@@ -205,7 +205,7 @@
   },
   {
     "name": "handoff",
-    "version": "2.6.0",
+    "version": "2.6.1",
     "description": "Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read.",
     "trigger": "manual",
     "depends_on": [],
@@ -225,7 +225,7 @@
   },
   {
     "name": "ideate",
-    "version": "2.10.0",
+    "version": "2.10.1",
     "description": "Use when the user has an idea or requirement to decompose into backlog stories.",
     "trigger": "manual",
     "depends_on": [],
@@ -331,7 +331,7 @@
   },
   {
     "name": "research",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Deep online research on any topic. Produces structured reports with citations and confidence scores. Three depth modes — quick scan, standard investigation, or deep dive.",
     "trigger": "manual",
     "depends_on": [],
@@ -384,7 +384,7 @@
   },
   {
     "name": "sprint-end",
-    "version": "2.10.0",
+    "version": "2.10.1",
     "description": "Use when the user wants to ship a sprint's work to main via PR.",
     "trigger": "manual",
     "depends_on": [
@@ -405,7 +405,7 @@
   },
   {
     "name": "sprint-start",
-    "version": "2.7.0",
+    "version": "2.7.1",
     "description": "Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development.",
     "trigger": "manual",
     "depends_on": [],

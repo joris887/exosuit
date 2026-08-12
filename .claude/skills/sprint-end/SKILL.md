@@ -1,6 +1,6 @@
 ---
 name: sprint-end
-version: 2.10.0
+version: 2.10.1
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -511,6 +511,12 @@ git log --oneline -3
 ```
 
 ## 7. Sprint Complete
+
+**Skill metrics:** Emit a completion event:
+
+```bash
+echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"sprint-end\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
 
 ```markdown
 ### Sprint Complete

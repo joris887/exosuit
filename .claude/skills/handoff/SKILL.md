@@ -1,6 +1,6 @@
 ---
 name: handoff
-version: 2.6.0
+version: 2.6.1
 description: Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read.
 trigger: manual
 depends-on: []
@@ -181,5 +181,11 @@ Ensure these are current:
 
 - @docs/progress.md: recent sprints updated
 - @CLAUDE.md "Current Focus" is accurate
+
+**Skill metrics:** Emit a completion event:
+
+```bash
+echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"handoff\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
 
 Output the session summary and next session prompt.
