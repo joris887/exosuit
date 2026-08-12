@@ -59,6 +59,11 @@ Grammar rules:
 | `join` | `next` | `require` (default `all`) | Wait for fanout branches, then proceed |
 | `terminal` | — | `next_skill` | Flow ends; `next_skill` documents the follow-up command(s) |
 
+Gates may carry additional named edges beyond the required ones (e.g.
+`user-override: <target>`) to document sanctioned bypass paths the prose
+defines. A `router` may also express a bounded set of user choices when a
+checkpoint offers more than approve/decline (edge keys name the options).
+
 Every node may also carry:
 
 - `doc: "<exact SKILL.md line>"` — the anchor tying the node to prose,

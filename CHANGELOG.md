@@ -21,7 +21,7 @@ SKILL.md describing its control flow as a graph (steps, gates, routers,
 loops, fanout/join, terminals). NOT executed — nothing changes at runtime.
 Validated by a new `validate-flows.sh` (graph soundness + verbatim SKILL.md
 anchor checks, so flow descriptions can no longer drift silently) wired into
-CI and `/doctor`. First adopters: sprint-start and sprint-end, transcribed
+CI and `/doctor`. First adopters: sprint-start, sprint-end, and story-cycle, transcribed
 1:1 from their current prose. A skill without `flow.yaml` behaves
 byte-identically; a project with no flow files validates vacuously.
 
@@ -29,6 +29,9 @@ byte-identically; a project with no flow files validates vacuously.
 - `.claude/skills/FLOW_SPEC.md` — the flow contract specification (spec 1)
 - `.claude/skills/sprint-start/flow.yaml` — flow contract (29 nodes)
 - `.claude/skills/sprint-end/flow.yaml` — flow contract (25 nodes)
+- `.claude/skills/story-cycle/flow.yaml` — flow contract (68 nodes), transcribing
+  the inline phase sections; the four diverging flow descriptions are
+  documented in the drift bug issue and NOT resolved by this file
 - `.claude/skills/doctor/scripts/validate-flows.sh` — flow contract validator
 - `.claude/hooks/tests/test-validate-flows.sh` — validator test suite (20 cases)
 
