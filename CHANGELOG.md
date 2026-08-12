@@ -29,7 +29,7 @@ byte-identically; a project with no flow files validates vacuously.
 - `.claude/skills/FLOW_SPEC.md` — the flow contract specification (spec 1)
 - `.claude/skills/sprint-start/flow.yaml` — flow contract (29 nodes)
 - `.claude/skills/sprint-end/flow.yaml` — flow contract (25 nodes)
-- `.claude/skills/story-cycle/flow.yaml` — flow contract (68 nodes), transcribing
+- `.claude/skills/story-cycle/flow.yaml` — flow contract (69 nodes), transcribing
   the inline phase sections; the four diverging flow descriptions are
   documented in the drift bug issue and NOT resolved by this file
 - `.claude/skills/doctor/scripts/validate-flows.sh` — flow contract validator

@@ -22,8 +22,9 @@
 # - marker-cap-gate (1e) fires only when a plan exceeds 3 [NEEDS
 #   CLARIFICATION] markers; with 3 or fewer it passes straight through.
 # - LARGE/XL take the default (standard) route; their extra requirements
-#   (integration test pass before Phase 4; staged implementation for XL)
-#   are Phase 4 constraints in prose, not separate routes.
+#   are execution constraints in prose, not separate routes (LARGE:
+#   integration test pass before Phase 4; XL: staged Phase 3 build — one
+#   part of the mechanism at a time — plus full-suite pass before Phase 4).
 # - "SMALL stories: skip" annotations are size-conditional (any profile),
 #   from the SMALL Story Checklist — recorded alongside profile attrs.
 flow: story-cycle
@@ -82,8 +83,8 @@ nodes:
   web-error-recovery: {type: step, next: implement-code, doc: "### Web-Assisted Error Recovery (Phase 3)"}
   self-review: {type: step, next: self-review-gate, doc: "### 4a. Self-Review + Disaster Prevention"}
   self-review-gate: {type: gate.hard, ok: quality-dispatch, fail: implement-code, doc: "Do NOT skip self-review for ANY story size. If any checklist item fails, go back to Phase 3 and fix before continuing."}
-  quality-dispatch: {type: step, next: quality-gates, profile: "lean: skip quality agent dispatch — Phase 4b lint+test sufficient", doc: "**If sub-agents are available:** Dispatch quality gates via `/quality-check` based on the risk matrix from Size & Risk Classification:"}
-  quality-gates: {type: gate.hard, ok: uat-check, fail: fix-gate-failure, doc: "### 4b. Quality Gates"}
+  quality-dispatch: {type: step, next: quality-gates, profile: "strict: dispatch /quality-check --all for EVERY story regardless of risk — all 5 agents + integration-tester mandatory; security audit runs full CWE checklist for ALL stories | lean: skip quality agent dispatch — Phase 4b lint+test sufficient", doc: "**If sub-agents are available:** Dispatch quality gates via `/quality-check` based on the risk matrix from Size & Risk Classification:"}
+  quality-gates: {type: gate.hard, ok: uat-check, fail: fix-gate-failure, profile: "strict: coverage delta must be >= 0 (test coverage cannot decrease) — compare before/after in Phase 4b", doc: "### 4b. Quality Gates"}
   fix-gate-failure: {type: step, next: quality-gates, doc: "### 4b. Quality Gates"}
   uat-check: {type: router, uat-applies: generate-uat, default: verify-ac-evidence, profile: "lean: skip Phase 4c entirely", doc: "### 4c. Generate UAT Test Case (Optional)"}
   generate-uat: {type: step, next: sense-check-uat, doc: "### 4c. Generate UAT Test Case (Optional)"}
@@ -93,8 +94,9 @@ nodes:
   verification-halt: {type: router, rollback: checkpoint-rollback, continue: save-failure-state, force: docs-and-commit, default: STOP, doc: "### 4d. Completion Verification"}
   checkpoint-rollback: {type: step, next: STOP, doc: "**Checkpoint Rollback Option:** If verification has failed after 2 loop passes and the implementation appears fundamentally flawed (not just minor gaps), offer the user a rollback:"}
   save-failure-state: {type: terminal, next_skill: continue, doc: "### 4d. Completion Verification"}
-  docs-and-commit: {type: step, next: invoke-commit, profile: "lean: skip capture-outcome and capture-learnings micro-components", doc: "### 4e. Docs + Commit"}
-  invoke-commit: {type: step, next: completion-report, doc: "**Skill metrics:** Emit a completion event:"}
+  docs-and-commit: {type: step, next: invoke-commit, profile: "lean: skip capture-outcome and capture-learnings micro-components | strict: write structured audit entry to docs/sessions/.audit-log.jsonl on completion", doc: "### 4e. Docs + Commit"}
+  invoke-commit: {type: step, next: emit-end-event, doc: "9. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job."}
+  emit-end-event: {type: step, next: completion-report, doc: "**Skill metrics:** Emit a completion event:"}
   completion-report: {type: terminal, next_skill: [story-cycle, sprint-end, handoff], doc: "### Completion Report"}
   phase-3-lite-entry: {type: step, next: phase-3-lite-commit, profile: "strict: forbidden — all 8 phases mandatory for ALL stories including TRIVIAL, no fast-tracking, no Phase 3-lite", doc: "### Phase 3-lite (TRIVIAL only)"}
   phase-3-lite-commit: {type: step, next: completion-report, doc: "### Phase 3-lite (TRIVIAL only)"}
