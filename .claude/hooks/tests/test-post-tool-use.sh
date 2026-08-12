@@ -15,9 +15,26 @@ PASS=0
 FAIL=0
 TMP_ROOT="$(mktemp -d)"
 
+# Neutralize environment overrides so results depend on fixtures only
+# (mirrors test-user-prompt.sh)
+export EXOSUIT_HOOK_PROFILE="standard"
+export EXOSUIT_DISABLED_HOOKS=""
+export EXOSUIT_PROJECT_PROFILE="standard"
+
+# hook-guard.sh writes the resolved profile to state/project-profile on every
+# invocation — save the real repo's value so the test leaves no trace.
+STATE_DIR="$HOOKS_DIR/state"
+SAVED_PROFILE=""
+[ -f "$STATE_DIR/project-profile" ] && SAVED_PROFILE="$(cat "$STATE_DIR/project-profile")"
+
 cleanup() {
     cd "$ORIG_PWD"
     rm -rf "$TMP_ROOT"
+    if [ -n "$SAVED_PROFILE" ]; then
+        printf '%s' "$SAVED_PROFILE" > "$STATE_DIR/project-profile"
+    else
+        rm -f "$STATE_DIR/project-profile"
+    fi
 }
 trap cleanup EXIT
 
@@ -63,8 +80,10 @@ check() {
     fi
 }
 
-count_events() { grep -c '"type":"\(skill\|story\)"' "$LOG_REL" 2>/dev/null || true; }
-count_tools()  { grep -vc '"type":"\(skill\|story\)"' "$LOG_REL" 2>/dev/null || true; }
+# ERE (grep -E) for portability — BRE \| alternation is a GNU extension that
+# BSD/macOS grep treats literally. Mirrors the hook's own awk regex.
+count_events() { grep -Ec '"type":"(skill|story)"' "$LOG_REL" 2>/dev/null || true; }
+count_tools()  { grep -Evc '"type":"(skill|story)"' "$LOG_REL" 2>/dev/null || true; }
 
 echo "post-tool-use.sh rotation tests"
 echo "-------------------------------"
