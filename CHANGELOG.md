@@ -66,6 +66,34 @@ cursor writes in the test suite.
   registry sync; `core/MANIFEST.md` and `.claude/hooks/README.md` rows
   for the new lib file
 
+### Level 5 — Evidence & Enforcement (stacked on the above)
+Gate evidence becomes observable and, only by explicit opt-in, enforceable.
+`gate.hard` nodes may declare `evidence: <marker>`; post-tool-use.sh stamps
+observed facts per session (`test-written`, `tests-green`) into
+`.claude/hooks/state/flow/`, cleared at session start. The ONE new hook
+registration of the whole ladder: PreToolUse Edit|Write → `flow-pre-edit.sh`
+(in both settings.json and hooks.json). `EXOSUIT_FLOW_MODE` ladder:
+lean defaults `off`, standard/strict default `advisory` (one-line warning,
+never blocks); `block` is explicit opt-in — flow-pre-edit exits 2 on source
+edits at unevidenced gates, and stop.sh refuses completion mid-flow at
+non-terminal nodes (bounded by the existing stop-iteration valve, which the
+new check increments like every other exit-2 path). Test/docs edits are
+always exempt — writing the test IS the evidence being asked for. Judgment
+gates are never machine-enforced. Fails open everywhere; kill switches:
+`EXOSUIT_FLOW_MODE=off`, `EXOSUIT_DISABLED_HOOKS=flow-pre-edit`.
+
+- Added: `.claude/hooks/flow-pre-edit.sh`,
+  `.claude/hooks/tests/test-flow-enforce.sh` (19 cases incl. exemptions,
+  kill switches, valve interaction)
+- Changed: `.claude/hooks/post-tool-use.sh` (evidence stamps),
+  `.claude/hooks/session-start.sh` (per-session marker reset),
+  `.claude/hooks/stop.sh` (block-mode flow check), `.claude/settings.json` +
+  `.claude/hooks/hooks.json` (registration),
+  `doctor/scripts/validate-flows.sh` (`evidence` attr),
+  `.claude/skills/FLOW_SPEC.md` (Gate Evidence & Enforcement),
+  `.claude/skills/story-cycle/flow.yaml` (evidence on the TDD and quality
+  gates; 4.6.0), MANIFEST + hooks README rows
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.

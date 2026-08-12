@@ -160,7 +160,7 @@ for flow_file in "$SKILLS_DIR"/*/flow.yaml; do
       val=$(printf '%s' "$pair" | sed -E 's/^ *[a-z_-]+: *//; s/ *$//')
       [[ -z "$key" || -z "$val" ]] && continue
       case "$key" in
-        type|max|require) continue ;;
+        type|max|require|evidence) continue ;;
       esac
       attrs_seen="$attrs_seen $key"
       if [[ "$key" == "next_skill" ]]; then

@@ -47,6 +47,17 @@ LOG_DIR="docs/sessions"
 LOG_FILE="$LOG_DIR/.activity-log.jsonl"
 mkdir -p "$LOG_DIR" 2>/dev/null || exit 0
 
+# --- Flow gate evidence: test file edited this session ---
+# (consumed by flow-pre-edit.sh / gate.hard nodes declaring evidence: test-written)
+if [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "Write" ]; then
+    case "$TARGET" in
+        *test_*|*_test.*|*.test.*|*.spec.*|*tests/*|*test/*)
+            mkdir -p "$STATE_DIR/flow" 2>/dev/null
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/flow/test-written" 2>/dev/null
+            ;;
+    esac
+fi
+
 # Timestamp
 TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -86,6 +97,9 @@ if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
         if printf '%s' "$TOOL_OUTPUT" | grep -qEi '([0-9]+ passed|All tests passed|tests? (in [0-9]+ suites? )?passed|test run with [0-9]+ tests.*passed|BUILD SUCCEEDED|ok \(|Tests:.*[0-9]+ passed)'; then
             mkdir -p "$STATE_DIR" 2>/dev/null
             date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/tests-passed" 2>/dev/null
+            # Flow gate evidence (evidence: tests-green)
+            mkdir -p "$STATE_DIR/flow" 2>/dev/null
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/flow/tests-green" 2>/dev/null
         fi
 
         # --- Track test/build failures for retrospective analysis ---

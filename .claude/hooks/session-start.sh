@@ -138,6 +138,8 @@ fi
 
 # --- 6. Initialize session state ---
 mkdir -p "$STATE_DIR" 2>/dev/null
+# Flow gate evidence markers are per-session — clear stale ones
+rm -f "$STATE_DIR"/flow/* 2>/dev/null
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/session-started" 2>/dev/null
 # Reset stop iteration counter
 echo "0" > "$STATE_DIR/stop-iteration" 2>/dev/null

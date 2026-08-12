@@ -23,6 +23,7 @@ These files are generic framework components. On upgrade, they are replaced with
 | `worktree-bash-fix.sh` | Worktree directory fix |
 | `status-line.sh` | Status bar output |
 | `pre-read-check.sh` | Sensitive file read warning |
+| `flow-pre-edit.sh` | Flow gate evidence check (advisory-first) |
 | `lib/paths.sh` | Path resolution |
 | `lib/hook-guard.sh` | Profile + disable check |
 | `lib/graph-state.sh` | Flow cursor helper (flow contracts) |

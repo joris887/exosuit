@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 4.5.0
+version: 4.6.0
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]

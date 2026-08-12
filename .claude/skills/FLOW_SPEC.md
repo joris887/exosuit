@@ -51,7 +51,7 @@ Grammar rules:
 | Type | Required attrs | Optional attrs | Meaning |
 |------|---------------|----------------|---------|
 | `step` | `next` | | An action; proceed to `next` |
-| `gate.hard` | `ok`, `fail` | | Deterministic check; `fail` edge on violation (often `STOP`) |
+| `gate.hard` | `ok`, `fail` | `evidence` | Deterministic check; `fail` edge on violation (often `STOP`) |
 | `gate.human` | `ok` | `fail` | User checkpoint/approval; `fail` = decline path |
 | `router` | `default` + ≥1 named edge | | Conditional branch; edge keys name the conditions |
 | `loop` | `back`, `done`, `max` | | Bounded retry: repeat via `back` at most `max` times, then `done` |
@@ -142,6 +142,37 @@ Rules:
 - The keys are additive: every existing consumer of `.failure-state.md`
   ignores them. Never name new frontmatter keys `skill:`, `phase_name:`, or
   `goal:` — those are parsed by stop.sh, pre-compact.sh, and status-line.sh.
+
+## Gate Evidence & Enforcement
+
+A `gate.hard` node may declare `evidence: <marker>` — a mechanically
+observable fact the harness stamps into `.claude/hooks/state/flow/<marker>`
+(per session, cleared at session start by session-start.sh):
+
+| Marker | Stamped by post-tool-use.sh when |
+|--------|----------------------------------|
+| `test-written` | an Edit/Write touches a test-looking path |
+| `tests-green` | a test command's output shows a pass pattern |
+
+Only mechanically checkable facts may be evidence — judgment gates
+(`gate.human`, review quality, plan approval) are never enforced by machine.
+
+`EXOSUIT_FLOW_MODE` controls what missing evidence does
+(`off | advisory | block`; default derived from the project profile —
+lean: `off`, standard/strict: `advisory`; **blocking is an explicit opt-in,
+never a default**):
+
+- **advisory** — flow-pre-edit.sh prints a one-line warning when a source
+  file is edited while the cursor sits on an unevidenced `gate.hard`;
+  nothing is ever blocked. Test/docs/config edits are always exempt
+  (writing the test IS the evidence being asked for).
+- **block** — the same condition blocks the edit (exit 2), and stop.sh
+  refuses completion while a branch-matched cursor sits on a non-terminal
+  node (bounded by the existing stop-iteration safety valve).
+
+Kill switches: `EXOSUIT_FLOW_MODE=off`, or
+`EXOSUIT_DISABLED_HOOKS=flow-pre-edit`. Everything fails open: no cursor,
+corrupt state, missing flow.yaml, or any error means no warning and no block.
 
 ## Authoring a Flow Contract
 

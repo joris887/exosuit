@@ -11,6 +11,7 @@ All hooks are self-contained **POSIX shell scripts** — no Python or other runt
   pre-tool-use.sh        — Block dangerous Bash commands + advisory warnings
   pre-read-check.sh      — Warn when reading sensitive files (advisory)
   post-tool-use.sh       — Activity logging + test/build failure tracking
+  flow-pre-edit.sh       — Flow gate evidence check (advisory-first)
   session-start.sh       — Advisory environment checks
   stop.sh                — Auto-save + debug audit + completion evidence validation
   user-prompt.sh         — Intent classification + skill tracking + dependency advisory
@@ -116,7 +117,7 @@ Disable specific hooks without editing settings.json:
 export EXOSUIT_DISABLED_HOOKS="stop,post-edit-format"  # Comma-separated hook IDs
 ```
 
-Available hook IDs: `pre-tool-use`, `pre-read-check`, `post-tool-use`, `post-edit-format`, `session-start`, `stop`, `user-prompt`, `subagent-stop`
+Available hook IDs: `pre-tool-use`, `pre-read-check`, `post-tool-use`, `post-edit-format`, `session-start`, `stop`, `user-prompt`, `subagent-stop`, `flow-pre-edit`
 
 ## Hook Events
 
@@ -137,6 +138,9 @@ Blocks dangerous commands via `rules/safety.patterns`:
 
 Advisory warnings via `rules/advisory.patterns`:
 - Long-running dev servers (npm dev, flask run, rails server, etc.)
+
+### PreToolUse (Edit|Write)
+`flow-pre-edit.sh`: Flow gate evidence check (see `.claude/skills/FLOW_SPEC.md` → Gate Evidence & Enforcement). Advisory by default; blocks only with explicit `EXOSUIT_FLOW_MODE=block`. Test/docs edits always exempt; fails open.
 
 ### PreToolUse (Read)
 `pre-read-check.sh`: Warns when reading sensitive files (.env, .key, .pem, credentials). Advisory only — never blocks.

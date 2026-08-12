@@ -76,7 +76,7 @@ nodes:
   stream-merge-join: {type: join, next: merge-fallback-check, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
   merge-fallback-check: {type: router, merge-failed: phase-3-entry, default: self-review, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
   execute-story-type: {type: step, next: tdd-ordering-gate, doc: "## Phase 3: Execute by Story Type"}
-  tdd-ordering-gate: {type: gate.hard, ok: implement-code, fail: write-test-first, doc: "**TDD Ordering Enforcement (Feature, Bug Fix, Refactoring stories):**"}
+  tdd-ordering-gate: {type: gate.hard, ok: implement-code, fail: write-test-first, evidence: test-written, doc: "**TDD Ordering Enforcement (Feature, Bug Fix, Refactoring stories):**"}
   write-test-first: {type: step, next: tdd-ordering-gate, doc: "**TDD Ordering Enforcement (Feature, Bug Fix, Refactoring stories):**"}
   implement-code: {type: step, next: phase-3-error-check, doc: "### Intermediate Commits During Implementation"}
   phase-3-error-check: {type: router, external-library-error: web-error-recovery, internal-error: implement-code, default: self-review, doc: "### Web-Assisted Error Recovery (Phase 3)"}
@@ -84,7 +84,7 @@ nodes:
   self-review: {type: step, next: self-review-gate, doc: "### 4a. Self-Review + Disaster Prevention"}
   self-review-gate: {type: gate.hard, ok: quality-dispatch, fail: implement-code, doc: "Do NOT skip self-review for ANY story size. If any checklist item fails, go back to Phase 3 and fix before continuing."}
   quality-dispatch: {type: step, next: quality-gates, profile: "strict: dispatch /quality-check --all for EVERY story regardless of risk — all 5 agents + integration-tester mandatory; security audit runs full CWE checklist for ALL stories | lean: skip quality agent dispatch — Phase 4b lint+test sufficient", doc: "**If sub-agents are available:** Dispatch quality gates via `/quality-check` based on the risk matrix from Size & Risk Classification:"}
-  quality-gates: {type: gate.hard, ok: uat-check, fail: fix-gate-failure, profile: "strict: coverage delta must be >= 0 (test coverage cannot decrease) — compare before/after in Phase 4b", doc: "### 4b. Quality Gates"}
+  quality-gates: {type: gate.hard, ok: uat-check, fail: fix-gate-failure, evidence: tests-green, profile: "strict: coverage delta must be >= 0 (test coverage cannot decrease) — compare before/after in Phase 4b", doc: "### 4b. Quality Gates"}
   fix-gate-failure: {type: step, next: quality-gates, doc: "### 4b. Quality Gates"}
   uat-check: {type: router, uat-applies: generate-uat, default: verify-ac-evidence, profile: "lean: skip Phase 4c entirely", doc: "### 4c. Generate UAT Test Case (Optional)"}
   generate-uat: {type: step, next: sense-check-uat, doc: "### 4c. Generate UAT Test Case (Optional)"}
