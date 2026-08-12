@@ -34,7 +34,7 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"story-cycle\",\"story\
 sh .claude/hooks/lib/graph-state.sh enter story-cycle <node-id>
 ```
 
-Use `attempt` instead of `enter` when retrying the same node, and `clear story-cycle` at terminal nodes.
+Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear story-cycle` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
 
 **Progress tracking:** At the start, create a task list for phase tracking:
 
@@ -861,7 +861,7 @@ Verification failed after 2 passes. Options:
 [F] Force complete — mark as done with known gaps documented
 ```
 
-If [R]: `git stash push --include-untracked -m "story-cycle: checkpoint rollback" && git reset --soft <checkpoint-tag> && git restore . && git tag -d <checkpoint-tag>`. Clear `.failure-state.md`. Suggest re-entering Phase 1 with lessons learned.
+If [R]: `git stash push --include-untracked -m "story-cycle: checkpoint rollback" && git reset --soft <checkpoint-tag> && git restore . && git tag -d <checkpoint-tag>`. Clear `.failure-state.md` (delete the file, as before — `graph-state.sh clear story-cycle` only handles the cursor). Suggest re-entering Phase 1 with lessons learned.
 If [C]: Save state to `.failure-state.md` for `/continue` pickup.
 If [F]: Document gaps in completion report, proceed to Phase 4e.
 </HALT>

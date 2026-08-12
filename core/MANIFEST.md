@@ -25,6 +25,7 @@ These files are generic framework components. On upgrade, they are replaced with
 | `pre-read-check.sh` | Sensitive file read warning |
 | `lib/paths.sh` | Path resolution |
 | `lib/hook-guard.sh` | Profile + disable check |
+| `lib/graph-state.sh` | Flow cursor helper (flow contracts) |
 | `hooks.json` | Plugin mode hook declarations |
 | `README.md` | Hook documentation |
 | `CLAUDE.md` | Directory context |

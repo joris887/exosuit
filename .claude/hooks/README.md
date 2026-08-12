@@ -22,6 +22,7 @@ All hooks are self-contained **POSIX shell scripts** — no Python or other runt
   lib/
     paths.sh             — Path resolution helpers (sourced by bash hooks)
     hook-guard.sh        — Profile + disable check (called by all hooks)
+    graph-state.sh       — Flow cursor helper (called by flow-contract skills)
   rules/
     safety.patterns      — PreToolUse blocking patterns (@@-delimited, with severity)
     advisory.patterns    — PreToolUse advisory patterns (warn only, @@-delimited)

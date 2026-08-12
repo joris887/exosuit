@@ -48,8 +48,12 @@ The flow cursor: additive `flow:`/`node:`/`attempt:` keys in the existing
 `lib/graph-state.sh` helper (advisory, always exit 0). Branch-scoped: the
 session-start resume advisory and `/continue`'s new cursor-first step act
 only when the file's `branch:` matches the current branch, so worktree
-copies stay inert. Every existing consumer of the file is unaffected —
-verified byte-identical extraction in the new test suite.
+copies stay inert. Ownership rules keep the file's
+meaning intact: a cursor never touches a file owned by a different skill,
+and `clear` deletes a cursor-created file so normal completed runs leave no
+phantom "interrupted workflow". The hook-consumer extractions (stop.sh,
+pre-compact.sh, status-line.sh, standup.sh patterns) are verified
+byte-identical before/after cursor writes in the test suite.
 
 - Added: `.claude/hooks/lib/graph-state.sh` (enter/attempt/clear/show),
   `.claude/hooks/tests/test-graph-state.sh` (24 cases incl. consumer

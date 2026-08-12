@@ -109,7 +109,7 @@ Recommend the user resume the interrupted skill (e.g., `/story-cycle` or `/debug
 2. Resume the skill AT that node — open the node's `doc:` anchor in the skill's SKILL.md for the exact step instructions. An `attempt:` greater than 1 means a retry was in progress at that node.
 3. Present it as: "Cursor: /<flow> was at node '<node>' (attempt N) — resume there."
 
-If the branch does NOT match, the file was inherited from another worktree/branch — ignore the cursor keys entirely and fall back to the standard fields above. Files without cursor keys (all pre-existing formats) follow the standard behavior above, unchanged.
+If the branch does NOT match, the file was inherited from another worktree/branch — ignore the cursor keys entirely and fall back to the standard fields above. The same fallback applies when the cursor cannot be resolved: `.claude/skills/<flow>/flow.yaml` does not exist, or the stored `node:` id is not found in it (skill upgraded mid-run) — say so in one line and resume from the standard fields instead. Files without cursor keys (all pre-existing formats) follow the standard behavior above, unchanged.
 
 ## 0.6. Read Latest Session Handoff
 

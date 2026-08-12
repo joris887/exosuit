@@ -128,9 +128,17 @@ Rules:
   act on the cursor only when the file's `branch:` equals
   `git branch --show-current`. New worktrees inherit a verbatim copy of the
   file by design; the branch check makes an inherited cursor inert.
-- `clear` removes only the cursor keys. File creation/deletion lifecycle
-  belongs to the owning skill — a file's existence still means "interrupted
-  workflow" exactly as before.
+- **Ownership**: the cursor is a rider, never a squatter. If the file's
+  `skill:` names a different skill, every verb is a silent no-op — another
+  skill's interrupted state is never touched. If no file exists, `enter`
+  creates a minimal one marked `cursor_owned: true`, and `clear` DELETES a
+  cursor-owned file (a normal completed run leaves no phantom "interrupted
+  workflow"); on skill-owned files `clear` strips only the cursor keys, and
+  the owning skill's create/delete lifecycle is unchanged.
+- Cursor reads and writes are **frontmatter-scoped**: free-form `## Context`
+  body lines can never masquerade as a cursor. Corrupt files (frontmatter
+  not opening at line 1 or missing its closing `---`) are left byte-for-byte
+  untouched.
 - The keys are additive: every existing consumer of `.failure-state.md`
   ignores them. Never name new frontmatter keys `skill:`, `phase_name:`, or
   `goal:` — those are parsed by stop.sh, pre-compact.sh, and status-line.sh.

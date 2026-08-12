@@ -25,7 +25,7 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"sprint-start\",\"ts\":
 sh .claude/hooks/lib/graph-state.sh enter sprint-start <node-id>
 ```
 
-Use `attempt` instead of `enter` when retrying the same node, and `clear sprint-start` at terminal nodes.
+Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear sprint-start` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
 
 Starting a new sprint.
 

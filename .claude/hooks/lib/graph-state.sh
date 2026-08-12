@@ -8,20 +8,25 @@
 # `branch:` against `git branch --show-current` and ignore mismatches (a new
 # worktree inherits a verbatim copy of the file by design).
 #
+# Ownership rules (a cursor is a rider, never a squatter):
+#   - If the file exists and its `skill:` differs from <flow>, every verb is
+#     a silent no-op — another skill's interrupted state is never touched.
+#   - If no file exists, `enter` creates a minimal one marked
+#     `cursor_owned: true`; `clear` DELETES a cursor-owned file (so a normal
+#     completed run leaves no phantom "interrupted workflow" behind) but only
+#     strips the cursor keys from skill-owned files.
+#
 # Usage: sh .claude/hooks/lib/graph-state.sh <verb> <flow> [<node>]
-#   enter <flow> <node>   Set cursor to (flow, node), attempt 1. Creates a
-#                         minimal failure-state file if none exists; otherwise
-#                         updates/inserts only the cursor keys (and branch:),
-#                         preserving every other line byte-for-byte.
-#   attempt <flow> <node> Increment attempt for (flow, node); acts as enter
-#                         if the stored cursor is a different flow/node.
-#   clear <flow>          Remove the cursor keys. Never deletes the file —
-#                         file lifecycle belongs to the owning skill.
-#   show                  Print "flow node attempt branch" (empty if no cursor).
+#   enter <flow> <node>   Set cursor to (flow, node), attempt 1.
+#   attempt <flow> <node> Increment attempt at (flow, node); enter otherwise.
+#   clear <flow>          Delete cursor-owned file / strip keys otherwise.
+#   show                  Print "flow node attempt branch" (empty if none).
 #
 # Advisory only: ALWAYS exits 0. A cursor failure must never break a skill.
-# POSIX-compliant — no bash required. Reserved keys never written or touched:
-# skill:/phase_name:/goal: (parsed by stop.sh, pre-compact.sh, status-line.sh).
+# Corrupt files (frontmatter not opening at line 1, or missing its closing
+# `---`) are left byte-for-byte untouched. POSIX sh — no bash required.
+# Reserved keys never written: skill:/phase_name:/goal: (parsed by stop.sh,
+# pre-compact.sh, status-line.sh).
 
 SESSIONS_DIR="docs/sessions"
 STATE_FILE="$SESSIONS_DIR/.failure-state.md"
@@ -30,21 +35,40 @@ VERB="${1:-}"
 FLOW="${2:-}"
 NODE="${3:-}"
 
+# Validate ids (kebab-case per FLOW_SPEC) — reject anything else silently.
+valid_id() {
+    case "$1" in
+        ''|*[!a-z0-9-]*) return 1 ;;
+        -*) return 1 ;;
+    esac
+    return 0
+}
+
 CUR_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
 TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
 
-# Read a frontmatter value: first matching key line, prefix stripped, quotes trimmed
+# Read a frontmatter value: only between the opening --- (line 1) and the
+# closing --- ; first match wins; surrounding quotes stripped.
 fs_get() {
-    grep "^$1:" "$STATE_FILE" 2>/dev/null | head -1 | sed "s/^$1:[[:space:]]*//; s/^\"//; s/\"\$//"
+    awk -v k="$1" '
+        NR == 1 { if ($0 ~ /^---[[:space:]]*$/) { fm = 1; next } else exit }
+        /^---[[:space:]]*$/ { exit }
+        fm && index($0, k ":") == 1 {
+            v = substr($0, length(k) + 2)
+            sub(/^[[:space:]]+/, "", v); sub(/^"/, "", v); sub(/"$/, "", v)
+            print v; exit
+        }
+    ' "$STATE_FILE" 2>/dev/null
 }
 
 # Rewrite the file, setting (or inserting before the closing ---) the given
-# frontmatter keys. Args: key=value pairs, applied inside frontmatter only.
-# Uses a tmpfile + mv (portable across GNU/BSD; no sed -i).
+# frontmatter keys. Aborts without touching the file unless the frontmatter
+# opens at line 1 AND closes — corrupt files stay byte-identical.
+# Args: one string of key=value pairs separated by \037.
 fs_set() {
     [ -f "$STATE_FILE" ] || return 0
     tmp="$STATE_FILE.tmp.$$"
-    awk -v pairs="$*" '
+    if awk -v pairs="$*" '
         BEGIN {
             n = split(pairs, kv, "\037")
             for (i = 1; i <= n; i++) {
@@ -55,8 +79,11 @@ fs_set() {
             }
             fm = 0; done_fm = 0
         }
+        NR == 1 {
+            if ($0 ~ /^---[[:space:]]*$/) { fm = 1; print; next }
+            exit 1
+        }
         /^---[[:space:]]*$/ {
-            if (fm == 0) { fm = 1; print; next }
             if (fm == 1 && done_fm == 0) {
                 for (k in pending) if (pending[k]) print k ": " val[k]
                 done_fm = 1; print; next
@@ -73,7 +100,10 @@ fs_set() {
             }
             print
         }
-    ' "$STATE_FILE" > "$tmp" 2>/dev/null && mv "$tmp" "$STATE_FILE" 2>/dev/null
+        END { if (done_fm == 0) exit 1 }
+    ' "$STATE_FILE" > "$tmp" 2>/dev/null; then
+        mv "$tmp" "$STATE_FILE" 2>/dev/null
+    fi
     rm -f "$tmp" 2>/dev/null
     return 0
 }
@@ -82,19 +112,22 @@ fs_set() {
 fs_clear_cursor() {
     [ -f "$STATE_FILE" ] || return 0
     tmp="$STATE_FILE.tmp.$$"
-    awk '
+    if awk '
         BEGIN { fm = 0 }
-        /^---[[:space:]]*$/ { fm++; print; next }
+        NR == 1 { if ($0 ~ /^---[[:space:]]*$/) { fm = 1; print; next } else exit 1 }
+        /^---[[:space:]]*$/ { fm = 2; print; next }
         {
-            if (fm == 1 && ($0 ~ /^flow:/ || $0 ~ /^node:/ || $0 ~ /^attempt:/)) next
+            if (fm == 1 && ($0 ~ /^flow:/ || $0 ~ /^node:/ || $0 ~ /^attempt:/ || $0 ~ /^cursor_owned:/)) next
             print
         }
-    ' "$STATE_FILE" > "$tmp" 2>/dev/null && mv "$tmp" "$STATE_FILE" 2>/dev/null
+    ' "$STATE_FILE" > "$tmp" 2>/dev/null; then
+        mv "$tmp" "$STATE_FILE" 2>/dev/null
+    fi
     rm -f "$tmp" 2>/dev/null
     return 0
 }
 
-# Create a minimal, schema-conformant failure-state file (cursor-owned)
+# Create a minimal, schema-conformant, cursor-owned failure-state file
 fs_create() {
     mkdir -p "$SESSIONS_DIR" 2>/dev/null || return 0
     cat > "$STATE_FILE" 2>/dev/null <<EOF
@@ -103,6 +136,7 @@ status: active
 skill: $FLOW
 started_at: "$TS"
 branch: "$CUR_BRANCH"
+cursor_owned: true
 flow: $FLOW
 node: $NODE
 attempt: 1
@@ -115,36 +149,54 @@ EOF
     return 0
 }
 
+# Ownership gate: returns 0 when the cursor may write to the existing file
+may_write() {
+    owner=$(fs_get skill)
+    [ -z "$owner" ] || [ "$owner" = "$FLOW" ]
+}
+
+cursor_write() {
+    if [ -f "$STATE_FILE" ]; then
+        may_write || return 0
+        fs_set "flow=$FLOW$(printf '\037')node=$NODE$(printf '\037')attempt=$1$(printf '\037')branch=\"$CUR_BRANCH\""
+    else
+        fs_create
+    fi
+}
+
 case "$VERB" in
     enter)
-        [ -n "$FLOW" ] && [ -n "$NODE" ] || exit 0
-        if [ -f "$STATE_FILE" ]; then
-            fs_set "flow=$FLOW$(printf '\037')node=$NODE$(printf '\037')attempt=1$(printf '\037')branch=\"$CUR_BRANCH\""
-        else
-            fs_create
-        fi
+        valid_id "$FLOW" && valid_id "$NODE" || exit 0
+        cursor_write 1
         ;;
     attempt)
-        [ -n "$FLOW" ] && [ -n "$NODE" ] || exit 0
+        valid_id "$FLOW" && valid_id "$NODE" || exit 0
         if [ -f "$STATE_FILE" ] && [ "$(fs_get flow)" = "$FLOW" ] && [ "$(fs_get node)" = "$NODE" ]; then
+            may_write || exit 0
             cur=$(fs_get attempt)
             case "$cur" in ''|*[!0-9]*) cur=0 ;; esac
             fs_set "attempt=$((cur + 1))"
         else
-            # different (flow, node) — behave as enter
-            if [ -f "$STATE_FILE" ]; then
-                fs_set "flow=$FLOW$(printf '\037')node=$NODE$(printf '\037')attempt=1$(printf '\037')branch=\"$CUR_BRANCH\""
-            else
-                fs_create
-            fi
+            cursor_write 1
         fi
         ;;
     clear)
-        fs_clear_cursor
+        valid_id "$FLOW" || exit 0
+        if [ -f "$STATE_FILE" ]; then
+            if [ "$(fs_get cursor_owned)" = "true" ] && [ "$(fs_get skill)" = "$FLOW" ]; then
+                rm -f "$STATE_FILE" 2>/dev/null
+            elif may_write; then
+                fs_clear_cursor
+            fi
+        fi
         ;;
     show)
         if [ -f "$STATE_FILE" ]; then
-            printf '%s %s %s %s\n' "$(fs_get flow)" "$(fs_get node)" "$(fs_get attempt)" "$(fs_get branch)"
+            sf=$(fs_get flow); sn=$(fs_get node)
+            # No cursor -> no output (empty positional fields are ambiguous)
+            if [ -n "$sf" ] && [ -n "$sn" ]; then
+                printf '%s %s %s %s\n' "$sf" "$sn" "$(fs_get attempt)" "$(fs_get branch)"
+            fi
         fi
         ;;
 esac

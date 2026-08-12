@@ -19,17 +19,24 @@ export EXOSUIT_HOOK_PROFILE="standard"
 export EXOSUIT_DISABLED_HOOKS=""
 export EXOSUIT_PROJECT_PROFILE="standard"
 STATE_DIR="$HOOKS_DIR/state"
-SAVED_PROFILE=""
-[ -f "$STATE_DIR/project-profile" ] && SAVED_PROFILE="$(cat "$STATE_DIR/project-profile")"
+# session-start.sh also writes session-started/stop-iteration/suggestions-shown
+# into the REAL state dir — save and restore everything the tests may touch.
+SAVE_DIR="$(mktemp -d)"
+for f in project-profile session-started stop-iteration suggestions-shown; do
+    [ -f "$STATE_DIR/$f" ] && cp -p "$STATE_DIR/$f" "$SAVE_DIR/$f"
+done
 
 cleanup() {
     cd "$ORIG_PWD"
     rm -rf "$TMP_ROOT"
-    if [ -n "$SAVED_PROFILE" ]; then
-        printf '%s' "$SAVED_PROFILE" > "$STATE_DIR/project-profile"
-    else
-        rm -f "$STATE_DIR/project-profile"
-    fi
+    for f in project-profile session-started stop-iteration suggestions-shown; do
+        if [ -f "$SAVE_DIR/$f" ]; then
+            cp -p "$SAVE_DIR/$f" "$STATE_DIR/$f"
+        else
+            rm -f "$STATE_DIR/$f"
+        fi
+    done
+    rm -rf "$SAVE_DIR"
 }
 trap cleanup EXIT
 
@@ -121,12 +128,79 @@ test_case "clear removes attempt key" "0" "$(grep -c '^attempt:' "$FS" || true)"
 test_case "clear keeps skill line" "1" "$(grep -c '^skill: debug-session' "$FS" || true)"
 cd "$ORIG_PWD"
 
-# --- Case 5: corrupt file (no closing ---) is not destroyed ---
+# --- Case 5: corrupt file (no closing ---) is left byte-identical ---
 d="$(make_repo)"; cd "$d"
 mkdir -p docs/sessions
-printf -- '---\nskill: broken\nsome unterminated content\n' > "$FS"
+printf -- '---\nskill: story-cycle\nbranch: "other-branch"\nsome unterminated content\n' > "$FS"
+BEFORE_SUM=$(cksum < "$FS")
 sh "$LIB" enter story-cycle some-node
-test_case "corrupt file content preserved (fail-open)" "1" "$(grep -c '^some unterminated content' "$FS" || true)"
+AFTER_SUM=$(cksum < "$FS")
+test_case "corrupt file byte-identical after enter (fail-open)" "$BEFORE_SUM" "$AFTER_SUM"
+cd "$ORIG_PWD"
+
+# --- Case 5b: ownership — enter never touches another skill's file ---
+d="$(make_repo)"; cd "$d"
+mkdir -p docs/sessions
+printf -- '---\nstatus: active\nskill: sprint-end\nbranch: "other-branch"\n---\n\n## Context\nbody\n' > "$FS"
+BEFORE_SUM=$(cksum < "$FS")
+sh "$LIB" enter story-cycle write-plan
+AFTER_SUM=$(cksum < "$FS")
+test_case "enter is a no-op on another skill's file" "$BEFORE_SUM" "$AFTER_SUM"
+cd "$ORIG_PWD"
+
+# --- Case 5c: clear DELETES a cursor-owned file (no phantom state) ---
+d="$(make_repo)"; cd "$d"
+sh "$LIB" enter sprint-start done
+test_case "cursor-owned marker present" "1" "$(grep -c '^cursor_owned: true' "$FS" || true)"
+sh "$LIB" clear sprint-start
+test_case "clear deletes cursor-owned file" "false" "$([ -f "$FS" ] && echo true || echo false)"
+cd "$ORIG_PWD"
+
+# --- Case 5d: ghost cursor in body is invisible (frontmatter-scoped reads) ---
+d="$(make_repo)"; cd "$d"
+mkdir -p docs/sessions
+cat > "$FS" <<'EOF'
+---
+status: active
+skill: debug-session
+branch: "sprint-7"
+---
+
+## Context
+flow: story-cycle
+node: implement-story
+EOF
+test_case "show ignores body ghost cursor" "" "$(sh "$LIB" show | tr -d ' ')"
+OUT=$(sh "$SESSION_START" 2>&1 || true)
+test_case "advisory ignores body ghost cursor" "true" "$(printf '%s' "$OUT" | grep -q "Interrupted /" && echo false || echo true)"
+cd "$ORIG_PWD"
+
+# --- Case 5e: invalid ids are rejected silently ---
+d="$(make_repo)"; cd "$d"
+sh "$LIB" enter "story cycle" "some node"
+test_case "invalid ids create nothing" "false" "$([ -f "$FS" ] && echo true || echo false)"
+sh "$LIB" enter "UPPER" "node"
+test_case "uppercase flow rejected" "false" "$([ -f "$FS" ] && echo true || echo false)"
+cd "$ORIG_PWD"
+
+# --- Case 5f: status-line extraction byte-compat ---
+d="$(make_repo)"; cd "$d"
+mkdir -p docs/sessions
+cat > "$FS" <<'EOF'
+---
+status: active
+skill: debug-session
+phase_name: "Hypothesis and Testing"
+branch: "sprint-7"
+---
+
+## Context
+body
+EOF
+SL_BEFORE=$(grep -m1 '^skill:' "$FS" | sed 's/skill: *//')$(grep -m1 '^phase_name:' "$FS" | sed 's/phase_name: *"//;s/"//')
+sh "$LIB" enter debug-session form-hypothesis
+SL_AFTER=$(grep -m1 '^skill:' "$FS" | sed 's/skill: *//')$(grep -m1 '^phase_name:' "$FS" | sed 's/phase_name: *"//;s/"//')
+test_case "status-line extraction unchanged by cursor" "$SL_BEFORE" "$SL_AFTER"
 cd "$ORIG_PWD"
 
 # --- Case 6: session-start advisory fires on branch match ---

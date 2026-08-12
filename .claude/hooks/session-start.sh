@@ -65,11 +65,14 @@ fi
 # node. Branch mismatch means the file was inherited by a worktree copy —
 # stay silent (the cursor belongs to another branch's run).
 FAILURE_STATE="docs/sessions/.failure-state.md"
-if [ -f "$FAILURE_STATE" ]; then
-    FS_FLOW=$(grep '^flow:' "$FAILURE_STATE" 2>/dev/null | head -1 | sed 's/^flow:[[:space:]]*//')
-    FS_NODE=$(grep '^node:' "$FAILURE_STATE" 2>/dev/null | head -1 | sed 's/^node:[[:space:]]*//')
-    FS_ATTEMPT=$(grep '^attempt:' "$FAILURE_STATE" 2>/dev/null | head -1 | sed 's/^attempt:[[:space:]]*//')
-    FS_BRANCH=$(grep '^branch:' "$FAILURE_STATE" 2>/dev/null | head -1 | sed 's/^branch:[[:space:]]*//; s/^"//; s/"$//')
+if [ -f "$FAILURE_STATE" ] && head -1 "$FAILURE_STATE" 2>/dev/null | grep -q '^---[[:space:]]*$'; then
+    # Read frontmatter only (between the opening --- and the closing ---):
+    # free-form '## Context' body lines must never masquerade as a cursor.
+    FS_FM=$(sed -n '2,/^---[[:space:]]*$/p' "$FAILURE_STATE" 2>/dev/null)
+    FS_FLOW=$(printf '%s\n' "$FS_FM" | grep '^flow:' | head -1 | sed 's/^flow:[[:space:]]*//')
+    FS_NODE=$(printf '%s\n' "$FS_FM" | grep '^node:' | head -1 | sed 's/^node:[[:space:]]*//')
+    FS_ATTEMPT=$(printf '%s\n' "$FS_FM" | grep '^attempt:' | head -1 | sed 's/^attempt:[[:space:]]*//')
+    FS_BRANCH=$(printf '%s\n' "$FS_FM" | grep '^branch:' | head -1 | sed 's/^branch:[[:space:]]*//; s/^"//; s/"$//')
     CURSOR_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
     if [ -n "$FS_FLOW" ] && [ -n "$FS_NODE" ] && [ -n "$FS_BRANCH" ] && [ "$FS_BRANCH" = "$CURSOR_BRANCH" ]; then
         if [ -n "$FS_ATTEMPT" ] && [ "$FS_ATTEMPT" != "1" ]; then
