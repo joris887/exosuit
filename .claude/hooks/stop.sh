@@ -172,20 +172,26 @@ fi
 # resume advisory covers the non-blocking path). Fail-open on any error.
 FLOW_MODE="${EXOSUIT_FLOW_MODE:-}"
 if [ "$FLOW_MODE" = "block" ]; then
+    # Independent of the auto-save block above (which only assigns its
+    # SESSIONS_DIR on a dirty tree) — resolve the path unconditionally.
+    FC_STATE_FILE="docs/sessions/.failure-state.md"
     FLOW_CURSOR=$(sh "$HOOKS_DIR/lib/graph-state.sh" show 2>/dev/null)
     if [ -n "$FLOW_CURSOR" ]; then
         # shellcheck disable=SC2086
         set -- $FLOW_CURSOR
         FC_FLOW="${1:-}"; FC_NODE="${2:-}"; FC_BRANCH="${4:-}"
         FC_GIT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-        FC_STATUS=$(grep '^status:' "$SESSIONS_DIR/.failure-state.md" 2>/dev/null | head -1 | sed 's/^status:[[:space:]]*//')
+        FC_STATUS=$(grep '^status:' "$FC_STATE_FILE" 2>/dev/null | head -1 | sed 's/^status:[[:space:]]*//')
         FC_FLOW_FILE=".claude/skills/$FC_FLOW/flow.yaml"
         if [ "$FC_BRANCH" = "$FC_GIT_BRANCH" ] && [ "$FC_STATUS" = "active" ] && [ -f "$FC_FLOW_FILE" ]; then
             FC_NODE_LINE=$(grep "^  $FC_NODE: {" "$FC_FLOW_FILE" 2>/dev/null | head -1)
-            if [ -n "$FC_NODE_LINE" ] && ! printf '%s' "$FC_NODE_LINE" | grep -q 'type: terminal'; then
+            # Strip quoted doc/profile prose so 'type: terminal' inside
+            # documentation text cannot spoof the structural type.
+            FC_NODE_CLEAN=$(printf '%s' "$FC_NODE_LINE" | sed -E 's/(doc|profile): "[^"]*"//g')
+            if [ -n "$FC_NODE_CLEAN" ] && ! printf '%s' "$FC_NODE_CLEAN" | grep -q 'type: terminal'; then
                 NEW_ITER=$((ITERATION + 1))
                 echo "$NEW_ITER" > "$ITER_FILE" 2>/dev/null
-                printf 'Flow check before stopping:\n  - /%s is mid-flow at node '\''%s'\'' (EXOSUIT_FLOW_MODE=block). Finish the flow, run: sh .claude/hooks/lib/graph-state.sh clear %s, or resume later with /continue.\n' "$FC_FLOW" "$FC_NODE" "$FC_FLOW" >&2
+                printf 'Flow check before stopping (EXOSUIT_FLOW_MODE=block):\n  - /%s is mid-flow at node '\''%s'\''. Finish the flow, or pause it: tell the user the flow is paused — the cursor is preserved and /continue resumes at this exact node (this check yields after the stop safety valve). Only to ABANDON the flow and discard the resume point: sh .claude/hooks/lib/graph-state.sh clear %s\n' "$FC_FLOW" "$FC_NODE" "$FC_FLOW" >&2
                 exit 2
             fi
         fi

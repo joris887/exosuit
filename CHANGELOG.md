@@ -82,9 +82,10 @@ always exempt — writing the test IS the evidence being asked for. Judgment
 gates are never machine-enforced. Fails open everywhere; kill switches:
 `EXOSUIT_FLOW_MODE=off`, `EXOSUIT_DISABLED_HOOKS=flow-pre-edit`.
 
-- Added: `.claude/hooks/flow-pre-edit.sh`,
-  `.claude/hooks/tests/test-flow-enforce.sh` (19 cases incl. exemptions,
-  kill switches, valve interaction)
+- Added: `.claude/hooks/flow-pre-edit.sh`, `.claude/hooks/lib/test-paths.sh`
+  (single shared test-path source — stamping set equals exemption set by
+  construction), `.claude/hooks/tests/test-flow-enforce.sh` (exemptions,
+  kill switches, valve interaction, mixed-run and superset invariants)
 - Changed: `.claude/hooks/post-tool-use.sh` (evidence stamps),
   `.claude/hooks/session-start.sh` (per-session marker reset),
   `.claude/hooks/stop.sh` (block-mode flow check), `.claude/settings.json` +
@@ -92,7 +93,9 @@ gates are never machine-enforced. Fails open everywhere; kill switches:
   `doctor/scripts/validate-flows.sh` (`evidence` attr),
   `.claude/skills/FLOW_SPEC.md` (Gate Evidence & Enforcement),
   `.claude/skills/story-cycle/flow.yaml` (evidence on the TDD and quality
-  gates; 4.6.0), MANIFEST + hooks README rows
+  gates) with `story-cycle/SKILL.md` + registry bumped to 4.6.0,
+  `.claude/hooks/rules/quality.conf` (documented test_path_patterns
+  override), MANIFEST + hooks README rows
 
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are

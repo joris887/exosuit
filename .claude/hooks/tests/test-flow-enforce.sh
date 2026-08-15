@@ -155,6 +155,83 @@ test_case "kill switch: silent" "0|" "$OUT"
 export EXOSUIT_DISABLED_HOOKS=""
 cd "$ORIG_PWD"
 
+# --- Superset invariant: every exempted test path also stamps evidence ---
+# (the fix for the review's critical finding: an edit that would stamp
+# test-written can never itself be warned or blocked)
+d="$(make_repo)"; cd "$d"
+cat > .claude/skills/alpha/flow.yaml <<'EOF'
+flow: alpha
+spec: 1
+start: work
+nodes:
+  work: {type: step, next: the-gate}
+  the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: test-written, doc: "### Gate"}
+  done: {type: terminal, doc: "## Done"}
+EOF
+sh "$LIB" enter alpha the-gate
+export EXOSUIT_FLOW_MODE=block
+SUPERSET_OK=true
+for tp in spec/user_spec.rb src/__tests__/user.js conftest.py t/basic.t Foo.Tests/FooTests.cs cypress/e2e/login.cy.js features/login.feature src/user.test.js tests/test_user.py; do
+    RC="${OUT%%|*}"; OUT="$(run_pre_edit "$tp")"; RC="${OUT%%|*}"
+    if [ "$RC" != "0" ] || [ -n "${OUT#*|}" ]; then SUPERSET_OK="blocked:$tp"; break; fi
+    rm -rf "$STATE_DIR/flow"
+    printf '{"tool_name":"Write","tool_input":{"file_path":"%s"}}' "$tp" | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    if [ ! -f "$STATE_DIR/flow/test-written" ]; then SUPERSET_OK="unstamped:$tp"; break; fi
+    rm -rf "$STATE_DIR/flow"
+done
+test_case "superset invariant: exempt paths all stamp evidence" "true" "$SUPERSET_OK"
+unset EXOSUIT_FLOW_MODE
+cd "$ORIG_PWD"
+
+# --- Mixed-run guard: '3 passed, 9 failed' never stamps green; failure revokes ---
+d="$(make_repo)"; cd "$d"
+if command -v jq >/dev/null 2>&1; then
+    rm -rf "$STATE_DIR/flow"; rm -f "$STATE_DIR/tests-passed"
+    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"3 passed, 9 failed"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "mixed run does not stamp tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    test_case "mixed run does not stamp tests-passed" "false" "$([ -f "$STATE_DIR/tests-passed" ] && echo true || echo false)"
+    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"12 passed"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "clean pass stamps tests-green" "true" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"12 failed"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "failing run revokes tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    rm -f "$STATE_DIR/tests-passed"
+else
+    echo "  SKIP: mixed-run cases (jq not available)"
+fi
+cd "$ORIG_PWD"
+
+# --- Advisory dedup: identical warning fires once, not per edit ---
+d="$(make_repo)"; cd "$d"
+sh "$LIB" enter alpha the-gate
+rm -rf "$STATE_DIR/flow"
+OUT1="$(run_pre_edit src/main.go)"
+OUT2="$(run_pre_edit src/other.go)"
+test_case "advisory dedup: first edit warns" "true" "$(printf '%s' "${OUT1#*|}" | grep -q "Flow advisory" && echo true || echo false)"
+test_case "advisory dedup: second edit silent" "" "${OUT2#*|}"
+rm -rf "$STATE_DIR/flow"
+cd "$ORIG_PWD"
+
+# --- Prose-spoof: doc text cannot fake structural attrs ---
+d="$(make_repo)"; cd "$d"
+cat > .claude/skills/alpha/flow.yaml <<'EOF'
+flow: alpha
+spec: 1
+start: work
+nodes:
+  work: {type: step, next: the-gate, doc: "### Gate"}
+  the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate"}
+  done: {type: terminal, doc: "## Done"}
+EOF
+# gate has NO evidence attr; put fake 'evidence: tests-green' in a doc string
+sed -i 's|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate evidence: tests-green"}|' .claude/skills/alpha/flow.yaml
+printf '%s\n' "### Gate evidence: tests-green" >> .claude/skills/alpha/SKILL.md
+sh "$LIB" enter alpha the-gate
+export EXOSUIT_FLOW_MODE=block
+OUT="$(run_pre_edit src/main.go)"
+test_case "prose-spoof: evidence in doc string ignored" "0|" "$OUT"
+unset EXOSUIT_FLOW_MODE
+cd "$ORIG_PWD"
+
 # --- stop.sh flow check (block mode only) ---
 d="$(make_repo)"; cd "$d"
 sh "$LIB" enter alpha the-gate
@@ -175,6 +252,28 @@ echo "0" > "$STATE_DIR/stop-iteration"
 sh "$LIB" enter alpha done
 RC=0; printf '{}' | sh "$STOP" >/dev/null 2>&1 || RC=$?
 test_case "stop block: terminal node allowed" "0" "$RC"
+
+# CLEAN tree: the check must still fire (regression: SESSIONS_DIR was only
+# set inside the dirty-tree auto-save block, silently disabling this check)
+git add -A >/dev/null 2>&1; git commit -qm "state" >/dev/null 2>&1 || true
+printf 'docs/sessions/\n.claude/hooks/state/\n' > .gitignore
+git add .gitignore >/dev/null 2>&1 && git commit -qm ignore >/dev/null 2>&1
+sh "$LIB" enter alpha the-gate
+git add -A >/dev/null 2>&1; git commit -qm "cursor" >/dev/null 2>&1 || true
+echo "0" > "$STATE_DIR/stop-iteration"
+RC=0; printf '{}' | sh "$STOP" >/dev/null 2>&1 || RC=$?
+test_case "stop block: fires on CLEAN working tree too" "2" "$RC"
+echo "0" > "$STATE_DIR/stop-iteration"
+
+# Terminal prose-spoof: doc mentioning 'type: terminal' must not fake type
+sed -i 's|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate type: terminal"}|' .claude/skills/alpha/flow.yaml 2>/dev/null || true
+if grep -q 'type: terminal"' .claude/skills/alpha/flow.yaml; then
+    printf '%s\n' "### Gate type: terminal" >> .claude/skills/alpha/SKILL.md
+    sh "$LIB" enter alpha the-gate
+    RC=0; printf '{}' | sh "$STOP" >/dev/null 2>&1 || RC=$?
+    test_case "stop block: doc prose cannot fake terminal type" "2" "$RC"
+    echo "0" > "$STATE_DIR/stop-iteration"
+fi
 
 # Advisory mode -> stop.sh untouched by flow state
 unset EXOSUIT_FLOW_MODE

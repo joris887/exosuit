@@ -54,14 +54,25 @@ FLOW_FILE=".claude/skills/$CUR_FLOW/flow.yaml"
 [ -f "$FLOW_FILE" ] || exit 0
 NODE_LINE=$(grep "^  $CUR_NODE: {" "$FLOW_FILE" 2>/dev/null | head -1)
 [ -n "$NODE_LINE" ] || exit 0
-printf '%s' "$NODE_LINE" | grep -q 'type: gate\.hard' || exit 0
-EVIDENCE=$(printf '%s' "$NODE_LINE" | sed -n 's/.*evidence: \([a-z][a-z-]*\).*/\1/p')
+# Strip quoted attrs (doc/profile prose) so 'type:'/'evidence:' inside
+# documentation text can never spoof the structural attributes.
+NODE_CLEAN=$(printf '%s' "$NODE_LINE" | sed -E 's/(doc|profile): "[^"]*"//g')
+printf '%s' "$NODE_CLEAN" | grep -q 'type: gate\.hard' || exit 0
+EVIDENCE=$(printf '%s' "$NODE_CLEAN" | sed -n 's/.*evidence: \([a-z][a-z-]*\).*/\1/p')
 [ -n "$EVIDENCE" ] || exit 0
+
+# tests-green can only ever be stamped when jq is available (post-tool-use
+# needs it to read tool output) — without jq the marker is unproducible, so
+# enforcement must fail open rather than block forever.
+if [ "$EVIDENCE" = "tests-green" ] && ! command -v jq >/dev/null 2>&1; then
+    exit 0
+fi
 
 # --- Evidence already observed this session? ---
 [ -f "$STATE_DIR/flow/$EVIDENCE" ] && exit 0
 
-# --- Exempt targets: tests, docs, config ---
+# --- Exempt targets: tests (single shared pattern source — an edit that
+# would stamp evidence is never itself warned/blocked), docs, config ---
 extract_json() {
     _jq_path="$1"
     _sed_key="$2"
@@ -74,22 +85,33 @@ extract_json() {
 INPUT=$(cat)
 FILE_PATH=$(printf '%s' "$INPUT" | extract_json ".tool_input.file_path" "file_path")
 [ -n "$FILE_PATH" ] || exit 0
+sh "$HOOKS_DIR/lib/test-paths.sh" "$FILE_PATH" 2>/dev/null && exit 0
 case "$FILE_PATH" in
-    *test_*|*_test.*|*.test.*|*.spec.*|*tests/*|*test/*) exit 0 ;;
     *.md|*.yml|*.yaml|*.json|*.toml|*.txt) exit 0 ;;
 esac
 
 # --- Missing evidence for the gate the cursor sits on ---
+# If the gate has already FAILED, the correct move is its fail edge — name it.
+FAIL_TARGET=$(printf '%s' "$NODE_CLEAN" | sed -n 's/.*fail: \([a-zA-Z0-9-]*\).*/\1/p')
+REMEDY="produce the evidence (e.g. write/run the tests)"
+if [ -n "$FAIL_TARGET" ] && [ "$FAIL_TARGET" != "STOP" ]; then
+    REMEDY="$REMEDY; if the gate FAILED, take its fail edge: sh .claude/hooks/lib/graph-state.sh enter $CUR_FLOW $FAIL_TARGET"
+fi
 EXPLAIN_MODE="${EXOSUIT_EXPLAIN_MODE:-brief}"
 if [ "$FLOW_MODE" = "block" ]; then
     if [ "$EXPLAIN_MODE" = "verbose" ]; then
-        printf 'Flow gate: /%s is at gate '\''%s'\'' which requires evidence '\''%s'\'' before source edits.\n  WHY: The gate declares mechanically checkable evidence (see flow.yaml and FLOW_SPEC.md). Produce it (e.g. write/run the tests) or clear the cursor. Set EXOSUIT_FLOW_MODE=advisory to warn instead of block.\n' "$CUR_FLOW" "$CUR_NODE" "$EVIDENCE" >&2
+        printf 'Flow gate: /%s is at gate '\''%s'\'' which requires evidence '\''%s'\'' before source edits.\n  WHY: The gate declares mechanically checkable evidence (see flow.yaml and FLOW_SPEC.md). Remedy: %s. Set EXOSUIT_FLOW_MODE=advisory to warn instead of block.\n' "$CUR_FLOW" "$CUR_NODE" "$EVIDENCE" "$REMEDY" >&2
     else
-        printf 'Flow gate: /%s at '\''%s'\'' requires evidence '\''%s'\'' before source edits (EXOSUIT_FLOW_MODE=block).\n' "$CUR_FLOW" "$CUR_NODE" "$EVIDENCE" >&2
+        printf 'Flow gate: /%s at '\''%s'\'' requires evidence '\''%s'\''. Remedy: %s. (EXOSUIT_FLOW_MODE=advisory to warn instead.)\n' "$CUR_FLOW" "$CUR_NODE" "$EVIDENCE" "$REMEDY" >&2
     fi
     exit 2
 fi
+# Advisory: warn ONCE per (flow, node, evidence) — not on every edit
+ADVISED_MARK="$STATE_DIR/flow/.advised-$CUR_FLOW-$CUR_NODE-$EVIDENCE"
+[ -f "$ADVISED_MARK" ] && exit 0
 if [ "$EXPLAIN_MODE" != "off" ]; then
-    printf 'Flow advisory: /%s is at gate '\''%s'\'' — evidence '\''%s'\'' not yet observed this session.\n' "$CUR_FLOW" "$CUR_NODE" "$EVIDENCE" >&2
+    printf 'Flow advisory: /%s is at gate '\''%s'\'' — evidence '\''%s'\'' not yet observed this session. %s.\n' "$CUR_FLOW" "$CUR_NODE" "$EVIDENCE" "$REMEDY" >&2
+    mkdir -p "$STATE_DIR/flow" 2>/dev/null
+    date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ADVISED_MARK" 2>/dev/null
 fi
 exit 0

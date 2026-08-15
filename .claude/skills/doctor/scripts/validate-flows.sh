@@ -132,6 +132,18 @@ for flow_file in "$SKILLS_DIR"/*/flow.yaml; do
     body_clean=$(printf '%s' "$body_clean" | sed -E 's/(to|next_skill): \[[^]]*\]//g')
 
     ntype=$(printf '%s' "$body_clean" | sed -n 's/.*type: \([a-z.]*\).*/\1/p')
+
+    # evidence: only on gate.hard, and only markers the harness can stamp
+    node_evidence=$(printf '%s' "$body_clean" | sed -n 's/.*evidence: \([a-z-]*\).*/\1/p')
+    if [[ -n "$node_evidence" ]]; then
+      if [[ "$ntype" != "gate.hard" ]]; then
+        report FAIL "$skill_name" "node '$id': evidence attr is only valid on gate.hard (type is $ntype)"
+      fi
+      case "$node_evidence" in
+        test-written|tests-green) ;;
+        *) report FAIL "$skill_name" "node '$id': evidence '$node_evidence' is not a stampable marker (test-written, tests-green)" ;;
+      esac
+    fi
     has_max="no"
     printf '%s' "$body_clean" | grep -Eq 'max: [0-9]+' && has_max="yes"
 

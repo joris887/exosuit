@@ -151,8 +151,12 @@ observable fact the harness stamps into `.claude/hooks/state/flow/<marker>`
 
 | Marker | Stamped by post-tool-use.sh when |
 |--------|----------------------------------|
-| `test-written` | an Edit/Write touches a test-looking path |
-| `tests-green` | a test command's output shows a pass pattern |
+| `test-written` | an Edit/Write touches a test path (patterns in `lib/test-paths.sh`, overridable via `test_path_patterns` in `rules/quality.conf` — the SAME list exempts those edits from gate checks, so a stamping edit can never itself be blocked) |
+| `tests-green` | a test command's output shows a pass pattern AND no failure pattern — a mixed run never stamps, and a failing run revokes the marker (requires `jq`; without it the marker is unproducible and enforcement of such gates fails open) |
+
+Evidence is **per-session by design** (cleared by session-start.sh): a
+resumed session must re-produce evidence rather than trust last session's
+runs. The advisory warns once per (flow, node, evidence), not on every edit.
 
 Only mechanically checkable facts may be evidence — judgment gates
 (`gate.human`, review quality, plan approval) are never enforced by machine.
@@ -170,9 +174,11 @@ never a default**):
   refuses completion while a branch-matched cursor sits on a non-terminal
   node (bounded by the existing stop-iteration safety valve).
 
-Kill switches: `EXOSUIT_FLOW_MODE=off`, or
-`EXOSUIT_DISABLED_HOOKS=flow-pre-edit`. Everything fails open: no cursor,
-corrupt state, missing flow.yaml, or any error means no warning and no block.
+Kill switches: `EXOSUIT_FLOW_MODE=off` disables both checks;
+`EXOSUIT_DISABLED_HOOKS=flow-pre-edit` disables only the edit-time check
+(the stop-time check exists only in `block` mode, so any non-block mode
+disables it). Everything fails open: no cursor, corrupt state, missing
+flow.yaml, or any error means no warning and no block.
 
 ## Authoring a Flow Contract
 
