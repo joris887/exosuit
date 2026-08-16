@@ -31,7 +31,7 @@
       "Use /story-cycle for structured story delivery",
       "Run /doctor to check framework health",
       "Use /research for evidence-backed decisions",
-      "TDD first — write tests before implementation",
+      "TDD first \u2014 write tests before implementation",
       "Use /handoff before ending a session",
       "Run /sprint-end to ship completed work",
       "Use /bootstrap to set up a new project",
@@ -85,6 +85,16 @@
             "type": "command",
             "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/pre-read-check.sh",
             "statusMessage": "Checking file sensitivity..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh .claude/hooks/flow-pre-edit.sh",
+            "statusMessage": "Flow gate check..."
           }
         ]
       }
