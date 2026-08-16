@@ -114,6 +114,21 @@ untouched (reconciling those is the drift bug's territory).
   flow-contracts job), `FLOW_SPEC.md` (Generated Views), `CONTRIBUTING.md`
   (flow-contract recipe), `llms.txt`, `core/MANIFEST.md` (flow artifacts row)
 
+### Bootstrap adoption (stacked on the above)
+Fourth adopter: bootstrap's flow contract, transcribed 1:1 from its prose
+sections (the operative detail). The header documents the known prose
+ambiguities it deliberately does not resolve — the A3.8 lean pruning that
+names sections already run by prose order, the "Process Flow" summary block
+that diverges from the prose in six places, and the Path B post-/discover
+continuation that exists only in the diagram and references/new-project.md.
+
+- Added: `.claude/skills/bootstrap/flow.yaml` — flow contract (54 nodes:
+  Path A/B router, 7 user checkpoints, the lean-profile deviations as
+  profile attrs), `.claude/skills/bootstrap/flow.generated.md`
+- Changed: `.claude/skills/bootstrap/SKILL.md` — flow cursor call-site
+  block (same as the other three adopters); 2.13.0 → 2.14.0,
+  `.claude/skills/skills-registry.json` — bootstrap version sync
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.
