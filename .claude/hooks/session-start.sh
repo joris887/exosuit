@@ -59,6 +59,37 @@ if [ -f "$AUTO_SAVE" ]; then
     fi
 fi
 
+# --- 2.5. Flow cursor resume advisory (advisory only) ---
+# If an interrupted flow left a cursor (flow:/node: keys, see FLOW_SPEC.md)
+# AND its branch matches the current branch, point the user at the exact
+# node. Branch mismatch means the file was inherited by a worktree copy —
+# stay silent (the cursor belongs to another branch's run).
+FAILURE_STATE="docs/sessions/.failure-state.md"
+if [ -f "$FAILURE_STATE" ] \
+    && ! grep -q "$(printf '\r')" "$FAILURE_STATE" 2>/dev/null \
+    && [ "$(grep -c '^---[[:space:]]*$' "$FAILURE_STATE" 2>/dev/null)" -ge 2 ]; then
+    # Read frontmatter only (between the opening --- at line 1 and the
+    # closing ---): free-form '## Context' body lines must never masquerade
+    # as a cursor, including on degenerate or unclosed frontmatter.
+    FS_FM=$(awk '
+        NR == 1 { if ($0 ~ /^---[[:space:]]*$/) next; else exit }
+        /^---[[:space:]]*$/ { exit }
+        { print }
+    ' "$FAILURE_STATE" 2>/dev/null)
+    FS_FLOW=$(printf '%s\n' "$FS_FM" | grep '^flow:' | head -1 | sed 's/^flow:[[:space:]]*//')
+    FS_NODE=$(printf '%s\n' "$FS_FM" | grep '^node:' | head -1 | sed 's/^node:[[:space:]]*//')
+    FS_ATTEMPT=$(printf '%s\n' "$FS_FM" | grep '^attempt:' | head -1 | sed 's/^attempt:[[:space:]]*//')
+    FS_BRANCH=$(printf '%s\n' "$FS_FM" | grep '^branch:' | head -1 | sed 's/^branch:[[:space:]]*//; s/^"//; s/"$//')
+    CURSOR_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
+    if [ -n "$FS_FLOW" ] && [ -n "$FS_NODE" ] && [ -n "$FS_BRANCH" ] && [ "$FS_BRANCH" = "$CURSOR_BRANCH" ]; then
+        if [ -n "$FS_ATTEMPT" ] && [ "$FS_ATTEMPT" != "1" ]; then
+            warn "Interrupted /$FS_FLOW at node '$FS_NODE' (attempt $FS_ATTEMPT) on this branch -- run /continue to resume at that step"
+        else
+            warn "Interrupted /$FS_FLOW at node '$FS_NODE' on this branch -- run /continue to resume at that step"
+        fi
+    fi
+fi
+
 # --- 3. Git state checks ---
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     BRANCH=$(git branch --show-current 2>/dev/null)
@@ -107,6 +138,9 @@ fi
 
 # --- 6. Initialize session state ---
 mkdir -p "$STATE_DIR" 2>/dev/null
+# Flow gate evidence markers (and advisory-dedup dotfiles) are
+# per-session — clear stale ones
+rm -f "$STATE_DIR"/flow/* "$STATE_DIR"/flow/.[!.]* 2>/dev/null
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/session-started" 2>/dev/null
 # Reset stop iteration counter
 echo "0" > "$STATE_DIR/stop-iteration" 2>/dev/null
