@@ -1,13 +1,13 @@
 ---
 name: brainstorm
-version: 2.7.0
+version: 2.8.1
 description: Use when the user has a complex idea that needs design exploration before story decomposition.
 trigger: manual
 depends-on: [ideate]
 references: []
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Agent
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent, AskUserQuestion
 argument-hint: "<idea-or-topic>"
 ---
 ______________________________________________________________________
@@ -18,6 +18,14 @@ ______________________________________________________________________
 ```bash
 echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"brainstorm\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
 ```
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter brainstorm <node-id>
+```
+
+Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear brainstorm` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
 
 Brainstorming: **$ARGUMENTS**
 
@@ -179,7 +187,7 @@ decision: "<Chosen approach name>"
 ---
 ```
 
-Include the design brief (from Phase 5), the approaches explored (from Phase 3), and the risks identified (from Phase 4). This document is referenced by `/ideate` and `/story-cycle` when the idea becomes a story.
+Include the design brief (from Phase 5), the approaches explored (from Phase 3), and the risks identified (from Phase 4). This document is referenced by `/ideate` when the idea becomes a story.
 
 **If the decision is architecturally significant** (from Phase 4 assessment): also create an ADR using `docs/adr/TEMPLATE.md`. The brainstorm document captures the exploration; the ADR captures the decision in machine-parseable format with rejected alternatives and compliance checks. Map the brainstorm's approaches to the ADR's Alternatives Considered section (chosen → ✅, rejected → ❌ with rationale and reconsider-when conditions).
 

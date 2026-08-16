@@ -777,13 +777,13 @@ Simple idea                        Complex idea
      │                                  ├──→ save to docs/brainstorms/<topic-slug>.md
      │                                  ├──→ create ADR if architecturally significant
      │                                  │
-     │◄─────────────────────────────────┘ (auto-invokes /ideate)
+     │◄─────────────────────────────────┘ (suggests /ideate after approval)
      │
      ├──→ check docs/brainstorms/ for prior designs
      ├──→ research codebase + PRD context (requirements, scope, NFRs)
      ├──→ feasibility research (if unfamiliar tech, QUICK depth)
-     ├──→ decompose via SPIDR splitting (Spike/Path/Interface/Data/Rules)
-     │       each story: 1-3 hours, ≤5-8 files, vertical slice
+     ├──→ decompose via SPIDR splitting (Paths/Data/Rules/Interface/Spike)
+     │       each story: one coherent unit, vertical slice (cohesion, not file count)
      ├──→ classify: Feature / Bug Fix / Refactoring / Spike / Infra /
      │    Testing / Documentation / Security / Performance / Skill
      ├──→ auto-append security AC for auth/data/API stories
@@ -2131,7 +2131,7 @@ agent: Explore             # subagent type
 
   ┌──────────┐      ┌──────────────┐      ┌──────────────┐
   │brainstorm│─────→│    ideate    │      │   fix-issue  │
-  └──────────┘calls └──────────────┘      └───────┬──────┘
+  └──────────┘ next └──────────────┘      └───────┬──────┘
                                                   │ calls
                                                   ▼
                                           ┌──────────────┐
@@ -2409,7 +2409,7 @@ Companion knowledge stores:
   │ capture-learnings    │    │ /brainstorm          │    │ /research, spikes,    │
   │ (story-cycle Ph.4)   │    │                      │    │ /discover, /phase-    │
   │ Read by:             │    │ Read by:             │    │ review                │
-  │ grep-first-explore   │    │ /ideate, /story-cycle│    │ Read by:              │
+  │ grep-first-explore   │    │ /ideate              │    │ Read by:              │
   │                      │    │                      │    │ context-prime,        │
   │                      │    │                      │    │ /story-cycle,/research│
   └──────────────────────┘    └──────────────────────┘    └───────────────────────┘
