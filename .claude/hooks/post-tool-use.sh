@@ -103,7 +103,7 @@ if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
         # nonzero failed-counts or hard build breaks. Green runs legitimately
         # contain '0 tests failed', 'Failed: 0', ERROR-level log lines, and
         # test names like test_handles_error — none of those may veto.
-        printf '%s' "$TOOL_OUTPUT" | grep -qEi '((^|[^0-9])[1-9][0-9]* +(tests? +)?failed|failed: *[1-9]|failures: *[1-9]|BUILD FAILED|npm ERR)' && RUN_FAILED=true
+        printf '%s' "$TOOL_OUTPUT" | grep -qEi '((^|[^0-9])[1-9][0-9]* +(tests? +)?failed|failed: *[1-9]|failures? *[=:] *[1-9]|errors? *= *[1-9]|BUILD FAILED|BUILD FAILURE|npm ERR)' && RUN_FAILED=true
 
         if [ "$RUN_PASSED" = "true" ] && [ "$RUN_FAILED" = "false" ]; then
             mkdir -p "$STATE_DIR" 2>/dev/null
@@ -125,7 +125,7 @@ if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
             # Extract first error line (truncated for JSON safety)
             FIRST_ERROR=$(printf '%s' "$TOOL_OUTPUT" | grep -Ei '(FAILED|FAIL|ERROR|error:|failed)' | head -1 | cut -c1-120 | sed 's/"/\\"/g')
             # Count failure indicators
-            FAIL_COUNT=$(printf '%s' "$TOOL_OUTPUT" | grep -cEi '(FAILED|FAIL\b|failed)' || echo "0")
+            FAIL_COUNT=$(printf '%s' "$TOOL_OUTPUT" | grep -cEi '(FAILED|FAIL\b|failed)' || true)
             SAFE_CMD=$(printf '%s' "$COMMAND" | cut -c1-80 | sed 's/"/\\"/g')
             printf '{"ts":"%s","type":"test-failure","cmd":"%s","failures":%s,"first_error":"%s"}\n' \
                 "$TS" "$SAFE_CMD" "$FAIL_COUNT" "$FIRST_ERROR" >> "$FAIL_LOG" 2>/dev/null

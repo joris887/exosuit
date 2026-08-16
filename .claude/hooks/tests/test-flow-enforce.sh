@@ -261,6 +261,20 @@ if command -v jq >/dev/null 2>&1; then
     test_case "clean pass stamps tests-green" "true" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
     printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"12 failed"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
     test_case "failing run revokes tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    # unittest and maven red formats also revoke
+    date > "$STATE_DIR/flow/tests-green"
+    printf '{"tool_name":"Bash","tool_input":{"command":"make test"},"tool_output":"FAILED (errors=2)"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "unittest errors=2 revokes tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    date > "$STATE_DIR/flow/tests-green"
+    printf '{"tool_name":"Bash","tool_input":{"command":"mvn test"},"tool_output":"BUILD FAILURE"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "maven BUILD FAILURE revokes tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    # failure log lines are valid single-line JSON even at zero fail-count
+    rm -f docs/sessions/.failure-log.jsonl
+    printf '{"tool_name":"Bash","tool_input":{"command":"npm test"},"tool_output":"npm ERR! code ELIFECYCLE"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    FLOG_LINES=$(wc -l < docs/sessions/.failure-log.jsonl 2>/dev/null | tr -d ' ')
+    FLOG_VALID=$(head -1 docs/sessions/.failure-log.jsonl 2>/dev/null | jq -e . >/dev/null 2>&1 && echo true || echo false)
+    test_case "failure log: one line per failure entry" "1" "$FLOG_LINES"
+    test_case "failure log: entry is valid JSON" "true" "$FLOG_VALID"
     rm -f "$STATE_DIR/tests-passed"
 else
     echo "  SKIP: mixed-run cases (jq not available)"
