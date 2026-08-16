@@ -27,6 +27,7 @@ These files are generic framework components. On upgrade, they are replaced with
 | `lib/paths.sh` | Path resolution |
 | `lib/hook-guard.sh` | Profile + disable check |
 | `lib/graph-state.sh` | Flow cursor helper (flow contracts) |
+| `lib/test-paths.sh` | Shared test-path matcher (gate evidence + exemptions) |
 | `hooks.json` | Plugin mode hook declarations |
 | `README.md` | Hook documentation |
 | `CLAUDE.md` | Directory context |
