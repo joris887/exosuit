@@ -1,16 +1,10 @@
 # Flow contract for ideate — see .claude/skills/FLOW_SPEC.md
 # Declarative only: NOT executed. 1:1 transcription of the prose sections.
 # Transcription notes:
-# - UPSTREAM BUG (recorded, not fixed): the SKILL.md fence structure is
-#   broken under CommonMark (fence lines 18, 20, 164, 193, 195, 200,
-#   243, 252, 301, 317, 381, 394): the markdown fence opened at the
-#   story template is closed early by the bare fence at :195, and :200
-#   opens a STRAY fence swallowing :201-251 — so the operative headings
-#   for Persona Linkage, Step 4, NFR Generation, and Security AC
-#   Generation render as code in strict renderers. They ARE the real
-#   section heads; this flow anchors to them (the validator is
-#   fence-blind). Genuine story-template lines inside the fence were
-#   never used as anchors.
+# - The story-template block in SKILL.md uses a four-backtick outer
+#   fence so its inner bash fence stays literal template content.
+#   Genuine story-template lines inside that fence were never used as
+#   anchors; anchors are the operative section heads and lead-in lines.
 # - Step 0 is a 3-way router; the partial-discovery branch holds at a
 #   gate.human ("Wait for user decision") whose decline is STOP — the
 #   "run /discover first" hand-back is a cross-skill edge, documented
@@ -64,16 +58,10 @@
 #   spike-story next -> Step 3; persona-linkage default/next -> Step 4;
 #   NFR/security defaults -> next section; external-setup arms ->
 #   ordering; E2E -> DoR validation.
-# - RECORDED DRIFT vs references/story-template.md (the skill's own
-#   canonical reference, updated by the cohesion-sizing change while the
-#   body prose was not): SPIDR order inverted (Spike-first here,
-#   Spike-last there); "Prefer many small stories" here vs "prefer the
-#   larger coherent story" there; the 5-8 file cap and "max 5 affected
-#   files" here vs "File count is an input to judgement, never a
-#   threshold" there; "More than 7 = story needs splitting" here vs
-#   LARGE/XL AC-count exemptions there; the DoR checklist here has 11
-#   items while the reference has 12 (adds the cohesion test, drops the
-#   file cap). Recorded, not resolved.
+# - The body prose follows the cohesion sizing policy of the skill's
+#   canonical references/story-template.md (SPIDR Paths-first, file
+#   count an input to judgement never a threshold, AC counts scale with
+#   size, 12-item DoR including the cohesion test).
 # - lean/strict profiles: verified-vacuous — zero profile-conditional
 #   flow anywhere in this skill.
 flow: ideate

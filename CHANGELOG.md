@@ -188,6 +188,36 @@ middle of the file as code today.
   block; 2.10.0 → 2.11.0, `.claude/skills/skills-registry.json` —
   ideate version sync
 
+### Ideation-wing fixes (#89, stacked on the above)
+The six defects the flow-contract transcriptions surfaced, fixed with
+the recommended direction from #89 (each was catalogued in the flow
+headers as "recorded, not resolved" — those notes are now retired):
+
+- brainstorm→ideate edge reconciled to the prose semantics (a suggested
+  post-approval user option, never an auto-call): registry `calls` now
+  `[]`, FRAMEWORK_REFERENCE "(auto-invokes /ideate)" and the "calls"
+  dependency edge reworded
+- `assets/brainstorm-output.md` gains the prose-mandated frontmatter
+  (`title/status/decision` incl. the `status: decided` enum line) plus
+  a Risks section — template-shaped docs are now visible to /ideate's
+  `status: decided` filter and to context-prime's `title:` grep
+- the three phantom "/story-cycle reads brainstorms" claims corrected
+  to /ideate (brainstorm, bootstrap A5.95, FRAMEWORK_REFERENCE)
+- brainstorm `allowed-tools` gains Edit, Write, AskUserQuestion
+- ideate's body prose aligned with its canonical
+  `references/story-template.md` cohesion policy (SPIDR Paths-first,
+  file count never a threshold, AC counts scale with size, 12-item DoR
+  with the cohesion test) — finishing what the cohesion-sizing change
+  started; FRAMEWORK_REFERENCE's SPIDR parenthetical and the sizing
+  line beneath it updated to match
+- ideate's story-template fence converted to a four-backtick outer
+  fence — the nested bash fence becomes literal content and the
+  Persona Linkage / Step 4 / NFR / Security-AC headings render
+  correctly on GitHub again
+- Versions: brainstorm 2.8.0 → 2.8.1, ideate 2.11.0 → 2.11.1,
+  bootstrap 2.14.0 → 2.14.1 (registry synced); flow.yaml headers for
+  brainstorm and ideate updated to describe the fixed state
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.

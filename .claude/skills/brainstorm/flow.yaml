@@ -33,22 +33,11 @@
 #   Phase 7) is inferred fall-through.
 # - Terminal next_skill: ideate — the only skill the operative Phase 7
 #   prose names, and it is a condition-scoped USER option ("For
-#   immediate implementation"), NOT an auto-invocation. This pins the
-#   prose side of a 4-way drift: the frontmatter has depends-on [ideate]
-#   with no calls key, skills-registry.json says calls ["ideate"],
-#   FRAMEWORK_REFERENCE.md says "(auto-invokes /ideate)" and draws a
-#   "calls" edge — while the prose HARD-GATE forbids invoking /ideate
-#   before approval. Recorded, not resolved.
-# - More recorded drift (not resolved): the shipped asset template
-#   (assets/brainstorm-output.md) has frontmatter skill/date/topic with
-#   NO status field, but the prose mandates title/date/status/decision —
-#   and ideate only loads brainstorm docs with status: decided, so an
-#   asset-shaped doc is invisible to /ideate. The prose claims
-#   /story-cycle reads this doc, but story-cycle's SKILL.md never
-#   mentions brainstorm (only context-prime does, scoped to
-#   Research/Spike intent). allowed-tools omits Write/Edit and
-#   AskUserQuestion though Phases 3/6 require them. Approach count is
-#   "2-3" in Phase 3, "at least 2" in Rules, and fixed at 3 in the asset.
+#   immediate implementation"), NOT an auto-invocation; the registry and
+#   FRAMEWORK_REFERENCE describe the edge the same way (a suggested
+#   next step, no call).
+# - Recorded drift (not resolved): approach count is "2-3" in Phase 3,
+#   "at least 2" in Rules, and fixed at 3 in the asset template.
 # - Example and Rules sections are cross-cutting, not nodes.
 # - lean/strict profiles: verified-vacuous — the prose defines no
 #   profile-conditional flow anywhere in this skill.
