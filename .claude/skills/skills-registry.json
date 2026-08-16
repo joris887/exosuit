@@ -43,7 +43,7 @@
   },
   {
     "name": "bootstrap",
-    "version": "2.13.0",
+    "version": "2.13.1",
     "description": "First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.",
     "trigger": "manual",
     "depends_on": [
@@ -69,15 +69,13 @@
   },
   {
     "name": "brainstorm",
-    "version": "2.7.1",
+    "version": "2.7.2",
     "description": "Use when the user has a complex idea that needs design exploration before story decomposition.",
     "trigger": "manual",
     "depends_on": [
       "ideate"
     ],
-    "calls": [
-      "ideate"
-    ],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/brainstorm/SKILL.md"
   },
@@ -225,7 +223,7 @@
   },
   {
     "name": "ideate",
-    "version": "2.10.1",
+    "version": "2.10.2",
     "description": "Use when the user has an idea or requirement to decompose into backlog stories.",
     "trigger": "manual",
     "depends_on": [],
