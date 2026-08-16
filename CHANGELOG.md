@@ -108,8 +108,8 @@ untouched (reconciling those is the drift bug's territory).
 
 - Added: `doctor/scripts/render-flow.sh` (stdout/--write/--check),
   `flow.generated.md` for sprint-start, sprint-end, story-cycle,
-  `.claude/hooks/tests/test-render-flow.sh` (17 cases incl. determinism,
-  staleness detection, node/edge fidelity)
+  `.claude/hooks/tests/test-render-flow.sh` (21 cases incl. determinism,
+  staleness detection, orphan/reserved-id regressions, node/edge fidelity)
 - Changed: `.github/workflows/ci.yml` (staleness check in the
   flow-contracts job), `FLOW_SPEC.md` (Generated Views), `CONTRIBUTING.md`
   (flow-contract recipe), `llms.txt`, `core/MANIFEST.md` (flow artifacts row)

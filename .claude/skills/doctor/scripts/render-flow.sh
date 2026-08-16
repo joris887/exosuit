@@ -143,7 +143,7 @@ for flow_file in "$SKILLS_DIR"/*/flow.yaml; do
         echo "wrote $out_file" >&2
       else
         rm -f "$tmp_out"
-        echo "SKIP: $flow_file has no parseable nodes — nothing generated" >&2
+        echo "SKIP: $flow_file has no parseable nodes — fix it first (validate-flows.sh will show why)" >&2
       fi
       ;;
     check)
