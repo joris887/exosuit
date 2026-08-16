@@ -1,6 +1,6 @@
 ---
 name: doctor
-version: 3.0.0
+version: 3.1.0
 description: Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup.
 trigger: manual
 depends-on: []
@@ -94,6 +94,14 @@ bash .claude/skills/doctor/scripts/validate-skills.sh
 ```
 
 Reports per-skill conformance: YAML frontmatter, line budget, required sections, reference budgets, registry version match. Include results in the health report under a "Skill Conformance" section.
+
+Then execute `scripts/validate-flows.sh` the same way (do NOT read source first):
+
+```bash
+bash .claude/skills/doctor/scripts/validate-flows.sh
+```
+
+Validates flow contracts (`flow.yaml`, see `.claude/skills/FLOW_SPEC.md`) for skills that have adopted them: graph soundness and SKILL.md anchor drift. Skills without a flow contract are not checked. Include results under a "Flow Contracts" row in the same section.
 
 ## 8. Skill Usage Analytics
 
@@ -199,6 +207,8 @@ If the file does not exist, report: "No readiness baseline — run `/bootstrap` 
 | Skill | Frontmatter | Lines | References | Registry |
 |-------|-------------|-------|------------|----------|
 | [name] | PASS/FAIL | [count] | PASS/WARN | PASS/WARN |
+
+**Flow contracts:** [N checked — X passed, Y warnings, Z failures | none adopted]
 
 ### Skill Usage
 | Skill | Invocations | Last Used | Status |

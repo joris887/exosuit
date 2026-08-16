@@ -1,0 +1,102 @@
+# Flow contract for story-cycle — see .claude/skills/FLOW_SPEC.md
+# Declarative only: NOT executed. 1:1 transcription of the INLINE phase
+# sections (the operative prose). story-cycle's flow is described in 4
+# places that currently disagree (see the drift bug issue) — this file
+# transcribes the inline sections and does NOT resolve the drift.
+# Transcription notes:
+# - Plan Mode usage (lines 115-127) is advisory and cross-cutting — notes,
+#   not nodes. The post-ExitPlanMode BOOTSTRAP mandate stays in prose.
+# - Profile deviations (lean/strict) are profile attrs; the graph shows
+#   the standard-profile flow. Strict forbids the TRIVIAL phase-3-lite
+#   path entirely (attr on phase-3-lite-entry).
+# - fast-track-red-flag "fail" = reclassify as STANDARD, i.e. proceed to
+#   full Phase 1 — a demotion edge, not a stop.
+# - 1c.5's HARD-GATE names no recovery edge inline; transcribed fail: STOP.
+# - stream-fanout: streams are dynamic (N>=2 from plan analysis); modeled
+#   as two representative branches per FLOW_SPEC fanout cardinality.
+# - verification-halt: the 4d HALT offers a 3-way user choice [R]/[C]/[F];
+#   modeled as a router whose conditions are the user's choice. [R] ends
+#   at STOP (prose only "suggests" re-entering Phase 1). [C] saves
+#   failure state for /continue in a fresh session (terminal).
+# - The readiness gate's documented user-override is an extra named edge.
+# - marker-cap-gate (1e) fires only when a plan exceeds 3 [NEEDS
+#   CLARIFICATION] markers; with 3 or fewer it passes straight through.
+# - LARGE/XL take the default (standard) route; their extra requirements
+#   are execution constraints in prose, not separate routes (LARGE:
+#   integration test pass before Phase 4; XL: staged Phase 3 build — one
+#   part of the mechanism at a time — plus full-suite pass before Phase 4).
+# - "SMALL stories: skip" annotations are size-conditional (any profile),
+#   from the SMALL Story Checklist — recorded alongside profile attrs.
+flow: story-cycle
+spec: 1
+start: emit-start-event
+nodes:
+  emit-start-event: {type: step, next: create-task-list, doc: "**Skill metrics:** Emit a start event to the activity log:"}
+  create-task-list: {type: step, next: read-profile, doc: "**Progress tracking:** At the start, create a task list for phase tracking:"}
+  read-profile: {type: step, next: context-prime, doc: "## Profile-Adaptive Behavior"}
+  context-prime: {type: step, next: backlog-story-lookup, doc: "## Phase 0: Intent Decomposition"}
+  backlog-story-lookup: {type: step, next: sprint-context-load, doc: "### 0a. Backlog Story Lookup"}
+  sprint-context-load: {type: step, next: prd-scope-guard, profile: "lean: skip", doc: "### 0a.5. Sprint Context Load"}
+  prd-scope-guard: {type: step, next: discovery-context-load, doc: "### 0b. PRD Scope Guard"}
+  discovery-context-load: {type: step, next: scope-analysis, doc: "### 0b.5. Discovery Context Loading"}
+  scope-analysis: {type: gate.human, ok: classify-size-risk, doc: "### 0c. Scope Analysis"}
+  classify-size-risk: {type: step, next: fast-track-red-flag, doc: "## Size & Risk Classification (Fast-Track Gate)"}
+  fast-track-red-flag: {type: gate.hard, ok: size-router, fail: phase-1-preflight, doc: "**Red flag:** If editing multiple files or changing observable behavior, STOP and reclassify as STANDARD. Fast-track is for genuinely trivial changes only."}
+  size-router: {type: router, trivial: phase-3-lite-entry, small: phase-1-preflight, default: phase-1-preflight, profile: "strict: no fast-tracking, no Phase 3-lite — all 8 phases mandatory for ALL stories including TRIVIAL | lean: SMALL skips Phase 1 entirely (plan optional) — go directly to Phase 3 (Build)", doc: "## Size & Risk Classification (Fast-Track Gate)"}
+  phase-1-preflight: {type: step, next: identify-story-type, doc: "## Phase 1: Story Analysis (Plan Mode)"}
+  identify-story-type: {type: step, next: codebase-exploration, doc: "### 1a. Identify Story Type"}
+  codebase-exploration: {type: step, next: research-codebase, doc: "### 1b. Codebase Exploration (Grep-First)"}
+  research-codebase: {type: step, next: research-requirement-router, doc: "### 1c. Research Codebase"}
+  research-requirement-router: {type: router, research-needed: execute-research, default: print-research-decision, doc: "### 1c.5. Online Verification"}
+  execute-research: {type: step, next: print-research-decision, doc: "**Step 3 — Execute research (when proceeding):**"}
+  print-research-decision: {type: gate.hard, ok: dependency-freshness-check, fail: STOP, doc: "**This phase produces MANDATORY output.** You MUST print a `## Research Decision` block (format below) before proceeding to Phase 1d. The plan CANNOT be written without this block. Skipping this phase silently is a workflow violation."}
+  dependency-freshness-check: {type: step, next: define-required-skills, doc: "### 1c.5+. Dependency Freshness Check (Always-On for External Deps)"}
+  define-required-skills: {type: step, next: discovery-gate, doc: "### 1d. Define Required Skills"}
+  discovery-gate: {type: router, sufficient-info: story-refinement, default: clarify-unknowns, doc: "### 1d.5. Discovery Gate (Facilitator Check)"}
+  clarify-unknowns: {type: gate.human, ok: story-refinement, doc: "### 1d.5. Discovery Gate (Facilitator Check)"}
+  story-refinement: {type: step, next: write-plan, doc: "### 1d.7. Story Refinement & Forward Context"}
+  write-plan: {type: step, next: marker-cap-gate, doc: "### 1e. Write the Plan"}
+  marker-cap-gate: {type: gate.human, ok: ground-rules-check, doc: "For any requirement where the user's intent is ambiguous or multiple valid interpretations exist, insert `[NEEDS CLARIFICATION: specific question]` in the plan. Maximum 3 markers before triggering a hard gate for user input."}
+  ground-rules-check: {type: gate.hard, ok: clarification-check, fail: STOP, doc: "Check the plan against `docs/reference/GROUND_RULES.md`. Any MUST violation → HALT. Any SHOULD violation → document justification in an Architectural Violations table (see `references/plan-template.md`)."}
+  clarification-check: {type: gate.human, ok: plan-completeness, profile: "lean: skip | any profile: SMALL stories skip per SMALL Story Checklist", doc: "### 1f. Clarification Check"}
+  plan-completeness: {type: gate.hard, ok: depth-check, fail: research-requirement-router, profile: "lean: skip | any profile: SMALL stories skip per SMALL Story Checklist", doc: "### 1g. Plan Completeness"}
+  depth-check: {type: gate.human, ok: plan-approval, fail: deep-dive, doc: "### 1h. Depth Check (Optional)"}
+  deep-dive: {type: step, next: plan-approval, doc: "- **[D] Deep dive** — Explore design alternatives for uncertain areas using the `depth_exploration` reasoning tool and elicitation techniques from `references/elicitation-techniques.md`"}
+  plan-approval: {type: gate.human, ok: context-pruning, doc: "Present the plan for user approval."}
+  context-pruning: {type: step, next: readiness-gate, doc: "### 2a. Context Pruning"}
+  readiness-gate: {type: gate.hard, ok: phase-3a-check, fail: address-readiness-gap, user-override: phase-3a-check, profile: "lean: skip confidence-gate scoring — only objective pre-checks: are planned files read? do existing tests pass?", doc: "### 2b. Readiness Gate"}
+  address-readiness-gap: {type: step, next: readiness-gate, doc: "### 2b. Readiness Gate"}
+  phase-3a-check: {type: router, parallel-eligible: stream-analysis, default: phase-3-entry, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  stream-analysis: {type: router, streams-independent: stream-approval, default: phase-3-entry, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  stream-approval: {type: gate.human, ok: stream-fanout, fail: phase-3-entry, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  phase-3-entry: {type: step, next: execute-story-type, doc: "### 3.pre. Git Checkpoint"}
+  stream-fanout: {type: fanout, to: [stream-agent-a, stream-agent-b], doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  stream-agent-a: {type: step, next: stream-merge-join, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  stream-agent-b: {type: step, next: stream-merge-join, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  stream-merge-join: {type: join, next: merge-fallback-check, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  merge-fallback-check: {type: router, merge-failed: phase-3-entry, default: self-review, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  execute-story-type: {type: step, next: tdd-ordering-gate, doc: "## Phase 3: Execute by Story Type"}
+  tdd-ordering-gate: {type: gate.hard, ok: implement-code, fail: write-test-first, doc: "**TDD Ordering Enforcement (Feature, Bug Fix, Refactoring stories):**"}
+  write-test-first: {type: step, next: tdd-ordering-gate, doc: "**TDD Ordering Enforcement (Feature, Bug Fix, Refactoring stories):**"}
+  implement-code: {type: step, next: phase-3-error-check, doc: "### Intermediate Commits During Implementation"}
+  phase-3-error-check: {type: router, external-library-error: web-error-recovery, internal-error: implement-code, default: self-review, doc: "### Web-Assisted Error Recovery (Phase 3)"}
+  web-error-recovery: {type: step, next: implement-code, doc: "### Web-Assisted Error Recovery (Phase 3)"}
+  self-review: {type: step, next: self-review-gate, doc: "### 4a. Self-Review + Disaster Prevention"}
+  self-review-gate: {type: gate.hard, ok: quality-dispatch, fail: implement-code, doc: "Do NOT skip self-review for ANY story size. If any checklist item fails, go back to Phase 3 and fix before continuing."}
+  quality-dispatch: {type: step, next: quality-gates, profile: "strict: dispatch /quality-check --all for EVERY story regardless of risk — all 5 agents + integration-tester mandatory; security audit runs full CWE checklist for ALL stories | lean: skip quality agent dispatch — Phase 4b lint+test sufficient", doc: "**If sub-agents are available:** Dispatch quality gates via `/quality-check` based on the risk matrix from Size & Risk Classification:"}
+  quality-gates: {type: gate.hard, ok: uat-check, fail: fix-gate-failure, profile: "strict: coverage delta must be >= 0 (test coverage cannot decrease) — compare before/after in Phase 4b", doc: "### 4b. Quality Gates"}
+  fix-gate-failure: {type: step, next: quality-gates, doc: "### 4b. Quality Gates"}
+  uat-check: {type: router, uat-applies: generate-uat, default: verify-ac-evidence, profile: "lean: skip Phase 4c entirely", doc: "### 4c. Generate UAT Test Case (Optional)"}
+  generate-uat: {type: step, next: sense-check-uat, doc: "### 4c. Generate UAT Test Case (Optional)"}
+  sense-check-uat: {type: step, next: verify-ac-evidence, doc: "### 4c.1. Sense Check UAT Case (Optional)"}
+  verify-ac-evidence: {type: gate.hard, ok: docs-and-commit, fail: ac-gap-loop, doc: "### 4d. Completion Verification"}
+  ac-gap-loop: {type: loop, back: implement-code, done: verification-halt, max: 2, doc: "### 4d. Completion Verification"}
+  verification-halt: {type: router, rollback: checkpoint-rollback, continue: save-failure-state, force: docs-and-commit, default: STOP, doc: "### 4d. Completion Verification"}
+  checkpoint-rollback: {type: step, next: STOP, doc: "**Checkpoint Rollback Option:** If verification has failed after 2 loop passes and the implementation appears fundamentally flawed (not just minor gaps), offer the user a rollback:"}
+  save-failure-state: {type: terminal, next_skill: continue, doc: "### 4d. Completion Verification"}
+  docs-and-commit: {type: step, next: invoke-commit, profile: "lean: skip capture-outcome and capture-learnings micro-components | strict: write structured audit entry to docs/sessions/.audit-log.jsonl on completion", doc: "### 4e. Docs + Commit"}
+  invoke-commit: {type: step, next: emit-end-event, doc: "9. **Commit:** Invoke the `/commit` skill. Do NOT merge or create PR — that's `/sprint-end`'s job."}
+  emit-end-event: {type: step, next: completion-report, doc: "**Skill metrics:** Emit a completion event:"}
+  completion-report: {type: terminal, next_skill: [story-cycle, sprint-end, handoff], doc: "### Completion Report"}
+  phase-3-lite-entry: {type: step, next: phase-3-lite-commit, profile: "strict: forbidden — all 8 phases mandatory for ALL stories including TRIVIAL, no fast-tracking, no Phase 3-lite", doc: "### Phase 3-lite (TRIVIAL only)"}
+  phase-3-lite-commit: {type: step, next: completion-report, doc: "### Phase 3-lite (TRIVIAL only)"}

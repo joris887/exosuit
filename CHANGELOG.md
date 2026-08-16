@@ -13,6 +13,66 @@ Each version entry lists:
 
 ---
 
+## [Unreleased]
+
+### Summary
+Flow contracts (#77): an optional, declarative `flow.yaml` beside a skill's
+SKILL.md describing its control flow as a graph (steps, gates, routers,
+loops, fanout/join, terminals). NOT executed — nothing changes at runtime.
+Validated by a new `validate-flows.sh` (graph soundness + verbatim SKILL.md
+anchor checks, so flow descriptions can no longer drift silently) wired into
+CI and `/doctor`. First adopters: sprint-start, sprint-end, and story-cycle, transcribed
+1:1 from their current prose. A skill without `flow.yaml` behaves
+byte-identically; a project with no flow files validates vacuously.
+
+### Files added
+- `.claude/skills/FLOW_SPEC.md` — the flow contract specification (spec 1)
+- `.claude/skills/sprint-start/flow.yaml` — flow contract (29 nodes)
+- `.claude/skills/sprint-end/flow.yaml` — flow contract (25 nodes)
+- `.claude/skills/story-cycle/flow.yaml` — flow contract (69 nodes), transcribing
+  the inline phase sections; the four diverging flow descriptions are
+  documented in the drift bug issue and NOT resolved by this file
+- `.claude/skills/doctor/scripts/validate-flows.sh` — flow contract validator
+- `.claude/hooks/tests/test-validate-flows.sh` — validator test suite (20 cases)
+
+### Files changed
+- `.claude/skills/doctor/SKILL.md` — §7 runs validate-flows.sh after
+  validate-skills.sh; output template gains a Flow Contracts row; 3.0.0 → 3.1.0
+- `.claude/skills/skills-registry.json` — doctor version sync
+- `core/MANIFEST.md` — FLOW_SPEC.md added to the skills Inventory row
+- `.github/workflows/ci.yml` — new `flow-contracts` job
+
+### Level 4 — State & Resume (stacked on the above)
+The flow cursor: additive `flow:`/`node:`/`attempt:` keys in the existing
+`docs/sessions/.failure-state.md`, maintained via one-line calls to the new
+`lib/graph-state.sh` helper (advisory, always exit 0). Branch-scoped: the
+session-start resume advisory and `/continue`'s new cursor-first step act
+only when the file's `branch:` matches the current branch, so worktree
+copies stay inert. Ownership rules keep the file's
+meaning intact: a cursor never touches a file owned by a different skill,
+and `clear` deletes a cursor-created file so normal completed runs leave no
+phantom "interrupted workflow". The hook-consumer extraction patterns (stop.sh,
+pre-compact.sh, status-line.sh) are verified byte-identical before/after
+cursor writes in the test suite.
+
+- Added: `.claude/hooks/lib/graph-state.sh` (enter/attempt/clear/show),
+  `.claude/hooks/tests/test-graph-state.sh` (consumer byte-compat,
+  ownership, corrupt-file and branch-scoping cases)
+- Changed: `.claude/hooks/session-start.sh` — additive resume advisory
+  (section 2.5); `.claude/skills/FLOW_SPEC.md` — Cursor & Resume section;
+  `.claude/skills/continue/SKILL.md` — cursor-first resume in step 0.5,
+  dual-format (old files unchanged), 2.7.0 → 2.8.0; cursor call-sites in
+  sprint-start (2.8.0), sprint-end (2.11.0), story-cycle (4.5.0);
+  registry sync; `core/MANIFEST.md` and `.claude/hooks/README.md` rows
+  for the new lib file
+
+### Project file changes
+None required. Flow contracts are opt-in per skill; existing projects are
+unaffected until a skill directory containing a `flow.yaml` is upgraded.
+
+### Breaking changes
+None.
+
 ## [5.0.1] - 2026-08-10
 
 ### Summary

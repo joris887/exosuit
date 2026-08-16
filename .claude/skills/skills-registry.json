@@ -103,7 +103,7 @@
   },
   {
     "name": "continue",
-    "version": "2.7.0",
+    "version": "2.8.0",
     "description": "Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.",
     "trigger": "manual",
     "depends_on": [],
@@ -166,7 +166,7 @@
   },
   {
     "name": "doctor",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "description": "Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup.",
     "trigger": "manual",
     "depends_on": [],
@@ -384,7 +384,7 @@
   },
   {
     "name": "sprint-end",
-    "version": "2.10.0",
+    "version": "2.11.0",
     "description": "Use when the user wants to ship a sprint's work to main via PR.",
     "trigger": "manual",
     "depends_on": [
@@ -405,7 +405,7 @@
   },
   {
     "name": "sprint-start",
-    "version": "2.7.0",
+    "version": "2.8.0",
     "description": "Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development.",
     "trigger": "manual",
     "depends_on": [],
@@ -415,7 +415,7 @@
   },
   {
     "name": "story-cycle",
-    "version": "4.4.0",
+    "version": "4.5.0",
     "description": "Use when the user wants to implement a single story or deliver a backlog item.",
     "trigger": "manual",
     "depends_on": [
