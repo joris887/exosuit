@@ -36,7 +36,7 @@ cleanup() {
     [ -d "$SAVE_DIR/flow" ] && cp -rp "$SAVE_DIR/flow" "$STATE_DIR/flow"
     rm -rf "$SAVE_DIR"
     # strip any test-injected conf override even if a case aborted mid-run
-    sed -i '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf" 2>/dev/null || true
+    sed '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf" > "$HOOKS_DIR/rules/quality.conf".sedtmp && mv "$HOOKS_DIR/rules/quality.conf".sedtmp "$HOOKS_DIR/rules/quality.conf" 2>/dev/null || true
     unset EXOSUIT_FLOW_MODE 2>/dev/null || true
 }
 trap cleanup EXIT
@@ -198,7 +198,7 @@ test_case "glob regression: source still not-test" "1" "$(sh "$HOOKS_DIR/lib/tes
 # uppercase user override folds too
 printf 'test_path_patterns=*.Tests/*\n' >> "$HOOKS_DIR/rules/quality.conf"
 test_case "uppercase override matches after folding" "0" "$(sh "$HOOKS_DIR/lib/test-paths.sh" Foo.Tests/Bar.cs; echo $?)"
-sed -i '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf"
+sed '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf" > "$HOOKS_DIR/rules/quality.conf".sedtmp && mv "$HOOKS_DIR/rules/quality.conf".sedtmp "$HOOKS_DIR/rules/quality.conf"
 cd "$ORIG_PWD"
 
 # --- Green-noise guard: honest green runs must stamp, not veto ---
@@ -304,7 +304,7 @@ nodes:
   done: {type: terminal, doc: "## Done"}
 EOF
 # gate has NO evidence attr; put fake 'evidence: tests-green' in a doc string
-sed -i 's|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate evidence: tests-green"}|' .claude/skills/alpha/flow.yaml
+sed 's|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate evidence: tests-green"}|' .claude/skills/alpha/flow.yaml > .claude/skills/alpha/flow.yaml.sedtmp && mv .claude/skills/alpha/flow.yaml.sedtmp .claude/skills/alpha/flow.yaml
 printf '%s\n' "### Gate evidence: tests-green" >> .claude/skills/alpha/SKILL.md
 sh "$LIB" enter alpha the-gate
 export EXOSUIT_FLOW_MODE=block
@@ -347,7 +347,7 @@ test_case "stop block: fires on CLEAN working tree too" "2" "$RC"
 echo "0" > "$STATE_DIR/stop-iteration"
 
 # Terminal prose-spoof: doc mentioning 'type: terminal' must not fake type
-sed -i 's|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate type: terminal"}|' .claude/skills/alpha/flow.yaml 2>/dev/null || true
+sed 's|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate type: terminal"}|' .claude/skills/alpha/flow.yaml > .claude/skills/alpha/flow.yaml.sedtmp && mv .claude/skills/alpha/flow.yaml.sedtmp .claude/skills/alpha/flow.yaml 2>/dev/null || true
 if grep -q 'type: terminal"' .claude/skills/alpha/flow.yaml; then
     printf '%s\n' "### Gate type: terminal" >> .claude/skills/alpha/SKILL.md
     sh "$LIB" enter alpha the-gate

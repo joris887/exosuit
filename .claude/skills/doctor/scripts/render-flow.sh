@@ -12,6 +12,7 @@ set -euo pipefail
 # Output is DETERMINISTIC (no timestamps): same flow.yaml -> same bytes.
 # The generated file replaces hand-maintained diagrams for adopting skills:
 # regenerate instead of editing (see FLOW_SPEC.md → Generated Views).
+# This is a dev/CI tool, not a hook — large flows take a few seconds.
 
 if [[ "${1:-}" == "--help" ]]; then
   sed -n '4,14p' "$0" | sed 's/^# \{0,1\}//'
@@ -55,7 +56,9 @@ render_one() {
     body=$(printf '%s' "$line" | sed -E 's/^  [a-z0-9-]+: \{(.*)\}[[:space:]]*$/\1/')
     body_clean=$(printf '%s' "$body" | sed -E 's/(doc|profile): "[^"]*"//g')
     ntype=$(printf '%s' "$body_clean" | sed -n 's/.*type: \([a-z.]*\).*/\1/p')
-    mid=$(printf '%s' "$id" | tr '-' '_')
+    # 'n_' prefix: mermaid reserved words (end, subgraph, ...) are valid
+    # flow ids, and synthetic stopN/nsk_ ids must never collide with user ids
+    mid="n_$(printf '%s' "$id" | tr '-' '_')"
     label=$(printf '%s' "$id" | tr '-' ' ')
     case "$ntype" in
       step)       printf '  %s["%s"]\n' "$mid" "$label" ;;
@@ -92,9 +95,9 @@ render_one() {
           edge_buf="${edge_buf}  ${mid} -->|${key}| stop${stopn}\n"
         fi
       elif [[ "$key" == "next" ]]; then
-        edge_buf="${edge_buf}  ${mid} --> $(printf '%s' "$val" | tr '-' '_')\n"
+        edge_buf="${edge_buf}  ${mid} --> n_$(printf '%s' "$val" | tr '-' '_')\n"
       else
-        edge_buf="${edge_buf}  ${mid} -->|${key}| $(printf '%s' "$val" | tr '-' '_')\n"
+        edge_buf="${edge_buf}  ${mid} -->|${key}| n_$(printf '%s' "$val" | tr '-' '_')\n"
       fi
     done < <(printf '%s\n' "$body_clean" | tr ',' '\n')
     if [[ -n "$list_vals" ]]; then
@@ -106,7 +109,7 @@ render_one() {
           edge_buf="${edge_buf}  ${mid} -.->|next skill| nsk_$(printf '%s' "$lval" | tr '-' '_')\n"
           edge_buf="${edge_buf}  nsk_$(printf '%s' "$lval" | tr '-' '_')([\"/${lval}\"])\n"
         else
-          edge_buf="${edge_buf}  ${mid} --> $(printf '%s' "$lval" | tr '-' '_')\n"
+          edge_buf="${edge_buf}  ${mid} --> n_$(printf '%s' "$lval" | tr '-' '_')\n"
         fi
       done < <(printf '%s\n' "${list_vals#*=}" | tr ',' '\n')
     fi
@@ -133,8 +136,15 @@ for flow_file in "$SKILLS_DIR"/*/flow.yaml; do
       render_one "$flow_file"
       ;;
     write)
-      render_one "$flow_file" > "$out_file"
-      echo "wrote $out_file" >&2
+      tmp_out=$(mktemp)
+      render_one "$flow_file" > "$tmp_out"
+      if [[ -s "$tmp_out" ]]; then
+        mv "$tmp_out" "$out_file"
+        echo "wrote $out_file" >&2
+      else
+        rm -f "$tmp_out"
+        echo "SKIP: $flow_file has no parseable nodes — nothing generated" >&2
+      fi
       ;;
     check)
       if [[ ! -f "$out_file" ]] || ! render_one "$flow_file" | cmp -s - "$out_file"; then
@@ -145,7 +155,25 @@ for flow_file in "$SKILLS_DIR"/*/flow.yaml; do
   esac
 done
 
+# A skill filter that matched nothing is an error in every mode (typo guard)
+if [[ -n "$ONLY" && "$rendered" -eq 0 ]]; then
+  echo "no flow.yaml found for skill '$ONLY'" >&2
+  exit 1
+fi
+
 if [[ "$MODE" == "check" ]]; then
+  # Orphan scan: a generated view whose flow.yaml is gone must fail the
+  # check — otherwise it rots forever with CI green, exactly the drift
+  # class this tool exists to prevent.
+  for gen in "$SKILLS_DIR"/*/flow.generated.md; do
+    [[ -f "$gen" ]] || continue
+    skill=$(basename "$(dirname "$gen")")
+    [[ -n "$ONLY" && "$skill" != "$ONLY" ]] && continue
+    if [[ ! -f "$(dirname "$gen")/flow.yaml" ]]; then
+      echo "ORPHAN: $gen has no flow.yaml — delete it or restore the contract" >&2
+      stale=1
+    fi
+  done
   if [[ "$stale" -eq 1 ]]; then exit 1; fi
   echo "generated views current ($rendered flows)" >&2
 fi
