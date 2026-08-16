@@ -33,7 +33,7 @@ byte-identically; a project with no flow files validates vacuously.
   the inline phase sections; the four diverging flow descriptions are
   documented in the drift bug issue and NOT resolved by this file
 - `.claude/skills/doctor/scripts/validate-flows.sh` — flow contract validator
-- `.claude/hooks/tests/test-validate-flows.sh` — validator test suite (20 cases)
+- `.claude/hooks/tests/test-validate-flows.sh` — validator test suite (23 cases incl. evidence-attr checks)
 
 ### Files changed
 - `.claude/skills/doctor/SKILL.md` — §7 runs validate-flows.sh after
@@ -95,7 +95,8 @@ gates are never machine-enforced. Fails open everywhere; kill switches:
   `.claude/skills/story-cycle/flow.yaml` (evidence on the TDD and quality
   gates) with `story-cycle/SKILL.md` + registry bumped to 4.6.0,
   `.claude/hooks/rules/quality.conf` (documented test_path_patterns
-  override), MANIFEST + hooks README rows
+  override), `test-validate-flows.sh` (evidence cases), MANIFEST + hooks
+  README rows
 
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are

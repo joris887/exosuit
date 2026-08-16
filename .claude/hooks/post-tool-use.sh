@@ -99,7 +99,11 @@ if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
         RUN_PASSED=false
         RUN_FAILED=false
         printf '%s' "$TOOL_OUTPUT" | grep -qEi '([0-9]+ passed|All tests passed|tests? (in [0-9]+ suites? )?passed|test run with [0-9]+ tests.*passed|BUILD SUCCEEDED|ok \(|Tests:.*[0-9]+ passed)' && RUN_PASSED=true
-        printf '%s' "$TOOL_OUTPUT" | grep -qEi '(FAILED|FAIL\b|ERROR\b|error:|BUILD FAILED|npm ERR|test.*failed|[0-9]+ failed)' && RUN_FAILED=true
+        # The green-evidence VETO must only trigger on ACTUAL failures:
+        # nonzero failed-counts or hard build breaks. Green runs legitimately
+        # contain '0 tests failed', 'Failed: 0', ERROR-level log lines, and
+        # test names like test_handles_error — none of those may veto.
+        printf '%s' "$TOOL_OUTPUT" | grep -qEi '((^|[^0-9])[1-9][0-9]* +(tests? +)?failed|failed: *[1-9]|failures: *[1-9]|BUILD FAILED|npm ERR)' && RUN_FAILED=true
 
         if [ "$RUN_PASSED" = "true" ] && [ "$RUN_FAILED" = "false" ]; then
             mkdir -p "$STATE_DIR" 2>/dev/null
@@ -114,7 +118,9 @@ if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
         fi
 
         # --- Track test/build failures for retrospective analysis ---
-        if [ "$RUN_FAILED" = "true" ]; then
+        # (keeps its original broad detection — logging is intentionally
+        # noisier than the strict green-evidence veto above)
+        if printf '%s' "$TOOL_OUTPUT" | grep -qEi '(FAILED|FAIL\b|ERROR\b|error:|BUILD FAILED|npm ERR|test.*failed|[0-9]+ failed)'; then
             FAIL_LOG="$LOG_DIR/.failure-log.jsonl"
             # Extract first error line (truncated for JSON safety)
             FIRST_ERROR=$(printf '%s' "$TOOL_OUTPUT" | grep -Ei '(FAILED|FAIL|ERROR|error:|failed)' | head -1 | cut -c1-120 | sed 's/"/\\"/g')

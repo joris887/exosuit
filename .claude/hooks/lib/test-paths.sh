@@ -29,17 +29,26 @@ if [ -f "$QUALITY_CONF" ]; then
     [ -n "$CONF_PATTERNS" ] && PATTERNS="$CONF_PATTERNS"
 fi
 
-# Case-insensitive: fold the path to lowercase (covers Foo.Tests/, Test_/ ...)
+# Case-insensitive: fold BOTH path and patterns to lowercase (covers
+# Foo.Tests/ in paths and *.Tests/* in user overrides alike)
 PATH_LC=$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')
 [ -n "$PATH_LC" ] || exit 1
+PATTERNS=$(printf '%s' "$PATTERNS" | tr '[:upper:]' '[:lower:]')
 
+# set -f: the patterns are GLOBS — without noglob, the unquoted $PATTERNS
+# expansion would match them against the CURRENT DIRECTORY's files (any repo
+# with an existing tests/ dir would destroy the patterns and re-open the
+# block-mode deadlock this file exists to prevent).
+set -f
 OLD_IFS="$IFS"
 IFS='|'
+MATCHED=1
 for pat in $PATTERNS; do
     # shellcheck disable=SC2254
     case "$PATH_LC" in
-        $pat) IFS="$OLD_IFS"; exit 0 ;;
+        $pat) MATCHED=0; break ;;
     esac
 done
 IFS="$OLD_IFS"
-exit 1
+set +f
+exit "$MATCHED"

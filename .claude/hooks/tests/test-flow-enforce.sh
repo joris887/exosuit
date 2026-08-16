@@ -35,6 +35,8 @@ cleanup() {
     rm -rf "$STATE_DIR/flow"
     [ -d "$SAVE_DIR/flow" ] && cp -rp "$SAVE_DIR/flow" "$STATE_DIR/flow"
     rm -rf "$SAVE_DIR"
+    # strip any test-injected conf override even if a case aborted mid-run
+    sed -i '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf" 2>/dev/null || true
     unset EXOSUIT_FLOW_MODE 2>/dev/null || true
 }
 trap cleanup EXIT
@@ -181,6 +183,71 @@ for tp in spec/user_spec.rb src/__tests__/user.js conftest.py t/basic.t Foo.Test
 done
 test_case "superset invariant: exempt paths all stamp evidence" "true" "$SUPERSET_OK"
 unset EXOSUIT_FLOW_MODE
+cd "$ORIG_PWD"
+
+# --- Glob-expansion regression: patterns survive an EXISTING tests/ dir ---
+# (round-2 critical: unquoted expansion matched globs against cwd files)
+d="$(make_repo)"; cd "$d"
+mkdir -p tests src/tests
+printf 'x' > tests/conftest.py
+printf 'x' > tests/test_existing.py
+printf 'x' > src/tests/unit.py
+test_case "glob regression: new test in existing tests/ dir" "0" "$(sh "$HOOKS_DIR/lib/test-paths.sh" tests/test_new_feature.py; echo $?)"
+test_case "glob regression: absolute path with depth-2 match" "0" "$(sh "$HOOKS_DIR/lib/test-paths.sh" "$d/tests/helper_new.py"; echo $?)"
+test_case "glob regression: source still not-test" "1" "$(sh "$HOOKS_DIR/lib/test-paths.sh" src/main.go; echo $?)"
+# uppercase user override folds too
+printf 'test_path_patterns=*.Tests/*\n' >> "$HOOKS_DIR/rules/quality.conf"
+test_case "uppercase override matches after folding" "0" "$(sh "$HOOKS_DIR/lib/test-paths.sh" Foo.Tests/Bar.cs; echo $?)"
+sed -i '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf"
+cd "$ORIG_PWD"
+
+# --- Green-noise guard: honest green runs must stamp, not veto ---
+d="$(make_repo)"; cd "$d"
+if command -v jq >/dev/null 2>&1; then
+    for green in "100% tests passed, 0 tests failed out of 12" "12 tests passed\nERROR StatusLogger could not find log4j2" "test_handles_error PASSED\n12 passed" "Passed! - Failed: 0, Passed: 12, Total: 12 tests passed"; do
+        rm -rf "$STATE_DIR/flow"; rm -f "$STATE_DIR/tests-passed"
+        printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"%s"}' "$green" | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+        if [ ! -f "$STATE_DIR/flow/tests-green" ]; then
+            test_case "green-noise stamps: ${green%%\\n*}" "stamped" "missing"
+        else
+            test_case "green-noise stamps: ${green%%\\n*}" "stamped" "stamped"
+        fi
+    done
+    rm -f "$STATE_DIR/tests-passed"
+else
+    echo "  SKIP: green-noise cases (jq not available)"
+fi
+cd "$ORIG_PWD"
+
+# --- Dedup separator: distinct (flow,node) pairs never collide ---
+d="$(make_repo)"; cd "$d"
+mkdir -p .claude/skills/alpha-red
+printf '%s\n' "## alpha-red" "" "### Gate" "" "## Done" > .claude/skills/alpha-red/SKILL.md
+cat > .claude/skills/alpha-red/flow.yaml <<'EOF'
+flow: alpha-red
+spec: 1
+start: gate
+nodes:
+  gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate"}
+  done: {type: terminal, doc: "## Done"}
+EOF
+cat > .claude/skills/alpha/flow.yaml <<'EOF'
+flow: alpha
+spec: 1
+start: red-gate
+nodes:
+  red-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate"}
+  done: {type: terminal, doc: "## Done"}
+EOF
+rm -rf "$STATE_DIR/flow"
+sh "$LIB" enter alpha-red gate
+OUT1="$(run_pre_edit src/a.go)"
+sh "$LIB" clear alpha-red
+sh "$LIB" enter alpha red-gate
+OUT2="$(run_pre_edit src/b.go)"
+test_case "dedup: first gate warns" "true" "$(printf '%s' "${OUT1#*|}" | grep -q "Flow advisory" && echo true || echo false)"
+test_case "dedup: distinct (flow,node) still warns" "true" "$(printf '%s' "${OUT2#*|}" | grep -q "Flow advisory" && echo true || echo false)"
+rm -rf "$STATE_DIR/flow"
 cd "$ORIG_PWD"
 
 # --- Mixed-run guard: '3 passed, 9 failed' never stamps green; failure revokes ---

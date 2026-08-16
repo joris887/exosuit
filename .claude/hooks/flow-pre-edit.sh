@@ -14,8 +14,10 @@
 #   block    — exit 2 with the reason (deterministic gate, opt-in)
 #
 # Exemptions (never warns/blocks): edits to test files (writing a test IS the
-# evidence being asked for), docs/config (.md/.yml/.yaml/.json/.toml), and
-# anything when no branch-matched cursor exists. Fail-open on every error.
+# evidence being asked for; shared patterns in lib/test-paths.sh), docs/config
+# (.md/.yml/.yaml/.json/.toml/.txt), and anything when no branch-matched
+# cursor exists. Advisory warns ONCE per (flow, node, evidence), not on every
+# edit. Fail-open on every error.
 # POSIX-compliant — no bash required.
 
 HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -106,8 +108,10 @@ if [ "$FLOW_MODE" = "block" ]; then
     fi
     exit 2
 fi
-# Advisory: warn ONCE per (flow, node, evidence) — not on every edit
-ADVISED_MARK="$STATE_DIR/flow/.advised-$CUR_FLOW-$CUR_NODE-$EVIDENCE"
+# Advisory: warn ONCE per (flow, node, evidence) — not on every edit.
+# '.' separates the fields ('-' is legal inside kebab ids and would let
+# distinct (flow, node) pairs collide on one marker).
+ADVISED_MARK="$STATE_DIR/flow/.advised-$CUR_FLOW.$CUR_NODE.$EVIDENCE"
 [ -f "$ADVISED_MARK" ] && exit 0
 if [ "$EXPLAIN_MODE" != "off" ]; then
     printf 'Flow advisory: /%s is at gate '\''%s'\'' — evidence '\''%s'\'' not yet observed this session. %s.\n' "$CUR_FLOW" "$CUR_NODE" "$EVIDENCE" "$REMEDY" >&2
