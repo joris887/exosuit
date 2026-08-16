@@ -1,0 +1,78 @@
+# Flow contract for brainstorm — see .claude/skills/FLOW_SPEC.md
+# Declarative only: NOT executed. 1:1 transcription of the prose sections.
+# Transcription notes:
+# - Start region: the skill has both a heading and a start-event metrics
+#   block; transcribed as brainstorm-entry (heading) -> emit-start-event
+#   (metrics lead-in), the only shape satisfying both anchors.
+# - "## Plan Mode (Optional)" is a judgment-triggered wrap of Phases 1-4
+#   ("architecturally significant ... or the user explicitly requests") —
+#   a cross-cutting note, not a node and not a profile attr.
+# - The Phase 1 hold ("Ask clarifying questions if the idea is vague. Do
+#   NOT proceed with assumptions.") is a judgment hold, not a mechanical
+#   check — gate.human, with an INFERRED idea-vague re-ask self-loop (the
+#   prose names no re-entry target or retry bound).
+# - 2.5's IF-wrapper line carries double quotes (unanchorable — the
+#   validator cannot round-trip them); both 2.5 nodes anchor to the
+#   section heading. The IF has no ELSE: the skip edge to 2.6 is inferred
+#   document-order fall-through.
+# - 2.6's "Skip when:" line (:85) is quote-bearing — the router anchors
+#   to the section heading; its skip-research edge target (Phase 3) is
+#   inferred. The one-subagent-per-approach parallel research dispatch
+#   has DYNAMIC arity (2-3 approaches) — merged into the research step,
+#   not a fanout (FLOW_SPEC fanout requires a static id list).
+# - STRIDE-Light is a router (trust-boundaries), not a merge: the
+#   prose-if gates a substantive subsection with distinct downstream
+#   effects (findings become /ideate security acceptance criteria);
+#   its default edge (skip to Phase 5) is inferred document-order
+#   fall-through (the prose-if has no ELSE).
+# - The Phase 5 approval HARD-GATE names NO revise/abandon path — fail:
+#   STOP — even though the persisted doc's own frontmatter enumerates
+#   status explored | decided | abandoned, implying non-approval
+#   outcomes the flow cannot reach. Recorded, not resolved.
+# - Phase 6's ADR conditional is a router; its default edge (skip to
+#   Phase 7) is inferred fall-through.
+# - Terminal next_skill: ideate — the only skill the operative Phase 7
+#   prose names, and it is a condition-scoped USER option ("For
+#   immediate implementation"), NOT an auto-invocation. This pins the
+#   prose side of a 4-way drift: the frontmatter has depends-on [ideate]
+#   with no calls key, skills-registry.json says calls ["ideate"],
+#   FRAMEWORK_REFERENCE.md says "(auto-invokes /ideate)" and draws a
+#   "calls" edge — while the prose HARD-GATE forbids invoking /ideate
+#   before approval. Recorded, not resolved.
+# - More recorded drift (not resolved): the shipped asset template
+#   (assets/brainstorm-output.md) has frontmatter skill/date/topic with
+#   NO status field, but the prose mandates title/date/status/decision —
+#   and ideate only loads brainstorm docs with status: decided, so an
+#   asset-shaped doc is invisible to /ideate. The prose claims
+#   /story-cycle reads this doc, but story-cycle's SKILL.md never
+#   mentions brainstorm (only context-prime does, scoped to
+#   Research/Spike intent). allowed-tools omits Write/Edit and
+#   AskUserQuestion though Phases 3/6 require them. Approach count is
+#   "2-3" in Phase 3, "at least 2" in Rules, and fixed at 3 in the asset.
+# - Example and Rules sections are cross-cutting, not nodes.
+# - lean/strict profiles: verified-vacuous — the prose defines no
+#   profile-conditional flow anywhere in this skill.
+flow: brainstorm
+spec: 1
+start: brainstorm-entry
+nodes:
+  brainstorm-entry: {type: step, next: emit-start-event, doc: "## brainstorm"}
+  emit-start-event: {type: step, next: p1-explore-problem-space, doc: "**Skill metrics:** Emit a start event to the activity log:"}
+  p1-explore-problem-space: {type: step, next: p1-clarify-gate, doc: "## 1. Explore the Problem Space"}
+  p1-clarify-gate: {type: gate.human, ok: p2-research-codebase, idea-vague: p1-clarify-gate, doc: "Ask clarifying questions if the idea is vague. Do NOT proceed with assumptions."}
+  p2-research-codebase: {type: step, next: p2-5-adr-check, doc: "## 2. Research the Codebase"}
+  p2-5-adr-check: {type: router, adr-present: p2-5-scan-adrs, default: p2-6-research-offer, doc: "## 2.5. Check Existing Architecture Decisions"}
+  p2-5-scan-adrs: {type: step, next: p2-6-research-offer, doc: "## 2.5. Check Existing Architecture Decisions"}
+  p2-6-research-offer: {type: router, skip-research: p3-present-approaches, default: p2-6-research-alternatives, doc: "## 2.6. Research Alternatives (Optional — Recommended)"}
+  p2-6-research-alternatives: {type: step, next: p3-present-approaches, doc: "Research is dispatched in parallel — one subagent per approach."}
+  p3-present-approaches: {type: step, next: p3-approach-selection, doc: "## 3. Propose Alternative Approaches (ADR-Informed)"}
+  p3-approach-selection: {type: gate.human, ok: p4-identify-risks, doc: "State which approach you recommend and why. The user selects their preferred approach."}
+  p4-identify-risks: {type: step, next: p4-stride-check, doc: "## 4. Identify Risks and Open Questions"}
+  p4-stride-check: {type: router, trust-boundaries: p4-stride-analysis, default: p5-present-design, doc: "### STRIDE-Light Threat Analysis (for designs with trust boundaries)"}
+  p4-stride-analysis: {type: step, next: p5-present-design, doc: "### STRIDE-Light Threat Analysis (for designs with trust boundaries)"}
+  p5-present-design: {type: step, next: p5-design-approval, doc: "## 5. Present Design for Approval"}
+  p5-design-approval: {type: gate.human, ok: p6-persist-design, fail: STOP, doc: "Do NOT invoke /ideate, write any stories, or begin implementation until the user has approved a design approach. The purpose of brainstorming is exploration, not execution."}
+  p6-persist-design: {type: step, next: p6-adr-check, doc: "## 6. Persist Design Document"}
+  p6-adr-check: {type: router, architecturally-significant: p6-create-adr, default: p7-next-steps, doc: "**If the decision is architecturally significant** (from Phase 4 assessment): also create an ADR using `docs/adr/TEMPLATE.md`. The brainstorm document captures the exploration; the ADR captures the decision in machine-parseable format with rejected alternatives and compliance checks. Map the brainstorm's approaches to the ADR's Alternatives Considered section (chosen → ✅, rejected → ❌ with rationale and reconsider-when conditions)."}
+  p6-create-adr: {type: step, next: p7-next-steps, doc: "**If the decision is architecturally significant** (from Phase 4 assessment): also create an ADR using `docs/adr/TEMPLATE.md`. The brainstorm document captures the exploration; the ADR captures the decision in machine-parseable format with rejected alternatives and compliance checks. Map the brainstorm's approaches to the ADR's Alternatives Considered section (chosen → ✅, rejected → ❌ with rationale and reconsider-when conditions)."}
+  p7-next-steps: {type: terminal, next_skill: ideate, doc: "## 7. Next Steps"}
