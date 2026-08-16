@@ -129,6 +129,25 @@ continuation that exists only in the diagram and references/new-project.md.
   block (same as the other three adopters); 2.13.0 → 2.14.0,
   `.claude/skills/skills-registry.json` — bootstrap version sync
 
+### Discover adoption (stacked on the above)
+Fifth adopter: discover's flow contract — the framework's longest
+interactive sessions (20-120 min of user-paced elicitation) gain
+node-granular resume via the existing cursor readers. The three runtime
+lanes (GUIDED/PLATFORM, QUICK, PIONEERING) are real graph regions; the
+header documents the prose ambiguities it deliberately does not resolve —
+the "authoritative" Process Flow block diverging from the prose in 11
+catalogued places, the 4A/4B batching contradiction with Rules, the
+dangling "Other" options, and the frontmatter `calls: [ideate]` that no
+prose terminal ever exercises.
+
+- Added: `.claude/skills/discover/flow.yaml` — flow contract (75 nodes:
+  6 HARD-GATE checkpoints, the 1F mode router, three lanes, three
+  terminals incl. Pioneering's post-spike re-entry),
+  `.claude/skills/discover/flow.generated.md`
+- Changed: `.claude/skills/discover/SKILL.md` — flow cursor call-site
+  block (same as the other four adopters); 1.0.0 → 1.1.0,
+  `.claude/skills/skills-registry.json` — discover version sync
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.
