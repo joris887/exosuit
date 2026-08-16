@@ -148,6 +148,25 @@ prose terminal ever exercises.
   block (same as the other four adopters); 1.0.0 → 1.1.0,
   `.claude/skills/skills-registry.json` — discover version sync
 
+### Brainstorm adoption (stacked on the above)
+Sixth adopter: brainstorm's flow contract — a linear design-exploration
+flow with four conditional detours and one hard human approval. The
+header pins the prose side of the 4-way drift on the brainstorm→ideate
+edge (registry/docs claim calls/auto-invoke; the prose HARD-GATE forbids
+invoking /ideate before approval and offers it as a user option) and
+records the shipped output template contradicting the prose frontmatter
+(no status field — making template-shaped docs invisible to /ideate's
+status filter), the phantom "/story-cycle reads brainstorms" claim, and
+the allowed-tools gaps.
+
+- Added: `.claude/skills/brainstorm/flow.yaml` — flow contract (20
+  nodes: clarify hold, ADR/research/STRIDE/ADR-significance routers,
+  approach-selection and design-approval gates),
+  `.claude/skills/brainstorm/flow.generated.md`
+- Changed: `.claude/skills/brainstorm/SKILL.md` — flow cursor call-site
+  block; 2.7.0 → 2.8.0, `.claude/skills/skills-registry.json` —
+  brainstorm version sync
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.
