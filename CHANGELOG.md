@@ -98,6 +98,22 @@ gates are never machine-enforced. Fails open everywhere; kill switches:
   override), `test-validate-flows.sh` (evidence cases), MANIFEST + hooks
   README rows
 
+### Level 6 — Generated Views (stacked on the above)
+Flow diagrams become generated artifacts: `render-flow.sh` emits a
+deterministic `flow.generated.md` (mermaid + grep-friendly edge table,
+marked GENERATED) beside each flow.yaml, and CI's `--check` fails when a
+view is stale — the drift class that motivated flow contracts cannot
+re-emerge in generated artifacts. Hand-maintained SKILL.md diagrams are
+untouched (reconciling those is the drift bug's territory).
+
+- Added: `doctor/scripts/render-flow.sh` (stdout/--write/--check),
+  `flow.generated.md` for sprint-start, sprint-end, story-cycle,
+  `.claude/hooks/tests/test-render-flow.sh` (17 cases incl. determinism,
+  staleness detection, node/edge fidelity)
+- Changed: `.github/workflows/ci.yml` (staleness check in the
+  flow-contracts job), `FLOW_SPEC.md` (Generated Views), `CONTRIBUTING.md`
+  (flow-contract recipe), `llms.txt`, `core/MANIFEST.md` (flow artifacts row)
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.

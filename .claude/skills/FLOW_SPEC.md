@@ -180,6 +180,17 @@ Kill switches: `EXOSUIT_FLOW_MODE=off` disables both checks;
 disables it). Everything fails open: no cursor, corrupt state, missing
 flow.yaml, or any error means no warning and no block.
 
+## Generated Views
+
+`bash .claude/skills/doctor/scripts/render-flow.sh --write` generates
+`flow.generated.md` beside each flow.yaml — a mermaid diagram plus a
+grep-friendly edge table, marked GENERATED, byte-deterministic. Never edit
+it; regenerate it. CI runs `render-flow.sh --check`, so a generated view can
+never rot behind its flow.yaml — the drift class that motivated flow
+contracts cannot re-emerge in the generated artifacts. Hand-maintained
+diagrams inside SKILL.md prose are unaffected (reconciling those is #80's
+territory).
+
 ## Authoring a Flow Contract
 
 Transcribe what the prose **actually says today** — a flow contract is a
