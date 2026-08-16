@@ -225,7 +225,7 @@
   },
   {
     "name": "ideate",
-    "version": "2.10.0",
+    "version": "2.11.0",
     "description": "Use when the user has an idea or requirement to decompose into backlog stories.",
     "trigger": "manual",
     "depends_on": [],

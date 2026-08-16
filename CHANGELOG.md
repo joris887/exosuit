@@ -167,6 +167,27 @@ the allowed-tools gaps.
   block; 2.7.0 → 2.8.0, `.claude/skills/skills-registry.json` —
   brainstorm version sync
 
+### Ideate adoption (stacked on the above)
+Seventh adopter: ideate's flow contract — completing the ideation wing
+(discover → ideate ← brainstorm all under contract, and ideate was
+already a `next_skill` target in bootstrap's contract). The header
+records the two upstream finds the transcription surfaced: the SKILL.md
+prose contradicting its own canonical `references/story-template.md` in
+six places (SPIDR order inverted, prefer-small vs prefer-larger, file
+caps vs judgment, AC-count split rule, an 11- vs 12-item Definition of
+Ready) — the body prose was left behind by the cohesion-sizing change —
+and a broken CommonMark fence structure that makes GitHub render the
+middle of the file as code today.
+
+- Added: `.claude/skills/ideate/flow.yaml` — flow contract (36 nodes:
+  3-way discovery-state router, the skill's one gate.hard prerequisite
+  check, feasibility/NFR/security/external-setup conditionals, the
+  demote-to-draft DoR step, the backlog-write approval gate),
+  `.claude/skills/ideate/flow.generated.md`
+- Changed: `.claude/skills/ideate/SKILL.md` — flow cursor call-site
+  block; 2.10.0 → 2.11.0, `.claude/skills/skills-registry.json` —
+  ideate version sync
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.
