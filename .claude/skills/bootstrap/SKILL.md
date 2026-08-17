@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-version: 2.14.1
+version: 2.14.2
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]

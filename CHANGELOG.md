@@ -218,6 +218,42 @@ headers as "recorded, not resolved" — those notes are now retired):
   bootstrap 2.14.0 → 2.14.1 (registry synced); flow.yaml headers for
   brainstorm and ideate updated to describe the fixed state
 
+### Cohesion-policy sweep (stacked on the above)
+The cohesion-sizing change (b6d1407, #47) rewrote the canonical
+`ideate/references/story-template.md` but left the old "max 5 files /
+unqualified 3-7 AC" policy in five places outside the ideation wing —
+surfaced by the #89/#90 review. This sweep finishes the propagation:
+
+- `.claude/agents/spec-reviewer.md` — DoR checklist gains the cohesion
+  test; "(max 5)" file cap and unqualified AC count replaced with the
+  canonical wording (reviewer behavior now matches the policy stories
+  are written under)
+- `.claude/skills/backlog-review/SKILL.md` — DoR table gains the
+  cohesion-test row (now 12 criteria, matching the canonical checklist);
+  "Max 5 files per story" and the unqualified AC row replaced; the
+  Ready classification counts 12; 3.0.0 → 3.0.1
+- `.claude/skills/bootstrap/references/llm-readiness.md` — the quoted
+  retired sizing rule ("1-3 hours, no more than 5-8 files", also
+  misattributed to story-cycle) replaced with a pointer to the
+  canonical cohesion policy; bootstrap 2.14.1 → 2.14.2
+- `docs/reference/TEAM_WORKFLOW.md` + scaffold copy — the two
+  conflict-prevention mentions of the retired 5-8 file limit reworded
+- `scaffold/docs/reference/backlog/_EPIC_TEMPLATE.md` — "[list, max 5]"
+  → "[list — proportionate to size]"
+- `.claude/skills/build/SKILL.md` — Phase 1 step sizing ("aim for steps
+  that touch ≤5 files", predating the cohesion change entirely) replaced
+  with the canonical cohesion wording; its FRAMEWORK_REFERENCE mirror
+  updated; build 1.0.0 → 1.0.1
+
+Not touched (verified non-stale or deliberately separate): PRD_SUMMARY's
+"3-7 acceptance criteria per requirement" (EARS requirement guidance,
+not story DoR), refine-loop/reasoning-tools "max 5" (loop/question
+caps), GROUND_RULES "3-7 rules", and confidence-gate.md's Scope Bounded
+file-count thresholds (a distinct pre-implementation gate — though note
+LARGE/XL cohesive stories will trip its >10-file FAIL; reconciling that
+gate with the cohesion policy is a maintainer decision, not attempted
+here).
+
 ### Project file changes
 None required. Flow contracts are opt-in per skill; existing projects are
 unaffected until a skill directory containing a `flow.yaml` is upgraded.
