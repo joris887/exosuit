@@ -4,7 +4,7 @@ Reference loaded by `/bootstrap` Path A step A3.1. Assesses whether the codebase
 
 ## Purpose
 
-Story-cycle sizes stories to "1-3 hours, touches no more than 5-8 files." If the codebase has oversized files, high coupling, or circular dependencies, LLM effectiveness degrades — the AI can't hold enough context to make safe changes.
+Stories are sized by conceptual cohesion (see the canonical policy in `.claude/skills/ideate/references/story-template.md`). If the codebase has oversized files, high coupling, or circular dependencies, LLM effectiveness degrades — the AI can't hold enough context to make safe changes.
 
 ## Assessment Steps
 

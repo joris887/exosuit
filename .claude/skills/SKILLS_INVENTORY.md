@@ -45,7 +45,7 @@ For technology skill generation: `/skill-create`
 | Skill           | Arguments               | Description                                 |
 | --------------- | ----------------------- | ------------------------------------------- |
 | `/brainstorm`   | `<idea-or-topic>`       | Design exploration with alternatives before story decomposition |
-| `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed stories (single context window sized) |
+| `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed stories (cohesion-sized) |
 | `/skill-create` | -                       | Generate tech skills, rules, and hook configs |
 | `/discover`     | `"<idea>" [--quick\|--platform\|--pioneer]` | Deep guided elicitation — archetype-aware, research-backed discovery with assumption tracking and Phase Transition Stories |
 | `/phase-review` | `[phase-number]`                             | Phase transition review — walkthrough, assumption validation, and next-phase planning |

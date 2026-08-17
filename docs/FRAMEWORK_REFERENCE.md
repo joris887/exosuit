@@ -1746,7 +1746,7 @@ Orchestrates full project build from a plain-English description. Designed for n
      │
      ├──→ Phase 0: Check setup (silent minimal bootstrap if needed, force lean profile)
      ├──→ Phase 1: Decompose (internal only — no methodology jargon shown to user)
-     │       ├── dependency-ordered steps, sized for ≤5 files each
+     │       ├── dependency-ordered steps, each one cohesive, independently verifiable unit
      │       └── retroactive discovery capture: infer archetype, generate
      │           minimal DECISION_LOG.md (all ASSUMED), add Phase Transition
      │           Stories to backlog for future review cycle

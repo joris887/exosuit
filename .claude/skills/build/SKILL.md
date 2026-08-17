@@ -1,6 +1,6 @@
 ---
 name: build
-version: 1.0.0
+version: 1.0.1
 description: Build a project from a plain-English description. Handles all technical decisions automatically. Designed for non-technical users but useful for anyone who wants fast results.
 trigger: manual
 depends-on: [bootstrap, ideate, story-cycle]
@@ -53,7 +53,7 @@ Internally decompose the description into ordered stories using `/ideate` logic:
 1. Identify the core entities and features described
 2. Break into dependency-ordered implementation steps
 3. Classify each as feature, infrastructure, or testing
-4. Size each step (aim for steps that touch ≤5 files)
+4. Size each step by conceptual cohesion (canonical policy: `.claude/skills/ideate/references/story-template.md`) — one coherent, independently verifiable unit per step; file count informs judgement but is never a threshold
 
 **Do NOT surface any of this to the user.** No story types, no SPIDR, no priority labels, no methodology terminology. Keep the decomposition internal.
 
