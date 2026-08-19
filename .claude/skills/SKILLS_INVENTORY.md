@@ -1,6 +1,6 @@
 # Skills Inventory
 
-Last updated: 2026-08-06
+Last updated: 2026-08-19
 
 ## Overview
 
@@ -98,11 +98,18 @@ For structured UAT with tracked test cases:
 /sprint-start → /UAT-cycle (repeat per test case) → /sprint-end
 ```
 
-**When to use which:** Use `/testing-cycle` for ad-hoc exploratory findings during manual testing. Use `/UAT-cycle` for pre-defined acceptance test cases from `UAT_COVERAGE.md`. Use `/claude-sense-check` to batch-verify UAT test case logic against actual code.
+For automated testing of the running application (Claude executes the plan itself):
+
+```
+/sprint-start → /live-test <scope> → /testing-cycle | /ideate handoffs → /sprint-end
+```
+
+**When to use which:** Use `/testing-cycle` for ad-hoc exploratory findings during manual testing. Use `/UAT-cycle` for pre-defined acceptance test cases from `UAT_COVERAGE.md`. Use `/claude-sense-check` to batch-verify UAT test case logic against actual code. Use `/live-test` when Claude should execute the tests itself against the running app (web, API, or CLI surface).
 
 | Skill                  | Arguments                       | Description                                      |
 | ---------------------- | ------------------------------- | ------------------------------------------------ |
 | `/manual-test`         | -                               | Generate test plan from recent changes/issues    |
+| `/live-test`           | `<scope> [--surface <name>|all] [--no-fix]` | Autonomously test the running app: plan → drive → verify → fix criticals → report |
 | `/testing-cycle`       | `<feedback-description>`        | Process one ad-hoc feedback item (classify → fix)  |
 | `/UAT-cycle`           | `<test-case-id-or-description>` | Execute a formal UAT test case, process findings |
 | `/claude-sense-check`  | -                               | Batch code logic verification of UAT cases (2-5 per run) |

@@ -1,6 +1,6 @@
 ---
 name: ideate
-version: 2.10.0
+version: 2.11.1
 description: Use when the user has an idea or requirement to decompose into backlog stories.
 trigger: manual
 depends-on: []
@@ -18,6 +18,14 @@ ______________________________________________________________________
 ```bash
 echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"ideate\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
 ```
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter ideate <node-id>
+```
+
+Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear ideate` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
 
 Transforming idea into backlog stories: **$ARGUMENTS**
 
@@ -111,13 +119,13 @@ Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at 
 
 ### Splitting Strategy (SPIDR)
 
-When a requirement is too large for a single story, apply these five splitting patterns in order of preference:
+When a story fails the cohesion test (see `references/story-template.md`), apply these five splitting patterns in order of preference:
 
-1. **Spike** — Uncertainty exists → create a time-boxed research story first
-2. **Path** — Multiple user flows → split by happy path, alternate paths, error paths
-3. **Interface** — Multiple devices/platforms → split by interface variant
-4. **Data** — Data variations → split by data complexity (basic fields first, advanced later)
-5. **Rules** — Business rules → split by happy path first, edge cases later
+1. **Paths** — Multiple user flows → split by happy path, alternate paths, error paths
+2. **Data** — Data variations → split by data complexity (basic fields first, advanced later)
+3. **Rules** — Business rules → split by happy path first, edge cases later
+4. **Interface** — Multiple devices/platforms → split by interface variant
+5. **Spike** — If unknowns prevent splitting, create a time-boxed research story first
 
 Each resulting story must be a **vertical slice** (UI + logic + data), not a horizontal layer.
 
@@ -146,14 +154,14 @@ Break the idea into properly typed stories. For each story, determine the best t
 
 ### Story Sizing Constraint
 
-**Each story must fit within a single Claude Code context window.** This means:
+**Size follows conceptual cohesion, not file count** (canonical policy: `references/story-template.md`). Each story is:
 
-- 1-3 hours of focused work maximum
-- Touches no more than 5-8 files
-- Has a clear, atomic deliverable
-- Can be fully tested within the story
+- One coherent unit of work with a single conceptual center
+- A clear, atomic deliverable
+- Fully testable within the story
+- File count proportionate to size — an input to judgement, never a threshold
 
-If a story feels too large, split it further. Prefer many small stories over few large ones.
+If a story fails the cohesion test, split it. When genuinely uncertain, prefer the larger coherent story — re-splitting later is cheap; reassembling artificially severed work is not.
 
 ### Story Structure
 
@@ -161,7 +169,7 @@ Follow the story template in `references/story-template.md`. Use YAML frontmatte
 
 For each story, produce:
 
-```markdown
+````markdown
 ---
 id: [PROJECT]-[NUMBER]
 title: [Clear, one-line summary of what changes]
@@ -197,9 +205,9 @@ created: YYYY-MM-DD
 ## Out of scope
 - [Explicit exclusion to prevent scope creep]
 - [Constraint: Must NOT modify X]
-```
+````
 
-**Checklist AC is the default** — each item maps to a testable assertion. Use Given/When/Then only for complex behavioral scenarios with multiple preconditions. Target 3–7 AC per story; more than 7 means the story needs splitting.
+**Checklist AC is the default** — each item maps to a testable assertion. Use Given/When/Then only for complex behavioral scenarios with multiple preconditions. Acceptance criteria scale with size: target 3–7 per story, but LARGE and XL stories may exceed 3–7 with criteria grouped under sub-headings — a long AC list is only a splitting signal when the criteria describe unrelated topics.
 
 For TRIVIAL/SMALL stories, use the lightweight template in `references/story-template-lightweight.md`.
 
@@ -323,10 +331,11 @@ Before presenting stories, validate each against the Definition of Ready checkli
 - [ ] Title clear and specific
 - [ ] Type assigned (one of 10 types)
 - [ ] Size classified (TRIVIAL/SMALL/STANDARD/LARGE/XL)
+- [ ] Story passes the cohesion test — splitting it would create artificial seams, not two meaningful pieces
 - [ ] 3-7 acceptance criteria, all testable
 - [ ] Verification commands specified
 - [ ] Out of scope defined (at least one exclusion)
-- [ ] Affected files listed (max 5)
+- [ ] Affected files listed — proportionate to size, not capped at a fixed number
 - [ ] Pattern references included (where applicable)
 - [ ] Dependencies resolved or documented
 - [ ] No ambiguous language
@@ -395,9 +404,9 @@ Next Steps:
 
 ## Rules
 
-- Each story must fit in a single AI context window — max 5 affected files, describable in one sentence with one measurable outcome
+- Each story must be one coherent unit of work — describable in one sentence with one measurable outcome; affected files proportionate to size (file count is an input to judgement, never a threshold)
 - Acceptance criteria must be machine-verifiable — exact commands in the Verification section that prove completion
-- 3–7 acceptance criteria per story. Fewer = insufficient guidance. More than 7 = story needs splitting.
+- 3–7 acceptance criteria per story (fewer = insufficient guidance); LARGE/XL may exceed 3–7 with criteria grouped under sub-headings — a long list only signals splitting when the criteria describe unrelated topics
 - Out of scope section is mandatory — at least one explicit exclusion to prevent AI scope creep
 - No ambiguous language in AC — reject "should be fast", "handle errors properly", "make it work"
 - Every story must have a size classification (TRIVIAL/SMALL/STANDARD/LARGE/XL) in frontmatter — this drives /story-cycle workflow depth

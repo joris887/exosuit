@@ -1,6 +1,6 @@
 ---
 name: backlog-review
-version: 3.0.0
+version: 3.0.1
 description: Execute comprehensive backlog review. Analyzes story quality, Definition of Ready compliance, dependencies, zombie stories, and generates a backlog health report.
 trigger: manual
 depends-on: []
@@ -51,17 +51,18 @@ For each non-done story, validate against the **Definition of Ready** checklist:
 | Title clear and specific | Describes the change, not the problem |
 | Type assigned | One of: feature, bugfix, refactor, spike, infra, testing, docs, security, performance, skill |
 | Size classified | TRIVIAL, SMALL, STANDARD, LARGE, or XL. Flag for splitting only when the story spans *unrelated topics* — file count is not a threshold. See the cohesion test in `ideate/references/story-template.md` |
-| 3-7 acceptance criteria | Each testable and specific. No "should be fast" or "handle errors properly" |
+| Cohesion test passed | Splitting the story would create artificial seams, not two meaningful pieces |
+| 3-7 acceptance criteria | Each testable and specific; LARGE/XL may exceed 3-7, grouped under sub-headings. No "should be fast" or "handle errors properly" |
 | Verification commands | Exact commands that prove completion |
 | Out of scope defined | At least one explicit exclusion |
-| Affected files listed | Max 5 files per story |
+| Affected files listed | Proportionate to size, not capped at a fixed number |
 | Pattern references | "Follow patterns in [file]" where applicable |
 | Dependencies resolved | No unresolved blockers |
 | No ambiguous language | No vague terms, all criteria measurable |
 | Self-contained | All referenced context included or linked |
 
 Classify each story:
-- **Ready**: Passes all 11 criteria → `status: ready`
+- **Ready**: Passes all 12 criteria → `status: ready`
 - **Needs refinement**: Missing 1-3 criteria → list what's missing
 - **Needs rewrite**: Missing 4+ criteria or too large → flag for `/ideate` refinement
 

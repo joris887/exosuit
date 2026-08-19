@@ -1,0 +1,110 @@
+# Flow contract for bootstrap — see .claude/skills/FLOW_SPEC.md
+# Declarative only: NOT executed. 1:1 transcription of the prose sections
+# (the operative detail). The "## Process Flow (authoritative ...)" summary
+# block at the top of SKILL.md diverges from the prose in several places
+# (A4.4/A4.5/A5.62/A5.75/A5.95 absent from the diagram; different lean skip
+# ranges; a [Plugin mode?] fork the prose treats as a recorded detection) —
+# this file transcribes the prose and does NOT resolve those divergences.
+# Transcription notes:
+# - No start-event/metrics line exists (unlike sprint-start/story-cycle);
+#   the start node anchors to the "## bootstrap" heading itself.
+# - detect-installation-mode is a detection, not a branch: both outcomes
+#   proceed identically (the effect is deferred to A5.5/A5.6).
+# - Path B's inline prose ends at invoking /discover — modeled as a
+#   terminal handoff. The post-/discover continuation ("scaffold generation
+#   + summary") has no inline prose — it exists only in the diagram and in
+#   references/new-project.md ("## Post-Discovery: Remaining Scaffold",
+#   "### Present Summary") — and is not modeled (doc anchors validate
+#   against SKILL.md only).
+# - The A3.8 lean pruning names sections (A2.5-A2.9, A3.1-A3.2, A3.5-A3.5c)
+#   that have ALREADY RUN by prose order when A3.8 executes; transcribed
+#   literally as profile attrs — the graph shows the standard-profile flow.
+# - Lean skip range "A5-A5.9": A5.62/A5.65/A5.75 fall inside the literal
+#   numeric range but are unnamed in its parenthetical; their attrs say so.
+#   A5.95 is outside the range and in neither lean list — no lean attr.
+#   A4.4/A4.5 appear in neither lean list — no lean attr.
+# - 3-option AskUserQuestion offers (A5.65 Lefthook, A5.7 CI/CD, A5.9
+#   foundation approval) are routers per FLOW_SPEC (>2 bounded choices);
+#   the un-named "skip" option is the default edge in each.
+# - The A5.9 approval gate also exists in references/foundation-backlog.md
+#   as "*** HARD GATE ... [A/M/D]" with drifted option labels and a Discard
+#   side effect (READINESS_REPORT.md note); the inline AskUserQuestion is
+#   what is transcribed (doc anchors validate against SKILL.md only).
+# - The zero-stories check (SKILL.md line "If no foundation stories were
+#   generated ...") appears in prose AFTER the approval block but is modeled
+#   before it — zero stories cannot be presented for approval.
+# - A5.75 states no bounded retry ("max N passes") — a step, not a loop,
+#   at its literal prose position between A5.7 and A5.8.
+# - A2.85 quality-tooling offer has no decline edge: skipped tools become
+#   backlog stories, flow proceeds either way. The A2.6 coverage-tool
+#   install offer lives in references/coverage-assessment.md and is merged
+#   into the A1-A3 node. A3.55's persona AskUserQuestion is merged into its
+#   content-generation step (content elicitation, not flow control).
+# - Progress banners are out of order/duplicated in prose (A2.85 "Step 3",
+#   A3.8 "Step 4", A3.5b "Step 5"; A5.8 and A5.9 both "Step 7") — recorded
+#   here, not fixed.
+# - "### Bootstrap Complete (Existing Repository)", "## Test Infrastructure"
+#   and the BACKLOG_INDEX headings sit inside fenced template blocks —
+#   template content, never used as anchors; the Path A terminal anchors to
+#   "### A7. Present Summary".
+# - Strict profile: the prose defines no strict-specific flow deviations
+#   anywhere in this skill (strict appears only in A3.8's recommendation
+#   indicators) — symmetry checked, nothing existed to transcribe.
+flow: bootstrap
+spec: 1
+start: bootstrap-entry
+nodes:
+  bootstrap-entry: {type: step, next: detect-installation-mode, doc: "## bootstrap"}
+  detect-installation-mode: {type: step, next: readme-management, doc: "## 0. Detect Installation Mode"}
+  readme-management: {type: step, next: detect-project-state, doc: "## 0.5. README Management"}
+  detect-project-state: {type: router, source-files-exist: path-a-entry, default: path-b-idea-capture, doc: "## 1. Detect Project State"}
+  path-b-idea-capture: {type: step, next: path-b-invoke-discover, doc: "**If no source files (or only framework files):** → Path B — Read `references/new-project.md` for Phase 0 (Idea Capture), then invoke `/discover` for deep guided elicitation (replaces legacy Phases 1-4)."}
+  path-b-invoke-discover: {type: terminal, next_skill: discover, doc: "**If no source files (or only framework files):** → Path B — Read `references/new-project.md` for Phase 0 (Idea Capture), then invoke `/discover` for deep guided elicitation (replaces legacy Phases 1-4)."}
+  path-a-entry: {type: step, next: a1-a3-detect-stack, doc: "## Path A: Existing Repository"}
+  a1-a3-detect-stack: {type: step, next: a2-8-typecheck-readiness, profile: "lean: A2.5-A2.7 sub-assessments (documentation state, API surface, test coverage, architecture) skipped per A3.8 lean pruning — A1 stack detection and A2 command detection still performed", doc: "### A1-A3. Detect Stack, Commands, and Measure Codebase"}
+  a2-8-typecheck-readiness: {type: step, next: a2-85-tooling-check, profile: "lean: skip per A3.8 lean pruning (inside the A2.5-A2.9 skip range, absent from the Still-perform list)", doc: "### A2.8. Assess Type Checking Readiness"}
+  a2-85-tooling-check: {type: router, all-tools-available: a2-9-research-check, default: a2-85-quality-tooling, profile: "lean: still performed — part of A2.85, explicitly listed in the A3.8 lean pruning Still-perform list", doc: "### A2.85. Offer Quality Tooling Installation"}
+  a2-85-quality-tooling: {type: gate.human, ok: a2-9-research-check, profile: "lean: still performed — explicitly listed in the A3.8 lean pruning Still-perform list despite the A2.5-A2.9 skip range", doc: "### A2.85. Offer Quality Tooling Installation"}
+  a2-9-research-check: {type: router, skip-research: a3-1-llm-readiness, default: a2-9-best-practices-research, profile: "lean: skip per A3.8 lean pruning", doc: "### A2.9. Stack Best Practices Research (Optional)"}
+  a2-9-best-practices-research: {type: step, next: a3-1-llm-readiness, profile: "lean: skip per A3.8 lean pruning", doc: "### A2.9. Stack Best Practices Research (Optional)"}
+  a3-1-llm-readiness: {type: step, next: a3-2-technical-debt, profile: "lean: skip per A3.8 lean pruning", doc: "### A3.1. LLM-Readiness Assessment"}
+  a3-2-technical-debt: {type: step, next: a3-5-architecture-overview, profile: "lean: skip per A3.8 lean pruning", doc: "### A3.2. Technical Debt Assessment"}
+  a3-5-architecture-overview: {type: step, next: a3-55-context-knowledge-base, profile: "lean: skip per A3.8 lean pruning", doc: "### A3.5. Generate Architecture Overview"}
+  a3-55-context-knowledge-base: {type: step, next: a3-5b-ground-rules, profile: "lean: skip per A3.8 lean pruning (A3.5-A3.5c range)", doc: "### A3.55. Generate Project Context Knowledge Base"}
+  a3-5b-ground-rules: {type: gate.human, ok: a3-5c-team-detection, profile: "lean: skip per A3.8 lean pruning", doc: "### A3.5b. Establish Project Ground Rules"}
+  a3-5c-team-detection: {type: step, next: a3-7-default-branch, profile: "lean: skip per A3.8 lean pruning", doc: "### A3.5c. Team Detection"}
+  a3-7-default-branch: {type: step, next: a3-8-profile-detection, profile: "lean: still performed per A3.8 lean pruning Still-perform list", doc: "### A3.7. Detect Default Branch"}
+  a3-8-profile-detection: {type: gate.human, ok: a4-generate-configuration, profile: "lean: skip A2.5-A2.9, A3.1-A3.2, A3.5-A3.5c, A5-A5.9; generate only CLAUDE.md (commands from A2), README.md, minimal docs/progress.md, stack-specific .gitignore; still perform A1, A2, A2.85, A3.7, A4 (lean subset), A4.2", doc: "### A3.8. Profile Detection"}
+  a4-generate-configuration: {type: step, next: a4-2-project-readme, profile: "lean: A4 runs as lean subset — generate only CLAUDE.md (commands section populated from A2), docs/progress.md (minimal template), .gitignore with stack-specific patterns; CODING_STANDARDS.md and TESTING_STRATEGY.md population not in the lean generate list", doc: "### A4. Generate Configuration"}
+  a4-2-project-readme: {type: router, real-content-readme: a4-2-preserve-readme, default: a4-2-generate-readme, profile: "lean: still runs (A4.2 still runs in lean mode) — Project Structure uses a basic `ls` of top-level directories (A2.7 skipped)", doc: "### A4.2. Generate or Update Project README"}
+  a4-2-generate-readme: {type: step, next: a4-4-update-llms-txt, doc: "**If no README.md exists (or only the scaffold template with `[Project Name]` placeholders):**"}
+  a4-2-preserve-readme: {type: step, next: a4-4-update-llms-txt, doc: "**If project has an existing README.md (real content, not scaffold template):**"}
+  a4-4-update-llms-txt: {type: step, next: a4-5-detect-mcp-servers, doc: "### A4.4. Update llms.txt"}
+  a4-5-detect-mcp-servers: {type: step, next: a5-run-skill-create, doc: "### A4.5. Detect MCP Servers (Optional)"}
+  a5-run-skill-create: {type: step, next: a5-5-configure-hooks, profile: "lean: skip (A5-A5.9 skipped in lean mode)", doc: "### A5. Run /skill-create"}
+  a5-5-configure-hooks: {type: step, next: a5-6-configure-rules, profile: "lean: skip (A5-A5.9 skipped in lean mode)", doc: "### A5.5. Configure Hooks"}
+  a5-6-configure-rules: {type: step, next: a5-62-env-template, profile: "lean: skip (A5-A5.9 skipped in lean mode)", doc: "### A5.6. Configure Rules"}
+  a5-62-env-template: {type: step, next: a5-65-precommit-assessment, profile: "lean: skip (inside the literal A5-A5.9 range, though unnamed in the lean list's parenthetical)", doc: "### A5.62. Environment Variable Template"}
+  a5-65-precommit-assessment: {type: router, hooks-found: a5-7-cicd-assessment, default: a5-65-lefthook-offer, profile: "lean: skip (inside the literal A5-A5.9 range, though unnamed in the lean list's parenthetical)", doc: "### A5.65. Assess Pre-Commit Hook Readiness"}
+  a5-65-lefthook-offer: {type: router, setup-lefthook: a5-65-lefthook-available, different-tool: a5-65-configure-other-tool, default: a5-65-record-gap, doc: "### A5.65. Assess Pre-Commit Hook Readiness"}
+  a5-65-lefthook-available: {type: router, lefthook-available: a5-65-install-lefthook, default: a5-65-suggest-install, doc: "### A5.65. Assess Pre-Commit Hook Readiness"}
+  a5-65-install-lefthook: {type: step, next: a5-7-cicd-assessment, doc: "### A5.65. Assess Pre-Commit Hook Readiness"}
+  a5-65-suggest-install: {type: step, next: a5-7-cicd-assessment, doc: "### A5.65. Assess Pre-Commit Hook Readiness"}
+  a5-65-configure-other-tool: {type: step, next: a5-7-cicd-assessment, doc: "### A5.65. Assess Pre-Commit Hook Readiness"}
+  a5-65-record-gap: {type: step, next: a5-7-cicd-assessment, doc: "### A5.65. Assess Pre-Commit Hook Readiness"}
+  a5-7-cicd-assessment: {type: router, cicd-found: a5-75-document-quality-check, default: a5-7-cicd-offer, profile: "lean: skip (A5-A5.9 skipped in lean mode)", doc: "### A5.7. Assess CI/CD Foundation"}
+  a5-7-cicd-offer: {type: router, install-github-actions: a5-7-install-workflow, different-ci: a5-7-note-other-ci, default: a5-7-generate-ci-story, doc: "### A5.7. Assess CI/CD Foundation"}
+  a5-7-install-workflow: {type: step, next: a5-75-document-quality-check, doc: "### A5.7. Assess CI/CD Foundation"}
+  a5-7-note-other-ci: {type: step, next: a5-75-document-quality-check, doc: "### A5.7. Assess CI/CD Foundation"}
+  a5-7-generate-ci-story: {type: step, next: a5-75-document-quality-check, doc: "### A5.7. Assess CI/CD Foundation"}
+  a5-75-document-quality-check: {type: step, next: a5-8-readiness-report, profile: "lean: skip (inside the literal A5-A5.9 range, though unnamed in the lean list's parenthetical)", doc: "### A5.75. Document Quality Check"}
+  a5-8-readiness-report: {type: step, next: a5-9-generate-foundation-backlog, profile: "lean: skip (A5-A5.9 skipped in lean mode)", doc: "### A5.8. Framework Readiness Report"}
+  a5-9-generate-foundation-backlog: {type: step, next: a5-9-stories-check, profile: "lean: skip (A5-A5.9 skipped in lean mode)", doc: "### A5.9. Generate Foundation Backlog & Initialize BACKLOG_INDEX.md"}
+  a5-9-stories-check: {type: router, no-stories-generated: a5-9-initialize-backlog-index, default: a5-9-foundation-approval, doc: "If no foundation stories were generated (all principles Ready), still initialize BACKLOG_INDEX.md with an empty status table and point the user to `/ideate`."}
+  a5-9-foundation-approval: {type: router, accept-all: a5-9-write-stories, remove-some: a5-9-adjust-stories, default: a5-9-initialize-backlog-index, doc: "Each story has a type, priority, level, description, execution method, and acceptance criteria. Present stories to the user and use **AskUserQuestion** for approval:"}
+  a5-9-adjust-stories: {type: step, next: a5-9-write-stories, doc: "### A5.9. Generate Foundation Backlog & Initialize BACKLOG_INDEX.md"}
+  a5-9-write-stories: {type: step, next: a5-9-initialize-backlog-index, doc: "Write accepted stories to `docs/reference/backlog/E00-foundation.md`."}
+  a5-9-initialize-backlog-index: {type: step, next: a5-95-scaffold-solutions, doc: "**Initialize BACKLOG_INDEX.md** — remove template comments and populate with actual content:"}
+  a5-95-scaffold-solutions: {type: step, next: a6-clean-up, doc: "### A5.95. Scaffold Solutions Directory"}
+  a6-clean-up: {type: step, next: a7-present-summary, doc: "### A6. Clean Up"}
+  a7-present-summary: {type: terminal, next_skill: [sprint-start, ideate, optimize], doc: "### A7. Present Summary"}

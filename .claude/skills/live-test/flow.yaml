@@ -1,0 +1,76 @@
+# Flow contract for live-test — see .claude/skills/FLOW_SPEC.md
+# Declarative only: NOT executed. Authored WITH the skill (contract-at-birth):
+# the graph was transcribed against the ported prose, so transcription doubled
+# as port verification — no pre-existing drift to record.
+# Transcription notes:
+# - Anchor policy: section headings plus four flush lead-in lines only (low
+#   freeze surface). The <LOOP>/<HALT> marker lines carry double quotes, which
+#   doc anchors cannot contain (validator extracts with a [^"]* pattern) —
+#   they anchor to their quote-free body lead-ins instead.
+# - Scenario iteration (main pass, role sweep) is data-driven foreach over a
+#   runtime-sized plan; spec 1 has no foreach construct, so each pass is ONE
+#   step node with per-scenario mechanics in prose and in the surface driving
+#   references (discover content-inside-step precedent). Scenario-granular
+#   resume lives in the incrementally-written findings file, not the cursor.
+# - evidence: tests-green only on run-test-slice (gate.hard). test-written is
+#   NOT declared: write-failing-test is a step, and the no-harness path is
+#   legitimately test-less (map § Harness facts; the live re-run IS the check).
+# - commit-fix routes back to classify-failures: "Classify every FAIL" means
+#   remaining failures are processed after a successful fix; report is the
+#   router's default once no unprocessed FAIL remains.
+# - The --no-fix argument fork is the no-fix-check router (FLOW_SPEC rule 4).
+# - Browser-MCP absence (web surface) is modeled as toolkit-check → the
+#   checklist-handoff terminal rather than a cross-cutting note: the fallback
+#   is mandated (select-tool.md: never require MCP servers) and load-bearing.
+# - seed-offer is a gate.human with ok only — the offer never branches the
+#   flow (declined and accepted both proceed to scope analysis). The offer is
+#   conditional in prose (only when the map declares seed commands for the
+#   scope); with nothing to offer the node degenerates to a pass-through.
+# - The prose HALT names two triggers ("3 fix attempts exhausted OR fix breaks
+#   other tests"); the second is the sanctioned breaks-other-tests edge on
+#   run-test-slice (immediate halt-revert, no retry) — a failing slice that is
+#   merely the bug's own test still failing takes the fail edge into the loop.
+# - The preflight remediation cycle (run-preflight → preflight-gate →
+#   offer-remediation) is bounded by the gate in its SCC (check 11). SKILL.md
+#   prose states no numeric bound; error-recovery.md tightens it to 2
+#   remediation rounds as reference-level guidance (anchors bind SKILL.md only).
+# - lean/strict profiles: verified vacuous — the prose defines no
+#   profile-conditional flow; nothing to transcribe.
+flow: live-test
+spec: 1
+start: live-test-entry
+nodes:
+  live-test-entry: {type: step, next: app-map-check, doc: "## live-test"}
+  app-map-check: {type: router, missing: first-run-interview, surface-none: not-applicable, default: resolve-surface, doc: "## 0. Prerequisites"}
+  first-run-interview: {type: gate.human, ok: resolve-surface, declined: not-applicable, doc: "## 0. Prerequisites"}
+  not-applicable: {type: terminal, next_skill: [quality-check, manual-test], doc: "## Graceful Degradation"}
+  resolve-surface: {type: step, next: run-preflight, doc: "## 0. Prerequisites"}
+  run-preflight: {type: step, next: preflight-gate, doc: "## 0. Prerequisites"}
+  preflight-gate: {type: gate.hard, ok: seed-offer, fail: offer-remediation, degraded-accepted: seed-offer, doc: "Do NOT start executing scenarios until preflight passes (or the user explicitly"}
+  offer-remediation: {type: step, next: run-preflight, doc: "## 0. Prerequisites"}
+  seed-offer: {type: gate.human, ok: scope-analysis, doc: "## 0. Prerequisites"}
+  scope-analysis: {type: step, next: generate-test-plan, doc: "## 1. Scope Analysis"}
+  generate-test-plan: {type: step, next: plan-approval, doc: "## 2. Test Plan"}
+  plan-approval: {type: gate.human, ok: create-findings-file, trim-extend: generate-test-plan, doc: "Wait for the user to approve the plan (or trim/extend it) before executing."}
+  create-findings-file: {type: step, next: toolkit-check, doc: "## 2. Test Plan"}
+  toolkit-check: {type: router, toolkit-unavailable: checklist-handoff, default: entry-flow-check, doc: "## Graceful Degradation"}
+  checklist-handoff: {type: terminal, next_skill: manual-test, doc: "## Graceful Degradation"}
+  entry-flow-check: {type: gate.hard, ok: main-pass, fail: STOP, doc: "## 3. Main Pass"}
+  main-pass: {type: step, next: role-sweep, doc: "## 3. Main Pass"}
+  role-sweep: {type: step, next: classify-failures, doc: "## 4. Role Sweep"}
+  classify-failures: {type: router, bug-critical: no-fix-check, bug-minor: log-finding, gap: log-finding, known-issue: log-finding, enhancement: log-finding, default: report, doc: "## 5. Process Failures"}
+  no-fix-check: {type: router, no-fix-flag: log-finding, default: fix-investigate, doc: "## 5. Process Failures"}
+  log-finding: {type: step, next: classify-failures, doc: "## 5. Process Failures"}
+  fix-investigate: {type: step, next: write-failing-test, doc: "Fix loop (Bug Critical only):"}
+  write-failing-test: {type: step, next: implement-fix, doc: "Fix loop (Bug Critical only):"}
+  implement-fix: {type: step, next: run-test-slice, doc: "Fix loop (Bug Critical only):"}
+  run-test-slice: {type: gate.hard, ok: live-reverify, fail: fix-attempt-loop, breaks-other-tests: halt-revert, evidence: tests-green, doc: "Fix loop (Bug Critical only):"}
+  live-reverify: {type: gate.hard, ok: commit-fix, fail: fix-attempt-loop, doc: "Fix loop (Bug Critical only):"}
+  fix-attempt-loop: {type: loop, back: fix-investigate, done: halt-revert, max: 3, doc: "Fix loop (Bug Critical only):"}
+  halt-revert: {type: step, next: log-finding, doc: "Revert uncommitted changes (`git restore <files>`), reclassify as Gap, log +"}
+  commit-fix: {type: step, next: classify-failures, doc: "Fix loop (Bug Critical only):"}
+  report: {type: step, next: uat-update-check, doc: "## 6. Report"}
+  uat-update-check: {type: router, uat-cases-executed: append-uat-rows, default: commit-findings, doc: "## 6. Report"}
+  append-uat-rows: {type: step, next: commit-findings, doc: "## 6. Report"}
+  commit-findings: {type: step, next: run-complete, doc: "## 6. Report"}
+  run-complete: {type: terminal, next_skill: [testing-cycle, ideate], doc: "## 6. Report"}
