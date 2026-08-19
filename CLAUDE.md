@@ -86,6 +86,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | End session            | `/handoff`                     |
 | Debug an issue         | `/debug-session <error>`       |
 | Test plan              | `/manual-test`                 |
+| Automated live test    | `/live-test <scope>`           |
 | Test feedback          | `/testing-cycle <feedback>`    |
 | UAT test case          | `/UAT-cycle <test-case-id>`    |
 | Sense check UAT cases  | `/claude-sense-check`          |
