@@ -1,6 +1,6 @@
 ---
 name: live-test
-version: 1.0.0
+version: 1.1.0
 description: Use when the user wants a scope (feature area, story ID, route, command, or recent changes) tested automatically against the running application — the automated sibling of /manual-test.
 trigger: manual
 depends-on: [testing-cycle, ideate]
@@ -15,6 +15,14 @@ requires:
 ______________________________________________________________________
 
 ## live-test
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter live-test <node-id>
+```
+
+Node ids are defined in this skill's `flow.yaml` — pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node (fix-loop attempts), and `clear live-test` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
 
 Autonomous dynamic testing of a scope against the RUNNING artifact: plan → drive →
 verify signals → fix critical bugs → report — the executing sibling of `/manual-test`.

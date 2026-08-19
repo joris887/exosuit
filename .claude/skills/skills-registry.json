@@ -235,7 +235,7 @@
   },
   {
     "name": "live-test",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Use when the user wants a scope (feature area, story ID, route, command, or recent changes) tested automatically against the running application — the automated sibling of /manual-test.",
     "trigger": "manual",
     "depends_on": [
