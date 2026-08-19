@@ -62,7 +62,7 @@ All skills in the framework are CORE except technology-specific skills generated
 | Core Workflow | bootstrap, sprint-start, story-cycle, sprint-end, continue, handoff |
 | Planning | brainstorm, ideate, research, skill-create |
 | Quality | code-quality, test-validator, security-audit, architecture-check, performance-check |
-| Testing | manual-test, testing-cycle, UAT-cycle, claude-sense-check |
+| Testing | manual-test, live-test, testing-cycle, UAT-cycle, claude-sense-check |
 | Debugging | debug-session, fix-issue, undo-work |
 | Maintenance | weekly-maintenance, retrospective, backlog-review, doctor, framework-upgrade, pr-status |
 | Utility | commit, parallel-work, skill-eval, refine-loop, optimize, quickstart, help-me, dashboard, custom-hooks, uninstall |

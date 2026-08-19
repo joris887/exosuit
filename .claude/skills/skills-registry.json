@@ -234,6 +234,25 @@
     "path": ".claude/skills/ideate/SKILL.md"
   },
   {
+    "name": "live-test",
+    "version": "1.0.0",
+    "description": "Use when the user wants a scope (feature area, story ID, route, command, or recent changes) tested automatically against the running application — the automated sibling of /manual-test.",
+    "trigger": "manual",
+    "depends_on": [
+      "testing-cycle",
+      "ideate"
+    ],
+    "calls": [],
+    "references": [
+      "references/driving-web.md",
+      "references/driving-api.md",
+      "references/driving-cli.md",
+      "references/error-recovery.md",
+      "references/first-run.md"
+    ],
+    "path": ".claude/skills/live-test/SKILL.md"
+  },
+  {
     "name": "manual-test",
     "version": "2.4.0",
     "description": "Prepare for manual testing session with test plan based on known issues, recent changes, and acceptance criteria.",

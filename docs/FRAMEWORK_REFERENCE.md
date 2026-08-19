@@ -46,7 +46,7 @@ Install it once. Run `/quickstart`. Start building. The framework provides that 
 
 ### What It Is
 
-A drop-in development framework for Claude Code that provides 45 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
+A drop-in development framework for Claude Code that provides 46 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
 
 ### Who It's For
 
@@ -1300,6 +1300,9 @@ What kind of testing work?
      ├── Need a test plan? ────────────→ /manual-test
      │   (before manual testing)
      │
+     ├── Claude runs the tests itself? →─ /live-test "scope"
+     │   (against the running app: web, API, or CLI)
+     │
      ├── Found a bug during testing? ──→ /testing-cycle "description"
      │   (ad-hoc exploratory finding)
      │
@@ -1353,6 +1356,24 @@ User performs manual testing
 ### /claude-sense-check — Automated UAT Verification
 
 Batch code logic verification: load UAT coverage → select 2-5 test cases → trace code paths against each criterion → classify (CONFIRMED/MISMATCH/UNTESTABLE/MISSING) → fix mismatches via `/story-cycle` → update tracking → report.
+
+### Automated Live Testing Flow
+
+```
+/live-test "scope" ──→ Claude executes the tests itself
+     │  ├──→ Phase 0: app map (docs/testing/APP_MAP.md) + preflight gate (stack up?)
+     │  ├──→ Phase 1-2: resolve scope → test plan (user approves at hard gate)
+     │  ├──→ Phase 3-4: drive the surface (browser/API/CLI), verify ALL signals,
+     │  │       append each verdict to the findings file as it completes
+     │  ├──→ Phase 5: classify failures; fix loop (Bug Critical only, max 3 attempts)
+     │  └──→ Phase 6: findings report + UAT results rows + handoffs
+     │             → /testing-cycle "bug"   → /ideate "gap"
+```
+
+Project facts (surfaces, accounts, routes, timing, known flakes) live in the
+project-owned `docs/testing/APP_MAP.md`, scaffolded on first run. Executed UAT cases
+get append-only Results rows (`Verified By: Claude (live-test)`) — human confirmation
+stays with `/UAT-cycle`.
 
 ---
 
@@ -2174,7 +2195,7 @@ agent: Explore             # subagent type
 Standalone (no dependencies):
   commit, continue, handoff, sprint-start, parallel-work,
   merge-up, merge-down,
-  manual-test, testing-cycle, UAT-cycle, debug-session,
+  manual-test, live-test, testing-cycle, UAT-cycle, debug-session,
   undo-work, pr-status, backlog-review, retrospective,
   refine-loop, skill-eval, claude-sense-check, deploy,
   optimize
@@ -2201,6 +2222,7 @@ Standalone (no dependencies):
 | `/security-audit` | v3.0.0 | Security review (forked agent, BLOCKING) | Conditional |
 | `/architecture-check` | v2.7.0 | Module boundary + drift detection (forked agent) | Conditional |
 | `/manual-test` | v2.4.0 | Generate manual test plan | Manual |
+| `/live-test` | v1.1.0 | Autonomous testing of the running app (web/API/CLI) | Manual |
 | `/testing-cycle` | v2.4.0 | Process testing feedback | Manual |
 | `/UAT-cycle` | v2.4.0 | Execute formal UAT test case | Manual |
 | `/claude-sense-check` | v3.4.0 | Batch UAT code logic verification | Manual |
@@ -2547,7 +2569,7 @@ project-root/
 │   ├── rules/                        # 9 path-scoped rule files
 │   ├── scripts/file-suggestions.sh   # File suggestion utility
 │   │
-│   └── skills/                       # 45 skills
+│   └── skills/                       # 46 skills
 │       ├── SKILLS_INVENTORY.md       # Human-readable index
 │       ├── SKILL_TEMPLATE.md         # Skill writing conventions
 │       ├── skills-registry.json      # Machine-readable registry
