@@ -28,6 +28,13 @@
 # Reserved keys never written: skill:/phase_name:/goal: (parsed by stop.sh,
 # pre-compact.sh, status-line.sh).
 
+# Character ranges in shell globs are COLLATION-dependent: under en_US.UTF-8
+# (the macOS CI default) '[!a-z0-9-]' does not match uppercase, so valid_id
+# below would accept 'UPPER' and write ids the readers never expect. Force the
+# C locale so every pattern match in this script is byte-ordered and portable.
+LC_ALL=C
+export LC_ALL
+
 # Resolve the project root so the cursor always lands on the ONE state file
 # every consumer reads, regardless of the CWD the skill invoked us from.
 # A CWD-relative path silently creates a stray docs/sessions/ inside whatever
