@@ -81,10 +81,20 @@ EOF
 
 # Invoke the pre-edit hook with an Edit payload; echo "<exit> <stderr>"
 run_pre_edit() {
-    local file_path="$1" rc=0 err
-    err=$(printf '{"tool_name":"Edit","tool_input":{"file_path":"%s"}}' "$file_path" \
-        | sh "$PRE_EDIT" 2>&1 >/dev/null) || rc=$?
-    printf '%s|%s' "$rc" "$err"
+    # Capture BOTH streams: block mode (exit 2) writes its reason to stderr,
+    # while advisory mode emits PreToolUse JSON on stdout (exit-0 stderr is
+    # debug-log only, so an advisory printed there would reach nobody).
+    local file_path="$1" rc=0 out
+    out=$(printf '{"tool_name":"Edit","tool_input":{"file_path":"%s"}}' "$file_path" \
+        | sh "$PRE_EDIT" 2>&1) || rc=$?
+    printf '%s|%s' "$rc" "$out"
+}
+
+# stdout only — for asserting the advisory JSON contract specifically.
+run_pre_edit_stdout() {
+    local file_path="$1"
+    printf '{"tool_name":"Edit","tool_input":{"file_path":"%s"}}' "$file_path" \
+        | sh "$PRE_EDIT" 2>/dev/null
 }
 
 echo "flow enforcement tests (Level 5)"
@@ -98,6 +108,16 @@ sh "$LIB" enter alpha the-gate
 OUT="$(run_pre_edit src/main.go)"
 test_case "advisory: exit 0 on source edit at unevidenced gate" "0" "${OUT%%|*}"
 test_case "advisory: warning names gate and evidence" "true" "$(printf '%s' "${OUT#*|}" | grep -q "the-gate" && printf '%s' "${OUT#*|}" | grep -q "tests-green" && echo true || echo false)"
+
+# The advisory must reach the MODEL, not just a debug log: PreToolUse exit-0
+# stderr is debug-only, so it has to be JSON on stdout with a non-blocking
+# permissionDecision. Regression guard for that contract.
+rm -f "$STATE_DIR/flow/.advised-alpha.the-gate.tests-green" 2>/dev/null
+ADV_JSON="$(run_pre_edit_stdout src/main.go)"
+test_case "advisory: emitted as JSON on stdout" "true" "$(printf '%s' "$ADV_JSON" | grep -q '"hookEventName":"PreToolUse"' && echo true || echo false)"
+test_case "advisory: reaches the model via additionalContext" "true" "$(printf '%s' "$ADV_JSON" | grep -q '"additionalContext":"Flow advisory' && echo true || echo false)"
+test_case "advisory: never blocks the edit" "true" "$(printf '%s' "$ADV_JSON" | grep -q '"permissionDecision":"allow"' && echo true || echo false)"
+test_case "advisory: nothing on stderr" "" "$(printf '{"tool_name":"Edit","tool_input":{"file_path":"src/main.go"}}' | sh "$PRE_EDIT" 2>&1 >/dev/null)"
 
 # Test-file edit is exempt (writing the test IS the evidence)
 OUT="$(run_pre_edit tests/test_main.go)"

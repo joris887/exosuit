@@ -25,7 +25,7 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"brainstorm\",\"ts\":\"
 sh .claude/hooks/lib/graph-state.sh enter brainstorm <node-id>
 ```
 
-Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear brainstorm` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
+Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear brainstorm` at a **completion** terminal (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one). Do NOT clear at a terminal whose purpose is to hand state to another skill — story-cycle's `save-failure-state` writes the very file `/continue` resumes from, and clearing there destroys it.
 
 Brainstorming: **$ARGUMENTS**
 

@@ -28,7 +28,13 @@
 # Reserved keys never written: skill:/phase_name:/goal: (parsed by stop.sh,
 # pre-compact.sh, status-line.sh).
 
-SESSIONS_DIR="docs/sessions"
+# Resolve the project root so the cursor always lands on the ONE state file
+# every consumer reads, regardless of the CWD the skill invoked us from.
+# A CWD-relative path silently creates a stray docs/sessions/ inside whatever
+# subdirectory happened to be current (the T01-001 failure class).
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+[ -n "$PROJECT_ROOT" ] || PROJECT_ROOT="$(pwd)"
+SESSIONS_DIR="$PROJECT_ROOT/docs/sessions"
 STATE_FILE="$SESSIONS_DIR/.failure-state.md"
 
 VERB="${1:-}"

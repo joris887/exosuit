@@ -114,7 +114,15 @@ fi
 ADVISED_MARK="$STATE_DIR/flow/.advised-$CUR_FLOW.$CUR_NODE.$EVIDENCE"
 [ -f "$ADVISED_MARK" ] && exit 0
 if [ "$EXPLAIN_MODE" != "off" ]; then
-    printf 'Flow advisory: /%s is at gate '\''%s'\'' — evidence '\''%s'\'' not yet observed this session. %s.\n' "$CUR_FLOW" "$CUR_NODE" "$EVIDENCE" "$REMEDY" >&2
+    # PreToolUse stderr on exit 0 reaches the DEBUG LOG ONLY — not the model,
+    # not the user. An advisory printed there is invisible, so emit the
+    # supported JSON instead: hookSpecificOutput.additionalContext is injected
+    # for the model, systemMessage surfaces to the user. permissionDecision
+    # stays 'allow' — this is advisory mode; it must never gate the edit.
+    ADV_MSG="Flow advisory: /$CUR_FLOW is at gate '$CUR_NODE' — evidence '$EVIDENCE' not yet observed this session. $REMEDY."
+    # Escape for JSON string context (backslash first, then quote; strip CR).
+    ADV_JSON=$(printf '%s' "$ADV_MSG" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\r//g')
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","additionalContext":"%s"},"systemMessage":"%s"}\n' "$ADV_JSON" "$ADV_JSON"
     mkdir -p "$STATE_DIR/flow" 2>/dev/null
     date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ADVISED_MARK" 2>/dev/null
 fi

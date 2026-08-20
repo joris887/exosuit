@@ -25,7 +25,7 @@ echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"ideate\",\"ts\":\"$(da
 sh .claude/hooks/lib/graph-state.sh enter ideate <node-id>
 ```
 
-Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear ideate` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
+Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear ideate` at a **completion** terminal (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one). Do NOT clear at a terminal whose purpose is to hand state to another skill — story-cycle's `save-failure-state` writes the very file `/continue` resumes from, and clearing there destroys it.
 
 Transforming idea into backlog stories: **$ARGUMENTS**
 

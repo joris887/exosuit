@@ -147,8 +147,13 @@ for flow_file in "$SKILLS_DIR"/*/flow.yaml; do
       fi
       ;;
     check)
-      if [[ ! -f "$out_file" ]] || ! render_one "$flow_file" | cmp -s - "$out_file"; then
-        echo "STALE: $out_file does not match flow.yaml — run render-flow.sh --write" >&2
+      # Distinguish "never rendered" from "rendered but out of date" — a CI log
+      # reader gets a different fix for each. Both print the full command.
+      if [[ ! -f "$out_file" ]]; then
+        echo "MISSING: $out_file has never been generated — run: bash .claude/skills/doctor/scripts/render-flow.sh --write" >&2
+        stale=1
+      elif ! render_one "$flow_file" | cmp -s - "$out_file"; then
+        echo "STALE: $out_file no longer matches $flow_file — run: bash .claude/skills/doctor/scripts/render-flow.sh --write" >&2
         stale=1
       fi
       ;;
@@ -170,7 +175,7 @@ if [[ "$MODE" == "check" ]]; then
     skill=$(basename "$(dirname "$gen")")
     [[ -n "$ONLY" && "$skill" != "$ONLY" ]] && continue
     if [[ ! -f "$(dirname "$gen")/flow.yaml" ]]; then
-      echo "ORPHAN: $gen has no flow.yaml — delete it or restore the contract" >&2
+      echo "ORPHAN: $gen has no matching flow.yaml — delete the generated view, or restore the contract it was generated from" >&2
       stale=1
     fi
   done

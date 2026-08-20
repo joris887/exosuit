@@ -4,8 +4,8 @@
 # places that currently disagree (see the drift bug issue) — this file
 # transcribes the inline sections and does NOT resolve the drift.
 # Transcription notes:
-# - Plan Mode usage (lines 115-127) is advisory and cross-cutting — notes,
-#   not nodes. The post-ExitPlanMode BOOTSTRAP mandate stays in prose.
+# - Plan Mode usage (see "## Plan Mode for Phases 0-2 (Optional)") is
+#   advisory and cross-cutting — notes, not nodes. The post-ExitPlanMode BOOTSTRAP mandate stays in prose.
 # - Profile deviations (lean/strict) are profile attrs; the graph shows
 #   the standard-profile flow. Strict forbids the TRIVIAL phase-3-lite
 #   path entirely (attr on phase-3-lite-entry).
@@ -14,6 +14,13 @@
 # - 1c.5's HARD-GATE names no recovery edge inline; transcribed fail: STOP.
 # - stream-fanout: streams are dynamic (N>=2 from plan analysis); modeled
 #   as two representative branches per FLOW_SPEC fanout cardinality.
+# - stream-checkpoint: 3.pre says "Before writing any implementation code,
+#   create a checkpoint" — unconditional, and parallel streams write
+#   implementation code. The checkpoint therefore sits on BOTH the serial
+#   (phase-3-entry) and the parallel (stream-checkpoint) path; without it
+#   the 4d [R] rollback would have no tag to restore on parallel runs.
+#   The prose does not say this explicitly for the 3a path — flagged
+#   upstream rather than silently modelled as serial-only.
 # - verification-halt: the 4d HALT offers a 3-way user choice [R]/[C]/[F];
 #   modeled as a router whose conditions are the user's choice. [R] ends
 #   at STOP (prose only "suggests" re-entering Phase 1). [C] saves
@@ -68,7 +75,8 @@ nodes:
   address-readiness-gap: {type: step, next: readiness-gate, doc: "### 2b. Readiness Gate"}
   phase-3a-check: {type: router, parallel-eligible: stream-analysis, default: phase-3-entry, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
   stream-analysis: {type: router, streams-independent: stream-approval, default: phase-3-entry, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
-  stream-approval: {type: gate.human, ok: stream-fanout, fail: phase-3-entry, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  stream-approval: {type: gate.human, ok: stream-checkpoint, fail: phase-3-entry, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
+  stream-checkpoint: {type: step, next: stream-fanout, doc: "### 3.pre. Git Checkpoint"}
   phase-3-entry: {type: step, next: execute-story-type, doc: "### 3.pre. Git Checkpoint"}
   stream-fanout: {type: fanout, to: [stream-agent-a, stream-agent-b], doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}
   stream-agent-a: {type: step, next: stream-merge-join, doc: "## Phase 3a: Parallel Stream Analysis (Optional)"}

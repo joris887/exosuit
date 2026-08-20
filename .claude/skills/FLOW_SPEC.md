@@ -117,7 +117,7 @@ cursor failure never breaks a skill):
 ```bash
 sh .claude/hooks/lib/graph-state.sh enter <flow> <node>    # on node transition
 sh .claude/hooks/lib/graph-state.sh attempt <flow> <node>  # on retry of the same node
-sh .claude/hooks/lib/graph-state.sh clear <flow>           # at terminal nodes
+sh .claude/hooks/lib/graph-state.sh clear <flow>           # at COMPLETION terminals only
 ```
 
 Rules:

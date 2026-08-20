@@ -43,6 +43,7 @@ flowchart TD
   n_phase_3a_check{"phase 3a check"}
   n_stream_analysis{"stream analysis"}
   n_stream_approval(["stream approval 👤"])
+  n_stream_checkpoint["stream checkpoint"]
   n_phase_3_entry["phase 3 entry"]
   n_stream_fanout[["stream fanout"]]
   n_stream_agent_a["stream agent a"]
@@ -126,8 +127,9 @@ flowchart TD
   n_phase_3a_check -->|default| n_phase_3_entry
   n_stream_analysis -->|streams-independent| n_stream_approval
   n_stream_analysis -->|default| n_phase_3_entry
-  n_stream_approval -->|ok| n_stream_fanout
+  n_stream_approval -->|ok| n_stream_checkpoint
   n_stream_approval -->|fail| n_phase_3_entry
+  n_stream_checkpoint --> n_stream_fanout
   n_phase_3_entry --> n_execute_story_type
   n_stream_fanout --> n_stream_agent_a
   n_stream_fanout --> n_stream_agent_b
@@ -236,8 +238,9 @@ flowchart TD
 | n_phase_3a_check | default | n_phase_3_entry |
 | n_stream_analysis | streams-independent | n_stream_approval |
 | n_stream_analysis | default | n_phase_3_entry |
-| n_stream_approval | ok | n_stream_fanout |
+| n_stream_approval | ok | n_stream_checkpoint |
 | n_stream_approval | fail | n_phase_3_entry |
+| n_stream_checkpoint | next | n_stream_fanout |
 | n_phase_3_entry | next | n_execute_story_type |
 | n_stream_fanout | next | n_stream_agent_a |
 | n_stream_fanout | next | n_stream_agent_b |
