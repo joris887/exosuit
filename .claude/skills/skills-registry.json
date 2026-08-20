@@ -43,7 +43,7 @@
   },
   {
     "name": "bootstrap",
-    "version": "2.13.2",
+    "version": "2.14.0",
     "description": "First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.",
     "trigger": "manual",
     "depends_on": [
@@ -69,7 +69,7 @@
   },
   {
     "name": "brainstorm",
-    "version": "2.7.2",
+    "version": "2.8.0",
     "description": "Use when the user has a complex idea that needs design exploration before story decomposition.",
     "trigger": "manual",
     "depends_on": [
@@ -101,7 +101,7 @@
   },
   {
     "name": "continue",
-    "version": "2.7.1",
+    "version": "2.8.0",
     "description": "Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.",
     "trigger": "manual",
     "depends_on": [],
@@ -131,7 +131,7 @@
   },
   {
     "name": "discover",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Deep guided elicitation for new projects. Archetype-aware, research-backed, multi-phase discovery with assumption tracking and Phase Transition Stories.",
     "trigger": "manual",
     "depends_on": [],
@@ -164,7 +164,7 @@
   },
   {
     "name": "doctor",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "description": "Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup.",
     "trigger": "manual",
     "depends_on": [],
@@ -223,7 +223,7 @@
   },
   {
     "name": "ideate",
-    "version": "2.10.2",
+    "version": "2.11.0",
     "description": "Use when the user has an idea or requirement to decompose into backlog stories.",
     "trigger": "manual",
     "depends_on": [],
@@ -382,7 +382,7 @@
   },
   {
     "name": "sprint-end",
-    "version": "2.10.1",
+    "version": "2.11.0",
     "description": "Use when the user wants to ship a sprint's work to main via PR.",
     "trigger": "manual",
     "depends_on": [
@@ -403,7 +403,7 @@
   },
   {
     "name": "sprint-start",
-    "version": "2.7.1",
+    "version": "2.8.0",
     "description": "Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development.",
     "trigger": "manual",
     "depends_on": [],
@@ -413,7 +413,7 @@
   },
   {
     "name": "story-cycle",
-    "version": "4.4.0",
+    "version": "4.6.0",
     "description": "Use when the user wants to implement a single story or deliver a backlog item.",
     "trigger": "manual",
     "depends_on": [

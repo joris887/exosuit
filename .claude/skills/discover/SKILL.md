@@ -1,6 +1,6 @@
 ---
 name: discover
-version: 1.0.0
+version: 1.1.0
 description: Deep guided elicitation for new projects. Archetype-aware, research-backed, multi-phase discovery with assumption tracking and Phase Transition Stories.
 trigger: manual
 depends-on: []
@@ -14,6 +14,14 @@ argument-hint: "<idea-description> [--quick|--platform|--pioneer]"
 ______________________________________________________________________
 
 ## discover
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter discover <node-id>
+```
+
+Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear discover` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
 
 Deep guided elicitation for: **$ARGUMENTS**
 

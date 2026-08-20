@@ -8,6 +8,7 @@
 ## Key Documentation
 - docs/reference/CODING_STANDARDS.md: Language-specific coding standards
 - docs/reference/TESTING_STRATEGY.md: TDD workflow, test quality criteria, guard rails
+- .claude/skills/FLOW_SPEC.md: Flow contracts (flow.yaml) — declarative per-skill control-flow graphs, cursor/resume, gate evidence
 - docs/reference/GROUND_RULES.md: Per-project architectural principles (MUST/SHOULD), checked at planning and shipping time
 - docs/architecture/ARCHITECTURE.md: System architecture and module boundaries
 - docs/reference/BACKLOG_INDEX.md: Epic and story status overview

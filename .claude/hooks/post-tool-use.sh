@@ -49,6 +49,17 @@ LOG_DIR="docs/sessions"
 LOG_FILE="$LOG_DIR/.activity-log.jsonl"
 mkdir -p "$LOG_DIR" 2>/dev/null || exit 0
 
+# --- Flow gate evidence: test file edited this session ---
+# (consumed by flow-pre-edit.sh / gate.hard nodes declaring evidence:
+# test-written; lib/test-paths.sh is the single pattern source shared with
+# the exemption check, so a stamping edit can never itself be blocked)
+if [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "Write" ]; then
+    if sh "$HOOKS_DIR/lib/test-paths.sh" "$TARGET" 2>/dev/null; then
+        mkdir -p "$STATE_DIR/flow" 2>/dev/null
+        date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/flow/test-written" 2>/dev/null
+    fi
+fi
+
 # Timestamp
 TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -96,19 +107,39 @@ if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
     esac
 
     if [ "$TEST_CMD_MATCH" = "true" ] && [ -n "$TOOL_OUTPUT" ]; then
-        # Check for pass patterns in output
-        if printf '%s' "$TOOL_OUTPUT" | grep -qEi '([0-9]+ passed|All tests passed|tests? (in [0-9]+ suites? )?passed|test run with [0-9]+ tests.*passed|BUILD SUCCEEDED|ok \(|Tests:.*[0-9]+ passed)'; then
+        # Detect pass AND failure patterns up front: a mixed run
+        # ('3 passed, 9 failed') is a FAILING run and must never stamp
+        # green evidence.
+        RUN_PASSED=false
+        RUN_FAILED=false
+        printf '%s' "$TOOL_OUTPUT" | grep -qEi '([0-9]+ passed|All tests passed|tests? (in [0-9]+ suites? )?passed|test run with [0-9]+ tests.*passed|BUILD SUCCEEDED|ok \(|Tests:.*[0-9]+ passed)' && RUN_PASSED=true
+        # The green-evidence VETO must only trigger on ACTUAL failures:
+        # nonzero failed-counts or hard build breaks. Green runs legitimately
+        # contain '0 tests failed', 'Failed: 0', ERROR-level log lines, and
+        # test names like test_handles_error — none of those may veto.
+        printf '%s' "$TOOL_OUTPUT" | grep -qEi '((^|[^0-9])[1-9][0-9]* +(tests? +)?failed|failed: *[1-9]|failures? *[=:] *[1-9]|errors? *= *[1-9]|BUILD FAILED|BUILD FAILURE|npm ERR)' && RUN_FAILED=true
+
+        if [ "$RUN_PASSED" = "true" ] && [ "$RUN_FAILED" = "false" ]; then
             mkdir -p "$STATE_DIR" 2>/dev/null
             date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/tests-passed" 2>/dev/null
+            # Flow gate evidence (evidence: tests-green)
+            mkdir -p "$STATE_DIR/flow" 2>/dev/null
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/flow/tests-green" 2>/dev/null
+        elif [ "$RUN_FAILED" = "true" ]; then
+            # The marker reflects the MOST RECENT observed run, not the
+            # best run of the session — a red suite revokes green evidence.
+            rm -f "$STATE_DIR/flow/tests-green" 2>/dev/null
         fi
 
         # --- Track test/build failures for retrospective analysis ---
+        # (keeps its original broad detection — logging is intentionally
+        # noisier than the strict green-evidence veto above)
         if printf '%s' "$TOOL_OUTPUT" | grep -qEi '(FAILED|FAIL\b|ERROR\b|error:|BUILD FAILED|npm ERR|test.*failed|[0-9]+ failed)'; then
             FAIL_LOG="$LOG_DIR/.failure-log.jsonl"
             # Extract first error line (truncated for JSON safety)
             FIRST_ERROR=$(printf '%s' "$TOOL_OUTPUT" | grep -Ei '(FAILED|FAIL|ERROR|error:|failed)' | head -1 | cut -c1-120 | sed 's/"/\\"/g')
             # Count failure indicators
-            FAIL_COUNT=$(printf '%s' "$TOOL_OUTPUT" | grep -cEi '(FAILED|FAIL\b|failed)' || echo "0")
+            FAIL_COUNT=$(printf '%s' "$TOOL_OUTPUT" | grep -cEi '(FAILED|FAIL\b|failed)' || true)
             SAFE_CMD=$(printf '%s' "$COMMAND" | cut -c1-80 | sed 's/"/\\"/g')
             printf '{"ts":"%s","type":"test-failure","cmd":"%s","failures":%s,"first_error":"%s"}\n' \
                 "$TS" "$SAFE_CMD" "$FAIL_COUNT" "$FIRST_ERROR" >> "$FAIL_LOG" 2>/dev/null
