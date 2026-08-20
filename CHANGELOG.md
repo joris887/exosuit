@@ -44,6 +44,87 @@ capping the metric below its green threshold.
 ### Files added
 - `core/hooks/tests/test-post-tool-use.sh` — rotation regression tests
 
+
+### Ideation-wing fixes (#89)
+Six pre-existing defects across `/brainstorm` and `/ideate`, all found by
+static inspection and fixed in the direction the prose already implied:
+
+- **brainstorm→ideate edge** reconciled to the prose semantics (a
+  post-approval user option, never an auto-call): `skills-registry.json`
+  brainstorm `calls` → `[]`; FRAMEWORK_REFERENCE's "(auto-invokes
+  /ideate)" and its "calls" dependency edge reworded. The prose
+  `<HARD-GATE>` forbidding pre-approval invocation was already correct.
+- **`brainstorm/assets/brainstorm-output.md`** gains the prose-mandated
+  frontmatter (`title` / `status` / `decision`, with the
+  `explored | decided | abandoned` enum) plus a Risks section. Without
+  `status:`, a doc created from the shipped template was invisible to
+  `/ideate`, which loads only brainstorm docs with `status: decided` —
+  the template broke the very pipeline it feeds. `title:` also makes it
+  visible to `context-prime`.
+- **Three phantom "/story-cycle reads docs/brainstorms/" claims**
+  (brainstorm, bootstrap A5.95, FRAMEWORK_REFERENCE) corrected to
+  `/ideate`; story-cycle never referenced brainstorm docs.
+- **brainstorm `allowed-tools`** gains `Edit, Write, AskUserQuestion` —
+  the skill could not execute its own Phase 3 (AskUserQuestion) or
+  Phase 6 (writing the design doc and ADR).
+- **ideate body prose aligned to its own canonical
+  `references/story-template.md`** cohesion policy: SPIDR reordered
+  Paths-first, the "5-8 files" and "max 5 affected files" caps replaced
+  with "file count is an input to judgement, never a threshold", AC
+  counts scale with size (LARGE/XL exemption), and the Definition of
+  Ready becomes the canonical 12 items including the cohesion test.
+  Finishes what the cohesion-sizing change (b6d1407, #47) started;
+  `/story-cycle` already pointed at the new policy.
+- **ideate's broken CommonMark fence repaired.** The ```` ```markdown ````
+  story-template fence was closed early by a bare ` ``` ` (the nested
+  ` ```bash ` carries an info string, so per CommonMark it cannot close
+  its parent), and a stray fence then swallowed ~50 lines. On github.com
+  the "Persona Linkage", "4. Identify Missing Skills", "NFR Story
+  Generation" and "Security Acceptance Criteria Generation" headings
+  rendered as code. A four-backtick outer fence restores them.
+
+Versions: brainstorm 2.7.1 → 2.7.2, ideate 2.10.1 → 2.10.2,
+bootstrap 2.13.0 → 2.13.1.
+
+### Cohesion-policy sweep
+The cohesion-sizing change (b6d1407, #47) rewrote the canonical
+`ideate/references/story-template.md` but left the retired "max 5 files /
+unqualified 3-7 AC" policy in six places outside the ideation wing. This
+sweep finishes the propagation:
+
+- `.claude/agents/spec-reviewer.md` — DoR checklist gains the cohesion
+  test; "(max 5)" file cap and unqualified AC count replaced with the
+  canonical wording
+- `.claude/skills/backlog-review/SKILL.md` — DoR table gains the
+  cohesion-test row (now the canonical 12 criteria); "Max 5 files per
+  story" replaced; Ready classification counts 12; 3.0.0 → 3.0.1
+- `.claude/skills/bootstrap/references/llm-readiness.md` — the quoted
+  retired rule ("1-3 hours, no more than 5-8 files", also misattributed
+  to story-cycle) now points at the canonical policy; bootstrap
+  2.13.1 → 2.13.2
+- `.claude/skills/SKILLS_INVENTORY.md` — `/ideate` row's "(single
+  context window sized)" → "(cohesion-sized)"
+- `docs/reference/TEAM_WORKFLOW.md` + scaffold copy — the two
+  conflict-prevention mentions of the retired 5-8 file limit reworded
+- `scaffold/docs/reference/backlog/_EPIC_TEMPLATE.md` — "[list, max 5]"
+  → "[list — proportionate to size]"
+- `.claude/skills/build/SKILL.md` — Phase 1 step sizing ("aim for steps
+  that touch ≤5 files", predating #47 entirely) replaced with the
+  canonical wording; FRAMEWORK_REFERENCE mirror updated; build
+  1.0.0 → 1.0.1
+
+Note the two reviewer surfaces (spec-reviewer, backlog-review) are
+deliberate behavior changes: until now they flagged as DoR failures
+exactly the LARGE/XL cohesive stories the canonical policy legitimizes.
+
+Not touched (verified non-stale or deliberately deferred): PRD_SUMMARY's
+"3-7 acceptance criteria per requirement" (EARS requirement guidance, not
+story DoR), refine-loop / reasoning-tools "max 5" (loop and question
+caps), GROUND_RULES "3-7 rules", and `confidence-gate.md`'s Scope Bounded
+file-count thresholds — a distinct pre-implementation gate. Note a
+legitimately-sized cohesive LARGE/XL story will trip its >10-file FAIL;
+reconciling that gate with the cohesion policy is an open maintainer
+decision, deliberately not attempted here.
 ### Project file changes
 None required. Existing `docs/sessions/.activity-log.jsonl` files need no
 migration — the new rotation applies on the next tool use.

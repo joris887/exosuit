@@ -40,7 +40,7 @@ target: YYYY-MM-DD
 
 #### Context
 - **Current state**: [description]
-- **Affected files**: [list, max 5]
+- **Affected files**: [list — proportionate to size]
 - **Follow patterns in**: [exemplar file path]
 - **Dependencies**: [story IDs or "None"]
 

@@ -30,10 +30,11 @@ If the dispatch prompt includes a story specification, validate its structure:
 
 - [ ] Has type assigned (feature, bugfix, refactor, spike, infra, testing, docs, security, performance, skill)
 - [ ] Has size classified (TRIVIAL, SMALL, STANDARD, LARGE, XL)
-- [ ] Has 3-7 acceptance criteria, each testable and specific
+- [ ] Passes the cohesion test — splitting it would create artificial seams, not two meaningful pieces
+- [ ] Has 3-7 acceptance criteria, each testable and specific (LARGE/XL may exceed 3-7, grouped under sub-headings)
 - [ ] Has verification commands (exact bash commands)
 - [ ] Has out of scope section with at least one exclusion
-- [ ] Has affected files listed (max 5)
+- [ ] Has affected files listed — proportionate to size, not capped at a fixed number
 - [ ] No ambiguous language ("should be fast", "handle errors properly", "make it work")
 
 Flag any DoR failures before proceeding to implementation review.
