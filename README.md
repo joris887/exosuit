@@ -271,6 +271,7 @@ These are exit-code shell scripts wired into Claude Code's hook events. There is
 | `/UAT-cycle` | User acceptance test case execution |
 | `/claude-sense-check` | Batch-verify UAT test cases against actual code |
 | `/manual-test` | Generate test plans for manual verification |
+| `/live-test` | Autonomously test the running app (web/API/CLI): plan, execute, verify, fix criticals |
 
 ### Debugging & Recovery
 | Command | What it does |

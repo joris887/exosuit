@@ -132,6 +132,53 @@ migration — the new rotation applies on the next tool use.
 ### Breaking changes
 None.
 
+---
+
+## Experimental: /live-test skill (#92) — NOT on main
+
+> This section documents work living only on `experimental/live-test`.
+> Merged here for evaluation; not part of any released version.
+
+New skill `/live-test` v1.0.0 — autonomous dynamic testing of the running application,
+the automated sibling of `/manual-test`. Plans a scoped test run (user-approved at a
+hard gate), drives the project's declared surface (web via browser MCP, HTTP API via
+curl probes, or CLI), verifies multi-signal per scenario, fixes critical bugs in a
+bounded loop, and writes append-only findings with `/testing-cycle` + `/ideate`
+handoffs. Project facts live in a project-owned `docs/testing/APP_MAP.md` scaffolded
+on first run; a generic `preflight.sh` gates execution on stack health (localhost-only,
+host-anchored). Executed UAT cases get append-only `Claude (live-test)` Results rows —
+human confirmation stays with `/UAT-cycle`. Skill count 45 → 46.
+
+### Files added
+- `.claude/skills/live-test/SKILL.md`
+- `.claude/skills/live-test/references/driving-web.md`
+- `.claude/skills/live-test/references/driving-api.md`
+- `.claude/skills/live-test/references/driving-cli.md`
+- `.claude/skills/live-test/references/error-recovery.md`
+- `.claude/skills/live-test/references/first-run.md`
+- `.claude/skills/live-test/scripts/preflight.sh`
+- `.claude/skills/live-test/assets/app-map-template.md`
+- `.claude/skills/live-test/assets/findings-template.md`
+
+### Files changed
+- `.claude/skills/skills-registry.json` — live-test entry
+- `.claude/skills/SKILLS_INVENTORY.md` — Testing Workflow section + table row
+- `core/MANIFEST.md` — Testing category row
+- `docs/FRAMEWORK_REFERENCE.md` — Testing Decision Tree branch, Automated Live Testing Flow, Complete Skills List row
+- `docs/reference/MCP_INTEGRATION.md` — browser-automation integration points + degradation line
+- `docs/testing/CLAUDE.md` — APP_MAP.md + findings/ entries; corrected UAT-case creation attribution (story-cycle creates, claude-sense-check verifies)
+- `CLAUDE.md` — skills table row
+- `README.md` — commands table row
+
+### Project file changes
+None required. `docs/testing/APP_MAP.md` is created per-project by the `/live-test`
+first-run interview (user-confirmed), not by upgrade.
+
+### Breaking changes
+None. New skill; no existing behavior changes.
+
+---
+
 ## [5.0.1] - 2026-08-10
 
 ### Summary
