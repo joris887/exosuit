@@ -8,7 +8,8 @@ endpoints, timing budgets, log access) come from `docs/testing/APP_MAP.md`.
 A scenario's probe is one or more HTTP requests against the running server:
 
 ```bash
-curl -s -o /tmp/live-test-body.json -w '%{http_code}' -m <timeout> \
+BODY=$(mktemp)   # per-request temp file — never a predictable path
+curl -s -o "$BODY" -w '%{http_code}' -m <timeout> \
   -X <METHOD> "<base-url><path>" \
   -H 'Content-Type: application/json' [auth headers per app map] \
   [-d '<payload>']
@@ -17,8 +18,13 @@ curl -s -o /tmp/live-test-body.json -w '%{http_code}' -m <timeout> \
 - Base URL comes from the app map — localhost only, same refusal rule as every surface.
 - Timeouts come from the app map's timing budgets (default: 15s; long-async endpoints
   use the map's long-wait budget).
-- Save response bodies to a temp file; excerpt into findings — never dump large bodies
-  into context.
+- Save response bodies to a temp file created with `mktemp`; excerpt into findings —
+  never dump large bodies into context. Do NOT use a fixed path like
+  `/tmp/live-test-body.json`: it collides between concurrent worktree runs and is
+  symlink-clobberable on a shared host. Delete the file when the scenario ends.
+- Response bodies routinely contain session tokens and real user data. The framework's
+  secrets scanner does not inspect `.md`/`.txt`, so review any excerpt before it is
+  written into a committed findings file.
 
 ## Three-signal verification (run after EVERY scenario)
 

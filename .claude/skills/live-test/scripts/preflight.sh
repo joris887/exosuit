@@ -258,7 +258,20 @@ while IFS='|' read -r ctype label target required remedy; do
       for word in $target; do
         lw=$(printf '%s' "$word" | tr '[:upper:]' '[:lower:]')
         case "$lw" in
-          http://*|https://*) is_local_url "$lw" || remote=1 ;;
+          # Explicit scheme.
+          http://*|https://*|ftp://*|ftps://*|scp://*|sftp://*|ssh://*)
+            is_local_url "$lw" || remote=1 ;;
+          # Scheme-LESS host arguments. curl/wget default to http://, so
+          # `curl evil.example.com/x` would otherwise slip past a check that
+          # only inspects http(s):// words. Treat any bare word that looks
+          # like a host (dotted name or user@host) as a URL and test it.
+          -*|/*|./*|../*|'')
+            ;;
+          *@*|*.*)
+            case "$lw" in
+              *[!a-z0-9.:@_/-]*) ;;   # has shell/path metachars: not a bare host
+              *) is_local_url "http://${lw#*@}" || remote=1 ;;
+            esac ;;
         esac
       done
       if [ -n "$remote" ]; then

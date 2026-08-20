@@ -34,7 +34,7 @@ localhost targets only) · `compose` (docker compose service running) · `cmd` (
 command, expects exit 0). `required`: `yes` → failure blocks the run; `no` → warning
 only. Fields must NOT contain `|` — for piped assertions use `&&` with a temp file,
 e.g. body inspection of a degradable health endpoint:
-`cmd|llm dependency ok|curl -s -m 10 -o /tmp/lt-health.json http://localhost:8000/healthz && grep -q ok /tmp/lt-health.json|no|LLM-backed scenarios will fail; ask user whether to run the unaffected subset`
+`cmd|llm dependency ok|H=$(mktemp) && curl -s -m 10 -o "$H" http://localhost:8000/healthz && grep -q ok "$H"; r=$?; rm -f "$H"; exit $r|no|LLM-backed scenarios will fail; ask user whether to run the unaffected subset`
 
 ```preflight-checks
 {{http|backend healthy|http://localhost:8000/healthz|yes|docker compose up -d}}
