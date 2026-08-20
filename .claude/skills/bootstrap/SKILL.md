@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-version: 2.13.2
+version: 2.14.0
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
@@ -12,6 +12,14 @@ allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent, 
 ______________________________________________________________________
 
 ## bootstrap
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter bootstrap <node-id>
+```
+
+Node ids are defined in this skill's `flow.yaml` — one per prose section; pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node, and `clear bootstrap` at a **completion** terminal (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one). Do NOT clear at a terminal whose purpose is to hand state to another skill — story-cycle's `save-failure-state` writes the very file `/continue` resumes from, and clearing there destroys it.
 
 Setting up the Exosuit framework for this project.
 

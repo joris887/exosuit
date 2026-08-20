@@ -11,6 +11,7 @@ All hooks are self-contained **POSIX shell scripts** — no Python or other runt
   pre-tool-use.sh        — Block dangerous Bash commands + advisory warnings
   pre-read-check.sh      — Warn when reading sensitive files (advisory)
   post-tool-use.sh       — Activity logging + test/build failure tracking
+  flow-pre-edit.sh       — Flow gate evidence check (advisory-first)
   session-start.sh       — Advisory environment checks
   stop.sh                — Auto-save + debug audit + completion evidence validation
   user-prompt.sh         — Intent classification + skill tracking + dependency advisory
@@ -22,6 +23,8 @@ All hooks are self-contained **POSIX shell scripts** — no Python or other runt
   lib/
     paths.sh             — Path resolution helpers (sourced by bash hooks)
     hook-guard.sh        — Profile + disable check (called by all hooks)
+    graph-state.sh       — Flow cursor helper (called by flow-contract skills)
+    test-paths.sh        — Shared test-path matcher (gate evidence + exemptions)
   rules/
     safety.patterns      — PreToolUse blocking patterns (@@-delimited, with severity)
     advisory.patterns    — PreToolUse advisory patterns (warn only, @@-delimited)
@@ -35,6 +38,8 @@ All hooks are self-contained **POSIX shell scripts** — no Python or other runt
     stop-iteration       — Stop hook iteration counter (plain number)
     session-started      — Session start timestamp
     tests-passed         — Test pass timestamp (set by post-tool-use.sh)
+    flow/                — Per-session gate evidence markers (test-written,
+                           tests-green) + advisory-dedup dotfiles
 ```
 
 ## Hook Profiles
@@ -115,7 +120,7 @@ Disable specific hooks without editing settings.json:
 export EXOSUIT_DISABLED_HOOKS="stop,post-edit-format"  # Comma-separated hook IDs
 ```
 
-Available hook IDs: `pre-tool-use`, `pre-read-check`, `post-tool-use`, `post-edit-format`, `session-start`, `stop`, `user-prompt`, `subagent-stop`
+Available hook IDs: `pre-tool-use`, `pre-read-check`, `post-tool-use`, `post-edit-format`, `session-start`, `stop`, `user-prompt`, `subagent-stop`, `flow-pre-edit`
 
 ## Hook Events
 
@@ -137,11 +142,15 @@ Blocks dangerous commands via `rules/safety.patterns`:
 Advisory warnings via `rules/advisory.patterns`:
 - Long-running dev servers (npm dev, flask run, rails server, etc.)
 
+### PreToolUse (Edit|Write)
+`flow-pre-edit.sh`: Flow gate evidence check (see `.claude/skills/FLOW_SPEC.md` → Gate Evidence & Enforcement). Advisory by default; blocks only with explicit `EXOSUIT_FLOW_MODE=block`. Test/docs edits always exempt; fails open.
+
 ### PreToolUse (Read)
 `pre-read-check.sh`: Warns when reading sensitive files (.env, .key, .pem, credentials). Advisory only — never blocks.
 
 ### PostToolUse (Edit|Write|Bash)
 Activity logging to `docs/sessions/.activity-log.jsonl`. Type-aware rotation: keeps the last 200 tool lines and the last 500 skill/story event lines, preserving order.
+- Stamps flow gate evidence per session: `state/flow/test-written` (test-path Edit/Write, shared patterns in `lib/test-paths.sh`) and `state/flow/tests-green` (passing test run with no nonzero failure count — a failing run revokes it)
 - Tracks successful test runs → sets `state/tests-passed`
 - Tracks test/build failures → logs to `docs/sessions/.failure-log.jsonl`
 
@@ -153,6 +162,7 @@ Auto-saves session state (git + active skill context), then:
 1. Debug statement audit: scans git diff for leftover debug statements (advisory)
 2. Completion evidence validation: blocks claims without test output
 3. Safety valve: allows after max iterations (default 5, override via `EXOSUIT_STOP_MAX_ITERATIONS` env var or `quality.conf max_iterations`; ≤0 = no limit)
+4. Flow check (only with explicit `EXOSUIT_FLOW_MODE=block`): refuses completion while a branch-matched flow cursor sits on a non-terminal node — bounded by the same safety valve
 
 ### UserPromptSubmit
 - Advisory warning for destructive-sounding requests (intent.patterns)
