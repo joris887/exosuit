@@ -141,7 +141,7 @@ Advisory warnings via `rules/advisory.patterns`:
 `pre-read-check.sh`: Warns when reading sensitive files (.env, .key, .pem, credentials). Advisory only — never blocks.
 
 ### PostToolUse (Edit|Write|Bash)
-Activity logging to `docs/sessions/.activity-log.jsonl`. Rotates at 200 entries.
+Activity logging to `docs/sessions/.activity-log.jsonl`. Type-aware rotation: keeps the last 200 tool lines and the last 500 skill/story event lines, preserving order.
 - Tracks successful test runs → sets `state/tests-passed`
 - Tracks test/build failures → logs to `docs/sessions/.failure-log.jsonl`
 

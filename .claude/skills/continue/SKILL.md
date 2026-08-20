@@ -1,6 +1,6 @@
 ---
 name: continue
-version: 2.7.0
+version: 2.7.1
 description: Resume development with smart session continuation. Reads session handoff files, sprint spec, analyzes git state, and determines the best path forward.
 trigger: manual
 depends-on: []
@@ -246,5 +246,11 @@ Based on analysis, present relevant options:
 - "Commit and push current changes to feature branch"
 
 ## 7. Wait for Direction
+
+**Skill metrics:** The analysis is complete once findings are ready — emit a completion event BEFORE presenting them (the turn ends waiting for the user, so anything after the wait may never run):
+
+```bash
+echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"continue\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
 
 Present findings and wait for user choice before proceeding.

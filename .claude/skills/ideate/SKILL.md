@@ -1,6 +1,6 @@
 ---
 name: ideate
-version: 2.10.0
+version: 2.10.1
 description: Use when the user has an idea or requirement to decompose into backlog stories.
 trigger: manual
 depends-on: []
@@ -374,6 +374,10 @@ Use the epic template from `docs/reference/backlog/_EPIC_TEMPLATE.md`. Each epic
 - Emit story creation events:
   ```bash
   echo "{\"type\":\"story\",\"event\":\"created\",\"id\":\"<id>\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"priority\":\"<priority>\",\"status\":\"<ready|draft>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+  ```
+- **Skill metrics:** Emit a completion event:
+  ```bash
+  echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"ideate\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
   ```
 
 ## Example

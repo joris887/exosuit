@@ -418,7 +418,7 @@ fi
 # Compute AI effectiveness from activity log
 # ─────────────────────────────────────────────
 if [[ "$MODE" == "ai" ]]; then
-  echo "## AI Effectiveness Score"
+  echo "## AI Effectiveness Score (last ${DAYS} days)"
   echo ""
 
   if [[ ! -f "$LOG_FILE" ]]; then
@@ -426,12 +426,25 @@ if [[ "$MODE" == "ai" ]]; then
     exit 1
   fi
 
+  # Apply the documented --days window. ISO-8601 UTC timestamps compare
+  # lexicographically, so a plain string compare is a correct date filter.
+  # Fail-open: if no cutoff can be computed or no temp file is available,
+  # fall back to the whole log (previous behavior).
+  CUTOFF=$(date -u -d "$DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null \
+    || date -u -v-"${DAYS}"d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "")
+  AI_LOG="$LOG_FILE"
+  if [[ -n "$CUTOFF" ]] && AI_LOG_TMP=$(mktemp 2>/dev/null); then
+    trap 'rm -f "$AI_LOG_TMP"' EXIT
+    awk -v c="$CUTOFF" 'match($0, /"ts":"[^"]*"/) { if (substr($0, RSTART + 6, RLENGTH - 7) >= c) print; next } { print }' \
+      "$LOG_FILE" > "$AI_LOG_TMP" 2>/dev/null && AI_LOG="$AI_LOG_TMP"
+  fi
+
   # Helper: count grep matches without failing on zero
   count_matches() { grep -c "$1" "$2" 2>/dev/null || true; }
 
   # Component 1: Skill success rate (weight: 60%)
-  SKILL_STARTS=$(count_matches '"event":"start"' "$LOG_FILE")
-  SKILL_SUCCESS=$(count_matches '"outcome":"success"' "$LOG_FILE")
+  SKILL_STARTS=$(count_matches '"event":"start"' "$AI_LOG")
+  SKILL_SUCCESS=$(count_matches '"outcome":"success"' "$AI_LOG")
 
   if [[ "$SKILL_STARTS" -gt 0 ]]; then
     SKILL_RATE=$(awk "BEGIN { printf \"%.2f\", $SKILL_SUCCESS / $SKILL_STARTS }")
@@ -441,13 +454,16 @@ if [[ "$MODE" == "ai" ]]; then
 
   # Component 2: Context reset frequency (weight: 40%)
   # Lower resets = better effectiveness. Normalize: 0 resets = 1.0, ≥3/session = 0.0
-  CR1=$(count_matches '"context_reset"' "$LOG_FILE")
-  CR2=$(count_matches '"context-reset"' "$LOG_FILE")
-  CR3=$(count_matches '"fresh-start"' "$LOG_FILE")
+  CR1=$(count_matches '"context_reset"' "$AI_LOG")
+  CR2=$(count_matches '"context-reset"' "$AI_LOG")
+  CR3=$(count_matches '"fresh-start"' "$AI_LOG")
   CONTEXT_RESETS=$((CR1 + CR2 + CR3))
 
-  SC1=$(count_matches '"skill":"continue"' "$LOG_FILE")
-  SC2=$(count_matches '"skill":"story-cycle"' "$LOG_FILE")
+  # Count sessions from start events only — skills emit start AND end
+  # lifecycle events that both contain the skill name; matching every line
+  # would double-count each session.
+  SC1=$(count_matches '"event":"start".*"skill":"continue"' "$AI_LOG")
+  SC2=$(count_matches '"event":"start".*"skill":"story-cycle"' "$AI_LOG")
   SESSION_COUNT=$((SC1 + SC2))
   # Avoid division by zero — at least 1 session
   [[ "$SESSION_COUNT" -eq 0 ]] && SESSION_COUNT=1
@@ -476,7 +492,7 @@ if [[ "$MODE" == "ai" ]]; then
   fi
 
   # Show top failing skills if any
-  FAILED_SKILLS=$(grep '"type":"skill".*"outcome":"failed"' "$LOG_FILE" 2>/dev/null \
+  FAILED_SKILLS=$(grep '"type":"skill".*"outcome":"failed"' "$AI_LOG" 2>/dev/null \
     | sed -n 's/.*"skill":"\([^"]*\)".*/\1/p' | sort | uniq -c | sort -rn | head -5 || true)
   if [[ -n "$FAILED_SKILLS" ]]; then
     echo ""
