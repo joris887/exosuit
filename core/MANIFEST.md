@@ -25,6 +25,7 @@ These files are generic framework components. On upgrade, they are replaced with
 | `pre-read-check.sh` | Sensitive file read warning |
 | `lib/paths.sh` | Path resolution |
 | `lib/hook-guard.sh` | Profile + disable check |
+| `lib/graph-state.sh` | Flow cursor helper (flow contracts) |
 | `hooks.json` | Plugin mode hook declarations |
 | `README.md` | Hook documentation |
 | `CLAUDE.md` | Directory context |
@@ -63,7 +64,7 @@ All skills in the framework are CORE except technology-specific skills generated
 | Debugging | debug-session, fix-issue, undo-work |
 | Maintenance | weekly-maintenance, retrospective, backlog-review, doctor, framework-upgrade, pr-status |
 | Utility | commit, parallel-work, skill-eval, refine-loop, optimize, quickstart, help-me, dashboard, custom-hooks, uninstall |
-| Inventory | SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, skills-registry.json, skills-registry.schema.json |
+| Inventory | SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, FLOW_SPEC.md, skills-registry.json, skills-registry.schema.json |
 
 #### Agents (`.claude/agents/`)
 
