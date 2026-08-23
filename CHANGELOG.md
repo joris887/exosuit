@@ -125,9 +125,47 @@ file-count thresholds — a distinct pre-implementation gate. Note a
 legitimately-sized cohesive LARGE/XL story will trip its >10-file FAIL;
 reconciling that gate with the cohesion policy is an open maintainer
 decision, deliberately not attempted here.
+
+### New skill: /live-test
+New skill `/live-test` v1.0.0 — autonomous dynamic testing of the running application,
+the automated sibling of `/manual-test`. Plans a scoped test run (user-approved at a
+hard gate), drives the project's declared surface (web via browser MCP, HTTP API via
+curl probes, or CLI), verifies multi-signal per scenario, fixes critical bugs in a
+bounded loop (only when invoked with `--fix`), and writes append-only findings with
+`/testing-cycle` + `/ideate` handoffs. Project facts live in a project-owned
+`docs/testing/APP_MAP.md` scaffolded on first run; a generic `preflight.sh` gates
+execution on stack health (localhost-only, host-anchored), on the map's declared
+`data_environment` blast radius (`shared` locks the run read-only), and on per-clone
+user approval of the map's `cmd` lines (exit 3 — nothing executes unapproved).
+Executed UAT cases get append-only `Claude (live-test)` Results rows — human
+confirmation stays with `/UAT-cycle`. Skill count 45 → 46.
+
+Files added:
+- `.claude/skills/live-test/SKILL.md`
+- `.claude/skills/live-test/references/driving-web.md`
+- `.claude/skills/live-test/references/driving-api.md`
+- `.claude/skills/live-test/references/driving-cli.md`
+- `.claude/skills/live-test/references/error-recovery.md`
+- `.claude/skills/live-test/references/first-run.md`
+- `.claude/skills/live-test/scripts/preflight.sh`
+- `.claude/skills/live-test/assets/app-map-template.md`
+- `.claude/skills/live-test/assets/findings-template.md`
+
+Files changed:
+- `.claude/skills/skills-registry.json` — live-test entry
+- `.claude/skills/SKILLS_INVENTORY.md` — Testing Workflow section + table row
+- `core/MANIFEST.md` — Testing category row
+- `docs/FRAMEWORK_REFERENCE.md` — Testing Decision Tree branch, Automated Live Testing Flow, Complete Skills List row
+- `docs/reference/MCP_INTEGRATION.md` — browser-automation integration points + degradation line
+- `docs/testing/CLAUDE.md` — APP_MAP.md + findings/ entries; corrected UAT-case creation attribution (story-cycle creates, claude-sense-check verifies)
+- `CLAUDE.md` — skills table row
+- `README.md` — commands table row
+
 ### Project file changes
 None required. Existing `docs/sessions/.activity-log.jsonl` files need no
 migration — the new rotation applies on the next tool use.
+`docs/testing/APP_MAP.md` is created per-project by the `/live-test` first-run
+interview (user-confirmed), not by upgrade.
 
 ### Breaking changes
 None.
