@@ -125,9 +125,192 @@ file-count thresholds — a distinct pre-implementation gate. Note a
 legitimately-sized cohesive LARGE/XL story will trip its >10-file FAIL;
 reconciling that gate with the cohesion policy is an open maintainer
 decision, deliberately not attempted here.
+
+### New skill: /live-test
+New skill `/live-test` v1.0.0 — autonomous dynamic testing of the running application,
+the automated sibling of `/manual-test`. Plans a scoped test run (user-approved at a
+hard gate), drives the project's declared surface (web via browser MCP, HTTP API via
+curl probes, or CLI), verifies multi-signal per scenario, fixes critical bugs in a
+bounded loop (only when invoked with `--fix`), and writes append-only findings with
+`/testing-cycle` + `/ideate` handoffs. Project facts live in a project-owned
+`docs/testing/APP_MAP.md` scaffolded on first run; a generic `preflight.sh` gates
+execution on stack health (localhost-only, host-anchored), on the map's declared
+`data_environment` blast radius (`shared` locks the run read-only), and on per-clone
+user approval of the map's `cmd` lines (exit 3 — nothing executes unapproved).
+Executed UAT cases get append-only `Claude (live-test)` Results rows — human
+confirmation stays with `/UAT-cycle`. Skill count 45 → 46.
+
+Files added:
+- `.claude/skills/live-test/SKILL.md`
+- `.claude/skills/live-test/references/driving-web.md`
+- `.claude/skills/live-test/references/driving-api.md`
+- `.claude/skills/live-test/references/driving-cli.md`
+- `.claude/skills/live-test/references/error-recovery.md`
+- `.claude/skills/live-test/references/first-run.md`
+- `.claude/skills/live-test/scripts/preflight.sh`
+- `.claude/skills/live-test/assets/app-map-template.md`
+- `.claude/skills/live-test/assets/findings-template.md`
+
+Files changed:
+- `.claude/skills/skills-registry.json` — live-test entry
+- `.claude/skills/SKILLS_INVENTORY.md` — Testing Workflow section + table row
+- `core/MANIFEST.md` — Testing category row
+- `docs/FRAMEWORK_REFERENCE.md` — Testing Decision Tree branch, Automated Live Testing Flow, Complete Skills List row
+- `docs/reference/MCP_INTEGRATION.md` — browser-automation integration points + degradation line
+- `docs/testing/CLAUDE.md` — APP_MAP.md + findings/ entries; corrected UAT-case creation attribution (story-cycle creates, claude-sense-check verifies)
+- `CLAUDE.md` — skills table row
+- `README.md` — commands table row
+
 ### Project file changes
 None required. Existing `docs/sessions/.activity-log.jsonl` files need no
 migration — the new rotation applies on the next tool use.
+`docs/testing/APP_MAP.md` is created per-project by the `/live-test` first-run
+interview (user-confirmed), not by upgrade.
+
+### Flow contracts (#77)
+An optional, declarative `flow.yaml` beside a skill's
+SKILL.md describing its control flow as a graph (steps, gates, routers,
+loops, fanout/join, terminals). NOT executed — nothing changes at runtime.
+Validated by a new `validate-flows.sh` (graph soundness + verbatim SKILL.md
+anchor checks, so flow descriptions can no longer drift silently) wired into
+CI and `/doctor`. First adopters: sprint-start, sprint-end, and story-cycle, transcribed
+1:1 from their current prose. A skill without `flow.yaml` behaves
+byte-identically; a project with no flow files validates vacuously.
+
+### Files added
+- `.claude/skills/FLOW_SPEC.md` — the flow contract specification (spec 1)
+- `.claude/skills/sprint-start/flow.yaml` — flow contract (29 nodes)
+- `.claude/skills/sprint-end/flow.yaml` — flow contract (25 nodes)
+- `.claude/skills/story-cycle/flow.yaml` — flow contract (69 nodes), transcribing
+  the inline phase sections; the four diverging flow descriptions are
+  documented in the drift bug issue and NOT resolved by this file
+- `.claude/skills/doctor/scripts/validate-flows.sh` — flow contract validator
+- `.claude/hooks/tests/test-validate-flows.sh` — validator test suite (20 cases)
+
+### Files changed
+- `.claude/skills/doctor/SKILL.md` — §7 runs validate-flows.sh after
+  validate-skills.sh; output template gains a Flow Contracts row; 3.0.0 → 3.1.0
+- `.claude/skills/skills-registry.json` — doctor version sync
+- `core/MANIFEST.md` — FLOW_SPEC.md added to the skills Inventory row
+- `.github/workflows/ci.yml` — new `flow-contracts` job
+
+### Level 4 — State & Resume (stacked on the above)
+The flow cursor: additive `flow:`/`node:`/`attempt:` keys in the existing
+`docs/sessions/.failure-state.md`, maintained via one-line calls to the new
+`lib/graph-state.sh` helper (advisory, always exit 0). Branch-scoped: the
+session-start resume advisory and `/continue`'s new cursor-first step act
+only when the file's `branch:` matches the current branch, so worktree
+copies stay inert. Ownership rules keep the file's
+meaning intact: a cursor never touches a file owned by a different skill,
+and `clear` deletes a cursor-created file so normal completed runs leave no
+phantom "interrupted workflow". The hook-consumer extraction patterns (stop.sh,
+pre-compact.sh, status-line.sh) are verified byte-identical before/after
+cursor writes in the test suite.
+
+- Added: `.claude/hooks/lib/graph-state.sh` (enter/attempt/clear/show),
+  `.claude/hooks/tests/test-graph-state.sh` (consumer byte-compat,
+  ownership, corrupt-file and branch-scoping cases)
+- Changed: `.claude/hooks/session-start.sh` — additive resume advisory
+  (section 2.5); `.claude/skills/FLOW_SPEC.md` — Cursor & Resume section;
+  `.claude/skills/continue/SKILL.md` — cursor-first resume in step 0.5,
+  dual-format (old files unchanged), 2.7.0 → 2.8.0; cursor call-sites in
+  sprint-start (2.8.0), sprint-end (2.11.0), story-cycle (4.5.0);
+  registry sync; `core/MANIFEST.md` and `.claude/hooks/README.md` rows
+  for the new lib file
+
+### Level 6 — Generated Views (stacked on Level 4; Level 5 — enforcement — is a separate opt-in rung, not on this line)
+Flow diagrams become generated artifacts: `render-flow.sh` emits a
+deterministic `flow.generated.md` (mermaid + grep-friendly edge table,
+marked GENERATED) beside each flow.yaml, and CI's `--check` fails when a
+view is stale — the drift class that motivated flow contracts cannot
+re-emerge in generated artifacts. Hand-maintained SKILL.md diagrams are
+untouched (reconciling those is the drift bug's territory).
+
+- Added: `doctor/scripts/render-flow.sh` (stdout/--write/--check),
+  `flow.generated.md` for sprint-start, sprint-end, story-cycle,
+  `.claude/hooks/tests/test-render-flow.sh` (21 cases incl. determinism,
+  staleness detection, orphan/reserved-id regressions, node/edge fidelity)
+- Changed: `.github/workflows/ci.yml` (staleness check in the
+  flow-contracts job), `FLOW_SPEC.md` (Generated Views), `CONTRIBUTING.md`
+  (flow-contract recipe), `llms.txt`, `core/MANIFEST.md` (flow artifacts row)
+
+### Bootstrap adoption (stacked on the above)
+Fourth adopter: bootstrap's flow contract, transcribed 1:1 from its prose
+sections (the operative detail). The header documents the known prose
+ambiguities it deliberately does not resolve — the A3.8 lean pruning that
+names sections already run by prose order, the "Process Flow" summary block
+that diverges from the prose in six places, and the Path B post-/discover
+continuation that exists only in the diagram and references/new-project.md.
+
+- Added: `.claude/skills/bootstrap/flow.yaml` — flow contract (54 nodes:
+  Path A/B router, 7 user checkpoints, the lean-profile deviations as
+  profile attrs), `.claude/skills/bootstrap/flow.generated.md`
+- Changed: `.claude/skills/bootstrap/SKILL.md` — flow cursor call-site
+  block (same as the other three adopters); 2.13.0 → 2.14.0,
+  `.claude/skills/skills-registry.json` — bootstrap version sync
+
+### Discover adoption (stacked on the above)
+Fifth adopter: discover's flow contract — the framework's longest
+interactive sessions (20-120 min of user-paced elicitation) gain
+node-granular resume via the existing cursor readers. The three runtime
+lanes (GUIDED/PLATFORM, QUICK, PIONEERING) are real graph regions; the
+header documents the prose ambiguities it deliberately does not resolve —
+the "authoritative" Process Flow block diverging from the prose in 11
+catalogued places, the 4A/4B batching contradiction with Rules, the
+dangling "Other" options, and the frontmatter `calls: [ideate]` that no
+prose terminal ever exercises.
+
+- Added: `.claude/skills/discover/flow.yaml` — flow contract (75 nodes:
+  6 HARD-GATE checkpoints, the 1F mode router, three lanes, three
+  terminals incl. Pioneering's post-spike re-entry),
+  `.claude/skills/discover/flow.generated.md`
+- Changed: `.claude/skills/discover/SKILL.md` — flow cursor call-site
+  block (same as the other four adopters); 1.0.0 → 1.1.0,
+  `.claude/skills/skills-registry.json` — discover version sync
+
+### Brainstorm adoption (stacked on the above)
+Sixth adopter: brainstorm's flow contract — a linear design-exploration
+flow with four conditional detours and one hard human approval. The
+header pins the prose side of the 4-way drift on the brainstorm→ideate
+edge (registry/docs claim calls/auto-invoke; the prose HARD-GATE forbids
+invoking /ideate before approval and offers it as a user option) and
+records the shipped output template contradicting the prose frontmatter
+(no status field — making template-shaped docs invisible to /ideate's
+status filter), the phantom "/story-cycle reads brainstorms" claim, and
+the allowed-tools gaps.
+
+- Added: `.claude/skills/brainstorm/flow.yaml` — flow contract (20
+  nodes: clarify hold, ADR/research/STRIDE/ADR-significance routers,
+  approach-selection and design-approval gates),
+  `.claude/skills/brainstorm/flow.generated.md`
+- Changed: `.claude/skills/brainstorm/SKILL.md` — flow cursor call-site
+  block; 2.7.0 → 2.8.0, `.claude/skills/skills-registry.json` —
+  brainstorm version sync
+
+### Ideate adoption (stacked on the above)
+Seventh adopter: ideate's flow contract — completing the ideation wing
+(discover → ideate ← brainstorm all under contract, and ideate was
+already a `next_skill` target in bootstrap's contract). The header
+records the two upstream finds the transcription surfaced: the SKILL.md
+prose contradicting its own canonical `references/story-template.md` in
+six places (SPIDR order inverted, prefer-small vs prefer-larger, file
+caps vs judgment, AC-count split rule, an 11- vs 12-item Definition of
+Ready) — the body prose was left behind by the cohesion-sizing change —
+and a broken CommonMark fence structure that makes GitHub render the
+middle of the file as code today.
+
+- Added: `.claude/skills/ideate/flow.yaml` — flow contract (36 nodes:
+  3-way discovery-state router, the skill's one gate.hard prerequisite
+  check, feasibility/NFR/security/external-setup conditionals, the
+  demote-to-draft DoR step, the backlog-write approval gate),
+  `.claude/skills/ideate/flow.generated.md`
+- Changed: `.claude/skills/ideate/SKILL.md` — flow cursor call-site
+  block; 2.10.0 → 2.11.0, `.claude/skills/skills-registry.json` —
+  ideate version sync
+
+### Project file changes
+None required. Flow contracts are opt-in per skill; existing projects are
+unaffected until a skill directory containing a `flow.yaml` is upgraded.
 
 ### Breaking changes
 None.

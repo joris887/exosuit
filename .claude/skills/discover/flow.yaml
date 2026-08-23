@@ -1,0 +1,148 @@
+# Flow contract for discover — see .claude/skills/FLOW_SPEC.md
+# Declarative only: NOT executed. 1:1 transcription of the prose sections
+# (the operative detail). The "## Process Flow (authoritative)" block at
+# the top of SKILL.md diverges from the prose in 11 catalogued places
+# (QUICK/PIONEERING trigger sets are 2-vs-3; Quick's claimed 3-question
+# Phase 1 is unreachable since mode is decided only at 1F; both alternate
+# lanes omit their persona steps and Quick also omits its
+# external-dependency notice; PLATFORM is
+# drawn as a sibling lane though the prose implements it as GUIDED plus
+# additive "Scale is Platform" content blocks; the linear GUIDED lane
+# hides every Phase 4-7 branch; 7D prescribes populate depth for scales
+# whose modes never reach it; the Pioneering lane's re-entry is missing) —
+# this file transcribes the prose and does NOT resolve those divergences.
+# Transcription notes:
+# - No start-event/metrics line exists; the start node anchors to the
+#   "## discover" heading itself (bootstrap precedent).
+# - The 4 modes (QUICK/GUIDED/PLATFORM/PIONEERING) are runtime-selected
+#   graph regions, never profile attrs. PLATFORM is not a 1F fork: it is
+#   the GUIDED lane plus scale-keyed additive routers (p2-platform-check,
+#   p3-platform-check) and content depth inside p7d-populate-docs.
+# - lean/strict profiles: verified-vacuous — the prose defines no
+#   profile-conditional flow anywhere in this skill; nothing to transcribe.
+# - Doc anchors cannot contain double quotes (the validator extracts the
+#   value with a [^"]* pattern), so quote-bearing lines — the 4A heading
+#   line, 1A's Other-handling line, 3D's Other-additions line, Quick
+#   step 4, 7A's per-feature cut line, Pioneering step 2 —
+#   anchor to quote-free neighbors or their section/mode headings instead
+#   (anchor reuse per the bootstrap a5-65 precedent).
+# - 4A/4B batch up to 4 assumption/risk ratings per AskUserQuestion call
+#   while Rules says "NEVER batch questions" — a prose self-contradiction,
+#   recorded not resolved. Batched rating is content elicitation inside
+#   the step (bootstrap A3.55 precedent), as are the Phase 2 per-question
+#   fallback mechanics, RC2's per-feature and 7A's per-feature questioning.
+# - Research Checkpoints carry no conditional in their own prose; the
+#   offline skip (Graceful Degradation: no WebSearch/WebFetch -> skip RCs,
+#   mark ASSUMED) is cross-cutting, a note not edges.
+# - 1B's and 1D's offered "Other" options have no handling prose (unlike
+#   1A's and 3D's) — dangling edges in the prose; transcribed ok-only.
+#   1C's "Actually, it's more like..." likewise names no follow-on
+#   action; modeled as a re-ask self-loop because the option leaves the
+#   secondary archetype unresolved — unlike 1B/1D's Other, which resolve
+#   their question.
+# - Prose has no section 3C (headings jump 3A -> 3B -> 3D); no node
+#   invented for it.
+# - Phase 6's "Major rethink needed ... go back to an earlier phase"
+#   names no target phase; transcribed as the approval gate's fail
+#   edge -> STOP (the flow halts and the user decides).
+# - The P6 vision approval and 7C story approval are <HARD-GATE>-marked
+#   user approvals — gate.human with extra named edges (story-cycle
+#   plan-approval precedent), not offer-style routers. P6's "Major rethink
+#   needed" fail edge is STOP (see above); 7C's "Rethink the epic
+#   structure" fail edge returns to generation (the only prose action
+#   that produces epic grouping). Re-approval after an adjust step is
+#   implied by Rules ("ALWAYS get user approval at HARD GATEs") but never
+#   stated in the sections themselves. RC1's "adjust" likewise names no
+#   target — modeled as an in-place adjust step returning to the gate,
+#   matching the P6/7C pattern.
+# - 7D's "This step is MANDATORY. Do NOT skip it." is a gate.hard with
+#   fail: STOP (story-cycle print-research-decision precedent); no
+#   evidence attr — no mechanical marker applies to discovery work. Its
+#   personas verify/repair conditional is an explicit router.
+# - Terminals: the GUIDED/PLATFORM lane ends at p7d-populate-docs and the
+#   QUICK lane at quick-start-building, both with NO next_skill — the
+#   prose names no follow-up command at either DONE point (frontmatter
+#   declares calls: [ideate], but prose only says /ideate later consumes
+#   vision/external-dependencies.md — a data-consumer statement, recorded
+#   not resolved). The PIONEERING lane ends with next_skill: discover —
+#   the prose re-enters /discover after spikes, which execute outside
+#   this flow (bootstrap path-b-invoke-discover precedent).
+flow: discover
+spec: 1
+start: discover-entry
+nodes:
+  discover-entry: {type: step, next: phase-1-classification, doc: "## discover"}
+  phase-1-classification: {type: step, next: p1a-archetype-selection, doc: "## Phase 1: Classification"}
+  p1a-archetype-selection: {type: gate.human, ok: p1b-subvariant-confirmation, other: p1a-show-archetype-card, doc: "### 1A. Archetype Selection (recognition-based — use AskUserQuestion)"}
+  p1a-show-archetype-card: {type: step, next: p1a-archetype-selection, doc: "### 1A. Archetype Selection (recognition-based — use AskUserQuestion)"}
+  p1b-subvariant-confirmation: {type: gate.human, ok: p1c-hybrid-check, doc: "### 1B. Sub-variant Confirmation via Analogy (use AskUserQuestion)"}
+  p1c-hybrid-check: {type: gate.human, ok: p1d-scale-classification, actually-different: p1c-hybrid-check, doc: "### 1C. Hybrid Check (use AskUserQuestion)"}
+  p1d-scale-classification: {type: gate.human, ok: p1e-context-baseline, doc: "### 1D. Scale Classification (use AskUserQuestion)"}
+  p1e-context-baseline: {type: step, next: p1f-mode-selection, doc: "### 1E. Quick Context Baseline (5 universal questions)"}
+  p1f-mode-selection: {type: step, next: p1f-mode-router, doc: "### 1F. Mode Selection"}
+  p1f-mode-router: {type: router, quick: quick-start-entry, pioneering: pioneering-entry, default: phase-2-core-identity, doc: "### 1F. Mode Selection"}
+  phase-2-core-identity: {type: step, next: p2-platform-check, doc: "## Phase 2: Core Identity (ARCHETYPE-SPECIFIC)"}
+  p2-platform-check: {type: router, platform: p2-platform-questions, default: rc1-context-research, doc: "Additional questions: stakeholders beyond end users, existing system integrations, compliance/regulatory requirements, non-functional requirements. See scaffolding in archetype file."}
+  p2-platform-questions: {type: step, next: rc1-context-research, doc: "Additional questions: stakeholders beyond end users, existing system integrations, compliance/regulatory requirements, non-functional requirements. See scaffolding in archetype file."}
+  rc1-context-research: {type: step, next: rc1-research-gate, doc: "### Research Checkpoint 1: Context Research"}
+  rc1-research-gate: {type: gate.human, ok: rc1-save-core-identity, adjust: rc1-adjust, tell-me-more: rc1-research-gate, doc: "Use **AskUserQuestion** to check research impact:"}
+  rc1-adjust: {type: step, next: rc1-research-gate, doc: "Use **AskUserQuestion** to check research impact:"}
+  rc1-save-core-identity: {type: step, next: phase-3-deep-elicitation, doc: "Save to `vision/core-identity.md`. Log decisions to `docs/reference/DECISION_LOG.md` (copy template from `assets/decision-log.md` if not exists)."}
+  phase-3-deep-elicitation: {type: step, next: p3a-archetype-deep-dive, doc: "## Phase 3: Deep Elicitation (ARCHETYPE-SPECIFIC)"}
+  p3a-archetype-deep-dive: {type: step, next: rc2-feature-research, doc: "### 3A. Archetype Deep Dive"}
+  rc2-feature-research: {type: step, next: rc2-feature-confirm, doc: "### Research Checkpoint 2: Feature-Level Research"}
+  rc2-feature-confirm: {type: gate.human, ok: p3b-edge-cases, fail: rc2-feature-research, doc: "### Research Checkpoint 2: Feature-Level Research"}
+  p3b-edge-cases: {type: step, next: rc3-ux-patterns, doc: "### 3B. Edge Case Exploration"}
+  rc3-ux-patterns: {type: gate.human, ok: p3-platform-check, doc: "### Research Checkpoint 3: UX/Interaction Patterns"}
+  p3-platform-check: {type: router, platform: p3-platform-additional, default: p3-save-elicitation, doc: "Additional: domain modeling, multi-user-type journeys, API surface design, integration architecture."}
+  p3-platform-additional: {type: step, next: p3-save-elicitation, doc: "Additional: domain modeling, multi-user-type journeys, API surface design, integration architecture."}
+  p3-save-elicitation: {type: step, next: p3d-persona-synthesis, doc: "Save to `vision/deep-elicitation.md`. Log decisions to DECISION_LOG."}
+  p3d-persona-synthesis: {type: step, next: p3d-persona-verify, doc: "### 3D. Persona Synthesis"}
+  p3d-persona-verify: {type: gate.human, ok: p3d-primary-count-check, other-additions: p3d-add-persona, doc: "**Verify with user** via **AskUserQuestion** (`multiSelect`):"}
+  p3d-add-persona: {type: step, next: p3d-persona-verify, doc: "### 3D. Persona Synthesis"}
+  p3d-primary-count-check: {type: router, multiple-confirmed: p3d-primary-selection, default: p3d-save-personas, doc: "After user confirms persona selection, if more than one persona confirmed, ask primary selection via **AskUserQuestion**:"}
+  p3d-primary-selection: {type: gate.human, ok: p3d-save-personas, doc: "After user confirms persona selection, if more than one persona confirmed, ask primary selection via **AskUserQuestion**:"}
+  p3d-save-personas: {type: step, next: phase-4-entry, doc: "**Save** generated personas to `docs/context/personas.md` using the template format. Log persona decisions to DECISION_LOG with confidence `CONFIRMED` (user-verified) or `ASSUMED` (auto-generated in Quick mode)."}
+  phase-4-entry: {type: step, next: p4a-what-needs-to-be-true, doc: "## Phase 4: Assumption Surfacing & Stress Testing"}
+  p4a-what-needs-to-be-true: {type: step, next: rc4-assumption-validation, doc: "Generate assumptions FROM Phases 2-3 decisions. User RATES them using **AskUserQuestion** — batch up to 4 assumptions per call:"}
+  rc4-assumption-validation: {type: step, next: p4b-pre-mortem, doc: "### Research Checkpoint 4: Assumption Validation"}
+  p4b-pre-mortem: {type: step, next: p4c-no-gos, doc: "### 4B. Pre-Mortem"}
+  p4c-no-gos: {type: step, next: p4c-no-gos-approval, doc: "### 4C. No-Gos Declaration"}
+  p4c-no-gos-approval: {type: gate.human, ok: p4-save-register, doc: "User approves No-Gos before proceeding."}
+  p4-save-register: {type: step, next: p5-dimension-sweep, doc: "Save to `docs/reference/ASSUMPTION_REGISTER.md` (copy template from `assets/assumption-register.md` if not exists) + `vision/stress-test.md`."}
+  p5-dimension-sweep: {type: step, next: rc5-stack-architecture, doc: "## Phase 5: Dimension Completeness Sweep"}
+  rc5-stack-architecture: {type: step, next: rc5-constraint-check, doc: "### Research Checkpoint 5: Stack & Architecture"}
+  rc5-constraint-check: {type: router, conflicts-found: rc5-resolve-conflicts, default: p5-ext-dep-check, doc: "Cross-dimension constraint check: detect contradictions (serverless + WebSocket, static + SSR, etc.). Present conflicts → resolve with user."}
+  rc5-resolve-conflicts: {type: step, next: p5-ext-dep-check, doc: "Cross-dimension constraint check: detect contradictions (serverless + WebSocket, static + SSR, etc.). Present conflicts → resolve with user."}
+  p5-ext-dep-check: {type: router, external-services: p5-ext-dep-summary, default: p6-vision-synthesis, doc: "### External Dependency Summary (conditional)"}
+  p5-ext-dep-summary: {type: gate.human, ok: p6-vision-synthesis, doc: "After cross-constraints are resolved, if ANY dimension decisions involve external services (accounts, API keys, external setup), run the external dependency summary from `references/external-dependencies.md`. This presents every external service commitment in one view so the user can confirm or revise choices before proceeding."}
+  p6-vision-synthesis: {type: step, next: p6-vision-approval, doc: "## Phase 6: Vision Synthesis"}
+  p6-vision-approval: {type: gate.human, ok: p7-entry, change-items: p6-adjust-items, fail: STOP, doc: "Use **AskUserQuestion** for vision approval:"}
+  p6-adjust-items: {type: step, next: p6-vision-approval, doc: "Use **AskUserQuestion** for vision approval:"}
+  p7-entry: {type: step, next: p7a-mvp-feature-selection, doc: "## Phase 7: MVP Scoping & Backlog Generation"}
+  p7a-mvp-feature-selection: {type: step, next: p7a-feature-list-approval, doc: "### 7A. MVP Feature Selection"}
+  p7a-feature-list-approval: {type: gate.human, ok: p7b-success-criteria, doc: "Use **AskUserQuestion** confirmation gate for feature list approval (see `interactive-ux.md`)."}
+  p7b-success-criteria: {type: step, next: p7c-epic-story-generation, doc: "### 7B. Success Criteria (archetype-specific)"}
+  p7c-epic-story-generation: {type: step, next: p7c-story-approval, doc: "### 7C. Epic & Story Generation"}
+  p7c-story-approval: {type: gate.human, ok: p7c-generate-outputs, adjust-stories: p7c-adjust-stories, fail: p7c-epic-story-generation, doc: "Use **AskUserQuestion** for story approval:"}
+  p7c-adjust-stories: {type: step, next: p7c-story-approval, doc: "Use **AskUserQuestion** for story approval:"}
+  p7c-generate-outputs: {type: step, next: p7d-mandatory-gate, doc: "Generate outputs: PRD_SUMMARY.md, BACKLOG_INDEX.md, DECISION_LOG.md, ASSUMPTION_REGISTER.md, backlog/E*.md."}
+  p7d-mandatory-gate: {type: gate.hard, ok: p7d-personas-check, fail: STOP, doc: "This step is MANDATORY. Do NOT skip it. Every file below must be populated with real content from discovery — not left as a template."}
+  p7d-personas-check: {type: router, personas-missing: p7d-generate-personas, default: p7d-populate-docs, doc: "**From Phase 3D persona synthesis (already generated — verify exists):**"}
+  p7d-generate-personas: {type: step, next: p7d-populate-docs, doc: "- `docs/context/personas.md` — Should already exist from Phase 3D. Verify it contains project-specific personas, not template placeholders. If missing (e.g., Phase 3D was skipped), generate now from Phase 2-3 user notes."}
+  p7d-populate-docs: {type: terminal, doc: "### 7D. Populate Project Documentation from Discovery"}
+  quick-start-entry: {type: step, next: quick-essential-questions, doc: "## Quick Start Mode"}
+  quick-essential-questions: {type: step, next: quick-research, doc: "2. 3-5 essential questions ONLY (archetype core question + who/device + ONE thing to nail)"}
+  quick-research: {type: step, next: quick-persona-confirm, doc: "3. 1 quick research: landscape scan (2-3 searches)"}
+  quick-persona-confirm: {type: gate.human, ok: quick-auto-pick, doc: "## Quick Start Mode"}
+  quick-auto-pick: {type: step, next: quick-ext-dep-check, doc: "5. Auto-pick all technical decisions (mark as ASSUMED in DECISION_LOG)"}
+  quick-ext-dep-check: {type: router, external-services: quick-ext-dep-notice, default: quick-minimal-backlog, doc: "6. If any auto-picked decisions involve external services (accounts, API keys, external setup), show a brief notice listing each service with its role, setup summary, and estimated time. No approval gate — informational only. Save to `vision/external-dependencies.md` so `/ideate` generates setup stories."}
+  quick-ext-dep-notice: {type: step, next: quick-minimal-backlog, doc: "6. If any auto-picked decisions involve external services (accounts, API keys, external setup), show a brief notice listing each service with its role, setup summary, and estimated time. No approval gate — informational only. Save to `vision/external-dependencies.md` so `/ideate` generates setup stories."}
+  quick-minimal-backlog: {type: step, next: quick-start-building, doc: "7. Generate minimal pitch + minimal backlog: E01 Core Build (3-5 stories) + E02-REVIEW Quick Phase Transition (3 stories). Include setup stories for any external services (from step 6) before the features that depend on them."}
+  quick-start-building: {type: terminal, doc: "8. Start building immediately"}
+  pioneering-entry: {type: step, next: pioneering-core-identity, doc: "## Pioneering Mode"}
+  pioneering-core-identity: {type: step, next: pioneering-proto-personas, doc: "1. Core Identity questions + DEEP research (academic, patents, adjacent tech)"}
+  pioneering-proto-personas: {type: step, next: pioneering-spike-planning, doc: "## Pioneering Mode"}
+  pioneering-spike-planning: {type: step, next: pioneering-spike-backlog, doc: "3. Spike Planning: identify 2-3 time-boxed experiments"}
+  pioneering-spike-backlog: {type: step, next: pioneering-reenter-discover, doc: "4. Generate spike-first backlog: E01 Spikes (2-3 experiments) + E02-REVIEW Post-Spike Review"}
+  pioneering-reenter-discover: {type: terminal, next_skill: discover, doc: "5. After spikes: re-enter /discover with real findings → clearer archetype + scale → GUIDED or PLATFORM mode → regenerate personas with real data"}

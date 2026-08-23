@@ -49,6 +49,7 @@ All framework skills work without MCP servers. When available, MCP servers enhan
 **Use when:** E2E testing, visual validation, or interaction with web UIs is needed.
 
 **Integration points:**
+- live-test — drives test scenarios end-to-end in a real browser (primary consumer)
 - UAT-cycle — automate acceptance test execution
 - manual-test — validate UI behavior programmatically
 - testing-cycle — reproduce user-reported UI issues
@@ -106,7 +107,7 @@ All framework skills function without MCP servers:
 - Documentation verification → rely on training data + `--help` flags
 - Memory persistence → use `docs/sessions/` handoff files and `docs/context/` knowledge base
 - Search → use WebSearch/WebFetch built-in tools
-- Browser automation → manual testing with `/manual-test`
+- Browser automation → `/live-test` degrades to a `/manual-test`-style checklist for the user
 - Code intelligence → Glob + Grep + careful manual refactoring
 
 ## Configuration
