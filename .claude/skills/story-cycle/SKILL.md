@@ -1,6 +1,6 @@
 ---
 name: story-cycle
-version: 4.4.0
+version: 4.4.1
 description: Use when the user wants to implement a single story or deliver a backlog item.
 trigger: manual
 depends-on: [code-quality, test-validator, security-audit]
@@ -627,7 +627,7 @@ Analyze the approved plan for parallel execution opportunities. Read `references
 1. Map each work unit to its file scope (which files it creates/modifies)
 2. Check for file overlaps — if ANY file appears in multiple streams, merge those streams
 3. If ≥2 non-overlapping streams exist, present the stream analysis to the user
-4. If user approves: create worktrees per stream, dispatch agents, coordinate merges
+4. If user approves: create the 3.pre git checkpoint first (streams write implementation code, and the 4d `[R]` rollback needs its tag on parallel runs too), then create worktrees per stream, dispatch agents, coordinate merges
 5. If user declines or streams overlap: proceed to serial Phase 3
 </IF>
 <ELSE>
