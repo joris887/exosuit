@@ -1,0 +1,45 @@
+# Flow contract for sprint-end — see .claude/skills/FLOW_SPEC.md
+# Declarative only: NOT executed. 1:1 transcription of SKILL.md prose.
+# Transcription notes:
+# - init merges the unnumbered pre-step sections (start event, profile
+#   read, progress tasks, failure-state contract).
+# - The quality and CI retry cycles are UNBOUNDED in today's prose (no
+#   max attempts) — transcribed as plain back-edges; each cycle passes
+#   through its gate, which the validator accepts as the cycle's bound.
+# - Lean profile jumps from the quality gate directly to step 3.5; that
+#   edge deviation is recorded as a profile attr, not a second graph.
+# - pr-size-check: user chooses proceed (ok) or split into stacked PRs
+#   (fail -> split-pr). The split strategy performs its own per-story
+#   pushes and PR creation (step 4 is skipped), so split-pr rejoins at
+#   step 5's CI router.
+# - Human review requirements (CODEOWNERS) are independent of CI, so the
+#   no-CI path also passes through review-required-router.
+flow: sprint-end
+spec: 1
+start: init
+nodes:
+  init: {type: step, next: discover-sprint-state, doc: "## sprint-end"}
+  discover-sprint-state: {type: step, next: default-branch-gate, doc: "## 1. Discover Sprint State"}
+  default-branch-gate: {type: gate.hard, ok: no-commits-gate, fail: STOP, doc: "## 1. Discover Sprint State"}
+  no-commits-gate: {type: gate.hard, ok: child-streams-gate, fail: STOP, doc: "## 1. Discover Sprint State"}
+  child-streams-gate: {type: gate.hard, ok: smoke-test-offer, fail: STOP, doc: "**Child stream check (parallel work):** Discover any streams fanned out from this branch by `/parallel-work`:"}
+  smoke-test-offer: {type: gate.human, ok: gate-selection, doc: "## 1.5. Pre-Ship Smoke Test (Optional)"}
+  gate-selection: {type: gate.human, ok: quality-agent-dispatch, profile: "lean: skip (test suite only); strict: skip (auto --all)", doc: "## 2. Quality Gates"}
+  quality-agent-dispatch: {type: step, next: quality-hard-gate, profile: "lean: test suite only; strict: --all plus ground-rules and ADR mandatory", doc: "### Quality Agent Dispatch"}
+  quality-hard-gate: {type: gate.hard, ok: uat-coverage-check, fail: fix-quality-issues, profile: "lean: on pass jump to commit-doc-artifacts", doc: "## 2. Quality Gates"}
+  fix-quality-issues: {type: step, next: quality-agent-dispatch, doc: "## Process Flow (authoritative — prose below is supporting detail)"}
+  uat-coverage-check: {type: step, next: documentation-updates, profile: "lean: skip", doc: "### 2.5 UAT Coverage Check (Advisory)"}
+  documentation-updates: {type: step, next: prd-review, profile: "lean: skip", doc: "## 3. Documentation Updates"}
+  prd-review: {type: step, next: persona-update, profile: "lean: skip", doc: "### PRD Living Document Review"}
+  persona-update: {type: step, next: commit-doc-artifacts, profile: "lean: skip", doc: "### Persona Assumption Update"}
+  commit-doc-artifacts: {type: step, next: pr-size-check, doc: "## 3.5 Commit Documentation Artifacts"}
+  pr-size-check: {type: gate.human, ok: push-create-pr, fail: split-pr, doc: "### PR Size Check"}
+  split-pr: {type: step, next: ci-configured-router, doc: "### PR Size Check"}
+  push-create-pr: {type: step, next: ci-configured-router, profile: "lean: simplified PR body; strict: Audit Trail section required", doc: "## 4. Push and Create PR"}
+  ci-configured-router: {type: router, ci-configured: wait-for-ci, default: review-required-router, doc: "## 5. Wait for CI"}
+  wait-for-ci: {type: gate.hard, ok: review-required-router, fail: fix-ci-failures, doc: "## 5. Wait for CI"}
+  fix-ci-failures: {type: step, next: wait-for-ci, doc: "## 5. Wait for CI"}
+  review-required-router: {type: router, review-required: human-review-gate, default: merge-cleanup, doc: "### Human Review Handling"}
+  human-review-gate: {type: gate.human, ok: merge-cleanup, fail: human-review-gate, doc: "### Human Review Handling"}
+  merge-cleanup: {type: step, next: sprint-complete, doc: "## 6. Merge and Clean Up"}
+  sprint-complete: {type: terminal, next_skill: [retrospective, sprint-start, handoff], profile: "strict: write sprint audit entry", doc: "## 7. Sprint Complete"}
