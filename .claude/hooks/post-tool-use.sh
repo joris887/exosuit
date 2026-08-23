@@ -49,6 +49,17 @@ LOG_DIR="docs/sessions"
 LOG_FILE="$LOG_DIR/.activity-log.jsonl"
 mkdir -p "$LOG_DIR" 2>/dev/null || exit 0
 
+# --- Flow gate evidence: test file edited this session ---
+# (consumed by flow-pre-edit.sh / gate.hard nodes declaring evidence:
+# test-written; lib/test-paths.sh is the single pattern source shared with
+# the exemption check, so a stamping edit can never itself be blocked)
+if [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "Write" ]; then
+    if sh "$HOOKS_DIR/lib/test-paths.sh" "$TARGET" 2>/dev/null; then
+        mkdir -p "$STATE_DIR/flow" 2>/dev/null
+        date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/flow/test-written" 2>/dev/null
+    fi
+fi
+
 # Timestamp
 TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -81,34 +92,82 @@ fi
 # --- Track successful test runs in session state ---
 # When a Bash command runs tests and they pass, record it so the Stop
 # handler can skip redundant evidence checks. Requires jq for reliable
-# extraction of tool_output (multi-line, special chars). Without jq,
+# extraction of the tool output (multi-line, special chars). Without jq,
 # skip tracking gracefully — the stop hook still works, just may ask
 # for evidence even when tests passed earlier.
 if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
     COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
-    TOOL_OUTPUT=$(printf '%s' "$INPUT" | jq -r '.tool_output // empty' 2>/dev/null)
+    # PostToolUse delivers the result as `tool_response` — for Bash an
+    # object {stdout, stderr, interrupted, isImage} with NO exit code
+    # field; for other shapes a plain string. Concatenate both streams
+    # (runners print summaries on either) and fall back to the legacy
+    # `tool_output` key for older payload shapes.
+    TOOL_OUTPUT=$(printf '%s' "$INPUT" | jq -r 'if (.tool_response | type) == "object" then ((.tool_response.stdout // "") + "\n" + (.tool_response.stderr // "")) elif (.tool_response | type) == "string" then .tool_response else (.tool_output // empty) end' 2>/dev/null)
 
     # Generic test command patterns (project-specific commands are also caught
     # if they contain these common runners)
     TEST_CMD_MATCH=false
     case "$COMMAND" in
-        *pytest*|*"npm test"*|*"npm run test"*|*"cargo test"*|*"go test"*|*jest*|*vitest*|*"dotnet test"*|*rspec*|*"gradle test"*|*"mvn test"*|*"make test"*|*"swift test"*) TEST_CMD_MATCH=true ;;
+        *pytest*|*"npm test"*|*"npm run test"*|*"cargo test"*|*"go test"*|*jest*|*vitest*|*"dotnet test"*|*rspec*|*"gradle test"*|*"mvn test"*|*"make test"*|*"swift test"*|*"mix test"*|*phpunit*|*"rake test"*|*"rake spec"*|*"rails test"*|*"composer test"*|*minitest*) TEST_CMD_MATCH=true ;;
+    esac
+    # A command that merely PRINTS runner-looking text is not a test run —
+    # kills the trivial spoof (echo "pytest — 12 passed"). No pretense
+    # against determined spoofing; see FLOW_SPEC.md Enforcement.
+    case "$COMMAND" in
+        echo\ *|printf\ *|cat\ *|grep\ *|sed\ *|awk\ *|head\ *|tail\ *) TEST_CMD_MATCH=false ;;
     esac
 
     if [ "$TEST_CMD_MATCH" = "true" ] && [ -n "$TOOL_OUTPUT" ]; then
-        # Check for pass patterns in output
-        if printf '%s' "$TOOL_OUTPUT" | grep -qEi '([0-9]+ passed|All tests passed|tests? (in [0-9]+ suites? )?passed|test run with [0-9]+ tests.*passed|BUILD SUCCEEDED|ok \(|Tests:.*[0-9]+ passed)'; then
+        # Detect pass AND failure patterns up front: a mixed run
+        # ('3 passed, 9 failed') is a FAILING run and must never stamp
+        # green evidence.
+        RUN_PASSED=false
+        RUN_FAILED=false
+        # Pass patterns per runner family: generic counts, go quiet
+        # ('ok<tab>pkg' — grep is line-based over the multi-line variable,
+        # so ^ anchors per line), cargo ('test result: ok'), minitest
+        # ('N runs, ... 0 failures, 0 errors' — the [^0-9] guard rejects
+        # '20 failures'), mix ('N tests, 0 failures'), dotnet
+        # ('Passed!  - Failed: 0'), swift XCTest ('Test Suite ... passed'),
+        # phpunit ('OK (').
+        printf '%s' "$TOOL_OUTPUT" | grep -qEi '([0-9]+ passed|All tests passed|tests? (in [0-9]+ suites? )?passed|test run with [0-9]+ tests.*passed|BUILD SUCCEEDED|ok \(|Tests:.*[0-9]+ passed|^ok[[:space:]]|test result: ok|[0-9]+ runs?,.*[^0-9]0 failures, 0 errors|[0-9]+ tests?, 0 failures|Passed! +- Failed: +0|Test Suite .* passed)' && RUN_PASSED=true
+        # Red patterns must only trigger on ACTUAL failures — red now
+        # stamps positive evidence that block mode acts on, so additions
+        # stay summary-shaped: nonzero failed-counts, hard build breaks,
+        # go ('--- FAIL:', 'FAIL<tab>pkg'), minitest/mix ('N runs/tests,
+        # ... M failures/errors', [1-9] first digit so '0 failures' stays
+        # green), phpunit ('FAILURES!'), swift XCTest ('Test Suite ...
+        # failed', 'with N failures'). Green runs legitimately contain
+        # '0 tests failed', 'Failed: 0', ERROR-level log lines, and test
+        # names like test_handles_error — none of those may match.
+        printf '%s' "$TOOL_OUTPUT" | grep -qEi '((^|[^0-9])[1-9][0-9]* +(tests? +)?failed|failed: *[1-9]|failures? *[=:] *[1-9]|errors? *= *[1-9]|BUILD FAILED|BUILD FAILURE|npm ERR|--- FAIL:|^FAIL[[:space:]]|FAILURES!|[0-9]+ (runs?|tests?),.*[^0-9][1-9][0-9]* (failures?|errors?)|Test Suite .* failed|with [1-9][0-9]* failures?)' && RUN_FAILED=true
+
+        if [ "$RUN_PASSED" = "true" ] && [ "$RUN_FAILED" = "false" ]; then
             mkdir -p "$STATE_DIR" 2>/dev/null
             date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/tests-passed" 2>/dev/null
+            # Flow gate evidence (evidence: tests-green)
+            mkdir -p "$STATE_DIR/flow" 2>/dev/null
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/flow/tests-green" 2>/dev/null
+            rm -f "$STATE_DIR/flow/tests-red" 2>/dev/null
+        elif [ "$RUN_FAILED" = "true" ]; then
+            # Markers reflect the MOST RECENT observed run, not the best
+            # run of the session: a red suite revokes green evidence AND
+            # stamps positive red evidence — the ONLY signal block mode
+            # is allowed to act on (fail-open otherwise).
+            rm -f "$STATE_DIR/flow/tests-green" 2>/dev/null
+            mkdir -p "$STATE_DIR/flow" 2>/dev/null
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STATE_DIR/flow/tests-red" 2>/dev/null
         fi
 
         # --- Track test/build failures for retrospective analysis ---
+        # (keeps its original broad detection — logging is intentionally
+        # noisier than the strict green-evidence veto above)
         if printf '%s' "$TOOL_OUTPUT" | grep -qEi '(FAILED|FAIL\b|ERROR\b|error:|BUILD FAILED|npm ERR|test.*failed|[0-9]+ failed)'; then
             FAIL_LOG="$LOG_DIR/.failure-log.jsonl"
             # Extract first error line (truncated for JSON safety)
             FIRST_ERROR=$(printf '%s' "$TOOL_OUTPUT" | grep -Ei '(FAILED|FAIL|ERROR|error:|failed)' | head -1 | cut -c1-120 | sed 's/"/\\"/g')
             # Count failure indicators
-            FAIL_COUNT=$(printf '%s' "$TOOL_OUTPUT" | grep -cEi '(FAILED|FAIL\b|failed)' || echo "0")
+            FAIL_COUNT=$(printf '%s' "$TOOL_OUTPUT" | grep -cEi '(FAILED|FAIL\b|failed)' || true)
             SAFE_CMD=$(printf '%s' "$COMMAND" | cut -c1-80 | sed 's/"/\\"/g')
             printf '{"ts":"%s","type":"test-failure","cmd":"%s","failures":%s,"first_error":"%s"}\n' \
                 "$TS" "$SAFE_CMD" "$FAIL_COUNT" "$FIRST_ERROR" >> "$FAIL_LOG" 2>/dev/null
