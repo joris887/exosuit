@@ -244,6 +244,30 @@
     "path": ".claude/skills/manual-test/SKILL.md"
   },
   {
+    "name": "merge-down",
+    "version": "1.1.0",
+    "description": "Use when the user is inside a parallel stream and wants the parent branch's newer commits (sibling streams' merged work) pulled into this stream.",
+    "trigger": "manual",
+    "depends_on": [
+      "parallel-work"
+    ],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/merge-down/SKILL.md"
+  },
+  {
+    "name": "merge-up",
+    "version": "2.0.0",
+    "description": "Use when the user is inside a parallel stream and wants its committed work merged into the parent branch it was created from, then the stream synced back to that parent.",
+    "trigger": "manual",
+    "depends_on": [
+      "parallel-work"
+    ],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/merge-up/SKILL.md"
+  },
+  {
     "name": "optimize",
     "version": "1.0.0",
     "description": "Use when the user wants to autonomously improve a measurable metric through iterative experimentation with git-based checkpointing and automatic rollback.",
@@ -260,12 +284,15 @@
   },
   {
     "name": "parallel-work",
-    "version": "2.4.0",
-    "description": "Manage git worktrees for parallel Claude Code instances working on different stories. List, create, and clean up worktrees.",
+    "version": "4.0.0",
+    "description": "Use when the user wants several stories worked at the same time in separate terminals, wants the roster of parallel streams, is in a freshly opened stream (hello), or wants finished streams removed.",
     "trigger": "manual",
     "depends_on": [],
     "calls": [],
-    "references": [],
+    "references": [
+      "references/messaging.md",
+      "references/recovery.md"
+    ],
     "path": ".claude/skills/parallel-work/SKILL.md"
   },
   {
@@ -382,13 +409,14 @@
   },
   {
     "name": "sprint-end",
-    "version": "2.10.1",
+    "version": "2.11.0",
     "description": "Use when the user wants to ship a sprint's work to main via PR.",
     "trigger": "manual",
     "depends_on": [
       "code-quality",
       "test-validator",
-      "security-audit"
+      "security-audit",
+      "parallel-work"
     ],
     "calls": [
       "code-quality",
@@ -403,10 +431,12 @@
   },
   {
     "name": "sprint-start",
-    "version": "2.7.1",
+    "version": "2.8.0",
     "description": "Pre-sprint checks and feature branch creation. Ensures clean state before starting work. Supports git worktrees for parallel development.",
     "trigger": "manual",
-    "depends_on": [],
+    "depends_on": [
+      "parallel-work"
+    ],
     "calls": [],
     "references": [],
     "path": ".claude/skills/sprint-start/SKILL.md"

@@ -42,7 +42,7 @@ Streams:
 ## Execution
 
 1. Present stream analysis to user with file scopes
-2. If approved: create worktrees per stream via `/parallel-work create`
+2. If approved: create the streams via `/parallel-work start`
 3. Each stream agent receives:
    - The approved plan (full)
    - Its stream scope (files it may touch)
@@ -50,6 +50,7 @@ Streams:
 4. Streams without dependencies start simultaneously
 5. Dependent streams start after their prerequisites merge
 6. Coordinate merges in dependency order
+7. Each stream publishes with /merge-up and refreshes with /merge-down; the coordinator's roster is /parallel-work.
 
 ## Fallback
 

@@ -627,7 +627,7 @@ Analyze the approved plan for parallel execution opportunities. Read `references
 1. Map each work unit to its file scope (which files it creates/modifies)
 2. Check for file overlaps — if ANY file appears in multiple streams, merge those streams
 3. If ≥2 non-overlapping streams exist, present the stream analysis to the user
-4. If user approves: create worktrees per stream, dispatch agents, coordinate merges
+4. If user approves: create the streams with /parallel-work start (one story or work unit per stream), let each stream publish with /merge-up and refresh with /merge-down
 5. If user declines or streams overlap: proceed to serial Phase 3
 </IF>
 <ELSE>

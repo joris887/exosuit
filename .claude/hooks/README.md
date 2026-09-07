@@ -4,19 +4,18 @@ Hook system that enforces quality and safety automatically during Claude Code se
 
 ## Architecture
 
-All hooks are self-contained **POSIX shell scripts** — no Python or other runtime required. Each hook event maps to its own script. Rules are stored in simple text formats readable by shell tools.
+All hooks are self-contained **POSIX shell scripts** — no Python or other runtime required. Each hook event maps to its own script. Rules are stored in simple text formats readable by shell tools. The parallel-work skill scripts (not hooks) are bash 3.2+; they read claude agents --json through jq, else python3, when present — without them every session fact reads '-' and the script says so.
 
 ```
 .claude/hooks/
   pre-tool-use.sh        — Block dangerous Bash commands + advisory warnings
   pre-read-check.sh      — Warn when reading sensitive files (advisory)
   post-tool-use.sh       — Activity logging + test/build failure tracking
-  session-start.sh       — Advisory environment checks
+  session-start.sh       — Advisory environment checks (+ the Stream: banner inside a parallel stream)
   stop.sh                — Auto-save + debug audit + completion evidence validation
   user-prompt.sh         — Intent classification + skill tracking + dependency advisory
   subagent-stop.sh       — Subagent quality warnings
-  worktree.sh            — Worktree init + cleanup
-  worktree-bash-fix.sh   — Worktree directory fix (apply_to_subagents)
+  worktree.sh            — WorktreeRemove: merges a native worktree's activity log back
   post-edit-format.sh    — Auto-format after edits (bash, not POSIX)
   status-line.sh         — Status bar output (not a hook)
   lib/
@@ -115,7 +114,7 @@ Disable specific hooks without editing settings.json:
 export EXOSUIT_DISABLED_HOOKS="stop,post-edit-format"  # Comma-separated hook IDs
 ```
 
-Available hook IDs: `pre-tool-use`, `pre-read-check`, `post-tool-use`, `post-edit-format`, `session-start`, `stop`, `user-prompt`, `subagent-stop`
+Available hook IDs: `pre-tool-use`, `pre-read-check`, `post-tool-use`, `post-edit-format`, `session-start`, `stop`, `user-prompt`, `subagent-stop`, `worktree`
 
 ## Hook Events
 
@@ -126,6 +125,8 @@ Advisory environment checks (never blocks):
 - Git state (on main, detached HEAD, uncommitted changes)
 - Unicode anomaly scan in AI config files
 - Initializes session state files
+
+Inside a parallel stream the hook also prints one Stream: line on stdout — for SessionStart, plain stdout is added to the model's context (per the hooks docs); it is the only hook whose stdout is plain text meant for the model's context. It re-emits on resume, /clear, compaction and fork. A stream is a worktree whose branch records `branch.<b>.exosuitParent` (written by `/parallel-work start`); the line names the parent, the recorded story, and a `behind <n>` count when the parent has commits the stream lacks. Roughly 45 tokens per emission; advisory context, never a gate.
 
 ### PreToolUse (Bash)
 Blocks dangerous commands via `rules/safety.patterns`:
@@ -162,11 +163,8 @@ Auto-saves session state (git + active skill context), then:
 ### SubagentStop
 Advisory quality check on subagent output. Warns on weak claims and missing file:line references.
 
-### WorktreeCreate / WorktreeRemove
-Copies state files to new worktrees. Merges activity logs on cleanup.
-
-### PreToolUse (Bash) — worktree fix
-`worktree-bash-fix.sh`: Transparent worktree directory fix with `apply_to_subagents`.
+### WorktreeRemove
+Merges a removed native worktree's activity log into the main worktree. (WorktreeCreate is not registered: the previous arm printed no path and aborted native worktree creation — removed.) The former `worktree-bash-fix.sh` PreToolUse hook was removed as well: it never functioned (it read the wrong payload field), and subagent threads use absolute paths.
 
 ## Customization
 
@@ -180,7 +178,7 @@ Copies state files to new worktrees. Merges activity logs on cleanup.
 
 ## Configuration
 
-Hooks are configured in `.claude/settings.json`. Each hook event points to its own shell script. No external runtime dependencies required.
+Hooks are configured in `.claude/settings.json`. Each hook event points to its own shell script. No external runtime dependencies required (the parallel-work skill scripts are bash 3.2+; jq or python3 are optional and only improve session detection).
 
 ## Disabling Hooks
 

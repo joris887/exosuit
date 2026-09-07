@@ -29,3 +29,7 @@ docs/sessions/.optimization-log.tsv
 docs/sessions/.refine-log.tsv
 docs/sessions/.audit-log.jsonl
 *.session-handoff.md
+
+# Parallel streams: .mcp.json is copied into streams with paths rewritten only when ignored; native claude --worktree checkouts
+.mcp.json
+.claude/worktrees/

@@ -1,19 +1,41 @@
 #!/usr/bin/env bash
-# Run all hook tests
-set -euo pipefail
+# Usage: bash run-all.sh
+#   Runs every test-*.sh file in this directory, each in its own bash process,
+#   and accumulates the per-file results (a file has failed when it exits
+#   non-zero). A failing file never stops the run: every file is reported.
+#   Stdout:
+#     Hook Test Suite
+#     ===============
+#     <each test file's own output>
+#     Suite complete: <N> test files run, <M> failed.
+#     Failing files: <file> [<file> ...]        (only when M > 0)
+#   Exit 0 when M = 0, 1 when M > 0.
+set -uo pipefail
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 
 echo "Hook Test Suite"
 echo "==============="
 echo ""
 
-TOTAL_PASS=0
-TOTAL_FAIL=0
+RAN=0
+FAILED=0
+FAILING=""
 
 for test_file in test-*.sh; do
-    bash "$test_file"
+    if bash "$test_file"; then
+        RAN=$((RAN+1))
+    else
+        RAN=$((RAN+1))
+        FAILED=$((FAILED+1))
+        FAILING="$FAILING $test_file"
+    fi
     echo ""
 done
 
-echo "All hook tests complete."
+echo "Suite complete: $RAN test files run, $FAILED failed."
+if [ "$FAILED" -gt 0 ]; then
+    echo "Failing files:$FAILING"
+    exit 1
+fi
+exit 0

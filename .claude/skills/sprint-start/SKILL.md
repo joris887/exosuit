@@ -1,9 +1,9 @@
 ---
 name: sprint-start
-version: 2.7.1
+version: 2.8.0
 description: Pre-sprint checks, feature branch creation, and sprint planning. Ensures clean state, defines sprint goal and scope, creates sprint spec document.
 trigger: manual
-depends-on: []
+depends-on: [parallel-work]
 references: []
 disable-model-invocation: true
 user-invocable: true
@@ -148,9 +148,10 @@ git checkout -b sprint-<number>
 Create an isolated worktree for parallel development:
 
 ```bash
-# Create worktree in sibling directory
-git worktree add ../$(basename $(pwd))-sprint-<number> -b sprint-<number>
+bash "${CLAUDE_SKILL_DIR}/../parallel-work/scripts/new-worktree.sh" "sprint-<number>" --no-parent
 ```
+
+Paste the script's output; its `Worktree ready:` line names the directory. Local settings (.env, settings.local.json, CLAUDE.local.md) are copied; no parent is recorded — a sprint worktree is a standalone worktree, not a stream.
 
 Inform the user:
 
@@ -159,6 +160,7 @@ Inform the user:
 
 To work in this worktree, open a new Claude Code instance in that directory.
 Each worktree has its own branch and working tree, so you can work on multiple stories in parallel.
+Fan out parallel streams from there (/parallel-work start), not from main.
 
 **Important:** When done, run `/sprint-end` from within the worktree. It will clean up after merge.
 ```

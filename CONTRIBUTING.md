@@ -18,7 +18,7 @@ git checkout -b feat/your-change
 
 ## Development Environment
 
-**Requirements:** POSIX shell, git, and a text editor. No language runtimes needed.
+**Requirements:** POSIX shell, git, and a text editor. No language runtimes needed (the parallel-work scripts are bash 3.2+; jq or python3 are optional and only improve session detection).
 
 **Optional tools:**
 - `jq` — hooks use it for JSON parsing (fall back to `sed` if absent)
@@ -49,7 +49,7 @@ git checkout -b feat/your-change
 - Use `#!/bin/sh` (POSIX) for hooks, NOT `#!/bin/bash` (exceptions: `post-edit-format.sh` and `status-line.sh` which need bash arrays)
 - Read JSON from stdin using `jq` with `sed` fallback — never hard-depend on `jq`
 - Exit codes: `0` = allow, `2` = block
-- All output on stderr (stdout reserved for JSON responses to Claude Code)
+- All output on stderr (stdout reserved for JSON responses to Claude Code); the one exception is SessionStart, whose plain-text stdout is added to the model's context per the hooks docs — session-start.sh's Stream: banner uses it deliberately.
 
 ## How to Add a New Skill
 

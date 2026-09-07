@@ -1,9 +1,9 @@
 ---
 name: merge-down
-version: 1.0.0
-description: Use when the user is inside a parallel stream (worktree branch) and wants to bring that branch up to date with the LATEST of its parent branch — typically after one or more sibling streams have merged their work up into the parent (via /merge-up). Pulls the parent's accumulated commits down into the current branch with a true merge. Inverse of /merge-up; the parent is recorded by /parallel-work in git config (branch.<name>.exosuitParent). Read-only on the parent — safe to run while the parent worktree is busy.
+version: 1.1.0
+description: Use when the user is inside a parallel stream and wants the parent branch's newer commits (sibling streams' merged work) pulled into this stream.
 trigger: manual
-depends-on: []
+depends-on: [parallel-work]
 references: []
 disable-model-invocation: true
 user-invocable: true
@@ -14,100 +14,76 @@ ______________________________________________________________________
 
 ## merge-down
 
-Bring the **current stream's branch** up to date with the parent it was created
-from. Use it after a round of `/merge-up`s have landed sibling streams' work on
-the parent: each sibling still only has its OWN commits, so run this in each
-stream to integrate everyone else's merged work.
+A true merge of the recorded parent into this stream. Read-only on the parent: its ref and its worktree are never written.
+Diagrams and the full schema for humans: docs/reference/PARALLEL_WORK.md (never loaded here).
 
-This is the complement of `/merge-up`:
+### When to run
 
-- `/merge-up` — merge THIS branch **into** the parent (publish your work upward).
-- `/merge-down` — merge the parent **into** this branch (pull everyone's work downward).
+After a MERGED message, or a session banner that says `behind`, once the current step is committed · before a `/merge-up` (its runner refuses a stream that is behind) · never on a dirty tree.
 
-Because all worktrees of a repository share one object store and one set of
-branch refs, the parent ref already reflects every local `/merge-up` — no
-network fetch is needed for local merges. A fetch is only relevant if merges
-were *pushed* from another machine (Step 3 handles that optionally). This skill
-never writes to the parent's working tree, so it is safe to run even while the
-parent worktree is in use.
+### Step 1 — Gate
 
-### Step 1 — Identify branches
-
+One call, no event — a run that stops here logs nothing:
 ```bash
-B="$(git rev-parse --abbrev-ref HEAD)"
-echo "current branch: $B"
+bash "${CLAUDE_SKILL_DIR}/../parallel-work/scripts/worktree-status.sh" --gate merge-down
 ```
-- If `B` is `HEAD` (detached), STOP — tell the user to check out a branch.
-- Resolve the parent `P`:
-  ```bash
-  P="$(git config "branch.$B.exosuitParent" || true)"
-  ```
-  - If empty, fall back to stripping the last `-<suffix>` (e.g. `sprint-3-a` →
-    `sprint-3`) and verify it exists: `git show-ref --verify --quiet refs/heads/<cand>`.
-  - If still unresolved or ambiguous, ASK the user which branch is the parent.
-- If `P == B` or `P` doesn't exist, STOP and report.
 
-### Step 2 — Pre-flight cleanliness (current worktree only)
+Paste it verbatim. Any `GATE merge-down: FAIL` line → STOP with the line. `behind: 0` → say "already up to date with <parent>" and STOP. The gate measures against the LOCAL parent ref, which already holds every local `/merge-up`. Only from this `behind: 0` stop, and only when the user says the parent was pushed from another machine: `git fetch <remote> "<parent>"` (never by default — a fetch moves `origin/*` for every worktree) and merge `<remote>/<parent>` in Step 2 in place of both `refs/heads/<parent>` revisions; the gate does not compare against it.
 
+### Step 2 — Merge the parent into this stream
+
+One call — the start event in front so both events belong to the mutating step; `;`, not `&&`, so the recount, the sha and the end event run on a conflict too. Both revisions are spelled in full: a tag sharing the parent's name wins a bare name lookup and merges the wrong ref.
 ```bash
-git status --porcelain            # current worktree — must be empty
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"merge-down\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl; git merge --no-edit "refs/heads/<parent>"; RC=$?; git rev-list --left-right --count "refs/heads/<parent>...HEAD"; git rev-parse --short HEAD; O=success; [ "$RC" -eq 0 ] || O="exit-$RC"; echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"merge-down\",\"outcome\":\"$O\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
 ```
-- If dirty, STOP: merging the parent in could collide with uncommitted work. Tell
-  the user to commit or `git stash` first, then re-run.
-- Unlike `/merge-up`, the parent worktree does **not** need to be clean — this skill
-  only reads the parent branch ref; it never commits into the parent's working tree.
 
-### Step 3 — Optionally refresh the parent from origin
+- `Already up to date.` → Step 3 with the counts (left = behind, right = ahead).
+- Fast-forward or a merge commit → Step 3 with the counts and the sha7 (`Merge branch 'refs/heads/…'` is the expected subject).
+- Conflict → do NOT abort. Run `git diff --name-only --diff-filter=U`, then AskUserQuestion `Resolve now (git add … && git commit) or back out (git merge --abort)?`. Always state which state the tree is in; here the counts are the unmerged ones and the sha7 is the pre-merge HEAD, never a merge commit.
 
-Only needed if parent commits were **pushed from elsewhere** (local `/merge-up`s
-already updated the shared parent ref). Best-effort; skip silently if there is no
-remote.
-
-```bash
-git fetch origin "$P" 2>/dev/null || true
-# Is origin/P ahead of local P?
-git rev-list --left-right --count "$P...origin/$P" 2>/dev/null || true
+### Step 3 — Report
+```markdown
+### Merge-down: <parent> → <branch>
+**Result:** already up to date | fast-forward | merge commit <sha7> | conflict (<n> files)
+**Now:** +<ahead> ahead, <behind> behind
+**Tree:** clean | merge in progress
 ```
-- If `origin/$P` is ahead of local `$P` (right-count > 0), the canonical latest is
-  on the remote. Note: local `$P` is usually checked out in the primary worktree, so
-  it cannot be fast-forwarded from here. In that case ASK the user whether to merge
-  `origin/$P` instead of local `$P` in Step 4 (substitute the ref). For the common
-  all-local workflow, local `$P` already holds every merged sibling — proceed with it.
 
-### Step 4 — Merge the parent into the current branch (true merge)
+## Rules
 
-```bash
-git merge "$P"          # or origin/$P if Step 3 selected it
-```
-- **"Already up to date."** → the current branch already contains everything on the
-  parent. Report and SKIP to Step 5.
-- **Fast-forward** when the current branch has no commits of its own ahead of `$P`.
-- **On conflict** (the parent's merged work overlaps this branch's work): do NOT
-  auto-abort — the user usually wants to integrate. STOP and:
-  - Show the conflicting files: `git diff --name-only --diff-filter=U`.
-  - Offer two paths: (a) help resolve the conflicts now, then
-    `git add <files> && git commit` to complete the merge; or (b) back out with
-    `git merge --abort` to return to the pre-merge state.
-  - Do not leave the worktree half-merged without telling the user which state it's in.
-- On success, show `git log --oneline -5`.
+- Gate before merge; a FAIL line stops the skill. The gate refuses before any mutation; every STOP above is prose the model follows — nothing prevents a human from running git directly.
+- Never fetch by default; the fetch path only from the `behind: 0` stop, on the user's say-so.
+- Never abort a conflicted merge unasked; offer both paths.
+- Read-only on the parent: its ref and its worktree are never written; the gate's own reads there (`status`, `rev-parse`) are the only commands that run in it.
+- Every report states the tree's state.
 
-### Step 5 — Report
+## Recovery
 
-```bash
-echo "$B now contains $P:"; git log --oneline -5
-git status --short
-git rev-list --left-right --count "$P...$B"   # left = parent-only (should be 0), right = this branch ahead
-```
-Summarize: the current branch is now up to date with `$P` (it contains every
-sibling's merged work), and is ready for continued work or a later `/merge-up`
-(whose Step 5 sync stays a clean fast-forward).
+| Symptom | Action |
+|---------|--------|
+| gate FAIL | fix the named cause, re-run |
+| own half-merge state (`MERGE_HEAD` in THIS worktree from an earlier run) | finish with `git commit` or `git merge --abort` before re-running |
+| own `index.lock` | no git running here → remove it by hand; the skill never does |
+| conflict left in place | one of the two paths above: resolve and commit, or `git merge --abort` |
+| `behind: 0` but a MERGED arrived | the parent moved on the remote only → the Step 1 fetch path, on the user's say-so |
 
-### Notes
+## Graceful Degradation
 
-- True merge by design, matching `/merge-up`, so history is preserved and a later
-  `/merge-up` of this branch fast-forwards cleanly.
-- Typical cadence: run all the `/merge-up`s for the round first, then run
-  `/merge-down` in each still-active stream to redistribute the integrated parent
-  to every branch.
-- Read-only on the parent: this skill never moves the parent's branch tip and never
-  touches the parent worktree's working files — only the current branch advances.
+| Dependency | If Missing |
+|------------|------------|
+| a remote | the fetch path is unavailable; the local merge is unaffected |
+| session detection (stderr ADVISORY) | irrelevant here — no messages are sent |
+
+## Evaluation Criteria
+
+- [ ] Gate before merge
+- [ ] Never fetches by default
+- [ ] Never auto-aborts a conflicted merge
+- [ ] Tree state always stated
+- [ ] Two Bash calls on the happy path
+
+### Pressure Scenarios
+
+1. "Fetch first to be safe" → only on the user's say-so, with the reason stated
+2. "Abort it, I'll redo it" → offered as one of two paths, never silently
+3. Dirty tree, "merge anyway" → the gate refuses (`GATE merge-down: FAIL`); the skill stops

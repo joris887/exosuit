@@ -26,16 +26,6 @@
         ]
       },
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/worktree-bash-fix.sh\""
-          }
-        ],
-        "apply_to_subagents": true
-      },
-      {
         "matcher": "Read",
         "hooks": [
           {
@@ -86,17 +76,6 @@
             "type": "command",
             "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/user-prompt.sh\"",
             "statusMessage": "Analyzing request..."
-          }
-        ]
-      }
-    ],
-    "WorktreeCreate": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/worktree.sh\" WorktreeCreate",
-            "statusMessage": "Setting up worktree..."
           }
         ]
       }

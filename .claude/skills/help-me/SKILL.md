@@ -74,7 +74,9 @@ Map the user's natural language request to the most appropriate skill(s):
 | User Says | Skill | Why |
 |---|---|---|
 | "commit" | `/commit` | Conventional commit |
-| "parallel", "worktree", "multiple stories" | `/parallel-work` | Manage concurrent worktrees |
+| "parallel", "worktree", "multiple stories" | `/parallel-work` | Parallel streams: start, status, hello, cleanup |
+| "publish my stream", "merge up" | `/merge-up` | Merge a stream into its parent |
+| "pull the parent", "merge down", "catch up my stream" | `/merge-down` | Bring a stream up to date with its parent |
 | "improve iteratively", "refine" | `/refine-loop "<task>"` | Iterative self-improvement |
 | "optimize metric", "increase coverage" | `/optimize "<goal>"` | Metric-driven optimization |
 | "create skill" | `/skill-create` | Generate tech-specific skills |

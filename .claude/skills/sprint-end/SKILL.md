@@ -1,16 +1,16 @@
 ---
 name: sprint-end
-version: 2.10.1
+version: 2.11.0
 description: Use when the user wants to ship a sprint's work to main via PR.
 trigger: manual
-depends-on: [code-quality, test-validator, security-audit]
+depends-on: [code-quality, test-validator, security-audit, parallel-work]
 references: [references/quality-gates.md, references/error-recovery.md]
 micro-components:
   step-1: [discover-commands, verify-clean-git-state]
   step-2: [quality-gate-sequence]
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Edit, Write
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write, AskUserQuestion, ListAgents, SendMessage
 ---
 ______________________________________________________________________
 
@@ -72,7 +72,7 @@ START → 1. Discover Sprint State (from git, no assumptions)
             → 5. Wait for CI
               → [CI green?]
                 → NO: Fix → push → re-check
-                → YES: 6. Merge and Clean Up (squash, delete branch, worktree)
+                → YES: 6. Merge and Clean Up (child streams, squash, delete branch, worktree)
                   → 7. Sprint Complete Summary → DONE
 ```
 
@@ -138,26 +138,13 @@ git diff --name-only $DEFAULT_BRANCH...HEAD
 
 **If in a worktree:** Detect with `git rev-parse --git-common-dir`. Note the worktree path for cleanup in step 6.
 
-**Child stream check (parallel work):** Discover any streams fanned out from this branch by `/parallel-work`:
+**Child stream check (parallel work):** one call:
 
 ```bash
-# Branches whose recorded parent is the current branch.
-# Note: git canonicalizes config keys to lowercase in --get-regexp output.
-git config --get-regexp '^branch\..*\.exosuitparent$' 2>/dev/null \
-  | awk -v P="$(git branch --show-current)" '$2==P {print $1}' \
-  | sed 's/^branch\.//; s/\.exosuitparent$//'
+bash "${CLAUDE_SKILL_DIR}/../parallel-work/scripts/worktree-status.sh" --gate children
 ```
 
-For each child branch found, count work not yet merged into this branch:
-
-```bash
-git rev-list --count HEAD..<child-branch>
-```
-
-- **If any child has unmerged commits:** STOP and report:
-  > "Stream `<child>` has [N] commits not merged into this sprint branch. Run `/merge-up` inside its worktree first, or explicitly confirm abandoning that work."
-  Proceed only when every child is merged or the user has explicitly abandoned it.
-- **If all children are merged (count 0):** note them, with their worktree paths from `git worktree list --porcelain`, for cleanup in step 6.
+Paste its output verbatim. Proceed only on `GATE children: OK`. On `GATE children: FAIL` STOP and report the `CHILD …` lines: an unmerged stream needs `/merge-up` inside its worktree (or the user's explicit decision to abandon it); `branch GONE, config residue` is cleaned with the printed `git config --remove-section` command. `ADVISORY: CHILD … is dirty` is relayed, not a stop. `CHILD: none` means no streams.
 
 Analyze: branch name, all commits since branching, all files changed, stories completed (parse from commit messages).
 
@@ -473,15 +460,14 @@ gh pr view --json reviewRequests,reviews
 
 ## 6. Merge and Clean Up
 
-**Child stream cleanup (before the merge, while still on the sprint branch):** For each merged child stream noted in step 1:
+**Child stream cleanup (before the merge, while still on the sprint branch):** re-run the gate, then the scripted cleanup:
 
 ```bash
-git worktree remove <child-worktree-path>     # fails if the worktree is dirty — resolve first
-git branch -d <child-branch>                  # safe delete works: the child is merged into this branch
-git config --remove-section branch.<child-branch> 2>/dev/null || true
+bash "${CLAUDE_SKILL_DIR}/../parallel-work/scripts/worktree-status.sh" --gate children
+bash "${CLAUDE_SKILL_DIR}/../parallel-work/scripts/stream-cleanup.sh"
 ```
 
-This must happen before switching to the default branch — after the squash merge, `git branch -d` would no longer recognize the children as merged. For any stream the user chose to abandon (unmerged commits), leave its branch in place and report it: safe delete will refuse, and force-deleting branches is blocked by the framework's git hooks on purpose. The user can delete it manually once they are certain.
+Paste both outputs. If any `CLEANUP: remove` row exists, ask (AskUserQuestion) `Remove these streams?`; on Yes, for every `remove … live-session=<name>` row send BYE (body: `${CLAUDE_SKILL_DIR}/../parallel-work/references/messaging.md` section `### BYE`, summary `bye <branch>`; `ListAgents` now, then one `SendMessage` per listed name), then ask `BYE sent to <names>. Close those terminals, then continue — a stream still live at that moment is kept, not removed.` (Continue / Stop here), then run `bash "${CLAUDE_SKILL_DIR}/../parallel-work/scripts/stream-cleanup.sh" --apply` and paste it. Close every stream terminal before this step: a stream kept here (`keep … live there`, dirty, or upstream-blocked) survives the sprint, and after the squash merge `git branch -d` no longer recognises it as merged — it must then be removed by hand (safe delete refuses; force-deleting is blocked by the framework's git hooks on purpose). For a stream the user chose to abandon, leave it and report it.
 
 Once CI is green (or local gates passed) and any required reviews are complete:
 
@@ -582,5 +568,5 @@ Skip build step.
 - ALWAYS discover state from git — assume no prior context
 - ALWAYS update documentation for completed stories
 - ALWAYS squash merge to keep main history clean
-- ALWAYS clean up worktrees after merge
+- ALWAYS clean up child streams before the squash merge (the scripted cleanup), and the sprint worktree after it
 - Follow coding standards in `docs/reference/CODING_STANDARDS.md`

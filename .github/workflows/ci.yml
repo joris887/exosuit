@@ -27,4 +27,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Lint shell scripts
-        run: shellcheck -S error .claude/hooks/*.sh install.sh
+        run: shellcheck -S error .claude/hooks/*.sh .claude/hooks/lib/*.sh .claude/hooks/tests/*.sh .claude/skills/*/scripts/*.sh install.sh

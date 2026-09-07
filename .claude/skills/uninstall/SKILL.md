@@ -64,7 +64,7 @@ for skill_dir in .claude/skills/*/; do
     skill_name=$(basename "$skill_dir")
     # Check if it's a framework skill or a tech skill
     case "$skill_name" in
-        bootstrap|sprint-start|story-cycle|sprint-end|continue|handoff|brainstorm|ideate|research|skill-create|code-quality|test-validator|security-audit|architecture-check|manual-test|testing-cycle|UAT-cycle|claude-sense-check|debug-session|fix-issue|undo-work|commit|parallel-work|weekly-maintenance|retrospective|backlog-review|doctor|framework-upgrade|pr-status|skill-eval|refine-loop|optimize|quickstart|help-me|dashboard|custom-hooks|uninstall|performance-check)
+        bootstrap|sprint-start|story-cycle|sprint-end|continue|handoff|brainstorm|ideate|research|skill-create|code-quality|test-validator|security-audit|architecture-check|manual-test|testing-cycle|UAT-cycle|claude-sense-check|debug-session|fix-issue|undo-work|commit|parallel-work|merge-up|merge-down|weekly-maintenance|retrospective|backlog-review|doctor|framework-upgrade|pr-status|skill-eval|refine-loop|optimize|quickstart|help-me|dashboard|custom-hooks|uninstall|performance-check)
             ;; # Framework skill — will be removed
         *)
             echo "  $skill_name (technology-specific)"

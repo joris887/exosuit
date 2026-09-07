@@ -1,7 +1,7 @@
 {
   "name": "exosuit",
   "version": "5.0.0",
-  "description": "Suit up. Build anything. A full engineering organization for Claude Code \u2014 deep idea interrogation, TDD sprints, enforced quality gates. 43 skills, 8 agents, 13 hooks, path-scoped rules.",
+  "description": "Suit up. Build anything. A full engineering organization for Claude Code \u2014 deep idea interrogation, TDD sprints, enforced quality gates. 43 skills, 8 agents, 12 hooks, path-scoped rules.",
   "homepage": "https://github.com/joris887/exosuit",
   "author": {
     "name": "Joris Deumens",

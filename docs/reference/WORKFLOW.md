@@ -102,9 +102,10 @@ Always run `/handoff` before ending a session. Creates a structured handoff note
 For working on multiple stories simultaneously:
 
 ```
-/parallel-work create <story-id>  →  creates isolated git worktree
-/parallel-work list               →  shows active worktrees
-/parallel-work cleanup            →  removes merged worktrees
+/parallel-work start <epic or story ids>  →  creates one stream (git worktree + named Claude session) per story
+/parallel-work status               →  roster: parents, ahead/behind, sessions
+/merge-up · /merge-down            →  inside a stream: publish to / refresh from the parent
+/parallel-work cleanup              →  removes merged, clean, idle streams (asks first)
 ```
 
 Each worktree runs an independent Claude Code instance on a separate branch.

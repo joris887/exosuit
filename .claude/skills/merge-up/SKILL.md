@@ -1,107 +1,106 @@
 ---
 name: merge-up
-version: 1.0.0
-description: Use when the user is inside a parallel stream (worktree branch) and wants to merge that branch's committed work into the parent branch it was created from, then bring the stream back up to date with the parent. True merge (keeps individual commits); prompts before pushing the parent. Pairs with /parallel-work, which records the parent in git config (branch.<name>.exosuitParent), and with /merge-down (the inverse direction).
+version: 2.0.0
+description: Use when the user is inside a parallel stream and wants its committed work merged into the parent branch it was created from, then the stream synced back to that parent.
 trigger: manual
-depends-on: []
+depends-on: [parallel-work]
 references: []
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, AskUserQuestion
-argument-hint: ""
+allowed-tools: Read, Glob, Grep, Bash, AskUserQuestion, ListAgents, SendMessage
+argument-hint: "[--allow-behind]"
 ---
 ______________________________________________________________________
 
 ## merge-up
 
-Merge the **current stream's branch** into the parent it was created from, then
-fast-forward the current branch back up to the parent. Safe across worktrees:
-the parent is usually checked out in another worktree, so the merge runs there
-via `git -C` rather than checking the parent out here (git forbids that).
+Merges this stream's branch into its recorded parent, run from the parent's worktree — a fast-forward when the parent has not moved, a merge commit when it has; the stream then fast-forwards to the parent. Asks before pushing the parent. Tells the coordinator and live sibling streams what landed — a hint, never approval.
+Diagrams and the full schema for humans: docs/reference/PARALLEL_WORK.md (never loaded here).
 
-### Step 1 — Identify branches
+### Step 1 — Run the merge
 
+One call; append ` --allow-behind` to the script only when the user asked for it:
 ```bash
-B="$(git rev-parse --abbrev-ref HEAD)"
-echo "current branch: $B"
+echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"merge-up\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl; bash "${CLAUDE_SKILL_DIR}/../parallel-work/scripts/merge-up-run.sh"; RC=$?; O=success; [ "$RC" -eq 0 ] || O="exit-$RC"; echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"merge-up\",\"outcome\":\"$O\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl; exit "$RC"
 ```
-- If `B` is `HEAD` (detached), STOP — tell the user to check out a branch.
-- Resolve the parent `P`:
-  ```bash
-  P="$(git config "branch.$B.exosuitParent" || true)"
-  ```
-  - If empty, fall back to stripping the last `-<suffix>` (e.g. `sprint-3-a` →
-    `sprint-3`) and verify it exists with `git show-ref --verify --quiet refs/heads/<cand>`.
-  - If still unresolved or ambiguous, ASK the user which branch is the parent.
-- If `P == B` or `P` doesn't exist, STOP and report.
 
-### Step 2 — Pre-flight cleanliness (both worktrees)
+Paste the whole output verbatim (stderr included), then route on it — the first matching row wins:
+| Output | Action |
+|--------|--------|
+| `GATE merge-up: FAIL — …` (any of its eleven reasons) | STOP with the line; nothing touched |
+| `MERGE: nothing-to-merge` | Step 4 |
+| `MERGE: behind` | AskUserQuestion `Run /merge-down first (recommended), or merge anyway with --allow-behind (a true merge)?`; re-run with the flag only on the second answer |
+| `MERGE: merged` + `files:` + `SYNC: ok` | Step 2 |
+| `MERGE: refused` | STOP and relay the verdict line verbatim; its own text says whether the parent was left changed or the merge landed elsewhere — add no claim of your own |
+| `MERGE: locked` | STOP; retry in a minute; never delete the lock |
+| `MERGE: busy` | STOP and relay the line; it says whose merge is unfinished — a sibling's (retry later) or this stream's own, after its branch moved during the run (finish or abort it there first) |
+| `MERGE: blocked` | STOP; name the files and relay the verdict's own remedy — untracked files are moved aside in the parent worktree, uncommitted changes to tracked ones are committed or stashed by their owner |
+| `MERGE: conflict` | STOP with the paths; the merge is already aborted, so offer to resolve here or in the parent worktree, never automatically. When the line adds that uncommitted tracked changes remain there and they are not this merge's, say so and leave them alone |
+| `SYNC: FAIL` | STOP; the parent merge stands; the user decides |
+| no verdict line, stderr `unknown option`, exit 2 | the call was mistyped; fix it, do not retry blindly |
+| no verdict line and no `unknown option` (a stderr `ERROR:` line, or nothing at all) | STOP and relay what was printed verbatim; the call was not mistyped — the sibling script or the repository is the problem; make no claim about the parent's state |
 
-```bash
-git status --porcelain            # current worktree — must be empty
+<HARD-GATE>Never stash for the user, never delete `index.lock` or `MERGE_HEAD`, never guess a parent from a branch name, never merge by hand.</HARD-GATE>
+
+### Step 2 — Offer to push the parent
+
+`remote: -` → skip and say so. Else AskUserQuestion `Push <parent> to <remote> now?` (Yes / No). Yes → one call, values from the pasted block: `git -C "<parent_dir>" push <remote> "<parent>"`. Never `--force`; a rejection is reported, not retried.
+
+### Step 3 — Tell the siblings what landed
+
+Skipped on `MERGE: nothing-to-merge`. Recipients = the `coordinator:` and `peers:` names from the pasted block that a `ListAgents` call made now also lists. Load `${CLAUDE_SKILL_DIR}/../parallel-work/references/messaging.md` section `### MERGED` and send one `SendMessage` per recipient — summary `merged <branch>`, body exactly that section, filled from this run's `MERGE: merged` and `files:` lines. Once per merge; never wait for a reply; never per commit.
+
+### Step 4 — Report
+```markdown
+### Merge-up: <branch> → <parent>
+**Merged:** <sha7>, <N> commit(s), <M> file(s)
+**Pushed:** yes to <remote> | no | skipped (no remote)
+**Stream:** synced (0 behind) | unchanged (<behind> behind — run /merge-down)
+**Notified:** <name> (delivered), <name> (held) | none (no live session in <parent_dir>) | none (ListAgents unavailable)
 ```
-- If the current worktree is dirty, STOP: the skill merges **committed** work only.
-  Tell the user to commit or stash first.
-- Locate the parent's worktree dir:
-  ```bash
-  git worktree list --porcelain
-  ```
-  Find the entry whose branch is `refs/heads/$P`; call its path `PDIR`.
-  - If `P` is not checked out in any worktree, STOP and tell the user to check it
-    out in a worktree first (the merge needs a working tree to run in).
-- Verify the parent worktree is clean: `git -C "$PDIR" status --porcelain` must be
-  empty. If dirty, STOP and report which worktree/path needs attention.
 
-### Step 3 — Merge current branch into parent (true merge)
+Every value comes from this run's output. `**Stream:** synced (0 behind)` only after `SYNC: ok`, or after `MERGE: nothing-to-merge` whose pasted `behind:` line reads 0; any other `behind:` value → `unchanged (<behind> behind — run /merge-down)`. After `MERGE: nothing-to-merge` also: `**Merged:** nothing (0 ahead)` and `**Notified:** not-attempted(nothing to merge)`.
 
-Run the merge **in the parent's worktree**:
-```bash
-git -C "$PDIR" merge "$B"
-```
-- This keeps `B`'s individual commits (fast-forwards when possible).
-- On "Already up to date." → nothing to merge; tell the user and SKIP to Step 5.
-- On conflict: run `git -C "$PDIR" merge --abort`, then STOP and report the
-  conflicting files. Offer to help resolve, but do NOT leave the parent worktree
-  in a half-merged state without telling the user.
-- On success, show `git -C "$PDIR" log --oneline -3`.
+## Rules
 
-### Step 4 — Offer to push the parent
+- One script call decides; the model never merges, stashes, aborts or unlocks by hand. The gate refuses before any mutation, and after it a refusal may still have left the parent changed — the verdict line says which; every STOP above is prose the model follows — nothing prevents a human from running git directly.
+- A parent comes from `branch.<b>.exosuitParent` or not at all — never from a branch name.
+- No push without the question, never with `--force`.
+- MERGED once per merge, to the names listed now; never on nothing-to-merge, never per commit.
+- `MERGE: behind` means `/merge-down` first; `--allow-behind` only on the user's explicit second answer.
 
-ASK the user (AskUserQuestion): "Push `$P` to origin now?" — Yes / No.
-- If yes: `git -C "$PDIR" push origin "$P"` (never `--force`; if rejected, report
-  and let the user decide — likely needs a pull/merge of origin first).
-- If no: leave it local.
-- Note: if `P` is the repository's default branch, do NOT push — the framework's
-  git rules require all changes to the default branch to go through a PR
-  (`/sprint-end` handles that). Skip this step and say so.
+## Recovery
 
-### Step 5 — Sync current branch back up to parent
+| Symptom | Action |
+|---------|--------|
+| gate FAIL | fix the named cause, re-run |
+| `refused` | read the printed line: `merge.ff=only` or a hook says `(nothing changed)`; any other text means the parent worktree moved — `git -C <parent_dir> status` and `git -C <parent_dir> log -1` before touching anything |
+| `locked` | a sibling's git is running. A genuinely stale lock: confirm with `ps` that no git process runs in the parent worktree, then remove the lock file by hand — the skill never does |
+| `busy` | a sibling's merge: wait for it. This stream's own branch moved during the run: finish or abort that merge in the parent worktree, then retry — waiting never clears it |
+| `blocked` | the verdict names the files and which kind they are: untracked → move them aside in the parent worktree; tracked with uncommitted changes → their owner commits or stashes them there — never `restore` or delete someone's edit |
+| `conflict` | resolve in the parent worktree with its human, or `/merge-down` first so the conflict surfaces here |
+| `SYNC: FAIL` | the merge stands; `git merge --ff-only <parent>` after the named fix |
+| push rejected | pull/merge the remote first; never force |
+| `git -C` blocked by "worktree isolation" | you are in a native Claude Code worktree session; run the family from a plain terminal in a sibling stream |
 
-Back in the current worktree:
-```bash
-git merge "$P"          # fast-forward: B now contains everything on P
-```
-- This should fast-forward cleanly (P already contains B's commits plus anything
-  else that landed on P). If it somehow reports a conflict, STOP and report.
+## Graceful Degradation
 
-### Step 6 — Report
+| Dependency | If Missing |
+|------------|------------|
+| `ListAgents` / `SendMessage` | `Notified: none (ListAgents unavailable)` |
+| session detection (stderr ADVISORY) | `coordinator: -`, `peers: -`; nothing sent |
+| a remote | push skipped |
 
-Show the final state so the user can see both branches aligned:
-```bash
-echo "$B:"; git log --oneline -3
-echo "$P:"; git -C "$PDIR" log --oneline -3
-git status --short
-```
-Summarize: what merged into `$P`, whether it was pushed, and that `$B` is now up
-to date with `$P` and ready for continued work.
+## Evaluation Criteria
 
-### Notes
+- [ ] One script call decides; no git of the model's own before Step 2
+- [ ] Every verdict is routed by its word
+- [ ] No push without the question
+- [ ] MERGED once per merge and never on nothing-to-merge
+- [ ] No git text is interpreted by the model
 
-- True merge by design so the stream branch stays alive and Step 5 is a clean
-  fast-forward. Do not switch to squash/rebase without re-checking with the user.
-- The parent worktree's checked-out branch tip moves as a result of this skill —
-  that's intended (it IS the merge). Anyone else working in that worktree should
-  be clean before you run this.
-- Typical cadence with several streams: each stream runs `/merge-up` when a story
-  completes, then every still-active stream runs `/merge-down` to pick up the
-  integrated result.
+### Pressure Scenarios
+
+1. "Stash my changes and merge" → STOP; the gate names the dirty tree and the skill never stashes
+2. "Just delete that index.lock" → the skill does not; a human removes a stale lock after `ps` shows no git in the parent worktree
+3. "We're up to date, skip the message" on `MERGE: nothing-to-merge` → no MERGED goes out; that is correct

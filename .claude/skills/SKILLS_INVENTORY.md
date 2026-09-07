@@ -1,6 +1,6 @@
 # Skills Inventory
 
-Last updated: 2026-08-06
+Last updated: 2026-09-06
 
 ## Overview
 
@@ -80,9 +80,9 @@ For technology skill generation: `/skill-create`
 
 | Skill            | Arguments                       | Description                              |
 | ---------------- | ------------------------------- | ---------------------------------------- |
-| `/parallel-work` | `[status\|start [count]\|cleanup]` | Work on multiple stories at once: creates isolated parallel streams (git worktrees) from the current branch with local settings wired up, shows stream status, cleans up finished streams (worktree-aware bash hook ensures correct working directory) |
-| `/merge-up`      | —                               | Inside a stream: merge its committed work into the parent branch it was created from, then sync the stream back up to the parent |
-| `/merge-down`    | —                               | Inside a stream: pull the parent branch's accumulated work (other streams' merged stories) down into this stream |
+| `/parallel-work` | `[status\|start [count \| story ids \| epic id]\|hello\|cleanup]` | Parallel streams: script-computed roster and gates, one named Claude session per stream, HELLO/MERGED/BYE hints, dry-run cleanup that asks first |
+| `/merge-up`      | `[--allow-behind]`              | Inside a stream: merge its committed work into the parent (script verdicts; refuses while behind or into the default branch) and tell siblings |
+| `/merge-down`    | —                               | Inside a stream: pull the parent's newer commits in (gate first; never fetches by default) |
 
 ### Testing Workflow (Manual-only)
 
@@ -251,8 +251,7 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 - `stop.sh` — Auto-save + completion evidence validation
 - `user-prompt.sh` — Advisory intent classification
 - `subagent-stop.sh` — Subagent quality warnings
-- `worktree.sh` — Worktree init + cleanup
-- `worktree-bash-fix.sh` — Transparent worktree directory fix (applied to subagents)
+- `worktree.sh` — WorktreeRemove log merge
 - `post-edit-format.sh` — Auto-format after edits + secrets detection (bash)
 - `post-tool-failure.sh` — Log tool failures + inject error recovery guidance
 - `pre-compact.sh` — Preserve critical session state before context compaction

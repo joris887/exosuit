@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "exosuit",
-      "description": "Suit up. Build anything. Deep idea interrogation, TDD sprints, enforced quality gates — 43 skills, 8 agents, 13 hooks. Language-agnostic, works for any project.",
+      "description": "Suit up. Build anything. Deep idea interrogation, TDD sprints, enforced quality gates — 43 skills, 8 agents, 12 hooks. Language-agnostic, works for any project.",
       "version": "5.0.0",
       "source": "./"
     }

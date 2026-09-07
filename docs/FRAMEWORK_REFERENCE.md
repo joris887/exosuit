@@ -46,7 +46,7 @@ Install it once. Run `/quickstart`. Start building. The framework provides that 
 
 ### What It Is
 
-A drop-in development framework for Claude Code that provides 45 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
+A drop-in development framework for Claude Code that provides 45 skills (slash commands), 12 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
 
 ### Who It's For
 
@@ -67,7 +67,7 @@ Not needed for one-off questions, quick scripts, or projects where you don't wan
 | **`gh` CLI** | PR creation, issue management, CI status checks | Required for `/fix-issue`, `/pr-status`, `/sprint-end` |
 | **Stack-specific tools** | Auto-format on every edit, quality gates | Optional — framework detects what's available |
 
-No language runtimes required. The framework itself is pure POSIX shell and markdown.
+No language runtimes required. The framework itself is pure POSIX shell and markdown (the parallel-work skill scripts are bash 3.2+; jq or python3 are optional and only improve session detection).
 
 ### Design Principles
 
@@ -140,7 +140,7 @@ Skills load on-demand (only when invoked) with a lean entry point (~150 lines) a
 │   ┌──────────────────────────────────────────────────────────────────┐   │
 │   │                     ENFORCEMENT LAYER                            │   │
 │   │                                                                  │   │
-│   │   Hooks (13 POSIX shell scripts)     Rules (9 markdown files)    │   │
+│   │   Hooks (12 POSIX shell scripts)     Rules (9 markdown files)    │   │
 │   │   ════════════════════════════       ═════════════════════════   │   │
 │   │   DETERMINISTIC — AI cannot          ADVISORY — auto-loaded      │   │
 │   │   bypass. Scripts physically         when matching files are     │   │
@@ -1381,7 +1381,7 @@ Session Start
   [ Active work: /story-cycle, /debug-session, /fix-issue, etc. ]
      │
      ├──→ Every edit ──→ [PostToolUse: format, secrets scan, activity log]
-     ├──→ Every bash ──→ [PreToolUse: safety check, worktree fix]
+     ├──→ Every bash ──→ [PreToolUse: safety check]
      │
      ▼
   ┌────────────────────────────────────────────┐
@@ -1399,7 +1399,6 @@ Session Start
 ```
 Every Bash command:
   [PreToolUse: pre-tool-use.sh]     → block dangerous commands + advisory warnings
-  [PreToolUse: worktree-bash-fix.sh] → inject cd if in worktree
 
 Every Read:
   [PreToolUse: pre-read-check.sh]   → warn when reading sensitive files (.env, keys, credentials)
@@ -1684,34 +1683,17 @@ are for self-contained stories with no shared files (see the story template's
 "Self-Contained by Default" guidance).
 
 ```
-/sprint-start ──→ creates sprint branch on main worktree
-     │
-     ▼
-/parallel-work start ──→ sense-checks the plan (dependencies, overlapping files)
-     │                     creates N worktrees off the sprint branch, one branch each
-     │                     (scripts/new-worktree.sh: records parent in git config
-     │                      branch.<name>.exosuitParent, propagates .env,
-     │                      settings.local.json, CLAUDE.local.md, .mcp.json)
-     │                     offers to open each in its own Claude Code tab
-     │                     (scripts/open-worktree-terminals.sh, cross-platform)
-     │
-     ▼
-In each stream: /story-cycle as normal
-     │  ├──→ [settings.json hook prefix resolves the correct worktree root]
-     │  ├──→ /merge-up   — publish this stream's work into the sprint branch,
-     │  │                  then fast-forward the stream back up to it
-     │  └──→ /merge-down — pull sibling streams' merged work into this stream
-     │
-     ▼
-/parallel-work status ──→ all streams, parents, ahead/behind counts
-     │
-     ▼
-/parallel-work cleanup ──→ removes fully-merged streams (safe delete only)
-     │
-     ▼
-/sprint-end ──→ verifies every stream is merged up (stops on unmerged work),
-                removes child worktrees and branches, ships the sprint via PR
+/sprint-start --worktree ──→ the base (sprint) branch in its own worktree (new-worktree.sh --no-parent)
+/parallel-work start     ──→ GATE start → plan → new-worktree.sh --story x N → launcher: claude --name <branch> -- '/parallel-work hello'
+  each stream            ──→ HELLO to the coordinator (hint) → /story-cycle <story>
+  /merge-up              ──→ merge-up-run.sh: MERGE: merged + SYNC: ok → MERGED to coordinator and peers (hint); behind / refused / locked / busy / blocked / conflict / SYNC: FAIL → STOP
+  siblings               ──→ /merge-down when the tree is clean; next story in the same stream
+/parallel-work status    ──→ roster: path, branch, parent, ahead/behind, story, session, tree, last commit (+ committed overlap between unmerged streams)
+/parallel-work cleanup   ──→ stream-cleanup.sh dry run → "Remove these streams?" → BYE to live sessions (hint) → "Close those terminals, then continue" → --apply (a still-live stream is kept)
+/sprint-end              ──→ GATE children → scripted cleanup → squash merge → PR
 ```
+
+Full diagrams, schema and platform matrix: docs/reference/PARALLEL_WORK.md
 
 ### /commit — Conventional Commit
 
@@ -1835,7 +1817,7 @@ Hooks are POSIX shell scripts that execute automatically on Claude Code events. 
 
 **Architecture:**
 - Individual shell scripts — each event has a dedicated script
-- No language runtimes required — pure POSIX shell (`#!/bin/sh`)
+- No language runtimes required — pure POSIX shell (`#!/bin/sh`) (the parallel-work skill scripts are bash 3.2+; jq or python3 are optional and only improve session detection)
 - JSON field extraction uses `jq` when available, with `sed` fallback
 - Graceful degradation — own failures never block the user (exit 0 on error)
 - Session state in `.claude/hooks/state/` (plain text files: `project-profile`, `stop-iteration`)
@@ -1858,8 +1840,7 @@ settings.json / hooks.json
      │  (match event type + tool matcher)
      │
      ├──→ [PreToolUse: Bash]
-     │       ├── pre-tool-use.sh ── block + advisory patterns
-     │       └── worktree-bash-fix.sh ── inject cd prefix
+     │       └── pre-tool-use.sh ── block + advisory patterns
      │
      ├──→ [PreToolUse: Read]
      │       └── pre-read-check.sh ── sensitive file warning
@@ -1890,15 +1871,13 @@ settings.json / hooks.json
 |---|---|---|---|
 | `SessionStart` | `session-start.sh` | Tool checks, stale sessions, git state (once per session) | Advisory |
 | `PreToolUse` (Bash) | `pre-tool-use.sh` | Dangerous command blocking + sanitization + context injection | Blocking/Modifier |
-| `PreToolUse` (Bash) | `worktree-bash-fix.sh` | Worktree cd prefix injection | Modifier |
 | `PreToolUse` (Read) | `pre-read-check.sh` | Sensitive file warning (.env, keys, credentials) | Advisory |
 | `PostToolUse` (Edit\|Write\|Bash) | `post-tool-use.sh` | Activity logging | Logging |
 | `PostToolUse` (Edit) | `post-edit-format.sh` | Auto-format + secrets scan | Non-blocking |
 | `Stop` | `stop.sh` | Completion evidence validation + workflow enforcement + auto-save | Blocking |
 | `UserPromptSubmit` | `user-prompt.sh` | Destructive intent detection + skill suggestions | Advisory |
 | `SubagentStop` | `subagent-stop.sh` | Weak claim detection | Advisory |
-| `WorktreeCreate` | `worktree.sh` | Copy state files to new worktree | Advisory |
-| `WorktreeRemove` | `worktree.sh` | Merge activity logs back | Advisory |
+| `WorktreeRemove` | `worktree.sh` | Merge a removed native worktree's activity log back | Advisory |
 | `PreCompact` | `pre-compact.sh` | Snapshot session state + inject compaction preservation guidance | Advisory |
 | `PostToolUseFailure` | `post-tool-failure.sh` | Log tool failures + inject recovery guidance + detect cascading failures | Advisory |
 
@@ -2026,8 +2005,7 @@ Four functions:
 
 - **user-prompt.sh** — Warns about destructive requests ("delete all", "drop database", etc.) AND suggests relevant skills based on intent (e.g., "bug in login" → suggest `/debug-session`; "ship to main" → suggest `/sprint-end`). Skill suggestions shown at most once per skill per session, suppressed when the prompt already starts with a skill invocation.
 - **subagent-stop.sh** — Flags weak claims and missing `file:line` references in substantial subagent output
-- **worktree.sh** — WorktreeCreate: copies state files. WorktreeRemove: merges activity logs back.
-- **worktree-bash-fix.sh** — Injects `cd '<worktree>'` prefix for commands in worktrees (applied to subagents too)
+- **worktree.sh** — WorktreeRemove: merges a removed native worktree's activity log back into the main worktree. (WorktreeCreate is not registered: the previous arm printed no path and aborted native `claude --worktree` creation — removed.)
 - **pre-compact.sh** — PreCompact handler. Snapshots current session state (branch, recent commits, uncommitted changes, active skill context from `.failure-state.md`) to `docs/sessions/.auto-save.md`. Injects `systemMessage` guidance for what to preserve during compaction. Advisory only (cannot block compaction). Runs at minimal profile (always active).
 - **post-tool-failure.sh** — PostToolUseFailure handler. Logs all tool failures to `docs/sessions/.failure-log.jsonl`. Detects cascading failures (3+ on same target) and escalates. Injects tool-specific recovery guidance via `systemMessage` (Edit: re-read first; Bash: check exit code; Read: verify path; Write: check permissions). Advisory only. Runs at standard profile.
 - **status-line.sh** — Outputs `Sprint N | branch-name*` for Claude Code status bar. Not a hook — configured via the `statusLine` setting in settings.json (runs as a shell command, not on a hook event)
@@ -2171,9 +2149,11 @@ agent: Explore             # subagent type
                    │   phase-review     │───→ ideate
                    └────────────────────┘
 
+Depends on parallel-work (its scripts and messaging reference):
+  merge-up, merge-down, sprint-start, sprint-end
+
 Standalone (no dependencies):
-  commit, continue, handoff, sprint-start, parallel-work,
-  merge-up, merge-down,
+  commit, continue, handoff, parallel-work,
   manual-test, testing-cycle, UAT-cycle, debug-session,
   undo-work, pr-status, backlog-review, retrospective,
   refine-loop, skill-eval, claude-sense-check, deploy,
@@ -2185,9 +2165,9 @@ Standalone (no dependencies):
 | Skill | Version | Purpose | Trigger |
 |---|---|---|---|
 | `/bootstrap` | v2.13.0 | First-run framework setup | Manual |
-| `/sprint-start` | v2.7.0 | Start sprint with clean state + planning | Manual |
+| `/sprint-start` | v2.8.0 | Start sprint with clean state + planning | Manual |
 | `/story-cycle` | v4.4.0 | Universal story delivery (TDD, quality gates, profile-adaptive) | Manual |
-| `/sprint-end` | v2.10.0 | Ship sprint via PR (quality gates + merge) | Manual |
+| `/sprint-end` | v2.11.0 | Ship sprint via PR (quality gates + child-stream gate + merge) | Manual |
 | `/continue` | v2.7.0 | Smart session resumption | Manual |
 | `/handoff` | v2.6.0 | Structured session end | Manual |
 | `/discover` | v1.0.0 | Deep guided elicitation (archetype-aware, 7-phase, 4 modes) | Manual |
@@ -2208,9 +2188,9 @@ Standalone (no dependencies):
 | `/fix-issue` | v2.4.0 | GitHub issue → TDD fix → PR | Manual |
 | `/undo-work` | v3.0.1 | Safe revert (3 levels) | Manual |
 | `/commit` | v2.4.0 | Conventional commit | Manual |
-| `/parallel-work` | v3.0.0 | Parallel streams (create, status, cleanup) | Manual |
-| `/merge-up` | v1.0.0 | Merge stream into its parent branch | Manual |
-| `/merge-down` | v1.0.0 | Pull parent branch into stream | Manual |
+| `/parallel-work` | v4.0.0 | Parallel streams (status, start, hello, cleanup) around script verdicts | Manual |
+| `/merge-up` | v2.0.0 | Merge a stream into its parent (script verdicts, MERGED hint) | Manual |
+| `/merge-down` | v1.1.0 | Pull the parent's newer commits into a stream (gate first) | Manual |
 | `/weekly-maintenance` | v2.6.0 | Weekly health check | Manual |
 | `/retrospective` | v3.0.0 | Sprint review (4Ls) | Manual |
 | `/backlog-review` | v3.0.0 | Backlog health analysis | Manual |
@@ -2515,7 +2495,7 @@ project-root/
 │   │
 │   ├── commands/review-pr-ci.md      # Non-interactive CI PR review
 │   │
-│   ├── hooks/                        # All POSIX shell — no Python required
+│   ├── hooks/                        # All POSIX shell — no Python required (the parallel-work skill scripts are bash 3.2+; jq or python3 are optional and only improve session detection)
 │   │   ├── hooks.json                # Plugin mode hook declarations
 │   │   ├── session-start.sh          # Environment checks (advisory)
 │   │   ├── pre-tool-use.sh           # Dangerous command blocking + advisory warnings
@@ -2527,18 +2507,19 @@ project-root/
 │   │   ├── stop.sh                   # Quality gates + auto-save
 │   │   ├── user-prompt.sh            # Intent classification
 │   │   ├── subagent-stop.sh          # Subagent output validation
-│   │   ├── worktree.sh              # Worktree create/remove
-│   │   ├── worktree-bash-fix.sh      # Worktree directory fix
+│   │   ├── worktree.sh              # WorktreeRemove log merge
 │   │   ├── status-line.sh            # Status bar
 │   │   ├── rules/                    # 9 rule files: safety, advisory, sensitive-files,
 │   │   │                             # debug, skill-suggestions, quality, intent, subagent.*
 │   │   ├── lib/hook-guard.sh         # Profile-based hook gating
 │   │   ├── lib/paths.sh              # Shell path resolution
 │   │   ├── state/                     # Ephemeral state (project-profile, stop-iteration)
-│   │   └── tests/                    # Hook test suite (8 test scripts)
+│   │   └── tests/                    # Hook test suite (11 test scripts + run-all.sh)
 │   │       ├── run-all.sh, test-hook-guard.sh, test-install.sh
-│   │       ├── test-post-edit-format.sh, test-pre-tool-use.sh
-│   │       ├── test-session-start.sh, test-stop.sh, test-user-prompt.sh
+│   │       ├── test-parallel-work-launcher.sh, test-parallel-work-scripts.sh
+│   │       ├── test-post-edit-format.sh, test-post-tool-use.sh
+│   │       ├── test-pre-tool-use.sh, test-session-start.sh
+│   │       ├── test-status-line.sh, test-stop.sh, test-user-prompt.sh
 │   │
 │   ├── prompts/                      # 20 prompt snippets & micro-components
 │   │   ├── validate-arguments.md     # Argument parsing and validation
@@ -2674,6 +2655,5 @@ project-root/
 | Hooks too noisy | Explanation mode on, or hooks running at wrong profile | Set `EXOSUIT_EXPLAIN_MODE=off`, or `EXOSUIT_HOOK_PROFILE=minimal` for lean projects |
 | Hooks too silent | Profile too lean for your needs | Set `EXOSUIT_HOOK_PROFILE=strict` or `EXOSUIT_PROJECT_PROFILE=strict` |
 | Specific hook annoying | Want to disable one hook without changing profile | `EXOSUIT_DISABLED_HOOKS="hook-id"` (comma-separated for multiple) |
-| Worktree commands fail | `worktree-bash-fix.sh` not registered | Check `settings.json` hook entries |
 | Push blocked (framework repo) | Remote still points to template repo | `git remote set-url origin <your-repo>` |
 | Sensitive file warnings | `pre-read-check.sh` warns on .env etc. | Expected behavior — secrets shouldn't enter context. Disable with `EXOSUIT_DISABLED_HOOKS="pre-read-check"` |

@@ -60,8 +60,16 @@
   - references/condition-based-waiting.md: Replace timeouts with condition polling
   - references/error-recovery.md: Phase-specific error/cause/recovery decision tables (15 error patterns)
   - assets/debug-report.md: Structured debug report output template
-- .claude/skills/parallel-work/SKILL.md: Git worktree management
-  - scripts/worktree-status.sh: Worktree status with merge info
+- .claude/skills/parallel-work/SKILL.md: Parallel streams — status / start / hello / cleanup around script-computed facts and verdict lines; one named Claude session per stream; HELLO/MERGED/BYE/NOTE hints (never gates)
+  - scripts/worktree-status.sh: The fact source — roster table, --porcelain, --me, --gate start|merge-up|merge-down|children, live-session join
+  - scripts/new-worktree.sh: Creates a stream (records parent and story in git config; refuses bad input and nested streams; .mcp.json copied only when gitignored)
+  - scripts/stream-cleanup.sh: Dry run / --apply cleanup with CLEANUP: verdicts and pre-mutation keeps (never forces)
+  - scripts/merge-up-run.sh: The one mutating step of /merge-up — gate, merge into the parent, verdicts, sync back (exit 0-7, 8 reserved)
+  - scripts/open-worktree-terminals.sh: Opens one terminal per stream running claude --name <branch> -- '/parallel-work hello'
+  - references/messaging.md: The four hints (HELLO, MERGED, BYE, NOTE), addressing, delivery vocabulary and facts, watching a stream
+  - references/recovery.md: Symptom → cause → action table
+- .claude/skills/merge-up/SKILL.md: Merge a stream into its parent (script verdicts, MERGED hint)
+- .claude/skills/merge-down/SKILL.md: Pull the parent's newer commits into a stream (gate first, never fetches by default)
 - .claude/skills/architecture-check/SKILL.md: Architecture validation
 - .claude/skills/doctor/SKILL.md: Framework health check — validates config, hooks, dependencies, skill cross-references, rules, documentation freshness, skill conformance
   - scripts/validate-skills.sh: Skill conformance validator (frontmatter, line budget, references, registry)
@@ -116,9 +124,8 @@
 - .claude/hooks/user-prompt.sh: Intent classification + skill tracking (POSIX sh)
 - .claude/hooks/pre-read-check.sh: Sensitive file warnings (POSIX sh)
 - .claude/hooks/subagent-stop.sh: Subagent quality checks (POSIX sh)
-- .claude/hooks/worktree.sh: Worktree init + cleanup (POSIX sh)
+- .claude/hooks/worktree.sh: WorktreeRemove log merge (POSIX sh)
 - .claude/hooks/post-edit-format.sh: Auto-format + secrets/slop detection (bash)
-- .claude/hooks/worktree-bash-fix.sh: Transparent worktree directory fix (bash, apply_to_subagents)
 - .claude/hooks/status-line.sh: Status bar output (bash)
 - .claude/hooks/lib/hook-guard.sh: Profile + disable check (POSIX sh)
 - .claude/hooks/rules/safety.patterns: PreToolUse blocking patterns (@@-delimited, with severity and explanations)
