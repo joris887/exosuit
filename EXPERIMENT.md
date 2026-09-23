@@ -53,7 +53,7 @@ accident-catcher; the cmd approval is the security boundary.
 
 ## Remaining decisions (maintainer)
 
-1. Ship `/live-test`? If yes, with or without its flow contract (see above).
+1. ~~With or without its flow contract?~~ **Decided 2026-09-23: ship with it.** Order: flow-contracts main line (#79 → #88) lands on `main` first, then #93 → #96 as one merge. Blocked only on the maintainer's hands-on test.
 2. `post-edit-format.sh` secrets scan skips `.md`/`.txt`, which are live-test's output formats.
 3. Extract the "read `dev:`, run in background" snippet shared with build/sprint-end/story-cycle.
 
