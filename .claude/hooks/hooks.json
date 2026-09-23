@@ -44,6 +44,16 @@
             "statusMessage": "Checking file sensitivity..."
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)\" && sh \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/flow-pre-edit.sh\"",
+            "statusMessage": "Flow gate check..."
+          }
+        ]
       }
     ],
     "PostToolUse": [
