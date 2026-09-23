@@ -25,6 +25,7 @@ These files are generic framework components. On upgrade, they are replaced with
 | `pre-read-check.sh` | Sensitive file read warning |
 | `lib/paths.sh` | Path resolution |
 | `lib/hook-guard.sh` | Profile + disable check |
+| `lib/graph-state.sh` | Flow cursor helper (flow contracts) |
 | `hooks.json` | Plugin mode hook declarations |
 | `README.md` | Hook documentation |
 | `CLAUDE.md` | Directory context |
@@ -59,11 +60,12 @@ All skills in the framework are CORE except technology-specific skills generated
 | Core Workflow | bootstrap, sprint-start, story-cycle, sprint-end, continue, handoff |
 | Planning | brainstorm, ideate, research, skill-create |
 | Quality | code-quality, test-validator, security-audit, architecture-check, performance-check |
-| Testing | manual-test, testing-cycle, UAT-cycle, claude-sense-check |
+| Testing | manual-test, live-test, testing-cycle, UAT-cycle, claude-sense-check |
 | Debugging | debug-session, fix-issue, undo-work |
 | Maintenance | weekly-maintenance, retrospective, backlog-review, doctor, framework-upgrade, pr-status |
 | Utility | commit, parallel-work, skill-eval, refine-loop, optimize, quickstart, help-me, dashboard, custom-hooks, uninstall |
-| Inventory | SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, skills-registry.json, skills-registry.schema.json |
+| Inventory | SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, FLOW_SPEC.md, skills-registry.json, skills-registry.schema.json |
+| Flow artifacts | per-skill `flow.yaml` (hand-authored contract) and `flow.generated.md` (regenerate via doctor/scripts/render-flow.sh, never edit) |
 
 `skills-registry.json` is **MERGE**: `install.sh` refreshes the framework's entries and keeps entries for the project's own skills (needs `jq`; without it the existing registry is kept).
 

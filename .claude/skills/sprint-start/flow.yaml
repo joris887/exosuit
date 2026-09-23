@@ -1,0 +1,44 @@
+# Flow contract for sprint-start — see .claude/skills/FLOW_SPEC.md
+# Declarative only: NOT executed. 1:1 transcription of SKILL.md prose.
+# Transcription notes:
+# - 1a's two checks are sequential, not exclusive: approved PRs are merged
+#   AND awaiting-review PRs still require the user checkpoint afterwards.
+# - 1d "If NO test command configured: skip this check" is an auto-ok on
+#   verify-tests-pass, kept inside the gate (both paths converge).
+# - 1.5's internal skip (all green / no data) converges to the same next
+#   node, so it is folded into the step rather than a router.
+# - Lean-profile deviations are profile attrs; the graph shows the
+#   standard-profile flow.
+flow: sprint-start
+spec: 1
+start: emit-start-event
+nodes:
+  emit-start-event: {type: step, next: read-profile, doc: "## sprint-start"}
+  read-profile: {type: step, next: check-open-prs, doc: "## Profile-Adaptive Behavior"}
+  check-open-prs: {type: step, next: open-pr-router, doc: "### 1a. Check for open PRs"}
+  open-pr-router: {type: router, approved: merge-approved-prs, awaiting-review: awaiting-review-gate, default: verify-clean-tree, doc: "### 1a. Check for open PRs"}
+  merge-approved-prs: {type: step, next: remaining-awaiting-router, doc: "### 1a. Check for open PRs"}
+  remaining-awaiting-router: {type: router, awaiting-review: awaiting-review-gate, default: verify-clean-tree, doc: "### 1a. Check for open PRs"}
+  awaiting-review-gate: {type: gate.human, ok: verify-clean-tree, fail: STOP, doc: "### 1a. Check for open PRs"}
+  verify-clean-tree: {type: gate.hard, ok: sync-default-branch, fail: STOP, doc: "### 1b. Verify clean working tree"}
+  sync-default-branch: {type: step, next: verify-tests-pass, doc: "### 1c. Ensure on default branch and up to date"}
+  verify-tests-pass: {type: gate.hard, ok: metrics-health-check, fail: STOP, doc: "### 1d. Verify tests pass on default branch"}
+  metrics-health-check: {type: step, next: debt-check-router, profile: "lean: skip; strict: actionable output required", doc: "## 1.5. Metrics Health Check"}
+  debt-check-router: {type: router, debt-active: debt-health-check, default: determine-sprint-number, profile: "lean: skip", doc: "## 1.6. Debt Health Check"}
+  debt-health-check: {type: step, next: determine-sprint-number, profile: "lean: skip; strict: actionable output required", doc: "## 1.6. Debt Health Check"}
+  determine-sprint-number: {type: step, next: branch-mode-router, doc: "## 2. Create Feature Branch"}
+  branch-mode-router: {type: router, worktree: create-worktree, default: create-branch, doc: "## 2. Create Feature Branch"}
+  create-branch: {type: step, next: draft-pr-router, doc: "### Standard Mode (default)"}
+  create-worktree: {type: step, next: draft-pr-router, doc: "### Worktree Mode (when `--worktree` is in $ARGUMENTS or user requests it)"}
+  draft-pr-router: {type: router, ci-available: draft-pr-offer, default: show-upcoming-stories, doc: "### Optional: Draft PR for Early CI Feedback"}
+  draft-pr-offer: {type: gate.human, ok: create-draft-pr, fail: show-upcoming-stories, doc: "### Optional: Draft PR for Early CI Feedback"}
+  create-draft-pr: {type: step, next: show-upcoming-stories, doc: "### Optional: Draft PR for Early CI Feedback"}
+  show-upcoming-stories: {type: step, next: ready-stories-router, profile: "lean: skip (all of step 3)", doc: "### Show Upcoming Stories"}
+  ready-stories-router: {type: router, no-ready-stories: no-ready-stories-gate, default: define-sprint-goal, profile: "lean: skip", doc: "### Show Upcoming Stories"}
+  no-ready-stories-gate: {type: gate.human, ok: define-sprint-goal, fail: STOP, profile: "lean: skip", doc: "### Show Upcoming Stories"}
+  define-sprint-goal: {type: gate.human, ok: prd-summary-router, profile: "lean: skip", doc: "### Define Sprint Goal and Scope"}
+  prd-summary-router: {type: router, prd-exists: derive-sprint-dod, default: create-sprint-spec, profile: "lean: skip", doc: "### Define Sprint Goal and Scope"}
+  derive-sprint-dod: {type: step, next: create-sprint-spec, profile: "lean: skip", doc: "**Sprint Definition of Done** (derived from PRD): Read PRD Section 6 (NFRs) and Section 7 (scope boundaries). Include applicable thresholds:"}
+  create-sprint-spec: {type: step, next: update-progress, profile: "lean: skip; strict: required with quality gate plan", doc: "### Create Sprint Spec"}
+  update-progress: {type: step, next: done, profile: "lean: branch name and sprint number only", doc: "### Update progress.md"}
+  done: {type: terminal, next_skill: story-cycle, doc: "## 4. Done"}

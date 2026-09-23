@@ -1,0 +1,106 @@
+# Flow contract for ideate — see .claude/skills/FLOW_SPEC.md
+# Declarative only: NOT executed. 1:1 transcription of the prose sections.
+# Transcription notes:
+# - The story-template block in SKILL.md uses a four-backtick outer
+#   fence so its inner bash fence stays literal template content.
+#   Genuine story-template lines inside that fence were never used as
+#   anchors; anchors are the operative section heads and lead-in lines.
+# - Step 0 is a 3-way router; the partial-discovery branch holds at a
+#   gate.human ("Wait for user decision") whose decline is STOP — the
+#   "run /discover first" hand-back is a cross-skill edge, documented
+#   not modeled (discover precedent). The IF-condition and blockquote
+#   lines carry double quotes — substitute anchors used.
+# - Phase 0 is the skill's one gate.hard (fail: STOP — "If prerequisites
+#   fail, inform the user and stop"); the create-backlog-dir self-heal
+#   merges in. No evidence attr: nothing in planning is mechanically
+#   stampable.
+# - The sprint-scope notice is informational, not blocking — router +
+#   notice step; the notice blockquote is quote-bearing, so the step
+#   anchors to the informational-not-blocking line.
+# - Step 1's vague-idea clarification has no do-not-proceed hold (unlike
+#   brainstorm's Phase 1) — merged into gather-input as content
+#   elicitation. Persona/PRD context loads merge into research-context.
+# - 2.5 feasibility: router + research step + explicit
+#   uncertainty-check router feeding an add-spike-story step.
+# - Section 3's SPIDR/EARS/sizing/structure subsections are content
+#   guidance — one decompose step. Persona Linkage is condition-gated
+#   (router on personas loaded); its item-4 imbalance user-ask is
+#   content elicitation, merged.
+# - Step 4 ADDs Skill/Tooling stories — it does not invoke /skill-create
+#   (registry agrees: ideate calls is empty). NFR and Security-AC
+#   generation are section-level routers + steps; the evil-user-stories
+#   sub-conditional nests AFTER security-AC generation (its trigger set
+#   is a subset — an inference, recorded).
+# - External setup is a two-arm router (vision/external-dependencies.md
+#   exists -> read+generate; else scan DECISION_LOG D05-D10); both arms
+#   converge on story ordering. E2E strategy is a router on
+#   multiple-stories.
+# - IN-FILE TIMING DRIFT (recorded, not resolved): section order puts
+#   "## 6. Output" presentation FIRST, but three explicit clauses run
+#   the work "before presenting" — transcribed in the STATED behavioral
+#   order: DoR validation -> quality-check dispatch -> fix gaps ->
+#   present output -> approval gate.
+# - DoR validation is a plain STEP — not a gate, not a loop: failing
+#   stories are demoted to status draft and still presented; no retry
+#   exists in the prose. The document quality check is dispatch + fix
+#   steps with no loop (bootstrap A5.75 precedent).
+# - The approval HARD-GATE names only approve/wait — gate.human with
+#   fail: STOP.
+# - The terminal (Write to Backlog) carries NO next_skill: the only
+#   next-step text lives inside the non-operative Example fence
+#   (/sprint-start, /story-cycle), and SKILLS_INVENTORY's
+#   "/ideate -> /sprint-start" chain is doc-level. Recorded, not
+#   resolved. The ":373 Update CLAUDE.md Current Focus if appropriate"
+#   predicate is undefined — merged into the terminal with this note.
+# - Several conditional sections name no successor; all skip/next edges
+#   transcribed as document-order fall-through are inferences: Step 0
+#   branches -> Phase 0; sprint-scope -> Step 1; feasibility default and
+#   spike-story next -> Step 3; persona-linkage default/next -> Step 4;
+#   NFR/security defaults -> next section; external-setup arms ->
+#   ordering; E2E -> DoR validation.
+# - The body prose follows the cohesion sizing policy of the skill's
+#   canonical references/story-template.md (SPIDR Paths-first, file
+#   count an input to judgement never a threshold, AC counts scale with
+#   size, 12-item DoR including the cohesion test).
+# - lean/strict profiles: verified-vacuous — zero profile-conditional
+#   flow anywhere in this skill.
+flow: ideate
+spec: 1
+start: emit-start-event
+nodes:
+  emit-start-event: {type: step, next: step-0-discovery-check, doc: "## ideate"}
+  step-0-discovery-check: {type: router, discovery-complete: step-0-load-discovery-context, partial-discovery: step-0-warn-partial-discovery, default: phase-0-validate-prerequisites, doc: "## Step 0: Check Discovery State"}
+  step-0-load-discovery-context: {type: step, next: phase-0-validate-prerequisites, doc: "## Step 0: Check Discovery State"}
+  step-0-warn-partial-discovery: {type: step, next: step-0-wait-user-decision, doc: "Discovery hasn't been completed. Warn the user:"}
+  step-0-wait-user-decision: {type: gate.human, ok: phase-0-validate-prerequisites, fail: STOP, doc: "Wait for user decision before proceeding."}
+  phase-0-validate-prerequisites: {type: gate.hard, ok: sprint-scope-check, fail: STOP, doc: "## Phase 0: Validate Prerequisites"}
+  sprint-scope-check: {type: router, sprint-active: sprint-scope-notice, default: p1-gather-input, doc: "### Sprint Scope Awareness"}
+  sprint-scope-notice: {type: step, next: p1-gather-input, doc: "This is informational, not blocking. The user may legitimately need to ideate during a sprint. But it prevents accidental scope creep where new stories get silently mixed into active sprint work."}
+  p1-gather-input: {type: step, next: p2-research-context, doc: "## 1. Gather Input"}
+  p2-research-context: {type: step, next: p2-5-feasibility-check, doc: "## 2. Research Context"}
+  p2-5-feasibility-check: {type: router, needs-feasibility: p2-5-feasibility-research, default: p3-decompose-stories, doc: "## 2.5. Feasibility Research (Conditional)"}
+  p2-5-feasibility-research: {type: step, next: p2-5-uncertainty-check, doc: "Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at **QUICK** depth:"}
+  p2-5-uncertainty-check: {type: router, feasibility-uncertain: p2-5-add-spike-story, default: p3-decompose-stories, doc: "**If feasibility is uncertain:** Add a Spike/Research story to the decomposition to resolve the uncertainty before implementation stories begin."}
+  p2-5-add-spike-story: {type: step, next: p3-decompose-stories, doc: "**If feasibility is uncertain:** Add a Spike/Research story to the decomposition to resolve the uncertainty before implementation stories begin."}
+  p3-decompose-stories: {type: step, next: p3-persona-linkage-check, doc: "## 3. Decompose into Stories"}
+  p3-persona-linkage-check: {type: router, personas-loaded: p3-persona-linkage, default: p4-identify-missing-skills, doc: "If `docs/context/personas.md` was loaded, link each story to persona(s):"}
+  p3-persona-linkage: {type: step, next: p4-identify-missing-skills, doc: "### Persona Linkage"}
+  p4-identify-missing-skills: {type: step, next: p4-nfr-check, doc: "## 4. Identify Missing Skills"}
+  p4-nfr-check: {type: router, nfrs-with-thresholds: p4-nfr-story-generation, default: p4-security-ac-check, doc: "### NFR Story Generation"}
+  p4-nfr-story-generation: {type: step, next: p4-security-ac-check, doc: "### NFR Story Generation"}
+  p4-security-ac-check: {type: router, security-touching-stories: p4-security-ac-generation, default: p5-external-setup-check, doc: "### Security Acceptance Criteria Generation"}
+  p4-security-ac-generation: {type: step, next: p4-evil-user-check, doc: "### Security Acceptance Criteria Generation"}
+  p4-evil-user-check: {type: router, security-feature-stories: p4-evil-user-stories, default: p5-external-setup-check, doc: "**Evil user stories** (for stories explicitly about security features): Generate an attacker-perspective story variant:"}
+  p4-evil-user-stories: {type: step, next: p5-external-setup-check, doc: "**Evil user stories** (for stories explicitly about security features): Generate an attacker-perspective story variant:"}
+  p5-external-setup-check: {type: router, ext-deps-file-exists: p5-generate-setup-from-file, default: p5-scan-decision-log, doc: "### External Service Setup Stories (conditional)"}
+  p5-generate-setup-from-file: {type: step, next: p5-story-ordering, doc: "If `vision/external-dependencies.md` exists (generated by `/discover`), read it and generate an **Infrastructure** setup story for each external service listed."}
+  p5-scan-decision-log: {type: step, next: p5-story-ordering, doc: "If `vision/external-dependencies.md` doesn't exist, scan `docs/reference/DECISION_LOG.md` for dimension decisions (D05-D10) that selected external services — any service requiring an account, API keys, or external infrastructure. Generate setup stories for each external service found, using the same pattern above."}
+  p5-story-ordering: {type: step, next: p5-e2e-check, doc: "### Story Ordering"}
+  p5-e2e-check: {type: router, multiple-stories: p5-e2e-strategy, default: p6-dor-validation, doc: "### E2E Test Strategy"}
+  p5-e2e-strategy: {type: step, next: p6-dor-validation, doc: "### E2E Test Strategy"}
+  p6-dor-validation: {type: step, next: p6-quality-check-dispatch, doc: "### Definition of Ready Validation"}
+  p6-quality-check-dispatch: {type: step, next: p6-fix-gaps, doc: "### Document Quality Check"}
+  p6-fix-gaps: {type: step, next: p6-present-output, doc: "Review findings. Fix genuine gaps in the stories before presenting to user."}
+  p6-present-output: {type: step, next: p6-approval-gate, doc: "## 6. Output"}
+  p6-approval-gate: {type: gate.human, ok: p7-write-backlog, fail: STOP, doc: "Ask user for approval before writing to backlog files."}
+  p7-write-backlog: {type: terminal, doc: "## 7. Write to Backlog"}
