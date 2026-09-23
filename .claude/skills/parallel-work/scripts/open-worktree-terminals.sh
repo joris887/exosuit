@@ -39,10 +39,11 @@ fi
 
 uname_s="$(uname -s 2>/dev/null || echo unknown)"
 
+# Each opener takes ONE directory and returns nonzero when the tab couldn't
+# be opened, so the report below can say per directory what actually happened.
 open_iterm () {
-  local dir
-  for dir in "$@"; do
-    /usr/bin/osascript >/dev/null 2>&1 <<OSA || return 1
+  local dir="$1"
+  /usr/bin/osascript >/dev/null 2>&1 <<OSA
 tell application "iTerm"
   activate
   if (count of windows) = 0 then
@@ -56,16 +57,14 @@ tell application "iTerm"
   end if
 end tell
 OSA
-  done
 }
 
 open_apple_terminal () {
   # Cmd+T needs Accessibility (System Events). If it isn't granted the keystroke
   # is a no-op and `do script` opens a NEW WINDOW instead — claude still launches
   # in the right dir, just not as a tab.
-  local dir
-  for dir in "$@"; do
-    /usr/bin/osascript >/dev/null 2>&1 <<OSA
+  local dir="$1"
+  /usr/bin/osascript >/dev/null 2>&1 <<OSA
 tell application "Terminal"
   activate
   try
@@ -76,71 +75,90 @@ tell application "Terminal"
   delay 0.4
 end tell
 OSA
-  done
-  if ! /usr/bin/osascript -e 'tell application "System Events" to get name of first process' >/dev/null 2>&1; then
-    echo "note: grant Terminal 'Accessibility' permission (System Settings ->" >&2
-    echo "      Privacy & Security -> Accessibility) for real TABS; without it" >&2
-    echo "      new windows are opened instead. iTerm2 needs no permission." >&2
-  fi
 }
 
 open_windows_terminal () {
-  local dir winpath
-  for dir in "$@"; do
-    if command -v cygpath >/dev/null 2>&1; then
-      winpath="$(cygpath -w "$dir")"
-    else
-      winpath="$dir"
-    fi
-    # -w 0 = the current window; nt = new-tab; -d = starting dir. Run claude via
-    # the tab's default shell so PATH resolves it and the tab stays interactive.
-    wt.exe -w 0 nt -d "$winpath" cmd /k "$LAUNCH_CMD" 2>/dev/null \
-      || wt.exe nt -d "$winpath" cmd /k "$LAUNCH_CMD" 2>/dev/null \
-      || return 1
-  done
+  # Native Windows bash (Git Bash / MSYS / Cygwin): cygpath exists here and
+  # cmd.exe needs the Windows form of the path.
+  local dir="$1" winpath
+  if command -v cygpath >/dev/null 2>&1; then
+    winpath="$(cygpath -w "$dir")"
+  else
+    winpath="$dir"
+  fi
+  # -w 0 = the current window; nt = new-tab; -d = starting dir. Run claude via
+  # the tab's default shell so PATH resolves it and the tab stays interactive.
+  wt.exe -w 0 nt -d "$winpath" cmd /k "$LAUNCH_CMD" 2>/dev/null \
+    || wt.exe nt -d "$winpath" cmd /k "$LAUNCH_CMD" 2>/dev/null
+}
+
+open_windows_terminal_wsl () {
+  # WSL: wsl.exe --cd takes the Linux path directly (cygpath is an MSYS tool
+  # and doesn't exist here), and the tab must run the LINUX-side claude — a
+  # Windows-side claude can't reach this side's Claude Code sessions.
+  local dir="$1"
+  wt.exe -w 0 nt wsl.exe --cd "$dir" -- bash -lc "$LAUNCH_CMD; exec bash" 2>/dev/null \
+    || wt.exe nt wsl.exe --cd "$dir" -- bash -lc "$LAUNCH_CMD; exec bash" 2>/dev/null
 }
 
 open_gnome_terminal () {
-  local dir
-  for dir in "$@"; do
-    gnome-terminal --tab --working-directory="$dir" -- \
-      bash -lc "$LAUNCH_CMD; exec bash" 2>/dev/null || return 1
-  done
+  gnome-terminal --tab --working-directory="$1" -- \
+    bash -lc "$LAUNCH_CMD; exec bash" 2>/dev/null
 }
 
 open_konsole () {
-  local dir
-  for dir in "$@"; do
-    konsole --new-tab --workdir "$dir" -e \
-      bash -lc "$LAUNCH_CMD; exec bash" 2>/dev/null || return 1
-  done
+  konsole --new-tab --workdir "$1" -e \
+    bash -lc "$LAUNCH_CMD; exec bash" 2>/dev/null
 }
 
-opened=0
+# Pick the per-directory opener for this platform (empty = can't script tabs).
+opener=""
 case "$uname_s" in
   Darwin)
     case "${TERM_PROGRAM:-}" in
-      iTerm.app) open_iterm "$@" && opened=1 ;;
-      *)         open_apple_terminal "$@" && opened=1 ;;  # Apple_Terminal / vscode / other
+      iTerm.app) opener=open_iterm ;;
+      *)         opener=open_apple_terminal ;;  # Apple_Terminal / vscode / other
     esac
     ;;
   MINGW*|MSYS*|CYGWIN*)
-    if command -v wt.exe >/dev/null 2>&1; then open_windows_terminal "$@" && opened=1; fi
+    command -v wt.exe >/dev/null 2>&1 && opener=open_windows_terminal
     ;;
   Linux)
     if grep -qi microsoft /proc/version 2>/dev/null && command -v wt.exe >/dev/null 2>&1; then
-      open_windows_terminal "$@" && opened=1        # WSL reaching Windows Terminal
+      opener=open_windows_terminal_wsl        # WSL reaching Windows Terminal
     elif command -v gnome-terminal >/dev/null 2>&1; then
-      open_gnome_terminal "$@" && opened=1
+      opener=open_gnome_terminal
     elif command -v konsole >/dev/null 2>&1; then
-      open_konsole "$@" && opened=1
+      opener=open_konsole
     fi
     ;;
 esac
 
-if [ "$opened" = "1" ]; then
-  echo "Opened $# tab(s), each running: $LAUNCH_CMD"
+opened=() failed=()
+if [ -n "$opener" ]; then
+  for dir in "$@"; do
+    if "$opener" "$dir"; then opened+=("$dir"); else failed+=("$dir"); fi
+  done
 else
-  echo "Couldn't auto-open tabs on this terminal ($uname_s / ${TERM_PROGRAM:-unknown})."
-  manual_hints "$@"
+  failed=("$@")
+fi
+
+if [ "$opener" = "open_apple_terminal" ] && \
+   ! /usr/bin/osascript -e 'tell application "System Events" to get name of first process' >/dev/null 2>&1; then
+  echo "note: grant Terminal 'Accessibility' permission (System Settings ->" >&2
+  echo "      Privacy & Security -> Accessibility) for real TABS; without it" >&2
+  echo "      new windows are opened instead. iTerm2 needs no permission." >&2
+fi
+
+if [ "${#opened[@]}" -gt 0 ]; then
+  echo "Opened ${#opened[@]} of $# tab(s), each running: $LAUNCH_CMD"
+  for dir in "${opened[@]}"; do echo "  opened  $dir"; done
+fi
+if [ "${#failed[@]}" -gt 0 ]; then
+  if [ -z "$opener" ]; then
+    echo "Couldn't auto-open tabs on this terminal ($uname_s / ${TERM_PROGRAM:-unknown})."
+  else
+    echo "Couldn't open ${#failed[@]} of $# tab(s) on this terminal ($uname_s)."
+  fi
+  manual_hints "${failed[@]}"
 fi

@@ -125,6 +125,38 @@ file-count thresholds — a distinct pre-implementation gate. Note a
 legitimately-sized cohesive LARGE/XL story will trip its >10-file FAIL;
 reconciling that gate with the cohesion policy is an open maintainer
 decision, deliberately not attempted here.
+### Parallel-work script fixes
+Three defects in the `/parallel-work` helper scripts, plus a stale registry
+entry:
+
+- `.claude/skills/parallel-work/scripts/open-worktree-terminals.sh` — the WSL
+  branch called `cygpath` (an MSYS/Cygwin tool absent on WSL) and ran a
+  Windows-side `cmd /k claude`, so tabs opened in the wrong directory with the
+  wrong claude. WSL now launches
+  `wt.exe -w 0 nt wsl.exe --cd <dir> -- bash -lc ...` (Linux path, Linux-side
+  claude); `cygpath` stays only in the native Git-Bash/MSYS branch. Openers
+  are now per-directory and the final report is honest — it lists which
+  directories opened and prints `cd` hints only for the ones that didn't,
+  instead of claiming success unconditionally.
+- `.claude/skills/parallel-work/scripts/worktree-status.sh` — compared every
+  stream against a hardcoded `main` instead of its recorded
+  `branch.<name>.exosuitParent`, printed a phantom "(detached)" row for every
+  worktree (porcelain emits a `HEAD <sha>` line for all of them), and broke on
+  paths with spaces. Rewritten parent-aware: table is now
+  Path | Branch | Parent | Ahead/Behind parent (matching SKILL.md v3.0.0),
+  the main worktree shows as the base, and only genuinely detached worktrees
+  show as detached.
+- `.claude/skills/parallel-work/scripts/new-worktree.sh` — `MAIN_ROOT` was
+  truncated at the first space (`awk '{print $2}'`); a detached HEAD silently
+  recorded `exosuitParent=HEAD`; and the `.mcp.json` path rewrite used
+  `sed s#...#...#` (breaks when a path contains `#`, and is regex-based).
+  Now: line-wise porcelain parse, an explicit detached-HEAD error (exit 1),
+  and a literal awk `index()`/`substr()` substitution.
+- `.claude/skills/skills-registry.json` — parallel-work entry was stale at
+  2.4.0 with the pre-v3 description; synced to the current SKILL.md.
+
+Versions: parallel-work 3.0.0 → 3.0.1.
+
 ### Project file changes
 None required. Existing `docs/sessions/.activity-log.jsonl` files need no
 migration — the new rotation applies on the next tool use.

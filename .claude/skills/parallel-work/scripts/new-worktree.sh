@@ -19,9 +19,16 @@ set -euo pipefail
 NEW_BRANCH="${1:?usage: new-worktree.sh <new-branch> [<base-ref>] [<worktree-dir>]}"
 BASE_REF="${2:-$(git rev-parse --abbrev-ref HEAD)}"
 
+# A detached HEAD resolves to the literal string "HEAD" — recording that as
+# exosuitParent would leave /merge-up and /merge-down with no way home.
+if [ "$BASE_REF" = "HEAD" ]; then
+  echo "ERROR: HEAD is detached — check out a branch first, or pass an explicit <base-ref>" >&2
+  exit 1
+fi
+
 # Main worktree = first entry of `git worktree list`. It holds the canonical
-# local settings files.
-MAIN_ROOT="$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')"
+# local settings files. (Parsed line-wise: paths may contain spaces.)
+MAIN_ROOT="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
 REPO_NAME="$(basename "$MAIN_ROOT")"
 PARENT_DIR="$(dirname "$MAIN_ROOT")"
 
@@ -62,7 +69,18 @@ copy_if_present "CLAUDE.local.md"
 if git -C "$WORKTREE_DIR" ls-files --error-unmatch .mcp.json >/dev/null 2>&1; then
   echo "   skip    .mcp.json (tracked on $NEW_BRANCH — left as-is)"
 elif [ -f "$MAIN_ROOT/.mcp.json" ]; then
-  sed "s#$MAIN_ROOT#$WORKTREE_DIR#g" "$MAIN_ROOT/.mcp.json" > "$WORKTREE_DIR/.mcp.json"
+  # Literal find/replace (no regex, no sed delimiter to collide with the
+  # paths' own characters) — via ENVIRON so awk never unescapes the values.
+  FROM="$MAIN_ROOT" TO="$WORKTREE_DIR" awk '
+    BEGIN { from = ENVIRON["FROM"]; to = ENVIRON["TO"]; flen = length(from) }
+    {
+      out = ""; rest = $0
+      while ((i = index(rest, from)) > 0) {
+        out = out substr(rest, 1, i - 1) to
+        rest = substr(rest, i + flen)
+      }
+      print out rest
+    }' "$MAIN_ROOT/.mcp.json" > "$WORKTREE_DIR/.mcp.json"
   echo "   wrote   .mcp.json (absolute paths rewritten to worktree)"
 fi
 
