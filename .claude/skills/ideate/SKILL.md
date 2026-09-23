@@ -1,6 +1,6 @@
 ---
 name: ideate
-version: 2.10.2
+version: 2.10.3
 description: Use when the user has an idea or requirement to decompose into backlog stories.
 trigger: manual
 depends-on: []

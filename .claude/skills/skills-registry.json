@@ -164,7 +164,7 @@
   },
   {
     "name": "doctor",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "description": "Validate framework configuration, check runtime dependencies, and report issues. Use when something isn't working or after setup.",
     "trigger": "manual",
     "depends_on": [],
@@ -223,7 +223,7 @@
   },
   {
     "name": "ideate",
-    "version": "2.10.2",
+    "version": "2.10.3",
     "description": "Use when the user has an idea or requirement to decompose into backlog stories.",
     "trigger": "manual",
     "depends_on": [],

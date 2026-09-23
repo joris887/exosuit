@@ -220,6 +220,23 @@ shown once per session as intended (the `/` in the name broke its state file).
 - `core/hooks/tests/test-pre-tool-use.sh` — printf harness, 3 input-parsing cases
 - `core/hooks/tests/test-post-edit-format.sh` — 4 cases running the real hook
 
+### Skill validation no longer stops at the first non-conformant skill (#108, #101)
+`validate-skills.sh` runs under `set -euo pipefail`. A skill without `version:`
+made the version `grep` fail its pipeline, and `set -e` ended the run right
+there: one bad skill hid every skill after it (one report: "4 failures" was
+hiding 45 unchecked skills). `/doctor` embeds the script, so it inherited the
+blind spot. Every "may find nothing" pipeline is guarded now, and a
+pipeline that could SIGPIPE on large skills was rewritten.
+Frontmatter checks now tolerate CRLF files, read only the first `---` block, and
+warn when a skill directory has no `skills-registry.json` entry (which would
+have caught the missing `merge-up`/`merge-down` entries).
+
+`story-template.md` opened by binding stories to "a single context window", which
+contradicts its own Size Classification. It now leads with cohesion.
+
+- `core/skills/doctor/scripts/validate-skills.sh` — no truncation, CRLF, registry presence; doctor 3.0.0 → 3.0.1
+- `core/skills/ideate/references/story-template.md` — cohesion-first opener; ideate 2.10.2 → 2.10.3
+
 ### Breaking changes
 None.
 
