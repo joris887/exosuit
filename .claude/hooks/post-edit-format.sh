@@ -24,12 +24,27 @@ HOOK_STATE_DIR="${TMPDIR:-/tmp}/.claude-hook-state"
 mkdir -p "$HOOK_STATE_DIR" 2>/dev/null
 report_missing() {
     local tool="$1"
-    local state_file="$HOOK_STATE_DIR/missing-$tool"
+    local state_file="$HOOK_STATE_DIR/missing-${tool//\//-}"
     if [ ! -f "$state_file" ]; then
         echo "⚠ post-edit-format: '$tool' not found — skipping $tool formatting/linting" >&2
         touch "$state_file"
     fi
 }
+
+# Locally installed JS tools (devDependencies) live in node_modules/.bin, which
+# is not on PATH when hooks run. Put every node_modules/.bin from the file's
+# directory up to / on PATH, nearest first, so monorepo packages resolve too.
+# This is also why nothing below calls npx: without a local install, npx
+# fetches the package from the registry and blocks the edit on the network.
+_dir="$(cd "$(dirname "$FILE")" 2>/dev/null && pwd)"
+_bins=""
+while [ -n "$_dir" ]; do
+    [ -d "$_dir/node_modules/.bin" ] && _bins="${_bins:+$_bins:}$_dir/node_modules/.bin"
+    [ "$_dir" = "/" ] && break
+    _dir="$(dirname "$_dir")"
+done
+[ -n "$_bins" ] && PATH="$_bins:$PATH"
+unset _dir _bins
 
 # Portable hash function (macOS ships md5, Linux ships md5sum)
 portable_hash() {
@@ -63,8 +78,8 @@ case "$FILE" in
         # JavaScript/TypeScript: prettier (or biome)
         if command -v prettier &>/dev/null; then
             prettier --write "$FILE" 2>/dev/null
-        elif npx biome --help &>/dev/null 2>&1; then
-            npx biome format --write "$FILE" 2>/dev/null
+        elif command -v biome &>/dev/null; then
+            biome format --write "$FILE" 2>/dev/null
         else
             report_missing "prettier/biome"
         fi
@@ -163,8 +178,8 @@ case "$FILE" in
     *.ts|*.tsx|*.js|*.jsx)
         if command -v eslint &>/dev/null; then
             eslint --fix --quiet "$FILE" 2>/dev/null
-        elif npx biome --help &>/dev/null 2>&1; then
-            npx biome lint --apply "$FILE" 2>/dev/null
+        elif command -v biome &>/dev/null; then
+            biome lint --write "$FILE" 2>/dev/null
         fi
         ;;
     *.rb)

@@ -199,6 +199,26 @@ replaced `skills-registry.json`, silently unregistering every project skill.
 - `core/skills/skills-registry.json` — `merge-up`, `merge-down` entries
 - `core/hooks/tests/test-install.sh` — 13 cases running the real installer offline
 - `core/MANIFEST.md`, `docs/FRAMEWORK_REFERENCE.md` — `.github` and registry strategy
+### Safety hook fails closed; formatter hook no longer hangs on npx (#107, #109)
+`pre-tool-use.sh` treated "jq could not parse the payload" like "the payload has
+no command" and allowed the call, so malformed input switched the safety check
+off. It now blocks (exit 2) with an explanation. Its test harness fed payloads
+through `echo`, which expands `\n` under escape-expanding shells (macOS `sh`),
+corrupting the two heredoc cases; it uses `printf` now.
+
+`post-edit-format.sh` fell back to `npx biome` when prettier wasn't on PATH.
+Without a local install npx fetches the package from the registry, blocking
+every JS/TS edit on the network (>60s reported). Local devDependencies were
+also invisible, because `node_modules/.bin` isn't on PATH when hooks run. The
+hook now adds every `node_modules/.bin` from the edited file's directory upward
+to PATH, calls `biome` directly (never `npx`), uses `biome lint --write`
+(`--apply` was removed in Biome 2), and the "missing prettier/biome" warning is
+shown once per session as intended (the `/` in the name broke its state file).
+
+- `core/hooks/pre-tool-use.sh` — fail closed on unparseable JSON
+- `core/hooks/post-edit-format.sh` — local tool resolution, no npx
+- `core/hooks/tests/test-pre-tool-use.sh` — printf harness, 3 input-parsing cases
+- `core/hooks/tests/test-post-edit-format.sh` — 4 cases running the real hook
 
 ### Skill validation no longer stops at the first non-conformant skill (#108, #101)
 `validate-skills.sh` runs under `set -euo pipefail`. A skill without `version:`
