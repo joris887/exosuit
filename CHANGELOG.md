@@ -237,6 +237,16 @@ contradicts its own Size Classification. It now leads with cohesion.
 - `core/skills/doctor/scripts/validate-skills.sh` — no truncation, CRLF, registry presence; doctor 3.0.0 → 3.0.1
 - `core/skills/ideate/references/story-template.md` — cohesion-first opener; ideate 2.10.2 → 2.10.3
 
+### `/skill-create` scaffold works on Linux and WSL
+`init-skill.sh` substituted the skill name with `sed -i ''`, which is BSD-only.
+GNU sed reads `''` as the script and the expression as a filename, so on Linux
+and WSL the script aborted and left the new skill named `SKILL_NAME_PLACEHOLDER`.
+The substitution is pure bash now, and invalid names (anything but lowercase
+letters, digits, hyphens) are refused before anything is created.
+
+- `core/skills/skill-create/scripts/init-skill.sh` — portable substitution, name check; skill-create 2.4.0 → 2.4.1
+- `core/hooks/tests/test-init-skill.sh` — 7 cases (new)
+
 ### Flow contracts (#77)
 An optional, declarative `flow.yaml` beside a skill's
 SKILL.md describing its control flow as a graph (steps, gates, routers,

@@ -20,6 +20,12 @@ fi
 SKILL_NAME="$1"
 SKILL_DIR=".claude/skills/${SKILL_NAME}"
 
+# Skill names are lowercase letters, digits and hyphens (Claude Code's rule).
+if [[ ! "$SKILL_NAME" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+  echo "ERROR: invalid skill name '$SKILL_NAME' — use lowercase letters, digits and hyphens"
+  exit 1
+fi
+
 if [[ -d "$SKILL_DIR" ]]; then
   echo "ERROR: Skill directory already exists: $SKILL_DIR"
   exit 1
@@ -62,7 +68,10 @@ START → TODO: define process steps → DONE
 TEMPLATE
 
 # Replace placeholder with actual skill name
-sed -i '' "s/SKILL_NAME_PLACEHOLDER/${SKILL_NAME}/g" "$SKILL_DIR/SKILL.md"
+# Pure bash: `sed -i ''` is BSD-only (GNU sed reads '' as the script and the
+# expression as a filename), so the name was never substituted on Linux/WSL.
+skill_md="$(<"$SKILL_DIR/SKILL.md")"
+printf '%s\n' "${skill_md//SKILL_NAME_PLACEHOLDER/$SKILL_NAME}" > "$SKILL_DIR/SKILL.md"
 
 echo "Skill scaffolded at: $SKILL_DIR/"
 echo "  SKILL.md       — Edit to define your skill"
