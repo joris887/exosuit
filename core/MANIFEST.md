@@ -73,6 +73,8 @@ All skills in the framework are CORE except technology-specific skills generated
 | Utility | commit, parallel-work, merge-up, merge-down, skill-eval, refine-loop, optimize, quickstart, help-me, dashboard, custom-hooks, uninstall |
 | Inventory | SKILLS_INVENTORY.md, SKILL_TEMPLATE.md, skills-registry.json, skills-registry.schema.json |
 
+`skills-registry.json` is **MERGE**: `install.sh` refreshes the framework's entries and keeps entries for the project's own skills (needs `jq`; without it the existing registry is kept).
+
 #### Agents (`.claude/agents/`)
 
 All agent files are CORE.
@@ -171,11 +173,12 @@ All rule files are CORE. Project-specific rules created by `/skill-create` or `/
 
 | File | Strategy |
 |------|----------|
-| `workflows/claude-pr-review.yml` | REPLACE |
-| `pull_request_template.md` | REPLACE |
-| `ISSUE_TEMPLATE/bug_report.yml` | REPLACE |
-| `ISSUE_TEMPLATE/feature_request.yml` | REPLACE |
+| `workflows/claude-pr-review.yml` | REPLACE (skipped when the project already runs `claude-code-action`) |
+| `pull_request_template.md` | PRESERVE if present -- teams customize it |
 | `CODEOWNERS` | **MERGE** -- framework defaults + team members |
+
+Not installed: `workflows/ci.yml` and `ISSUE_TEMPLATE/` belong to the framework
+repo itself (its CI shellchecks `install.sh`, which projects don't have).
 
 #### Core Directory (`core/`)
 
