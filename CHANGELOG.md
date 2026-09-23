@@ -129,6 +129,20 @@ decision, deliberately not attempted here.
 None required. Existing `docs/sessions/.activity-log.jsonl` files need no
 migration — the new rotation applies on the next tool use.
 
+### Test-run tracking read a payload field production never sends
+`post-tool-use.sh` extracted the Bash result from `.tool_output`, but
+PostToolUse delivers it as `tool_response` (for Bash: an object holding
+`stdout`/`stderr`). The `tests-passed` stamp that `stop.sh`'s completion
+check reads, and the failure capture feeding `.failure-log.jsonl`, were
+silently inert — the #59 failure class, in the one hook #59 did not
+re-audit. The extraction now reads `tool_response` (stdout + stderr;
+string form accepted; legacy `.tool_output` fallback kept) and the test
+suite gains four cases feeding the real payload shape — the stamping had
+no coverage at all before.
+
+- `core/hooks/post-tool-use.sh` — tool_response extraction
+- `core/hooks/tests/test-post-tool-use.sh` — four payload-shape cases
+
 ### Breaking changes
 None.
 

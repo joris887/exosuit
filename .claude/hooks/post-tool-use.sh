@@ -81,12 +81,16 @@ fi
 # --- Track successful test runs in session state ---
 # When a Bash command runs tests and they pass, record it so the Stop
 # handler can skip redundant evidence checks. Requires jq for reliable
-# extraction of tool_output (multi-line, special chars). Without jq,
+# extraction of the tool output (multi-line, special chars). Without jq,
 # skip tracking gracefully — the stop hook still works, just may ask
 # for evidence even when tests passed earlier.
 if [ "$TOOL_NAME" = "Bash" ] && command -v jq >/dev/null 2>&1; then
     COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
-    TOOL_OUTPUT=$(printf '%s' "$INPUT" | jq -r '.tool_output // empty' 2>/dev/null)
+    # PostToolUse delivers the result as tool_response — for Bash an object
+    # holding stdout/stderr (test summaries land on either stream). Reading
+    # any other key means the checks below silently never fire; the .tool_output
+    # fallback keeps older payload shapes working. The #59 class.
+    TOOL_OUTPUT=$(printf '%s' "$INPUT" | jq -r 'if (.tool_response|type) == "object" then ([.tool_response.stdout // "", .tool_response.stderr // ""] | map(select(length > 0)) | join("\n")) elif (.tool_response|type) == "string" then .tool_response else (.tool_output // "") end' 2>/dev/null)
 
     # Generic test command patterns (project-specific commands are also caught
     # if they contain these common runners)
