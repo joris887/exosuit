@@ -22,7 +22,7 @@ test_case() {
     local expected_exit="$3"
 
     actual_exit=0
-    echo "$input" | sh "$HOOK" >/dev/null 2>/dev/null || actual_exit=$?
+    printf '%s\n' "$input" | sh "$HOOK" >/dev/null 2>/dev/null || actual_exit=$?
 
     if [ "$actual_exit" -eq "$expected_exit" ]; then
         echo "  PASS: $desc"
@@ -105,6 +105,17 @@ test_case "Allow --force-with-lease" \
     "$(payload '"git push --force-with-lease origin main"')" 0
 test_case "Block bare -f flag" "$(payload '"git push -f"')" 2
 test_case "Block clustered -uf flag" "$(payload '"git push -uf origin main"')" 2
+# --- Unparseable input fails closed ---
+# Reading "could not parse" as "no command" would turn the safety check off for
+# exactly the input it failed to inspect.
+if command -v jq >/dev/null 2>&1; then
+    test_case "Block a payload jq cannot parse (raw control character)" \
+        "$(printf '{"tool_name":"Bash","tool_input":{"command":"ls\n git push --force"}}')" 2
+    test_case "Block truncated JSON" '{"tool_name":"Bash","tool_input":{"command":"ls' 2
+fi
+test_case "Allow a valid payload without a command field" \
+    '{"tool_name":"Bash","tool_input":{"description":"no command"}}' 0
+
 test_case "Allow git clean -n on a path containing -f" \
     "$(payload '"git clean -n src/my-feature"')" 0
 
@@ -118,7 +129,7 @@ ORIGIN_PATH=$(git remote get-url origin 2>/dev/null \
 protection_case() {
     local desc="$1" repo="$2" input="$3" expected_exit="$4"
     actual_exit=0
-    echo "$input" | EXOSUIT_FRAMEWORK_REPO="$repo" sh "$HOOK" >/dev/null 2>/dev/null || actual_exit=$?
+    printf '%s\n' "$input" | EXOSUIT_FRAMEWORK_REPO="$repo" sh "$HOOK" >/dev/null 2>/dev/null || actual_exit=$?
     if [ "$actual_exit" -eq "$expected_exit" ]; then
         echo "  PASS: $desc"
         PASS=$((PASS + 1))
