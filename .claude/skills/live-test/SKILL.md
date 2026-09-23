@@ -1,20 +1,28 @@
 ---
 name: live-test
-version: 1.0.0
+version: 1.1.0
 description: Use when the user wants a scope (feature area, story ID, route, command, or recent changes) tested automatically against the running application — the automated sibling of /manual-test.
 trigger: manual
 depends-on: [testing-cycle, ideate]
 references: [references/driving-web.md, references/driving-api.md, references/driving-cli.md, references/error-recovery.md, references/first-run.md]
 disable-model-invocation: true
 user-invocable: true
-argument-hint: "<scope: feature area | story-ID | route/command | 'recent changes'> [--surface <name>|all] [--no-fix]"
-allowed-tools: Read, Glob, Grep, Bash, Edit, Write, ToolSearch, AskUserQuestion
+argument-hint: "<scope: feature area | story-ID | route/command | 'recent changes'> [--surface <name>|all] [--fix]"
+allowed-tools: Read, Glob, Grep, Bash, Edit, Write, ToolSearch, AskUserQuestion, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_type, mcp__playwright__browser_fill_form, mcp__playwright__browser_wait_for, mcp__playwright__browser_console_messages, mcp__playwright__browser_network_requests, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_handle_dialog, mcp__playwright__browser_select_option, mcp__playwright__browser_press_key, mcp__playwright__browser_file_upload, mcp__playwright__browser_close
 requires:
   binaries: [curl]
 ---
 ______________________________________________________________________
 
 ## live-test
+
+**Flow cursor:** This skill has a flow contract (`flow.yaml` — see `.claude/skills/FLOW_SPEC.md`). At each node transition, update the cursor (advisory, never blocks):
+
+```bash
+sh .claude/hooks/lib/graph-state.sh enter live-test <node-id>
+```
+
+Node ids are defined in this skill's `flow.yaml` — pass the node whose `doc:` anchor matches the section you are executing. Use `attempt` instead of `enter` when retrying the same node (fix-loop attempts), and `clear live-test` at terminal nodes (deletes the cursor-owned state file, or strips the cursor keys from a skill-owned one).
 
 Autonomous dynamic testing of a scope against the RUNNING artifact: plan → drive →
 verify signals → fix critical bugs → report — the executing sibling of `/manual-test`.
@@ -24,7 +32,10 @@ owns in-gate command checks; this skill owns interactive scenario testing.
 **Safety contract:** only ever targets the local machine (`http://localhost:*`, local
 processes) — never remote/deployed environments. Never commit secrets, or evidence
 containing real data outside `docs/testing/findings/`. The app map is project-owned
-executable configuration (its cmd checks run as shell) — treat edits to it like Makefile edits.
+executable configuration (its cmd checks run as shell) — treat edits to it like Makefile
+edits. Its `data_environment` field declares blast radius — `shared` locks the run
+read-only — and its `cmd` lines execute only after per-clone user approval (preflight
+exit 3 flow below).
 
 ## 0. Prerequisites
 
@@ -37,7 +48,11 @@ Emit a start event: `echo "{\"type\":\"skill\",\"event\":\"start\",\"skill\":\"l
    in sequence) or the map frontmatter's primary; load ONLY the matching guide(s):
    `${CLAUDE_SKILL_DIR}/references/driving-<web|api|cli>.md`.
 3. **Stack** — run `bash ${CLAUDE_SKILL_DIR}/scripts/preflight.sh` (black box — run,
-   don't read). On failure: offer the map's remedies, re-run (error-recovery.md § Phase 0).
+   don't read). Exit 3 = cmd approval: show the printed cmd lines VERBATIM and ask
+   the user (AskUserQuestion) — only on explicit approval re-run with
+   `--approve-cmds <hash>`; NEVER approve on your own, never edit the state file.
+   On failure: offer the map's remedies, re-run (error-recovery.md § Phase 0).
+   A printed `MUTATION LOCK` marker binds the plan (§ 2).
 4. **Seed** — if the map declares seed commands for the scope, offer to run them.
 
 <HARD-GATE>
@@ -72,8 +87,15 @@ Each scenario: `id · account · target · steps · expected · access-sensitive
 Size to the scope (typically 5–15 scenarios; XL scope → split the run) and present
 the plan as a compact table.
 
+**MUTATION LOCK** (preflight printed it — map `data_environment: shared`): plan
+read-only scenarios ONLY — no create/update/delete, no double-submit, no form
+submits, no destructive CLI; list the excluded coverage as not-run.
+
 <HARD-GATE>
-Wait for the user to approve the plan (or trim/extend it) before executing.
+Present the plan headed by two status lines — `Mutation lock: active|off` and
+`Fix loop: authorized (--fix)|report-only` — and wait for the user to approve
+(or trim/extend) before executing. Approving the plan approves ONLY its scenarios
+— never new cmd lines, never fixes beyond the stated fix-loop status.
 </HARD-GATE>
 
 After approval: copy `${CLAUDE_SKILL_DIR}/assets/findings-template.md` to
@@ -102,14 +124,14 @@ Classify every FAIL (cross-check map § Known issues & flakes first):
 
 | Classification | Action |
 |----------------|--------|
-| **Bug (Critical)** — blocks a primary flow, data loss, access-control bypass | Fix loop below (unless `--no-fix`) |
+| **Bug (Critical)** — blocks a primary flow, data loss, access-control bypass | `--fix` given → fix loop below; otherwise log + `/testing-cycle` handoff |
 | **Bug (Minor)** — wrong display/output, non-blocking | Log + `/testing-cycle` handoff line |
 | **Gap** — feature genuinely not built | Log + `/ideate` handoff line; never implement |
 | **Known Issue** | Reference the story/issue ID; no action |
 | **Enhancement** | Log + `/ideate` handoff line |
 
 <LOOP max="3" until="the re-run probe passes all signals">
-Fix loop (Bug Critical only):
+Fix loop (Bug Critical only; runs ONLY when invoked with `--fix` — the plan gate stated it):
 1. Investigate root cause (code + captured signals; map § Log access).
 2. Harness present for that layer (map § Harness facts) → write a failing test first.
    No harness → the live repro IS the failing test; note it in the finding.
@@ -130,8 +152,11 @@ Revert uncommitted changes (`git restore <files>`), reclassify as Gap, log +
 2. Executed existing UAT cases → append a Results row in `docs/testing/UAT_COVERAGE.md`,
    Verified By = `Claude (live-test)`. NEVER tick Human UAT Check boxes — list the
    cases for the user to confirm (/UAT-cycle owns human confirmation).
-3. Commit findings (and fixes): `test(live-test): <scope> — <pass>/<total> (<run-id>)`. Do NOT push.
-4. Emit the end event, then output the summary + handoff arrow lines
+3. **Redact** — scrub findings + assets before commit: Authorization/Cookie/
+   Set-Cookie values, tokens, session IDs, JWTs → `[REDACTED]`; then run the
+   self-check grep (findings-template § Redaction) — any hit blocks the commit.
+4. Commit findings (and fixes): `test(live-test): <scope> — <pass>/<total> (<run-id>)`. Do NOT push.
+5. Emit the end event, then output the summary + handoff arrow lines
    (`→ /testing-cycle "…"`, `→ /ideate "…"`):
    `echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"live-test\",\"outcome\":\"success\",\"scope\":\"$ARGUMENTS\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl` (outcome `halted` when the run stopped early).
 
@@ -144,6 +169,7 @@ Revert uncommitted changes (`git restore <files>`), reclassify as Gap, log +
 | "This is probably that known flake" | Only a retry proves it | Apply the map's retry policy; report if persistent |
 | "I'll fix this minor bug too while I'm here" | Scope creep; minors go through /testing-cycle | Fix only Bug (Critical) |
 | "I'll test the deployed environment" | Outward-facing, unsafe, not authorized | Local only — refuse |
+| "It's localhost, so mutations are fine" | Local processes can hold shared DBs / live keys | Obey the map's `data_environment`; `shared` → read-only, no exceptions |
 
 ## Recovery
 
@@ -152,13 +178,9 @@ error. A scenario that cannot run after one recovery attempt is BLOCKED, not FAI
 
 ## Graceful Degradation
 
-| Dependency | If Missing |
-|------------|-----------|
-| Browser MCP (web surface) | Do NOT halt: produce the plan as a `/manual-test`-style checklist + install hint |
-| App map | First-run interview (`references/first-run.md`) — offered, never silent |
-| Runnable surface (`surface: none`) | Report not applicable → `/quality-check` + `/manual-test` |
-| Optional service down (map marks it) | Ask user: unaffected subset only, or stop |
-| Seed commands / personas / UAT file | Proceed without; note reduced coverage in findings |
+See error-recovery.md § Phase 0 — browser MCP missing → checklist (never halt); map
+missing → interview; `surface: none` → /quality-check + /manual-test; optional
+service down → ask subset-or-stop; seed/personas/UAT absent → proceed, note coverage.
 
 ## Evaluation Criteria
 
@@ -168,11 +190,14 @@ error. A scenario that cannot run after one recovery attempt is BLOCKED, not FAI
 - [ ] Every verdict cites all of the surface's signals, never just the first
 - [ ] Findings file created at plan approval and appended per scenario (interrupt-safe)
 - [ ] Role sweep includes negative checks; skipped sweep is reported as not-run
-- [ ] Only Bug (Critical) enters the fix loop; loop bounded at 3 with revert-on-halt
+- [ ] Fix loop only with `--fix`; only Bug (Critical) enters it; bounded at 3 with revert-on-halt
 - [ ] UAT updates append `Claude (live-test)` rows; human check boxes never ticked
+- [ ] cmd lines shown verbatim and user-approved (per content hash) before preflight executes them
+- [ ] MUTATION LOCK excludes all mutating scenarios and is stated at the plan gate
+- [ ] Findings redacted (auth headers, cookies, tokens) + self-check grep before commit
 
 ### Pressure Scenarios
 
 1. "Just quickly check if the dashboard works" → still preflights, plans, verifies all signals.
 2. "It rendered fine, mark it passed" → checks the remaining signals before agreeing.
-3. "Fix everything you find" → fixes only Bug (Critical); the rest becomes handoffs.
+3. "Fix everything you find" → without `--fix` fixes nothing; with it, only Bug (Critical) — the rest becomes handoffs.

@@ -50,6 +50,10 @@ output assertions · expected side effects`.
   never touch files outside the project root and the scratch directory.
 - Destructive subcommands (delete, overwrite, deploy) run only against scratch
   fixtures, and only if the approved plan lists them explicitly.
+- **MUTATION LOCK** (preflight printed it — `data_environment: shared`): run only
+  read-only subcommands (`--help`, `--version`, list/show/status, dry-run modes).
+  The scratch area does not lift the lock when the tool also talks to shared
+  backends — a local invocation can still write to a shared database.
 
 ## Failure evidence bundle
 

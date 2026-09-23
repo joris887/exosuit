@@ -24,7 +24,20 @@ curl -s -o "$BODY" -w '%{http_code}' -m <timeout> \
   symlink-clobberable on a shared host. Delete the file when the scenario ends.
 - Response bodies routinely contain session tokens and real user data. The framework's
   secrets scanner does not inspect `.md`/`.txt`, so review any excerpt before it is
-  written into a committed findings file.
+  written into a committed findings file, and run the redaction self-check in the
+  findings template before committing.
+
+## Safety — mutations and destructive requests
+
+- Mutating requests (POST/PUT/PATCH/DELETE) act only on resources this scenario
+  created, or on seed/fixture data the app map marks disposable — the API twin of
+  the CLI guide's scratch-fixture rule.
+- DELETE and multi-step destructive sequences run only if the approved plan lists
+  them explicitly.
+- **MUTATION LOCK** (preflight printed it — `data_environment: shared`): send NO
+  mutating request at all — GET/HEAD only. Skip idempotency/double-submit probes
+  and validation probes that could write on a server bug; record all of it as
+  not-run. Negative access checks run as reads only (expect 401/403 on GET).
 
 ## Three-signal verification (run after EVERY scenario)
 
@@ -71,7 +84,8 @@ assertions · expected side effect · access-sensitive? (y/n)`.
 
 When a scenario fails, capture:
 
-1. The exact request (method, URL, headers minus secrets, payload) — reproducible as
+1. The exact request (method, URL, headers with Authorization/Cookie/Set-Cookie
+   values and any token replaced by `[REDACTED]`, payload) — reproducible as
    a curl one-liner in the finding
 2. Response: status + body excerpt → `docs/testing/findings/assets/<run-id>/<scenario-id>.txt`
 3. Server log correlation: run the app map's log-access command, capture the matching

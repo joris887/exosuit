@@ -43,6 +43,16 @@ extract_json() {
 
 # Read stdin once
 INPUT=$(cat)
+
+# An unparseable payload must not read as "no command": that would switch the
+# safety check off for exactly the input it couldn't inspect. Block instead.
+if [ -n "$INPUT" ] && command -v jq >/dev/null 2>&1 \
+   && ! printf '%s' "$INPUT" | jq empty >/dev/null 2>&1; then
+    echo "BLOCKED: pre-tool-use could not parse its input as JSON, so the command" >&2
+    echo "  could not be safety-checked. Retry the command; if this repeats, report it." >&2
+    exit 2
+fi
+
 COMMAND=$(printf '%s' "$INPUT" | extract_json ".tool_input.command" "command")
 
 # If no command, allow through

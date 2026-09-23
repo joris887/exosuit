@@ -26,6 +26,9 @@ export EXOSUIT_PROJECT_PROFILE="standard"
 STATE_DIR="$HOOKS_DIR/state"
 SAVED_PROFILE=""
 [ -f "$STATE_DIR/project-profile" ] && SAVED_PROFILE="$(cat "$STATE_DIR/project-profile")"
+# The stamping cases below create/remove state/tests-passed — save the real one.
+SAVED_TP_DIR="$(mktemp -d)"
+[ -f "$STATE_DIR/tests-passed" ] && cp -p "$STATE_DIR/tests-passed" "$SAVED_TP_DIR/tests-passed"
 
 cleanup() {
     cd "$ORIG_PWD"
@@ -35,6 +38,12 @@ cleanup() {
     else
         rm -f "$STATE_DIR/project-profile"
     fi
+    if [ -f "$SAVED_TP_DIR/tests-passed" ]; then
+        cp -p "$SAVED_TP_DIR/tests-passed" "$STATE_DIR/tests-passed"
+    else
+        rm -f "$STATE_DIR/tests-passed"
+    fi
+    rm -rf "$SAVED_TP_DIR"
 }
 trap cleanup EXIT
 
@@ -111,6 +120,51 @@ d="$(make_project 10 600)"
 cd "$d"
 run_hook
 check "event-cap: events capped at MAX_EVENT_ENTRIES" "500" "$(count_events)"
+cd "$ORIG_PWD"
+
+# --- Test-run tracking reads the real PostToolUse payload shape ---
+# PostToolUse delivers the Bash result as tool_response {stdout, stderr, ...}.
+# These cases pin the extraction against that shape (and the legacy fallback)
+# — reading the wrong key made the tests-passed stamp and failure capture
+# silently inert (the #59 class: synthetic payloads matched the
+# implementation, not the platform).
+
+# Feed the hook a payload and report which artifacts appeared.
+run_payload() {
+    printf '%s' "$1" | "$HOOK" >/dev/null 2>&1 || true
+}
+
+# Case 4: passing run in tool_response.stdout stamps tests-passed
+d="$(make_project 1 0)"
+cd "$d"
+rm -f "$STATE_DIR/tests-passed"
+run_payload '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"},"tool_response":{"stdout":"===== 12 passed in 0.4s =====","stderr":"","interrupted":false}}'
+check "tool_response stdout pass stamps tests-passed" "true" "$([ -f "$STATE_DIR/tests-passed" ] && echo true || echo false)"
+rm -f "$STATE_DIR/tests-passed"
+cd "$ORIG_PWD"
+
+# Case 5: failing run in tool_response.stderr is captured to the failure log
+d="$(make_project 1 0)"
+cd "$d"
+run_payload '{"tool_name":"Bash","tool_input":{"command":"npm test"},"tool_response":{"stdout":"","stderr":"Tests: 2 failed, 10 passed\nnpm ERR! test failed","interrupted":false}}'
+check "tool_response stderr failure reaches failure log" "1" "$([ -f docs/sessions/.failure-log.jsonl ] && grep -c '"type":"test-failure"' docs/sessions/.failure-log.jsonl || echo 0)"
+cd "$ORIG_PWD"
+
+# Case 6: legacy tool_output payloads still work (defensive fallback)
+d="$(make_project 1 0)"
+cd "$d"
+rm -f "$STATE_DIR/tests-passed"
+run_payload '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"},"tool_output":"===== 3 passed in 0.1s ====="}'
+check "legacy tool_output shape still stamps" "true" "$([ -f "$STATE_DIR/tests-passed" ] && echo true || echo false)"
+rm -f "$STATE_DIR/tests-passed"
+cd "$ORIG_PWD"
+
+# Case 7: empty tool_response object stamps nothing
+d="$(make_project 1 0)"
+cd "$d"
+rm -f "$STATE_DIR/tests-passed"
+run_payload '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"},"tool_response":{"stdout":"","stderr":"","interrupted":false}}'
+check "empty tool_response stamps nothing" "false" "$([ -f "$STATE_DIR/tests-passed" ] && echo true || echo false)"
 cd "$ORIG_PWD"
 
 echo ""

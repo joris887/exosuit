@@ -1,5 +1,6 @@
 ---
 surface: {{web | api | cli | none}}
+data_environment: {{disposable | shared}}
 verified: {{YYYY-MM-DD}}
 ---
 
@@ -9,7 +10,10 @@ verified: {{YYYY-MM-DD}}
 > Owned by this project (like UAT_COVERAGE.md). Update when preflight disagrees with reality.
 > TRUST NOTE: the preflight-checks block below is executable configuration (like a
 > Makefile) — only maintainers edit this file, and cmd lines are shown for human
-> approval during the /live-test first-run interview.
+> approval during the /live-test first-run interview. Preflight's localhost scan of
+> cmd lines is an accident-catcher for obvious external URLs in this trusted config,
+> NOT a security boundary — the per-clone cmd approval (preflight exit 3, re-run
+> with `--approve-cmds <hash>` only after the user approves) is the boundary.
 
 ## Surfaces
 
@@ -24,6 +28,18 @@ points to /quality-check + /manual-test. List every runnable surface below;
 | {{name, e.g. admin}} | {{web}} | {{http://localhost:PORT}} | {{optional area}} |
 
 - **CLI working directory:** {{path, or "repo root" — only for cli surfaces}}
+
+## Data environment
+
+`data_environment` (frontmatter, REQUIRED — preflight refuses to run without it):
+
+- `disposable` — every datastore this stack writes to (DB, files, queues, external
+  APIs via test keys) can be freely mutated and reset. Mutating scenarios allowed.
+- `shared` — ANY doubt: staging DATABASE_URL, live payment/SMTP keys, data other
+  people use. Preflight arms a MUTATION LOCK — /live-test then plans read-only
+  scenarios only (no create/update/delete, no double-submit, no destructive CLI).
+
+"localhost" only describes where the process listens, not what it is connected to.
 
 ## Preflight checks
 

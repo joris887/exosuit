@@ -1365,7 +1365,7 @@ Batch code logic verification: load UAT coverage → select 2-5 test cases → t
      │  ├──→ Phase 1-2: resolve scope → test plan (user approves at hard gate)
      │  ├──→ Phase 3-4: drive the surface (browser/API/CLI), verify ALL signals,
      │  │       append each verdict to the findings file as it completes
-     │  ├──→ Phase 5: classify failures; fix loop (Bug Critical only, max 3 attempts)
+     │  ├──→ Phase 5: classify failures; fix loop (only with --fix; Bug Critical only, max 3 attempts)
      │  └──→ Phase 6: findings report + UAT results rows + handoffs
      │             → /testing-cycle "bug"   → /ideate "gap"
 ```
@@ -2496,9 +2496,9 @@ Companion knowledge stores:
 |---|---|
 | `.github/workflows/claude-pr-review.yml` | CI: runs code-quality, test-validator, security-audit on PRs |
 | `.github/pull_request_template.md` | PR template with quality gates checklist |
-| `.github/ISSUE_TEMPLATE/bug_report.yml` | Structured bug report form |
-| `.github/ISSUE_TEMPLATE/feature_request.yml` | Structured feature request form |
 | `.github/CODEOWNERS` | Human review required on tests, security, dependencies |
+
+The framework repo's own `workflows/ci.yml` and `ISSUE_TEMPLATE/` are not installed into projects.
 
 #### Cross-Tool Compatibility
 

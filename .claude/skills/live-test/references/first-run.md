@@ -30,6 +30,10 @@ Ask (single AskUserQuestion, options from the evidence):
 3. **Access** — how to log in / authenticate (or "no auth"); which test accounts exist
    and which env var holds their credentials (NEVER store secrets in the map)
 4. **Seed/reset** — commands that put test data in place (or "none")
+5. **Data environment** — "Can every datastore this stack writes to be freely
+   mutated and reset (`disposable`), or could it touch shared/real data — staging
+   DB, live API keys, other people's records (`shared`)?" When the user is unsure,
+   default to `shared` — the lock can be lifted later by editing the map.
 
 If the user declines the interview or the project has no runnable surface: write the
 map with `surface: none` and a one-line reason, so future runs halt fast with the
@@ -42,7 +46,8 @@ right pointer (`/quality-check` + `/manual-test`) instead of re-deriving this.
 2. Fill every section from the interview + detected evidence. Cite evidence files in
    the header (`Verified <date> against <files>`) — claims must trace to code/config,
    per the framework's documentation-accuracy rules.
-3. Fill the frontmatter `surface:` key (primary surface kind) and the `preflight-checks`
+3. Fill the frontmatter `surface:` key (primary surface kind), the REQUIRED
+   `data_environment:` key from interview answer 5, and the `preflight-checks`
    block — one line per check the stack needs (`type|label|target|required|remedy`;
    fields must not contain `|`). Derive candidates from: compose services, health
    endpoints, dev-server URLs, `--version` for CLIs. Show every `cmd` check line to the
@@ -51,8 +56,10 @@ right pointer (`/quality-check` + `/manual-test`) instead of re-deriving this.
 4. Leave sections that don't apply with their `<!-- n/a: reason -->` note rather than
    deleting them — future maintainers see what was considered.
 5. Show the user the finished map, then run
-   `bash ${CLAUDE_SKILL_DIR}/scripts/preflight.sh` to prove the checks work before the
-   first real run.
+   `bash ${CLAUDE_SKILL_DIR}/scripts/preflight.sh`. If the map has `cmd` lines it
+   exits 3 listing them with an approval hash — the approval the user just gave in
+   this interview IS that approval: re-run with the printed `--approve-cmds <hash>`
+   to record it for this clone, and confirm the checks pass before the first real run.
 
 ## 4. Keep it fresh
 

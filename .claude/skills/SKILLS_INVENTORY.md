@@ -109,7 +109,7 @@ For automated testing of the running application (Claude executes the plan itsel
 | Skill                  | Arguments                       | Description                                      |
 | ---------------------- | ------------------------------- | ------------------------------------------------ |
 | `/manual-test`         | -                               | Generate test plan from recent changes/issues    |
-| `/live-test`           | `<scope> [--surface <name>|all] [--no-fix]` | Autonomously test the running app: plan → drive → verify → fix criticals → report |
+| `/live-test`           | `<scope> [--surface <name>|all] [--fix]` | Autonomously test the running app: plan → drive → verify → fix criticals (only with `--fix`) → report |
 | `/testing-cycle`       | `<feedback-description>`        | Process one ad-hoc feedback item (classify → fix)  |
 | `/UAT-cycle`           | `<test-case-id-or-description>` | Execute a formal UAT test case, process findings |
 | `/claude-sense-check`  | -                               | Batch code logic verification of UAT cases (2-5 per run) |

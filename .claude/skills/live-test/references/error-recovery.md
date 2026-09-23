@@ -15,6 +15,9 @@ scenario kill the run.
 | Browser MCP tools not found (web surface) | Playwright/Chrome DevTools MCP not installed | Do NOT halt: produce the plan as a `/manual-test`-style checklist for the user; suggest `claude mcp add playwright -- npx @playwright/mcp@latest` |
 | Preflight passes with warnings | Optional dependency down (map marks it optional) | Ask user: run the unaffected subset (mark affected scenarios BLOCKED), or stop |
 | Credentials env var unset | Test-account password/token not exported | Show the env var name from the app map, ask user to set it; never proceed with guessed or default credentials |
+| Preflight exits 3 (CMD APPROVAL REQUIRED) | Map `cmd` lines never approved for this clone, or changed since approval | Show the printed cmd lines VERBATIM, AskUserQuestion for explicit approval; approved → re-run with `--approve-cmds <hash>`; refused → replace the cmd lines with `http`/`compose` checks or remove them. Never write the state file yourself |
+| Preflight REFUSED: data_environment missing/invalid | Map predates the field or holds template text | Ask the user disposable-vs-shared (first-run.md § 2 item 5 — default `shared` when unsure), fill the frontmatter, re-run |
+| Seed commands / personas / UAT file absent | Optional context not present in this project | Proceed without; note reduced coverage in the findings file |
 
 ## Phases 3–4: Execution
 

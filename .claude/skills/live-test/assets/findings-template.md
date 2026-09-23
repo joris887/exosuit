@@ -3,6 +3,8 @@ skill: live-test
 scope: {{scope}}
 surface: {{surface name(s)}}
 toolkit: {{playwright-mcp | chrome-devtools-mcp | curl | shell}}
+data_environment: {{disposable | shared (MUTATION LOCK — read-only run)}}
+fix_authorized: {{yes (--fix) | no (report-only)}}
 run_id: {{YYYY-MM-DDTHH-MM-SSZ}}
 duration: {{minutes — fill at run end}}
 status: in-progress
@@ -52,6 +54,8 @@ accounts_swept: []
 
 ## Fixes applied this session
 
+<!-- Populated only when the run was invoked with --fix; otherwise every Critical
+     is a handoff line below and this table stays empty. -->
 | # | Scenario | Root cause | Fix | Tests | Commit | Live re-verify |
 |---|----------|-----------|-----|-------|--------|----------------|
 
@@ -62,6 +66,19 @@ accounts_swept: []
      list the cases here so the user can confirm pass/fail per UAT-cycle rules. -->
 | Case | Result row appended | Needs human confirmation |
 |------|---------------------|--------------------------|
+
+## Redaction
+
+<!-- MANDATORY before committing this file or its assets. The framework's secrets
+     scanner does NOT inspect .md/.txt (post-edit-format.sh skip list) — this
+     self-check is the only gate. 1) Replace every Authorization/Cookie/Set-Cookie
+     value, token, session ID, and JWT with [REDACTED]. 2) Run:
+       grep -rnEi -e 'authorization[": ]*[:=]' -e 'set-cookie' \
+         -e '(api[_-]?key|secret|token|passw)[a-z_]*["'\'' ]*[:=]' \
+         -e 'sk-[A-Za-z0-9_-]{20,}' -e 'eyJ[A-Za-z0-9_-]{10,}\.eyJ' \
+         docs/testing/findings/<this-file> docs/testing/findings/assets/<run-id>/
+     3) Every hit must be [REDACTED] or a false positive you can name here. -->
+- Self-check run: {{clean | N hits scrubbed}}
 
 ## Handoff
 

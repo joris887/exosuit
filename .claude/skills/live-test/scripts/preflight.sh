@@ -8,11 +8,25 @@
 # shows every cmd line for human approval. Non-destructive; bash + curl only (docker
 # only for compose checks; cmd/compose bounded at 30s where GNU timeout exists).
 # Exit: 0 = all required checks pass · 1 = a required check failed, a line is
-#       malformed/unfilled, a non-local target was seen, or a declared block could
-#       not be extracted · 2 = app map missing/unreadable (run the interview).
+#       malformed/unfilled, a non-local target was seen, the data_environment
+#       declaration is missing/invalid, or a declared block could not be
+#       extracted · 2 = app map missing/unreadable (run the interview) · 3 = cmd
+#       lines require per-clone user approval (or a stale --approve-cmds hash)
+#       — nothing was executed.
 set -uo pipefail
 
-MAP="${1:-docs/testing/APP_MAP.md}"
+MAP="docs/testing/APP_MAP.md"
+APPROVE_CMDS=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --approve-cmds)
+      shift
+      [ "$#" -gt 0 ] || { echo "REFUSED: --approve-cmds needs the hash printed by the previous run."; exit 3; }
+      APPROVE_CMDS="$1" ;;
+    *) MAP="$1" ;;
+  esac
+  shift
+done
 
 PASS=0
 FAIL=0
@@ -29,6 +43,31 @@ if [ ! -f "$MAP" ] || [ ! -r "$MAP" ]; then
   echo "REFUSED: app map '$MAP' not found or not a readable file. Run the /live-test first-run interview to create it."
   exit 2
 fi
+
+# --- Data-environment gate: what is this stack CONNECTED to? --------------------
+# "localhost" is not "safe": a dev server on localhost:8000 can hold a shared
+# DATABASE_URL or live payment keys. The map MUST declare the blast radius.
+DATA_ENV=$(awk '
+  NR == 1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
+  /^---[[:space:]]*$/ { exit }
+  /^data_environment[[:space:]]*:/ {
+    sub(/^data_environment[[:space:]]*:[[:space:]]*/, ""); sub(/[[:space:]]+$/, ""); print; exit
+  }
+' "$MAP" | tr -d '\r' | sed -e "s/^[\"']//" -e "s/[\"']\$//")
+case "$DATA_ENV" in
+  disposable)
+    echo "  data_environment: disposable — mutating scenarios permitted" ;;
+  shared)
+    echo "== MUTATION LOCK: data_environment=shared — read-only run =="
+    echo "  The plan MUST exclude mutating scenarios: create/update/delete,"
+    echo "  double-submit/idempotency probes, form submits, destructive CLI." ;;
+  *)
+    echo "REFUSED: app map frontmatter must declare 'data_environment: disposable|shared' (found: '${DATA_ENV:-<missing>}')."
+    echo "        localhost does not mean safe — the stack may be connected to shared data."
+    echo "        Set 'disposable' ONLY if every datastore this stack writes can be freely mutated and reset;"
+    echo "        otherwise set 'shared' (mutating scenarios are then excluded). Update $MAP and re-run."
+    exit 1 ;;
+esac
 
 HAVE_TIMEOUT=""
 command -v timeout >/dev/null 2>&1 && HAVE_TIMEOUT=1
@@ -64,6 +103,26 @@ is_local_url() {
       return 0 ;;
     *) return 1 ;;
   esac
+}
+
+# Verify one URL-position word from a curl/wget invocation ($1 = original word,
+# $2 = lowercased). Scheme-less words get http:// prepended — curl/wget default
+# to it — so dotless hosts, decimal/hex IPs, and bracketed IPv6 are all tested.
+# A word this gate cannot verify lexically ($, backticks, quotes …) is refused:
+# inside a network-fetch command, an unverifiable word IS the risk.
+scan_url_word() {
+  cand="${2#--url=}"
+  endsemi=""
+  case "$cand" in *\;) endsemi=1; cand="${cand%\;}" ;; esac
+  case "$cand" in
+    '') ;;
+    *[!]a-z0-9.:@_/[-]*)
+      remote=1; why="— cannot verify dynamic URL '$1' in a $netcmd command; use a literal localhost URL" ;;
+    http://*|https://*) is_local_url "$cand" || remote=1 ;;
+    *) is_local_url "http://$cand" || remote=1 ;;
+  esac
+  [ -n "$endsemi" ] && netcmd=""
+  return 0
 }
 
 # --- Extract the checks block ------------------------------------------------------
@@ -169,6 +228,7 @@ if [ -z "$CHECKS" ]; then
     echo "  (no preflight-checks block declared in the app map — nothing to verify)"
   fi
   echo "== preflight summary: 0 checks =="
+  [ "$DATA_ENV" = "shared" ] && echo "== MUTATION LOCK armed (data_environment: shared) =="
   exit 0
 fi
 
@@ -176,6 +236,56 @@ HAVE_DOCKER=""
 command -v docker >/dev/null 2>&1 && HAVE_DOCKER=1
 
 trim() { v="$1"; v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"; printf '%s' "$v"; }
+
+# --- cmd approval gate: no shell from the map runs without a human ---------------
+# cmd targets execute via sh -c. They are enumerated and hashed BEFORE anything
+# runs; the approved-set hash lives in .claude/hooks/state/ (gitignored — approval
+# is per-clone and can never be committed on anyone else's behalf). The model
+# cannot approve: it shows the lines verbatim, asks the user, then re-runs with
+# --approve-cmds <hash>. A hash minted against an older map is refused (TOCTOU).
+sha() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then shasum -a 256 | awk '{print $1}'
+  else cksum | awk '{print $1 "-" $2}'; fi
+}
+CMD_LIST=$(printf '%s\n' "$CHECKS" | while IFS='|' read -r ctype label target required remedy; do
+  ctype=$(trim "${ctype:-}"); target=$(trim "${target:-}"); required=$(trim "${required:-}")
+  [ "$ctype" = "cmd" ] || continue
+  case "$ctype$required" in *'{{'*) continue ;; esac   # unfilled template line — never executes
+  printf '%s\n' "$target"
+done)
+if [ -n "$CMD_LIST" ]; then
+  CMD_HASH=$(printf '%s\n' "$CMD_LIST" | LC_ALL=C sort | sha)
+  STATE_DIR=".claude/hooks/state"
+  HASH_FILE="$STATE_DIR/live-test-approved-cmds"
+  STORED=""
+  [ -r "$HASH_FILE" ] && STORED=$(tr -d ' \n\r' < "$HASH_FILE")
+  if [ -n "$APPROVE_CMDS" ]; then
+    if [ "$APPROVE_CMDS" = "$CMD_HASH" ]; then
+      mkdir -p "$STATE_DIR" 2>/dev/null
+      printf '%s\n' "$CMD_HASH" > "$HASH_FILE"
+      echo "  cmd checks approved for this clone ($CMD_HASH)"
+      STORED="$CMD_HASH"
+    else
+      echo "REFUSED: --approve-cmds hash does not match the map's current cmd lines — the map changed after the commands were shown. Re-run WITHOUT the flag and re-review."
+      exit 3
+    fi
+  fi
+  if [ "$STORED" != "$CMD_HASH" ]; then
+    echo "== CMD APPROVAL REQUIRED (nothing was executed) =="
+    if [ -n "$STORED" ]; then echo "  The map's cmd lines CHANGED since last approved for this clone.";
+    else echo "  The map's cmd lines have never been approved for this clone."; fi
+    echo "  preflight will run these as shell:"
+    n=0
+    printf '%s\n' "$CMD_LIST" | while IFS= read -r line; do
+      n=$((n+1)); printf '    cmd %s: %s\n' "$n" "$line"
+    done
+    echo "  approval hash: $CMD_HASH"
+    echo "  Show every line above to the user VERBATIM. Only after explicit approval, re-run:"
+    echo "    bash \$CLAUDE_SKILL_DIR/scripts/preflight.sh $MAP --approve-cmds $CMD_HASH"
+    exit 3
+  fi
+fi
 
 while IFS='|' read -r ctype label target required remedy; do
   ctype=$(trim "${ctype:-}"); label=$(trim "${label:-}"); target=$(trim "${target:-}"); required=$(trim "${required:-}")
@@ -252,30 +362,57 @@ while IFS='|' read -r ctype label target required remedy; do
       fi
       ;;
     cmd)
-      # containment note, not a guarantee: cmd checks are shell (see TRUST
-      # BOUNDARY above). This guard only catches obvious remote http(s) URLs.
-      remote=""
+      # Accident-catcher, NOT a security boundary: cmd checks are shell (see
+      # TRUST BOUNDARY above) — a map author already has full shell, so no word
+      # scan can contain a hostile line. This scan catches an accidental or
+      # LLM-generated external URL in otherwise-trusted config: explicit-scheme
+      # words anywhere in any command (fail-open on shell metacharacters, so
+      # ordinary commands stay unaffected), plus EVERY argument of a curl/wget
+      # invocation, where an unverifiable word is refused — fail-closed only in
+      # that network-fetch scope.
+      remote=""; why=""
+      netcmd=""      # '' = ordinary scope · curl/wget = network-fetch scope
+      skipval=""     # next word is the value of an option that never takes a URL
+      urlnext=""     # next word is the argument of curl --url
+      set -f         # word-splitting only — never glob-expand (`ls *.py`)
       for word in $target; do
         lw=$(printf '%s' "$word" | tr '[:upper:]' '[:lower:]')
+        if [ -n "$skipval" ]; then skipval=""; continue; fi
         case "$lw" in
-          # Explicit scheme.
-          http://*|https://*|ftp://*|ftps://*|scp://*|sftp://*|ssh://*)
-            is_local_url "$lw" || remote=1 ;;
-          # Scheme-LESS host arguments. curl/wget default to http://, so
-          # `curl evil.example.com/x` would otherwise slip past a check that
-          # only inspects http(s):// words. Treat any bare word that looks
-          # like a host (dotted name or user@host) as a URL and test it.
-          -*|/*|./*|../*|'')
-            ;;
-          *@*|*.*)
-            case "$lw" in
-              *[!a-z0-9.:@_/-]*) ;;   # has shell/path metachars: not a bare host
-              *) is_local_url "http://${lw#*@}" || remote=1 ;;
-            esac ;;
+          '&&'|'||'|';'|'|'|'&') netcmd=""; urlnext=""; continue ;;
         esac
+        if [ -n "$urlnext" ]; then urlnext=""; scan_url_word "$word" "$lw"; continue; fi
+        case "$lw" in
+          # Explicit scheme — scanned in EVERY command.
+          http://*|https://*|ftp://*|ftps://*|scp://*|sftp://*|ssh://*)
+            is_local_url "$lw" || remote=1
+            case "$lw" in *\;) netcmd="" ;; esac
+            continue ;;
+        esac
+        if [ -z "$netcmd" ]; then
+          case "$lw" in curl|wget) netcmd="$lw" ;; esac
+          continue
+        fi
+        # -- inside a curl/wget invocation --
+        case "$netcmd:$word" in
+          curl:-K|curl:--config|curl:--config=*)
+            remote=1; why="— curl -K/--config reads its URLs from a file this gate cannot see; use inline http checks instead"; continue ;;
+          wget:-i|wget:--input-file|wget:--input-file=*)
+            remote=1; why="— wget -i/--input-file reads its URLs from a file this gate cannot see; use inline http checks instead"; continue ;;
+        esac
+        case "$word" in
+          --url) urlnext=1; continue ;;
+          --url=*) ;;                    # value attached — scanned below
+          -*=*) continue ;;              # --opt=value: only --url= carries a URL
+          -o|-d|-H|-F|-T|-A|-e|-b|-c|-u|-E|-K|-m|-X|--request|--data*|--header|--output|--config|--cookie*|--user*|--referer|--cert|--key|--cacert|--form|--upload-file|--retry*|--max-time)
+            skipval=1; continue ;;       # value is never a fetched URL
+          -*) continue ;;                # option taking no value
+        esac
+        scan_url_word "$word" "$lw"
       done
+      set +f
       if [ -n "$remote" ]; then
-        echo "REFUSED: check '$label' targets a non-local URL. Live tests only run against the local machine."
+        echo "REFUSED: check '$label' ${why:-targets a non-local URL}. Live tests only run against the local machine."
         exit 1
       fi
       bounded sh -c "$target" </dev/null >/dev/null 2>&1; rc=$?
@@ -300,4 +437,5 @@ if [ "$UNFILLED" -gt 0 ]; then
 fi
 
 echo "== preflight summary: $PASS pass / $FAIL fail / $WARN warn =="
+[ "$DATA_ENV" = "shared" ] && echo "== MUTATION LOCK armed (data_environment: shared) =="
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1

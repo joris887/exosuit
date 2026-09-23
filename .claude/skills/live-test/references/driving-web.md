@@ -12,9 +12,10 @@ before the main pass — a keyword search returns few results by default, so eit
 `max_results` (≥20) on one `"+playwright browser"` query, or use a `select:` query with
 the exact names once the first search reveals the prefix.
 
-Load at minimum: navigate, snapshot, click, type, fill_form, wait_for, evaluate,
+Load at minimum: navigate, snapshot, click, type, fill_form, wait_for,
 console_messages, network_requests, take_screenshot, handle_dialog, select_option,
-press_key, file_upload, close.
+press_key, file_upload, close. `evaluate` is not auto-approved — each call prompts
+the user (arbitrary JS in the page); prefer snapshot/wait_for.
 
 If the Playwright plugin is unavailable, fall back to the Chrome DevTools MCP plugin
 (`navigate_page`, `take_snapshot`, `click`, `fill`, `wait_for`, `list_console_messages`,
@@ -36,6 +37,18 @@ navigate → wait_for (content) → snapshot → act on refs → wait_for (resul
 4. **act** — click/type/select using the `ref` from the snapshot plus a human-readable description.
 5. **wait_for** the expected result, with the timeout from the app map's timing budgets.
 6. **verify** the three signals (below).
+
+## Safety — mutating actions
+
+- Create/edit/delete flows act only on records this scenario created, or on seed
+  data the app map marks disposable — the browser twin of the CLI scratch-fixture
+  rule.
+- Destructive UI actions (delete buttons, bulk operations, irreversible submits)
+  run only if the approved plan lists them explicitly; handle confirm dialogs per
+  the scenario's intent — never reflexively accept.
+- **MUTATION LOCK** (preflight printed it — `data_environment: shared`): navigate,
+  wait, snapshot, and read ONLY. Never submit a form — a submitted form IS a
+  mutation; double-submit checks are out; record the excluded coverage as not-run.
 
 ## Three-signal verification (run after EVERY scenario)
 

