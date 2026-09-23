@@ -403,7 +403,7 @@
   },
   {
     "name": "skill-create",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "description": "Analyze the repository's technology stack and generate appropriate skills, rules, and hook configurations.",
     "trigger": "manual",
     "depends_on": [],
