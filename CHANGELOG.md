@@ -175,6 +175,31 @@ no coverage at all before.
 - `core/hooks/post-tool-use.sh` — tool_response extraction
 - `core/hooks/tests/test-post-tool-use.sh` — four payload-shape cases
 
+### Installer no longer touches project files or ships framework CI (#105, #106)
+`install.sh` copied the framework repo's own `.github/` into every project:
+`workflows/ci.yml` shellchecks `install.sh`, which projects don't have, so the
+first PR after install went red. `--force` also dropped the no-clobber guard for
+`CLAUDE.md` and the whole scaffold, replacing a mature project's `CLAUDE.md`,
+`README.md`, `docs/progress.md`, context docs and ADRs with placeholders, and
+replaced `skills-registry.json`, silently unregistering every project skill.
+
+- Only consumer-facing GitHub files are installed: `pull_request_template.md`,
+  `CODEOWNERS`, `workflows/claude-pr-review.yml`. The review workflow is skipped
+  when a workflow already runs `anthropics/claude-code-action`.
+- `--force` now means "reinstall framework files under `.claude/`". `CLAUDE.md`,
+  the scaffold (`docs/`, `README.md`, `vision/`, ...) and the `.github` templates
+  are never overwritten.
+- `skills-registry.json` is merged on every install: framework entries are
+  refreshed, the project's own entries kept. Previously a default (no-clobber)
+  upgrade also kept a stale registry that never learned about new framework skills.
+- `merge-up` and `merge-down` were missing from the registry (43 entries vs 45
+  skills since 5.0.1); both are registered now.
+
+- `install.sh` — project-safe `--force`, consumer-only `.github`, registry merge
+- `core/skills/skills-registry.json` — `merge-up`, `merge-down` entries
+- `core/hooks/tests/test-install.sh` — 13 cases running the real installer offline
+- `core/MANIFEST.md`, `docs/FRAMEWORK_REFERENCE.md` — `.github` and registry strategy
+
 ### Breaking changes
 None.
 
