@@ -106,6 +106,42 @@ test_case "Detect slop patterns in sloppy file" "true" "$([ "$HAS_SLOP1" -gt 0 ]
 SLOP_MATCH=$(grep -Eli 'This function does|The following code|Helper function for' "$TMPDIR_TEST/good.ts" 2>/dev/null || true)
 test_case "No slop patterns in clean file" "" "$SLOP_MATCH"
 
+# --- JS tool resolution runs the real hook (#109) ---
+# Stubs stand in for the tools; PATH is trimmed to system dirs so only the
+# stubs can be found. The npx stub records any call — the hook must never make
+# one, because an uninstalled package makes npx block on a registry fetch.
+echo ""
+echo "  -- JS tool resolution (real hook) --"
+
+REAL_HOOK="$(cd "$(dirname "$0")/.." && pwd)/post-edit-format.sh"
+JS_PROJ="$TMPDIR_TEST/js-project"
+STUB_BIN="$TMPDIR_TEST/stub-bin"
+mkdir -p "$JS_PROJ/packages/app/src" "$JS_PROJ/node_modules/.bin" "$STUB_BIN"
+printf '#!/bin/sh\necho "$@" > "%s/npx-called"\n' "$TMPDIR_TEST" > "$STUB_BIN/npx"
+printf '#!/bin/sh\necho prettier > "%s/formatted-by"\n' "$TMPDIR_TEST" > "$JS_PROJ/node_modules/.bin/prettier"
+chmod +x "$STUB_BIN/npx" "$JS_PROJ/node_modules/.bin/prettier"
+echo 'const a = 1' > "$JS_PROJ/packages/app/src/x.ts"
+
+run_format_hook() {
+    TMPDIR="$TMPDIR_TEST/state" EXOSUIT_HOOK_PROFILE=standard PATH="$STUB_BIN:/usr/bin:/bin" \
+        bash "$REAL_HOOK" "$1" 2>&1 >/dev/null || true
+}
+mkdir -p "$TMPDIR_TEST/state"
+
+if ! PATH="/usr/bin:/bin" command -v prettier >/dev/null 2>&1 && ! PATH="/usr/bin:/bin" command -v biome >/dev/null 2>&1; then
+    run_format_hook "$JS_PROJ/packages/app/src/x.ts" >/dev/null
+    test_case "Local prettier in an ancestor node_modules/.bin is used" "prettier" "$(cat "$TMPDIR_TEST/formatted-by" 2>/dev/null || echo none)"
+
+    rm -f "$JS_PROJ/node_modules/.bin/prettier"
+    WARN1=$(run_format_hook "$JS_PROJ/packages/app/src/x.ts")
+    WARN2=$(run_format_hook "$JS_PROJ/packages/app/src/x.ts")
+    test_case "No formatter installed: npx is never called" "false" "$([ -f "$TMPDIR_TEST/npx-called" ] && echo true || echo false)"
+    test_case "Missing-tool warning shown on first edit" "true" "$(echo "$WARN1" | grep -q "prettier/biome" && echo true || echo false)"
+    test_case "Missing-tool warning shown only once per session" "" "$WARN2"
+else
+    echo "  SKIP: prettier/biome installed system-wide — resolution cases need a clean PATH"
+fi
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1

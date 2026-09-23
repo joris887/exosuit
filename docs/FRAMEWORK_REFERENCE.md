@@ -2496,9 +2496,9 @@ Companion knowledge stores:
 |---|---|
 | `.github/workflows/claude-pr-review.yml` | CI: runs code-quality, test-validator, security-audit on PRs |
 | `.github/pull_request_template.md` | PR template with quality gates checklist |
-| `.github/ISSUE_TEMPLATE/bug_report.yml` | Structured bug report form |
-| `.github/ISSUE_TEMPLATE/feature_request.yml` | Structured feature request form |
 | `.github/CODEOWNERS` | Human review required on tests, security, dependencies |
+
+The framework repo's own `workflows/ci.yml` and `ISSUE_TEMPLATE/` are not installed into projects.
 
 #### Cross-Tool Compatibility
 
