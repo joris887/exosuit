@@ -132,6 +132,64 @@ fi
 # Clean up template test dir
 rm -rf "$TMPDIR_TEMPLATE"
 
+# --- Real install.sh runs against this checkout ---
+# REPO_URL points the installer at the local framework repo, so these run the
+# actual copy logic offline. Framework checkouts only: a consuming project has
+# no install.sh to run.
+echo ""
+echo "  -- install.sh against local checkout --"
+
+if [ -f "$INSTALL_SCRIPT" ] && git -C "$FRAMEWORK_DIR" ls-files --error-unmatch install.sh >/dev/null 2>&1 \
+   && command -v jq >/dev/null 2>&1; then
+    export REPO_URL="$FRAMEWORK_DIR"
+
+    # Fresh install ships only the consumer-facing GitHub files (#105)
+    TMPDIR_REAL=$(mktemp -d)
+    cd "$TMPDIR_REAL"
+    git init -q .
+    bash "$INSTALL_SCRIPT" >/dev/null 2>&1 || true
+    test_case "Install: framework CI (workflows/ci.yml) not shipped" "false" "$([ -e .github/workflows/ci.yml ] && echo true || echo false)"
+    test_case "Install: framework issue templates not shipped" "false" "$([ -e .github/ISSUE_TEMPLATE ] && echo true || echo false)"
+    test_case "Install: PR template shipped" "true" "$([ -f .github/pull_request_template.md ] && echo true || echo false)"
+    test_case "Install: Claude review workflow shipped" "true" "$([ -f .github/workflows/claude-pr-review.yml ] && echo true || echo false)"
+
+    # --force keeps project files and project skill entries (#106)
+    echo "# My Project" > CLAUDE.md
+    echo "real history" > docs/progress.md
+    echo "team template" > .github/pull_request_template.md
+    jq '. + [{"name":"my-skill","version":"1.0.0","description":"d","trigger":"manual","depends_on":[],"calls":[],"references":[],"path":".claude/skills/my-skill/SKILL.md"}]' \
+        .claude/skills/skills-registry.json > reg.tmp && mv reg.tmp .claude/skills/skills-registry.json
+    echo "# local edit" >> .claude/hooks/stop.sh
+    bash "$INSTALL_SCRIPT" --force >/dev/null 2>&1 || true
+    test_case "Install --force: CLAUDE.md preserved" "# My Project" "$(head -1 CLAUDE.md)"
+    test_case "Install --force: docs/progress.md preserved" "real history" "$(head -1 docs/progress.md)"
+    test_case "Install --force: PR template preserved" "team template" "$(head -1 .github/pull_request_template.md)"
+    test_case "Install --force: project skill entry kept in registry" "1" "$(jq '[.[] | select(.name == "my-skill")] | length' .claude/skills/skills-registry.json)"
+    test_case "Install --force: framework skill entries present" "true" "$(jq '[.[].name] | index("story-cycle") != null' .claude/skills/skills-registry.json)"
+    test_case "Install --force: framework files still refreshed" "0" "$(grep -c '# local edit' .claude/hooks/stop.sh || true)"
+
+    # A default (no-clobber) upgrade still registers framework skills it lacks
+    jq 'map(select(.name != "commit"))' .claude/skills/skills-registry.json > reg.tmp && mv reg.tmp .claude/skills/skills-registry.json
+    bash "$INSTALL_SCRIPT" >/dev/null 2>&1 || true
+    test_case "Install upgrade: missing framework skill re-registered" "true" "$(jq '[.[].name] | index("commit") != null' .claude/skills/skills-registry.json)"
+    test_case "Install upgrade: project skill entry still kept" "1" "$(jq '[.[] | select(.name == "my-skill")] | length' .claude/skills/skills-registry.json)"
+
+    # An existing Claude review workflow is not duplicated
+    TMPDIR_WF=$(mktemp -d)
+    cd "$TMPDIR_WF"
+    git init -q .
+    mkdir -p .github/workflows
+    printf 'jobs:\n  review:\n    steps:\n      - uses: anthropics/claude-code-action@v1\n' > .github/workflows/review.yml
+    bash "$INSTALL_SCRIPT" >/dev/null 2>&1 || true
+    test_case "Install: existing Claude review workflow not duplicated" "false" "$([ -e .github/workflows/claude-pr-review.yml ] && echo true || echo false)"
+
+    cd /
+    rm -rf "$TMPDIR_REAL" "$TMPDIR_WF"
+    unset REPO_URL
+else
+    echo "  SKIP: not a framework checkout (or jq missing)"
+fi
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1

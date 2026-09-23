@@ -16,8 +16,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check API key availability
+        id: key
+        # Fork PRs and repos without the secret get no key — skip review
+        # gracefully instead of failing the check.
+        run: |
+          if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "ANTHROPIC_API_KEY not available — skipping Claude review." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Determine access level
         id: access
+        if: steps.key.outputs.available == 'true'
         run: |
           if gh api repos/${{ github.repository }}/collaborators/${{ github.event.pull_request.user.login }} --silent 2>/dev/null; then
             echo "level=full" >> "$GITHUB_OUTPUT"
@@ -28,7 +41,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Claude Code Review (Full)
-        if: steps.access.outputs.level == 'full'
+        if: steps.key.outputs.available == 'true' && steps.access.outputs.level == 'full'
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -36,7 +49,7 @@ jobs:
           direct_prompt: "/review-pr-ci"
 
       - name: Claude Code Review (External — Structure Only)
-        if: steps.access.outputs.level == 'external'
+        if: steps.key.outputs.available == 'true' && steps.access.outputs.level == 'external'
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}

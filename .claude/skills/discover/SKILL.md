@@ -519,7 +519,7 @@ Define SUCCESS and FAIL thresholds + circuit breaker date per the archetype succ
 
 ### 7C. Epic & Story Generation
 
-Read `references/scale-guide.md` for scale-adapted epic structures. Read `references/phase-transition-template.md` for the Phase Transition epic. Generate epics with Phase Transition as the LAST epic. For each story include: standard AC + archetype-specific AC layers, relevant decisions from DECISION_LOG, relevant assumptions from ASSUMPTION_REGISTER, No-Gos from project-pitch.md.
+Read `references/scale-guide.md` for scale-adapted epic structures. Read `references/phase-transition-template.md` for the Phase Transition epic. Generate epics with Phase Transition as the LAST epic. Shape stories self-contained where it makes sense: one complete outcome each (outcome over output), genuine prerequisites only in the Dependencies field, shared groundwork extracted into setup stories. Independent stories can later be built in parallel (`/parallel-work`); dependent ones are worked sequentially. For each story include: standard AC + archetype-specific AC layers, relevant decisions from DECISION_LOG, relevant assumptions from ASSUMPTION_REGISTER, No-Gos from project-pitch.md.
 
 If `vision/external-dependencies.md` exists, generate an **Infrastructure** setup story for each external service. Each setup story: type `infra`, size `SMALL`, AC = account created + credentials in `.env` + connectivity verified, ordered immediately BEFORE the first feature story that depends on that service.
 

@@ -1,12 +1,12 @@
 # Skills Inventory
 
-Last updated: 2026-03-30
+Last updated: 2026-08-06
 
 ## Overview
 
-This project uses the JD-LLM Development Framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
+This project uses the Exosuit framework skills. Skills are invoked with `/skill-name` or auto-invoked by Claude when relevant context is detected.
 
-**Framework Version:** 4.1
+**Framework Version:** 5.0
 
 ## Core Workflow
 
@@ -45,7 +45,7 @@ For technology skill generation: `/skill-create`
 | Skill           | Arguments               | Description                                 |
 | --------------- | ----------------------- | ------------------------------------------- |
 | `/brainstorm`   | `<idea-or-topic>`       | Design exploration with alternatives before story decomposition |
-| `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed stories (single context window sized) |
+| `/ideate`       | `<idea-or-requirement>` | Transform ideas into typed stories (cohesion-sized) |
 | `/skill-create` | -                       | Generate tech skills, rules, and hook configs |
 | `/discover`     | `"<idea>" [--quick\|--platform\|--pioneer]` | Deep guided elicitation — archetype-aware, research-backed discovery with assumption tracking and Phase Transition Stories |
 | `/phase-review` | `[phase-number]`                             | Phase transition review — walkthrough, assumption validation, and next-phase planning |
@@ -84,9 +84,11 @@ For technology skill generation: `/skill-create`
 
 ### Parallel Development (Manual-only)
 
-| Skill            | Arguments                   | Description                              |
-| ---------------- | --------------------------- | ---------------------------------------- |
-| `/parallel-work` | `[list\|create\|cleanup]`   | Manage git worktrees for concurrent stories (worktree-aware bash hook ensures correct working directory) |
+| Skill            | Arguments                       | Description                              |
+| ---------------- | ------------------------------- | ---------------------------------------- |
+| `/parallel-work` | `[status\|start [count]\|cleanup]` | Work on multiple stories at once: creates isolated parallel streams (git worktrees) from the current branch with local settings wired up, shows stream status, cleans up finished streams (worktree-aware bash hook ensures correct working directory) |
+| `/merge-up`      | —                               | Inside a stream: merge its committed work into the parent branch it was created from, then sync the stream back up to the parent |
+| `/merge-down`    | —                               | Inside a stream: pull the parent branch's accumulated work (other streams' merged stories) down into this stream |
 
 ### Testing Workflow (Manual-only)
 
@@ -171,6 +173,7 @@ Claude Code native agents with YAML frontmatter. Discoverable via `claude agents
 | `architecture-reviewer`| inherit | Architecture validation with boundary enforcement    |
 | `codebase-explorer`    | haiku   | Fast file discovery and codebase mapping             |
 | `research-analyst`     | haiku   | Deep web research with source evaluation and reflection output |
+| `integration-tester`   | inherit | Independent dynamic verification — runs tests and acceptance criteria, breaking the self-assessment cycle |
 
 ### Technology Skills (Auto-invocable)
 
@@ -257,6 +260,10 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 - `worktree.sh` — Worktree init + cleanup
 - `worktree-bash-fix.sh` — Transparent worktree directory fix (applied to subagents)
 - `post-edit-format.sh` — Auto-format after edits + secrets detection (bash)
+- `post-tool-failure.sh` — Log tool failures + inject error recovery guidance
+- `pre-compact.sh` — Preserve critical session state before context compaction
+- `pre-read-check.sh` — Warn when reading sensitive files (pattern-matched)
+- `status-line.sh` — Rich status line: sprint, branch, context bar, model, rate limits
 - `rules/safety.patterns` — PreToolUse blocking patterns (@@-delimited)
 - `rules/quality.conf` — Stop quality gate rules (key=value)
 - `state/` — Session state (plain text files: counters, timestamps)
@@ -273,6 +280,7 @@ POSIX shell scripts — no Python or other runtime required. Each event has its 
 
 | Version | Date       | Changes                                                |
 | ------- | ---------- | ------------------------------------------------------ |
+| 5.0     | 2026-08-05 | Rebrand: framework renamed to Exosuit (repo `joris887/exosuit`, plugin/marketplace `exosuit`, env vars `JD_*` → `EXOSUIT_*`). No functional changes |
 | 4.1     | 2026-04-03 | Deep guided elicitation: `/discover` skill with 11 archetype-aware question banks, 4 discovery modes (Quick/Guided/Platform/Pioneering), DECISION_LOG + ASSUMPTION_REGISTER tracking, Phase Transition Stories (infinite build→review→discover cycle), `/phase-review` skill, "Review" story type, discovery context loading in story-cycle/ideate/build, question scaffolding rules, engineering adaptation by archetype |
 | 3.8     | 2026-03-23 | Comprehensive upgrade: `/quickstart`, `/help-me`, `/dashboard`, `/custom-hooks`, `/uninstall`, `/performance-check` skills, centralized error recovery, standardized argument validation, framework test suite for hooks, team workflow support (human review, CODEOWNERS, TEAM_WORKFLOW.md), security enhancements (SBOM, .env template, secret rotation), architecture documentation (C4+Mermaid templates, MADR ADRs, API docs), developer experience (status line skill indicator, keybindings), framework versioning (MANIFEST.md, machine-parseable CHANGELOG), CLAUDE.md lazy-loading (renamed .claude-context.md to CLAUDE.md), skill lifecycle events for metrics, coverage tool reference table, universal coding standards, lightweight story template |
 | 3.7     | 2026-03-20 | Metric-driven optimization: `/optimize` skill with git checkpointing and automatic rollback, story-cycle git checkpoint + auto-rollback on verification failure, story-scoped file boundaries, simplicity assessment in `/code-quality`, `capture-outcome` micro-component for structured story outcome tracking, `/refine-loop` autonomous mode with TSV logging and diminishing-returns detection |

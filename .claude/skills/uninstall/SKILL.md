@@ -1,7 +1,7 @@
 ---
 name: uninstall
 version: 1.0.0
-description: Cleanly remove the JD-LLM Development Framework from a project while preserving project-specific content.
+description: Cleanly remove the Exosuit framework from a project while preserving project-specific content.
 trigger: manual
 depends-on: []
 references: []
@@ -13,7 +13,7 @@ ______________________________________________________________________
 
 ## uninstall
 
-Remove the JD-LLM Development Framework from this project.
+Remove the Exosuit framework from this project.
 
 ## Phase 0: Confirm Intent
 
@@ -146,8 +146,9 @@ Only remove these if no other tool uses them.
 
 **To re-install later:**
 ```bash
-curl -sL https://raw.githubusercontent.com/joris887/JD-LLM-Development_framework/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/joris887/exosuit/main/install.sh | bash
 ```
+(Windows: `powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/joris887/exosuit/main/install.ps1 | iex"`)
 ```
 
 ## Rules

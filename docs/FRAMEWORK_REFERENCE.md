@@ -1,4 +1,4 @@
-# JD-LLM Development Framework — Technical Reference
+# Exosuit — Technical Reference
 
 The complete reference for every element of the framework, structured as the user journey from installation through ongoing maintenance. Start with the [README](../README.md) for an overview, or [Getting Started](GETTING_STARTED.md) for your first 5 minutes.
 
@@ -38,7 +38,7 @@ This is the core challenge of AI-assisted development. Language models optimize 
 
 ### The Vision
 
-The JD-LLM Development Framework exists to solve this. It imposes software engineering methodology on AI-assisted development, not through guidelines the AI can choose to ignore, but through deterministic enforcement hooks, structured workflows, and quality gates at every level.
+Exosuit exists to solve this. It imposes software engineering methodology on AI-assisted development, not through guidelines the AI can choose to ignore, but through deterministic enforcement hooks, structured workflows, and quality gates at every level.
 
 The goal: make AI-assisted development viable for real projects. Not just prototypes and demos, but complex applications with existing codebases, production users, and team conventions. Any language. Any project size. Any developer.
 
@@ -46,7 +46,7 @@ Install it once. Run `/quickstart`. Start building. The framework provides that 
 
 ### What It Is
 
-A drop-in development framework for Claude Code that provides 43 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
+A drop-in development framework for Claude Code that provides 45 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
 
 ### Who It's For
 
@@ -125,11 +125,11 @@ Skills load on-demand (only when invoked) with a lean entry point (~150 lines) a
 
 | Variable | Values | Default | Purpose |
 |---|---|---|---|
-| `JD_PROJECT_PROFILE` | `lean\|standard\|strict` | `standard` | Controls skill ceremony depth and agent dispatch |
-| `JD_HOOK_PROFILE` | `minimal\|standard\|strict` | Derived from project profile | Controls hook behavior; overrides project-derived default |
-| `JD_DISABLED_HOOKS` | Comma-separated hook IDs | (empty) | Disable specific hooks at runtime |
-| `JD_EXPLAIN_MODE` | `off\|brief\|verbose` | `brief` | Hook message verbosity — `verbose` adds WHY/INSTEAD explanations |
-| `JD_STOP_MAX_ITERATIONS` | Integer (≤0 = no limit) | `5` (`10` for strict) | Stop hook safety valve iteration limit |
+| `EXOSUIT_PROJECT_PROFILE` | `lean\|standard\|strict` | `standard` | Controls skill ceremony depth and agent dispatch |
+| `EXOSUIT_HOOK_PROFILE` | `minimal\|standard\|strict` | Derived from project profile | Controls hook behavior; overrides project-derived default |
+| `EXOSUIT_DISABLED_HOOKS` | Comma-separated hook IDs | (empty) | Disable specific hooks at runtime |
+| `EXOSUIT_EXPLAIN_MODE` | `off\|brief\|verbose` | `brief` | Hook message verbosity — `verbose` adds WHY/INSTEAD explanations |
+| `EXOSUIT_STOP_MAX_ITERATIONS` | Integer (≤0 = no limit) | `5` (`10` for strict) | Stop hook safety valve iteration limit |
 
 ---
 
@@ -335,6 +335,9 @@ YOU ARE HERE ──→ install.sh ──→ /bootstrap ──→ /ideate ──�
 ### install.sh
 
 No prerequisites beyond POSIX shell and git. Clones via HTTPS with SSH fallback.
+On Windows, `install.ps1` is a thin wrapper that locates Git Bash (bundled with
+Git for Windows, which Claude Code on Windows requires) and runs `install.sh`
+through it — all install logic lives in one script.
 
 ```
 ./install.sh [--mode=plugin|template] [--components=X] [--force] [--dry-run]
@@ -777,7 +780,7 @@ Simple idea                        Complex idea
      │                                  ├──→ save to docs/brainstorms/<topic-slug>.md
      │                                  ├──→ create ADR if architecturally significant
      │                                  │
-     │◄─────────────────────────────────┘ (auto-invokes /ideate)
+     │◄─────────────────────────────────┘ (suggests /ideate after approval)
      │
      ├──→ check docs/brainstorms/ for prior designs
      ├──→ research codebase + PRD context (requirements, scope, NFRs)
@@ -1501,7 +1504,7 @@ Captures: branch, work completed, decisions, blockers, files accessed (modified/
 │  │                          DECISION_LOG.md, ASSUMPTION_REGISTER.md     │     │
 │  │ STRUCTURAL (snapshots):  session-*.md, progress.md, context/*        │     │
 │  │ DISCOVERY (per-phase):   vision/*.md, docs/reviews/phase-N-*.md      │     │
-│  │ METRICS (rotated):       .activity-log.jsonl (200 entry cap),        │     │
+│  │ METRICS (rotated):       .activity-log.jsonl (200+500 cap),          │     │
 │  │                          .story-outcomes.tsv, .audit-log.jsonl,     │     │
 │  │                          .failure-log.jsonl                          │     │
 │  └──────────────────────────────────────────────────────────────────────┘     │
@@ -1684,31 +1687,40 @@ Maps natural language requests ("I want to...") to the appropriate skill(s). Cov
 
 ## 12. Flow: Parallel Work & Utilities
 
-### /parallel-work — Worktree Management
+### /parallel-work — Parallel Streams
+
+Opt-in. The default workflow is one branch, one story at a time; parallel streams
+are for self-contained stories with no shared files (see the story template's
+"Self-Contained by Default" guidance).
 
 ```
 /sprint-start ──→ creates sprint branch on main worktree
      │
      ▼
-/parallel-work create ──→ creates worktree at ../<project>-<story-id>
-     │                      branch: feature/<story-id>-<description>
-     │                      [WorktreeCreate hook: copies state files]
+/parallel-work start ──→ sense-checks the plan (dependencies, overlapping files)
+     │                     creates N worktrees off the sprint branch, one branch each
+     │                     (scripts/new-worktree.sh: records parent in git config
+     │                      branch.<name>.exosuitParent, propagates .env,
+     │                      settings.local.json, CLAUDE.local.md, .mcp.json)
+     │                     offers to open each in its own Claude Code tab
+     │                     (scripts/open-worktree-terminals.sh, cross-platform)
      │
      ▼
-Open new Claude Code instance in worktree directory
-     │  ├──→ [worktree-bash-fix.sh injects cd prefix on every Bash command]
-     │  ├──→ work on story independently
-     │  └──→ /commit when done
+In each stream: /story-cycle as normal
+     │  ├──→ [settings.json hook prefix resolves the correct worktree root]
+     │  ├──→ /merge-up   — publish this stream's work into the sprint branch,
+     │  │                  then fast-forward the stream back up to it
+     │  └──→ /merge-down — pull sibling streams' merged work into this stream
      │
      ▼
-/parallel-work list ──→ see all worktrees and merge status
+/parallel-work status ──→ all streams, parents, ahead/behind counts
      │
      ▼
-/parallel-work cleanup ──→ removes merged worktrees
-     │                      [WorktreeRemove hook: merges activity logs]
+/parallel-work cleanup ──→ removes fully-merged streams (safe delete only)
      │
      ▼
-/sprint-end ──→ merges all work, prunes worktrees
+/sprint-end ──→ verifies every stream is merged up (stops on unmerged work),
+                removes child worktrees and branches, ships the sprint via PR
 ```
 
 ### /commit — Conventional Commit
@@ -1744,7 +1756,7 @@ Orchestrates full project build from a plain-English description. Designed for n
      │
      ├──→ Phase 0: Check setup (silent minimal bootstrap if needed, force lean profile)
      ├──→ Phase 1: Decompose (internal only — no methodology jargon shown to user)
-     │       ├── dependency-ordered steps, sized for ≤5 files each
+     │       ├── dependency-ordered steps, each one cohesive, independently verifiable unit
      │       └── retroactive discovery capture: infer archetype, generate
      │           minimal DECISION_LOG.md (all ASSUMED), add Phase Transition
      │           Stories to backlog for future review cycle
@@ -1847,7 +1859,7 @@ Hooks are POSIX shell scripts that execute automatically on Claude Code events. 
 Claude Code Event
      │
      ├──→ hook-guard.sh (called by each hook)
-     │       ├── Check JD_DISABLED_HOOKS → skip if disabled
+     │       ├── Check EXOSUIT_DISABLED_HOOKS → skip if disabled
      │       ├── Resolve profile (project → hook)
      │       └── Current level >= minimum? → run or skip
      │
@@ -1909,15 +1921,15 @@ Hook invocation:
      │
      ├──→ hook-guard.sh "<hook-id>" "<minimum-profile>"
      │       │
-     │       ├── Check JD_DISABLED_HOOKS → skip if hook ID in list
+     │       ├── Check EXOSUIT_DISABLED_HOOKS → skip if hook ID in list
      │       │
      │       ├── Resolve project profile:
-     │       │     1. JD_PROJECT_PROFILE env var
+     │       │     1. EXOSUIT_PROJECT_PROFILE env var
      │       │     2. CLAUDE.md **Profile:** line
      │       │     3. Default: standard
      │       │
      │       ├── Resolve hook profile:
-     │       │     JD_HOOK_PROFILE env var → overrides project-derived default
+     │       │     EXOSUIT_HOOK_PROFILE env var → overrides project-derived default
      │       │     OR derive from project: lean→minimal, standard→standard, strict→strict
      │       │
      │       └── Compare: current level >= minimum level?
@@ -1953,7 +1965,7 @@ Checks: tool availability (parses CLAUDE.md Commands section), stale session det
 
 Loads patterns from `rules/safety.patterns` (blocking) and `rules/advisory.patterns` (warnings). Also includes framework repo protection — blocks push/PR if remote points to the template repository.
 
-**Explanation mode (v4.0):** When `JD_EXPLAIN_MODE=verbose`, blocked commands include WHY (what damage it causes) and INSTEAD (safer alternative). Controlled per-pattern via a 5th field in safety.patterns: `id@@regex@@message@@severity@@explanation`.
+**Explanation mode (v4.0):** When `EXOSUIT_EXPLAIN_MODE=verbose`, blocked commands include WHY (what damage it causes) and INSTEAD (safer alternative). Controlled per-pattern via a 5th field in safety.patterns: `id@@regex@@message@@severity@@explanation`.
 
 **Blocked patterns (safety.patterns):**
 
@@ -2016,7 +2028,7 @@ Missing tool: report ONCE per session, then silently skip
 Four functions:
 
 1. **Auto-save** — When uncommitted changes exist, saves branch, commits, and changes to `.auto-save.md`. Skipped when there are no uncommitted changes.
-2. **Safety valve** — Max iteration counter (default 5, configurable via `JD_STOP_MAX_ITERATIONS`; strict profile defaults to 10), then allows stop unconditionally. Set to ≤0 for no limit.
+2. **Safety valve** — Max iteration counter (default 5, configurable via `EXOSUIT_STOP_MAX_ITERATIONS`; strict profile defaults to 10), then allows stop unconditionally. Set to ≤0 for no limit.
 3. **Completion evidence** — Scans for unverified claims ("complete/done/finished" without test output). Flags weak language ("should work", "looks correct"). Blocks (exit 2) if completion claimed without evidence.
 4. **Debug statement audit** — Scans `git diff` output against `rules/debug.patterns` for leftover debug statements (`console.log`, `pdb.set_trace`, `debugger`, `dbg!`, `TODO/FIXME`, etc.). Advisory only — warns but never blocks.
 
@@ -2129,7 +2141,7 @@ agent: Explore             # subagent type
 
   ┌──────────┐      ┌──────────────┐      ┌──────────────┐
   │brainstorm│─────→│    ideate    │      │   fix-issue  │
-  └──────────┘calls └──────────────┘      └───────┬──────┘
+  └──────────┘ next └──────────────┘      └───────┬──────┘
                                                   │ calls
                                                   ▼
                                           ┌──────────────┐
@@ -2171,6 +2183,7 @@ agent: Explore             # subagent type
 
 Standalone (no dependencies):
   commit, continue, handoff, sprint-start, parallel-work,
+  merge-up, merge-down,
   manual-test, testing-cycle, UAT-cycle, debug-session,
   undo-work, pr-status, backlog-review, retrospective,
   refine-loop, skill-eval, claude-sense-check, deploy,
@@ -2205,7 +2218,9 @@ Standalone (no dependencies):
 | `/fix-issue` | v2.4.0 | GitHub issue → TDD fix → PR | Manual |
 | `/undo-work` | v3.0.1 | Safe revert (3 levels) | Manual |
 | `/commit` | v2.4.0 | Conventional commit | Manual |
-| `/parallel-work` | v2.4.0 | Worktree management | Manual |
+| `/parallel-work` | v3.0.0 | Parallel streams (create, status, cleanup) | Manual |
+| `/merge-up` | v1.0.0 | Merge stream into its parent branch | Manual |
+| `/merge-down` | v1.0.0 | Pull parent branch into stream | Manual |
 | `/weekly-maintenance` | v2.6.0 | Weekly health check | Manual |
 | `/retrospective` | v3.0.0 | Sprint review (4Ls) | Manual |
 | `/backlog-review` | v3.0.0 | Backlog health analysis | Manual |
@@ -2361,7 +2376,7 @@ The framework adapts its behavior based on project complexity via a three-tier p
 └──────────┴────────────────────┴───────────────────┴─────────────────────────┘
 ```
 
-**Profile detection:** Bootstrap auto-detects based on codebase characteristics (compliance files → strict, domain complexity, CI/CD presence, LOC). Override per-session via `JD_PROJECT_PROFILE=lean|standard|strict`.
+**Profile detection:** Bootstrap auto-detects based on codebase characteristics (compliance files → strict, domain complexity, CI/CD presence, LOC). Override per-session via `EXOSUIT_PROJECT_PROFILE=lean|standard|strict`.
 
 **Safety is constant across profiles:** TDD enforcement, test-before-ship, all blocking hooks, and secrets detection run identically in all profiles. Lean reduces ceremony, not safety.
 
@@ -2404,7 +2419,7 @@ Companion knowledge stores:
   │ capture-learnings    │    │ /brainstorm          │    │ /research, spikes,    │
   │ (story-cycle Ph.4)   │    │                      │    │ /discover, /phase-    │
   │ Read by:             │    │ Read by:             │    │ review                │
-  │ grep-first-explore   │    │ /ideate, /story-cycle│    │ Read by:              │
+  │ grep-first-explore   │    │ /ideate              │    │ Read by:              │
   │                      │    │                      │    │ context-prime,        │
   │                      │    │                      │    │ /story-cycle,/research│
   └──────────────────────┘    └──────────────────────┘    └───────────────────────┘
@@ -2437,7 +2452,7 @@ Companion knowledge stores:
 | `docs/sessions/session-*.md` | Session handoffs | `/handoff` | `/continue` |
 | `docs/sessions/.auto-save.md` | Auto-saved state (volatile) | Stop hook | `/continue` |
 | `docs/sessions/.failure-state.md` | Interrupted workflow (volatile) | Phase transitions | Stop hook, `/continue` |
-| `docs/sessions/.activity-log.jsonl` | Tool usage log (rotated 200) | PostToolUse hook | `/retrospective`, `/weekly-maintenance` |
+| `docs/sessions/.activity-log.jsonl` | Tool usage log (rotated: 200 tool + 500 skill/story lines) | PostToolUse hook | `/retrospective`, `/weekly-maintenance` |
 | `docs/sessions/.story-outcomes.tsv` | Story metrics (code delta, tests, coverage) | `capture-outcome` | `/retrospective` |
 | `docs/sessions/.optimization-log.tsv` | Optimization experiment results | `/optimize` | Reference |
 | `docs/sessions/.failure-log.jsonl` | Tool failure log (cascading failure detection) | PostToolUseFailure hook | `post-tool-failure.sh` (recovery) |
@@ -2469,9 +2484,9 @@ Companion knowledge stores:
 |---|---|
 | `.github/workflows/claude-pr-review.yml` | CI: runs code-quality, test-validator, security-audit on PRs |
 | `.github/pull_request_template.md` | PR template with quality gates checklist |
-| `.github/ISSUE_TEMPLATE/bug_report.yml` | Structured bug report form |
-| `.github/ISSUE_TEMPLATE/feature_request.yml` | Structured feature request form |
 | `.github/CODEOWNERS` | Human review required on tests, security, dependencies |
+
+The framework repo's own `workflows/ci.yml` and `ISSUE_TEMPLATE/` are not installed into projects.
 
 #### Cross-Tool Compatibility
 
@@ -2542,7 +2557,7 @@ project-root/
 │   ├── rules/                        # 9 path-scoped rule files
 │   ├── scripts/file-suggestions.sh   # File suggestion utility
 │   │
-│   └── skills/                       # 43 skills
+│   └── skills/                       # 45 skills
 │       ├── SKILLS_INVENTORY.md       # Human-readable index
 │       ├── SKILL_TEMPLATE.md         # Skill writing conventions
 │       ├── skills-registry.json      # Machine-readable registry
@@ -2645,9 +2660,9 @@ project-root/
 | **LARGE story** | Story tier exceeding STANDARD intentionally (big migration, multi-module feature). 8-12 AC. Adds per-AC checkpoints, mandatory integration-tester dispatch, per-file-group self-review, and `/quality-check --all`. |
 | **Readiness Gate** | 5 objective pre-condition checks (PASS/FAIL) replacing the old subjective confidence scoring. All must pass to proceed. User can override specific failures. |
 | **Hook Guard** | Profile-based gating system (`lib/hook-guard.sh`) — determines whether a hook should run based on project profile, hook profile override, and per-hook disable list |
-| **Project Profile** | `lean\|standard\|strict` — controls skill ceremony depth and hook defaults. Set via `JD_PROJECT_PROFILE` env var or CLAUDE.md `**Profile:**` line |
-| **Hook Profile** | `minimal\|standard\|strict` — controls hook behavior. Derived from project profile (lean→minimal, standard→standard, strict→strict) or overridden via `JD_HOOK_PROFILE` |
-| **Explanation Mode** | `JD_EXPLAIN_MODE=off\|brief\|verbose` — controls hook message verbosity. `verbose` adds WHY (what damage a blocked command causes) and INSTEAD (safer alternative) |
+| **Project Profile** | `lean\|standard\|strict` — controls skill ceremony depth and hook defaults. Set via `EXOSUIT_PROJECT_PROFILE` env var or CLAUDE.md `**Profile:**` line |
+| **Hook Profile** | `minimal\|standard\|strict` — controls hook behavior. Derived from project profile (lean→minimal, standard→standard, strict→strict) or overridden via `EXOSUIT_HOOK_PROFILE` |
+| **Explanation Mode** | `EXOSUIT_EXPLAIN_MODE=off\|brief\|verbose` — controls hook message verbosity. `verbose` adds WHY (what damage a blocked command causes) and INSTEAD (safer alternative) |
 | **Ralph Loop** | Stop hook workflow enforcement — blocks exit when `.failure-state.md` is active (safety valve at configurable iterations, default 5, strict 10) |
 | **Archetype** | Project classification (1 of 10+1 types) that drives elicitation style — what questions to ask, what research to run, what success looks like. Examples: Utility, Experiential, Viral, Marketplace |
 | **Scale** | Project size classification (Quick Build / Standard / Platform / Pioneering) that drives discovery depth — question count, research depth, documentation level |
@@ -2674,10 +2689,10 @@ project-root/
 | Missing formatter warnings | Expected — reports once per session, then skips | Install the tool, or run `/doctor` |
 | Context exhaustion | Too many large files read | Use `/handoff` + new session; prefer grep-first |
 | Stale session state | Old `.auto-save.md` | Delete stale files, run `/continue` fresh |
-| Stop hook blocks exit | Ralph Loop: incomplete `.failure-state.md` | Complete workflow, or wait for safety valve (5 iterations default), or set `JD_STOP_MAX_ITERATIONS=1` |
-| Hooks too noisy | Explanation mode on, or hooks running at wrong profile | Set `JD_EXPLAIN_MODE=off`, or `JD_HOOK_PROFILE=minimal` for lean projects |
-| Hooks too silent | Profile too lean for your needs | Set `JD_HOOK_PROFILE=strict` or `JD_PROJECT_PROFILE=strict` |
-| Specific hook annoying | Want to disable one hook without changing profile | `JD_DISABLED_HOOKS="hook-id"` (comma-separated for multiple) |
+| Stop hook blocks exit | Ralph Loop: incomplete `.failure-state.md` | Complete workflow, or wait for safety valve (5 iterations default), or set `EXOSUIT_STOP_MAX_ITERATIONS=1` |
+| Hooks too noisy | Explanation mode on, or hooks running at wrong profile | Set `EXOSUIT_EXPLAIN_MODE=off`, or `EXOSUIT_HOOK_PROFILE=minimal` for lean projects |
+| Hooks too silent | Profile too lean for your needs | Set `EXOSUIT_HOOK_PROFILE=strict` or `EXOSUIT_PROJECT_PROFILE=strict` |
+| Specific hook annoying | Want to disable one hook without changing profile | `EXOSUIT_DISABLED_HOOKS="hook-id"` (comma-separated for multiple) |
 | Worktree commands fail | `worktree-bash-fix.sh` not registered | Check `settings.json` hook entries |
 | Push blocked (framework repo) | Remote still points to template repo | `git remote set-url origin <your-repo>` |
-| Sensitive file warnings | `pre-read-check.sh` warns on .env etc. | Expected behavior — secrets shouldn't enter context. Disable with `JD_DISABLED_HOOKS="pre-read-check"` |
+| Sensitive file warnings | `pre-read-check.sh` warns on .env etc. | Expected behavior — secrets shouldn't enter context. Disable with `EXOSUIT_DISABLED_HOOKS="pre-read-check"` |

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the JD-LLM Development Framework. Used by `/framework-upgrade` for targeted version upgrades.
+All notable changes to the Exosuit framework. Used by `/framework-upgrade` for targeted version upgrades.
 
 ## Format
 
@@ -13,7 +13,7 @@ Each version entry lists:
 
 ---
 
-## [5.0.0] - 2026-05-19
+## [Experimental: v5 brain] (tagged v5-brain-experiment, 2026-05-19; not released)
 
 ### Summary
 
@@ -60,6 +60,582 @@ Each version entry lists:
 ### Breaking changes
 - Skills and rules that referenced `docs/context/` directly will fail until updated (all framework skills are updated; user-customized skills must be re-targeted manually — see migration notes in `/framework-upgrade`)
 - `size: SMALL` is no longer a recognized value in story templates (parsers should treat as STANDARD)
+
+## [Unreleased]
+
+### Summary
+Telemetry integrity fixes for the activity log (#75, #76). Rotation in
+`post-tool-use.sh` is now type-aware — high-volume tool lines no longer evict
+the skill/story lifecycle events that `/sprint-end` metrics and `/story-cycle`
+calibration parse (tool lines capped at 200 as before, skill/story events get
+their own 500-line cap, original order preserved). The eight skills that
+emitted only start events (brainstorm, continue, debug-session, handoff,
+ideate, research, sprint-end, sprint-start) now emit matching completion
+events, unblocking the skill-success-rate component of the AI-effectiveness
+score — previously only story-cycle emitted `outcome:success`, structurally
+capping the metric below its green threshold.
+
+### Files changed
+- `core/hooks/post-tool-use.sh` — type-aware log rotation (fixes #75)
+- `scripts/pm/metrics.sh` + `scaffold/scripts/pm/metrics.sh` — `--ai-effectiveness` now applies the documented `--days` window (events outlive the old accidental recency cap after the rotation fix) and counts sessions from start events only (end events would double-count; story-cycle was already double-counted before this change)
+- `core/hooks/README.md`, `docs/FRAMEWORK_REFERENCE.md` — rotation description updated to match the type-aware behavior
+- `core/skills/brainstorm/SKILL.md` — completion event; 2.7.0 → 2.7.1
+- `core/skills/continue/SKILL.md` — completion event; 2.7.0 → 2.7.1
+- `core/skills/debug-session/SKILL.md` — completion event; 2.9.0 → 2.9.1
+- `core/skills/handoff/SKILL.md` — completion event; 2.6.0 → 2.6.1
+- `core/skills/ideate/SKILL.md` — completion event; 2.10.0 → 2.10.1
+- `core/skills/research/SKILL.md` — completion event; 1.0.0 → 1.0.1
+- `core/skills/sprint-end/SKILL.md` — completion event; 2.10.0 → 2.10.1
+- `core/skills/sprint-start/SKILL.md` — completion event; 2.7.0 → 2.7.1
+- `core/skills/skills-registry.json` — version sync (fixes #76)
+
+### Files added
+- `core/hooks/tests/test-post-tool-use.sh` — rotation regression tests
+
+
+### Ideation-wing fixes (#89)
+Six pre-existing defects across `/brainstorm` and `/ideate`, all found by
+static inspection and fixed in the direction the prose already implied:
+
+- **brainstorm→ideate edge** reconciled to the prose semantics (a
+  post-approval user option, never an auto-call): `skills-registry.json`
+  brainstorm `calls` → `[]`; FRAMEWORK_REFERENCE's "(auto-invokes
+  /ideate)" and its "calls" dependency edge reworded. The prose
+  `<HARD-GATE>` forbidding pre-approval invocation was already correct.
+- **`brainstorm/assets/brainstorm-output.md`** gains the prose-mandated
+  frontmatter (`title` / `status` / `decision`, with the
+  `explored | decided | abandoned` enum) plus a Risks section. Without
+  `status:`, a doc created from the shipped template was invisible to
+  `/ideate`, which loads only brainstorm docs with `status: decided` —
+  the template broke the very pipeline it feeds. `title:` also makes it
+  visible to `context-prime`.
+- **Three phantom "/story-cycle reads docs/brainstorms/" claims**
+  (brainstorm, bootstrap A5.95, FRAMEWORK_REFERENCE) corrected to
+  `/ideate`; story-cycle never referenced brainstorm docs.
+- **brainstorm `allowed-tools`** gains `Edit, Write, AskUserQuestion` —
+  the skill could not execute its own Phase 3 (AskUserQuestion) or
+  Phase 6 (writing the design doc and ADR).
+- **ideate body prose aligned to its own canonical
+  `references/story-template.md`** cohesion policy: SPIDR reordered
+  Paths-first, the "5-8 files" and "max 5 affected files" caps replaced
+  with "file count is an input to judgement, never a threshold", AC
+  counts scale with size (LARGE/XL exemption), and the Definition of
+  Ready becomes the canonical 12 items including the cohesion test.
+  Finishes what the cohesion-sizing change (b6d1407, #47) started;
+  `/story-cycle` already pointed at the new policy.
+- **ideate's broken CommonMark fence repaired.** The ```` ```markdown ````
+  story-template fence was closed early by a bare ` ``` ` (the nested
+  ` ```bash ` carries an info string, so per CommonMark it cannot close
+  its parent), and a stray fence then swallowed ~50 lines. On github.com
+  the "Persona Linkage", "4. Identify Missing Skills", "NFR Story
+  Generation" and "Security Acceptance Criteria Generation" headings
+  rendered as code. A four-backtick outer fence restores them.
+
+Versions: brainstorm 2.7.1 → 2.7.2, ideate 2.10.1 → 2.10.2,
+bootstrap 2.13.0 → 2.13.1.
+
+### Cohesion-policy sweep
+The cohesion-sizing change (b6d1407, #47) rewrote the canonical
+`ideate/references/story-template.md` but left the retired "max 5 files /
+unqualified 3-7 AC" policy in six places outside the ideation wing. This
+sweep finishes the propagation:
+
+- `.claude/agents/spec-reviewer.md` — DoR checklist gains the cohesion
+  test; "(max 5)" file cap and unqualified AC count replaced with the
+  canonical wording
+- `.claude/skills/backlog-review/SKILL.md` — DoR table gains the
+  cohesion-test row (now the canonical 12 criteria); "Max 5 files per
+  story" replaced; Ready classification counts 12; 3.0.0 → 3.0.1
+- `.claude/skills/bootstrap/references/llm-readiness.md` — the quoted
+  retired rule ("1-3 hours, no more than 5-8 files", also misattributed
+  to story-cycle) now points at the canonical policy; bootstrap
+  2.13.1 → 2.13.2
+- `.claude/skills/SKILLS_INVENTORY.md` — `/ideate` row's "(single
+  context window sized)" → "(cohesion-sized)"
+- `docs/reference/TEAM_WORKFLOW.md` + scaffold copy — the two
+  conflict-prevention mentions of the retired 5-8 file limit reworded
+- `scaffold/docs/reference/backlog/_EPIC_TEMPLATE.md` — "[list, max 5]"
+  → "[list — proportionate to size]"
+- `.claude/skills/build/SKILL.md` — Phase 1 step sizing ("aim for steps
+  that touch ≤5 files", predating #47 entirely) replaced with the
+  canonical wording; FRAMEWORK_REFERENCE mirror updated; build
+  1.0.0 → 1.0.1
+
+Note the two reviewer surfaces (spec-reviewer, backlog-review) are
+deliberate behavior changes: until now they flagged as DoR failures
+exactly the LARGE/XL cohesive stories the canonical policy legitimizes.
+
+Not touched (verified non-stale or deliberately deferred): PRD_SUMMARY's
+"3-7 acceptance criteria per requirement" (EARS requirement guidance, not
+story DoR), refine-loop / reasoning-tools "max 5" (loop and question
+caps), GROUND_RULES "3-7 rules", and `confidence-gate.md`'s Scope Bounded
+file-count thresholds — a distinct pre-implementation gate. Note a
+legitimately-sized cohesive LARGE/XL story will trip its >10-file FAIL;
+reconciling that gate with the cohesion policy is an open maintainer
+decision, deliberately not attempted here.
+### Parallel-work script fixes
+Three defects in the `/parallel-work` helper scripts, plus a stale registry
+entry:
+
+- `.claude/skills/parallel-work/scripts/open-worktree-terminals.sh` — the WSL
+  branch called `cygpath` (an MSYS/Cygwin tool absent on WSL) and ran a
+  Windows-side `cmd /k claude`, so tabs opened in the wrong directory with the
+  wrong claude. WSL now launches
+  `wt.exe -w 0 nt wsl.exe --cd <dir> -- bash -lc ...` (Linux path, Linux-side
+  claude); `cygpath` stays only in the native Git-Bash/MSYS branch. Openers
+  are now per-directory and the final report is honest — it lists which
+  directories opened and prints `cd` hints only for the ones that didn't,
+  instead of claiming success unconditionally.
+- `.claude/skills/parallel-work/scripts/worktree-status.sh` — compared every
+  stream against a hardcoded `main` instead of its recorded
+  `branch.<name>.exosuitParent`, printed a phantom "(detached)" row for every
+  worktree (porcelain emits a `HEAD <sha>` line for all of them), and broke on
+  paths with spaces. Rewritten parent-aware: table is now
+  Path | Branch | Parent | Ahead/Behind parent (matching SKILL.md v3.0.0),
+  the main worktree shows as the base, and only genuinely detached worktrees
+  show as detached.
+- `.claude/skills/parallel-work/scripts/new-worktree.sh` — `MAIN_ROOT` was
+  truncated at the first space (`awk '{print $2}'`); a detached HEAD silently
+  recorded `exosuitParent=HEAD`; and the `.mcp.json` path rewrite used
+  `sed s#...#...#` (breaks when a path contains `#`, and is regex-based).
+  Now: line-wise porcelain parse, an explicit detached-HEAD error (exit 1),
+  and a literal awk `index()`/`substr()` substitution.
+- `.claude/skills/skills-registry.json` — parallel-work entry was stale at
+  2.4.0 with the pre-v3 description; synced to the current SKILL.md.
+
+Versions: parallel-work 3.0.0 → 3.0.1.
+
+### Project file changes
+None required. Existing `docs/sessions/.activity-log.jsonl` files need no
+migration — the new rotation applies on the next tool use.
+
+### Test-run tracking read a payload field production never sends
+`post-tool-use.sh` extracted the Bash result from `.tool_output`, but
+PostToolUse delivers it as `tool_response` (for Bash: an object holding
+`stdout`/`stderr`). The `tests-passed` stamp that `stop.sh`'s completion
+check reads, and the failure capture feeding `.failure-log.jsonl`, were
+silently inert — the #59 failure class, in the one hook #59 did not
+re-audit. The extraction now reads `tool_response` (stdout + stderr;
+string form accepted; legacy `.tool_output` fallback kept) and the test
+suite gains four cases feeding the real payload shape — the stamping had
+no coverage at all before.
+
+- `core/hooks/post-tool-use.sh` — tool_response extraction
+- `core/hooks/tests/test-post-tool-use.sh` — four payload-shape cases
+
+### Installer no longer touches project files or ships framework CI (#105, #106)
+`install.sh` copied the framework repo's own `.github/` into every project:
+`workflows/ci.yml` shellchecks `install.sh`, which projects don't have, so the
+first PR after install went red. `--force` also dropped the no-clobber guard for
+`CLAUDE.md` and the whole scaffold, replacing a mature project's `CLAUDE.md`,
+`README.md`, `docs/progress.md`, context docs and ADRs with placeholders, and
+replaced `skills-registry.json`, silently unregistering every project skill.
+
+- Only consumer-facing GitHub files are installed: `pull_request_template.md`,
+  `CODEOWNERS`, `workflows/claude-pr-review.yml`. The review workflow is skipped
+  when a workflow already runs `anthropics/claude-code-action`.
+- `--force` now means "reinstall framework files under `.claude/`". `CLAUDE.md`,
+  the scaffold (`docs/`, `README.md`, `vision/`, ...) and the `.github` templates
+  are never overwritten.
+- `skills-registry.json` is merged on every install: framework entries are
+  refreshed, the project's own entries kept. Previously a default (no-clobber)
+  upgrade also kept a stale registry that never learned about new framework skills.
+- `merge-up` and `merge-down` were missing from the registry (43 entries vs 45
+  skills since 5.0.1); both are registered now.
+
+- `install.sh` — project-safe `--force`, consumer-only `.github`, registry merge
+- `core/skills/skills-registry.json` — `merge-up`, `merge-down` entries
+- `core/hooks/tests/test-install.sh` — 13 cases running the real installer offline
+- `core/MANIFEST.md`, `docs/FRAMEWORK_REFERENCE.md` — `.github` and registry strategy
+### Safety hook fails closed; formatter hook no longer hangs on npx (#107, #109)
+`pre-tool-use.sh` treated "jq could not parse the payload" like "the payload has
+no command" and allowed the call, so malformed input switched the safety check
+off. It now blocks (exit 2) with an explanation. Its test harness fed payloads
+through `echo`, which expands `\n` under escape-expanding shells (macOS `sh`),
+corrupting the two heredoc cases; it uses `printf` now.
+
+`post-edit-format.sh` fell back to `npx biome` when prettier wasn't on PATH.
+Without a local install npx fetches the package from the registry, blocking
+every JS/TS edit on the network (>60s reported). Local devDependencies were
+also invisible, because `node_modules/.bin` isn't on PATH when hooks run. The
+hook now adds every `node_modules/.bin` from the edited file's directory upward
+to PATH, calls `biome` directly (never `npx`), uses `biome lint --write`
+(`--apply` was removed in Biome 2), and the "missing prettier/biome" warning is
+shown once per session as intended (the `/` in the name broke its state file).
+
+- `core/hooks/pre-tool-use.sh` — fail closed on unparseable JSON
+- `core/hooks/post-edit-format.sh` — local tool resolution, no npx
+- `core/hooks/tests/test-pre-tool-use.sh` — printf harness, 3 input-parsing cases
+- `core/hooks/tests/test-post-edit-format.sh` — 4 cases running the real hook
+
+### Skill validation no longer stops at the first non-conformant skill (#108, #101)
+`validate-skills.sh` runs under `set -euo pipefail`. A skill without `version:`
+made the version `grep` fail its pipeline, and `set -e` ended the run right
+there: one bad skill hid every skill after it (one report: "4 failures" was
+hiding 45 unchecked skills). `/doctor` embeds the script, so it inherited the
+blind spot. Every "may find nothing" pipeline is guarded now, and a
+pipeline that could SIGPIPE on large skills was rewritten.
+Frontmatter checks now tolerate CRLF files, read only the first `---` block, and
+warn when a skill directory has no `skills-registry.json` entry (which would
+have caught the missing `merge-up`/`merge-down` entries).
+
+`story-template.md` opened by binding stories to "a single context window", which
+contradicts its own Size Classification. It now leads with cohesion.
+
+- `core/skills/doctor/scripts/validate-skills.sh` — no truncation, CRLF, registry presence; doctor 3.0.0 → 3.0.1
+- `core/skills/ideate/references/story-template.md` — cohesion-first opener; ideate 2.10.2 → 2.10.3
+
+### Breaking changes
+None.
+
+## [5.0.1] - 2026-08-10
+
+### Summary
+Cross-platform install. Windows gets a first-class one-liner via a new `install.ps1`
+wrapper that runs the canonical `install.sh` through Git Bash — no duplicated install
+logic. The README install snippet no longer errors when pasted into stock macOS zsh
+(the `#` comment line inside the copyable block was executed by zsh, whose
+`interactivecomments` option is off by default, producing `zsh: missing end of string`).
+Found during open-source flow testing (T06-001, T06-002).
+
+### Changed (first-session focus)
+- "Your First Session" now leads with the new-project path (the best-tested route and
+  the framework's core differentiator); existing-repo follows. Same order applied to
+  GETTING_STARTED Step 3. The `/build` quick-path section was removed from the README
+  to keep first contact focused on bootstrap + discover; it remains documented in
+  GETTING_STARTED and the All Commands table.
+
+### Changed (README)
+- "What Runs Behind the Scenes" (hook event table) replaced by "When It Steps In":
+  two real hook interventions shown verbatim (safety.patterns force-push block and
+  stop.sh completion-evidence check) with the coverage summary moved into prose.
+- Full restructure for the reader's journey: Problem → What It Does → Install →
+  Your First Session → The Sprint Loop → Architecture → Profiles → When It Steps In →
+  All Commands → Design Philosophy → Prerequisites → FAQ. "Where Exosuit Fits" moved
+  to an FAQ entry (comparisons with BMAD/spec-kit/Superpowers/CCPM) with its bet-pairing
+  line kept at the end of What It Does; "Quick Start" renamed Install and reduced to
+  the install commands (the four-command block was redundant with Your First Session
+  and The Sprint Loop); Supported Languages table moved into the language FAQ; three
+  diagrams added (bootstrap fork, sprint loop, three-layer architecture) as
+  hand-crafted brand-palette SVGs in assets/ (Mermaid's auto-layout look was rejected;
+  the SVGs use the banner's cream/charcoal/orange identity); Design Philosophy
+  reworded to fit solo founders as much as teams; counts corrected (45 commands,
+  9 agents).
+
+### Fixed
+- README "How Story Delivery Works" replaced by "The Sprint Loop": the full
+  /sprint-start → /story-cycle → /sprint-end cycle is now the centerpiece, verified
+  against all three skills. Fixes: story sizes were shown as XS→XL (skill uses
+  TRIVIAL→XL); the readiness gate was drawn inside Phase 1 (it is Phase 2 in the
+  skill, five evidence checks after plan approval); the plan-approval hard gate and
+  TDD hard gate were invisible; sprint-start's pre-flight and sprint-end's
+  ship pipeline were absent. Profiles section compressed from a 6-row table to a
+  short paragraph (details remain in GETTING_STARTED).
+- README first-session examples now match what /bootstrap and /discover actually do:
+  Path A example no longer contradicts itself (detection showed CI present while the
+  readiness report flagged it missing), shows the interactive decision points (profile,
+  ground rules), codebase health metrics, dependency-ordered foundation levels with the
+  Framework Ready Gate, and real story IDs (E00-S01); Path B example moves the deep
+  questions out of Phase 1 (classification) into the phases that actually ask them,
+  fixes the phase counters, and surfaces persona synthesis and No-Gos. Bootstrap A7
+  summary template updated from a stale "[N]/12" to the dynamic principle count
+  (the readiness report assesses 15, some conditionally skipped).
+- `status-line.sh` rendered `detached*+` in any directory without a git repo (every
+  git call fails outside a repo and each failure was misread as detached/dirty/staged);
+  now shows a dim `no git`. A genuinely detached HEAD also now shows `detached` —
+  previously the branch segment rendered empty (`--show-current` exits 0 with no
+  output on detached HEAD, so the fallback never fired).
+
+### Added — parallel work suite
+- `/parallel-work` v3.0.0 (rewritten): one skill for parallel development streams.
+  `start` fans out N worktrees from the current branch (sense-checks story
+  dependencies and overlapping files first, warns when sequential is the better
+  choice), records each stream's parent in `git config branch.<name>.exosuitParent`,
+  propagates gitignored local settings (`.env`, `.env.local`,
+  `.claude/settings.local.json`, `CLAUDE.local.md`, `.mcp.json` with absolute
+  paths rewritten; extend via `EXOSUIT_WORKTREE_COPY`), and offers to open each
+  stream in its own terminal tab running Claude Code (cross-platform launcher:
+  iTerm2 / Terminal.app / Windows Terminal / gnome-terminal / konsole; configure
+  with `EXOSUIT_WORKTREE_LAUNCH_CMD`, disable with `EXOSUIT_WORKTREE_TABS=0`).
+  `status` shows streams with parent and ahead/behind; `cleanup` removes fully
+  merged streams (safe delete only). Parallel work is opt-in; sequential
+  single-branch remains the default.
+- `/merge-up` (new): inside a stream, merge its committed work into the parent
+  branch it was created from (true merge, runs in the parent's worktree via
+  `git -C`), optionally push the parent (never the default branch — that goes
+  through /sprint-end's PR), then fast-forward the stream back up to the parent.
+- `/merge-down` (new): inverse of /merge-up — pull the parent's accumulated
+  commits (sibling streams' merged work) down into the current stream. Read-only
+  on the parent.
+- `/sprint-end` closes the loop: step 1 discovers child streams via the recorded
+  parent config and STOPS if any has unmerged commits (run /merge-up or
+  explicitly abandon); step 6 removes merged child worktrees and branches before
+  the squash merge (while safe delete still recognizes them as merged) and
+  prunes worktree metadata.
+- Story shaping guidance ("Self-Contained by Default") added to the ideate story
+  template, the STORY_SIZING scaffold, and /discover story generation: one
+  complete outcome per story, genuine prerequisites only, shared groundwork in
+  setup stories — independence enables parallel streams but never outranks
+  cohesion.
+- Skill count 43 → 45. SKILLS_INVENTORY, CLAUDE.md skill table, README commands
+  table and FAQ, FRAMEWORK_REFERENCE section 12 updated.
+
+### Files added
+- `install.ps1` — Windows wrapper: locates Git Bash, fetches and runs `install.sh`
+- `.claude/skills/merge-up/SKILL.md`, `.claude/skills/merge-down/SKILL.md`
+- `.claude/skills/parallel-work/scripts/new-worktree.sh`,
+  `.claude/skills/parallel-work/scripts/open-worktree-terminals.sh`
+- `.claude/hooks/tests/test-status-line.sh` — git state rendering suite (non-git,
+  clean, dirty, staged, detached)
+
+### Files changed
+- `install.sh` — usage header only (documents `-fsSL` and the Windows wrapper)
+- `README.md` — Quick Start: comment moved out of copyable block, `curl -sL` → `-fsSL`,
+  Windows PowerShell one-liner added; "clone and install locally" alternative removed
+  (the clone-as-project variant left framework repo files — LICENSE, CHANGELOG, core/,
+  assets/ — in user projects; the installer + `/bootstrap` empty-project detection is
+  the single supported path for new projects)
+- `docs/GETTING_STARTED.md` — same install-block update; clone-for-new-project
+  replaced with "run the installer in an empty folder"
+- Starting-text pass (README, GETTING_STARTED, quickstart skill, installer banner):
+  em-dashes removed from prose (kept only as structural separators in diagrams and
+  table placeholders); "Your First Session" now tells users the discovery interview
+  is meant to take time (an hour or more for new projects); the `/discover` example
+  is a vision-scale startup idea (neighborhood energy-trading grid) instead of a
+  tech spec, with archetype and questions matched; `/build` examples now use plain
+  product ideas
+- `docs/FRAMEWORK_REFERENCE.md` — documents `install.ps1`
+- `.claude/skills/uninstall/SKILL.md` — re-install snippet updated
+
+### Breaking changes
+None.
+
+---
+
+## [5.0.0] - 2026-08-05
+
+### Summary
+The framework is now called **Exosuit**. The JD-LLM Development Framework name is retired
+everywhere: repository, plugin, marketplace, environment variables, and all documentation.
+No workflow, skill, hook, or rule behavior changes — this release is the rebrand only.
+The major version bump reflects the breaking rename of the plugin identifier and the
+`JD_*` environment variable prefix.
+
+### Changed
+- Repository renamed to `joris887/exosuit` — GitHub redirects the old
+  `joris887/JD-LLM-Development_framework` URLs and git remotes automatically
+- Plugin name `jd-llm-development-framework` → `exosuit`; marketplace name
+  `jd-llm-framework` → `exosuit`
+- All `JD_*` environment variables renamed to `EXOSUIT_*`: `EXOSUIT_HOOK_PROFILE`,
+  `EXOSUIT_PROJECT_PROFILE`, `EXOSUIT_DISABLED_HOOKS`, `EXOSUIT_STOP_MAX_ITERATIONS`,
+  `EXOSUIT_EXPLAIN_MODE`, `EXOSUIT_FRAMEWORK_REPO`
+- `/bootstrap` README detection now matches both "Exosuit" and the legacy
+  "JD-LLM Development Framework" string, so pre-5.0 installs are still recognized
+- All prose, banners, output-style name, and doc references updated to Exosuit
+
+### Project File Changes
+- If your shell profile, CI config, or `.claude/settings.json` sets any `JD_*` variable,
+  rename it to the `EXOSUIT_*` equivalent — the old names are no longer read
+- If installed as a plugin: remove `jd-llm-development-framework`, then install `exosuit`
+  from the `exosuit` marketplace
+- Git remotes pointing at the old repo URL keep working via GitHub redirect, but update
+  them anyway: `git remote set-url <name> https://github.com/joris887/exosuit.git`
+
+### Breaking changes
+- `JD_*` environment variables are no longer read — rename to `EXOSUIT_*` (see above)
+- Plugin/marketplace identifiers changed — reinstall under the new name
+
+### Files Changed (for framework-upgrade)
+
+```
+CORE_REPLACE:
+  .claude-plugin/marketplace.json (CHANGED)
+  .claude-plugin/plugin.json (CHANGED)
+  .claude/hooks/CLAUDE.md (CHANGED)
+  .claude/hooks/README.md (CHANGED)
+  .claude/hooks/lib/hook-guard.sh (CHANGED)
+  .claude/hooks/pre-tool-use.sh (CHANGED)
+  .claude/hooks/rules/quality.conf (CHANGED)
+  .claude/hooks/rules/safety.patterns (CHANGED)
+  .claude/hooks/stop.sh (CHANGED)
+  .claude/hooks/tests/test-hook-guard.sh (CHANGED)
+  .claude/hooks/tests/test-pre-tool-use.sh (CHANGED)
+  .claude/hooks/tests/test-user-prompt.sh (CHANGED)
+  .claude/output-styles/framework.md (CHANGED)
+  .claude/settings.local.json.template (CHANGED)
+  .claude/skills/SKILLS_INVENTORY.md (CHANGED)
+  .claude/skills/bootstrap/SKILL.md (CHANGED)
+  .claude/skills/doctor/SKILL.md (CHANGED)
+  .claude/skills/framework-upgrade/SKILL.md (CHANGED)
+  .claude/skills/quickstart/SKILL.md (CHANGED)
+  .claude/skills/skills-registry.json (CHANGED)
+  .claude/skills/uninstall/SKILL.md (CHANGED)
+  .gitignore.framework (CHANGED)
+  CHANGELOG.md (CHANGED)
+  CONTRIBUTING.md (CHANGED)
+  README.md (CHANGED)
+  core/package.sh (CHANGED)
+  docs/FRAMEWORK_REFERENCE.md (CHANGED)
+  docs/GETTING_STARTED.md (CHANGED)
+  docs/reference/TEAM_WORKFLOW.md (CHANGED)
+  install.sh (CHANGED)
+  llms.txt (CHANGED)
+  scaffold/docs/reference/TEAM_WORKFLOW.md (CHANGED)
+  scaffold/llms.txt (CHANGED)
+
+CORE_MERGE:
+  CLAUDE.md (Skills section header now "Exosuit v5.0"; preserve all
+             project-specific sections)
+  .claude/settings.json (env var names JD_* → EXOSUIT_* in the env block;
+             preserve project-specific hooks and permissions)
+
+PROJECT_UPDATE_INSTRUCTIONS:
+  - Rename any JD_* environment variable the project sets (shell profile, CI,
+    .claude/settings.json, .claude/settings.local.json) to EXOSUIT_*.
+  - Update git remotes to https://github.com/joris887/exosuit.git (old URLs
+    redirect, so this is not urgent).
+  - If the project README references the framework by its old name, update the
+    mention — /bootstrap recognizes both names, so nothing breaks either way.
+```
+
+---
+
+## [4.2.0] - 2026-07-26
+
+### Summary
+Story sizing now follows **conceptual cohesion, not file count**. The previous ceiling — "more than
+5 files, must split" — was a proxy for context-window limits that no longer bind at current model
+context sizes, and it forced coherent mechanisms to be split into pieces that produced broken
+intermediate states. Adds `LARGE` and `XL` sizes, replaces the file-count threshold with a cohesion
+test, and introduces `docs/reference/STORY_SIZING.md` as a project-level deviation point.
+
+### Added
+- `scaffold/docs/reference/STORY_SIZING.md` — project sizing policy. Deliberately thin: it states
+  the principle and points at the canonical table rather than restating it, so the two cannot drift.
+- `LARGE` and `XL` sizes across the size enum, workflow-depth table, and risk matrix
+
+### Changed
+- `.claude/skills/ideate/references/story-template.md` — Size Classification rewritten around a
+  cohesion test with worked examples; `Too large | >5 files` row replaced by a `Bundle` row
+  (unrelated topics, split by topic); AC guidance now scales with size; affected-files cap removed;
+  DoR gains a cohesion check
+- `.claude/skills/story-cycle/SKILL.md` — size→workflow table and size×risk matrix extended with
+  LARGE and XL rows; explicit instruction not to split on file count
+- `.claude/skills/ideate/SKILL.md` — size enum, DoR checklist, affected-files guidance
+- `.claude/skills/backlog-review/SKILL.md` — DoR splitting criterion now topic-based, not file-count;
+  cycle-time metrics cover all five sizes
+- `.claude/agents/spec-reviewer.md` — size enum in the DoR check
+- `CLAUDE.md`, `scaffold/docs/reference/CLAUDE.md` — reference the new sizing file
+
+### Project File Changes
+- Existing projects: `docs/reference/STORY_SIZING.md` is new and optional. Without it, the framework
+  default applies. Existing stories keep their sizes — `LARGE` and `XL` are additive.
+- Stories previously split to satisfy the 5-file rule may now be worth recombining, but nothing
+  requires it.
+
+### Breaking changes
+None. The enum is extended, not redefined; TRIVIAL, SMALL, and STANDARD keep their meaning.
+
+### Files Changed (for framework-upgrade)
+
+```
+CORE_REPLACE:
+  .claude/skills/ideate/references/story-template.md (CHANGED)
+  .claude/skills/ideate/SKILL.md (CHANGED)
+  .claude/skills/story-cycle/SKILL.md (CHANGED)
+  .claude/skills/backlog-review/SKILL.md (CHANGED)
+  .claude/agents/spec-reviewer.md (CHANGED)
+  scaffold/docs/reference/STORY_SIZING.md (NEW)
+  scaffold/docs/reference/CLAUDE.md (CHANGED)
+  docs/FRAMEWORK_REFERENCE.md (CHANGED)
+  CHANGELOG.md (CHANGED)
+
+CORE_MERGE:
+  CLAUDE.md (Important Files section — add the STORY_SIZING.md line; preserve
+             all project-specific sections: Project Overview, Tech Stack,
+             Critical Rules, Commands, Architecture, Current Focus)
+
+PROJECT_UPDATE_INSTRUCTIONS:
+  - Copy scaffold/docs/reference/STORY_SIZING.md to docs/reference/STORY_SIZING.md.
+    It is optional — without it the framework default applies. Leave the
+    "Project Deviations" section empty unless the project genuinely differs.
+  - If the project ALREADY has a docs/reference/STORY_SIZING.md that restates a
+    full size table (written to override the pre-4.2.0 file-count rule), replace it
+    with the scaffold version. That override is now redundant, and keeping a second
+    copy of the table is how the two silently drift apart. Carry over only genuine
+    project deviations into the "Project Deviations" section.
+  - Add to the CLAUDE.md Important Files list:
+    - `docs/reference/STORY_SIZING.md` — Project sizing policy (sizing is by cohesion, not file count)
+  - Existing stories need no change. LARGE and XL are additive; TRIVIAL, SMALL,
+    and STANDARD keep their exact meaning.
+  - Stories previously split only to satisfy the 5-file rule may now be worth
+    recombining. This is optional and should be judged per story against the
+    cohesion test, not applied in bulk.
+```
+
+---
+
+## [4.1.1] - 2026-07-26
+
+### Summary
+Stop-hook noise reduction. The completion-evidence gate and debug audit fired constantly on sessions
+they had no business inspecting — documentation work, planning sessions, and repositories with no
+test runner at all. Both checks are now gated on actual source-file changes, the completion regex
+requires a subject instead of matching bare prose, and the TODO/FIXME pattern is opt-in. Also fixes
+`.gitignore.framework` missing OS-junk patterns, which made `test-install.sh` fail in every
+installed project while passing in the framework repo.
+
+### Changed
+- `.claude/hooks/stop.sh` — added `changed_source_files()` and `has_test_suite()` guards; both the
+  debug audit and the evidence gate now exit early unless the session changed a source file; the
+  debug audit scans only source files instead of the entire diff
+- `.claude/hooks/rules/quality.conf` — `completion_regex` now requires a subject
+  ("implementation is complete") rather than matching the bare word "complete" anywhere in prose;
+  added `source_extensions` key; `max_iterations` 5 → 3
+- `.claude/hooks/rules/debug.patterns` — `todo-fixme-hack` commented out by default (noisiest
+  pattern in the set; TODO markers in real code are usually deliberate)
+- `.claude/hooks/pre-read-check.sh` — minimum profile raised `standard` → `strict`; it fired on
+  every Read to match a path regex and never blocked anything
+- `.claude/hooks/tests/test-stop.sh` — rewritten to run against isolated temp git repos instead of
+  the live working tree; 4 original cases retained, 5 regression cases added
+- `.claude/hooks/README.md` — documented the noise-control guards and the profile change
+- `.gitignore.framework` — added `.DS_Store` and `Thumbs.db`
+
+### Project File Changes
+- Existing projects: re-run `install.sh` or copy the four changed hook files into `.claude/hooks/`.
+  No configuration changes required — the new guards are self-activating.
+- Projects that *want* TODO/FIXME flagged can uncomment `todo-fixme-hack` in `rules/debug.patterns`.
+- Projects on the `strict` profile keep `pre-read-check` behaviour unchanged.
+
+### Breaking changes
+None. All changes reduce hook firing; no previously-passing session will newly fail.
+
+### Files Changed (for framework-upgrade)
+
+```
+CORE_REPLACE:
+  .claude/hooks/stop.sh (CHANGED)
+  .claude/hooks/pre-read-check.sh (CHANGED)
+  .claude/hooks/rules/quality.conf (CHANGED)
+  .claude/hooks/rules/debug.patterns (CHANGED)
+  .claude/hooks/tests/test-stop.sh (CHANGED)
+  .claude/hooks/README.md (CHANGED)
+  .gitignore.framework (CHANGED)
+  CHANGELOG.md (CHANGED)
+
+CORE_MERGE:
+  (none)
+
+PROJECT_UPDATE_INSTRUCTIONS:
+  - No action required. The new stop-hook guards are self-activating: both the debug audit
+    and the completion-evidence gate now skip sessions that changed no source files.
+  - Projects that want TODO/FIXME flagged as ship-blockers should uncomment `todo-fixme-hack`
+    in `.claude/hooks/rules/debug.patterns` after upgrading.
+  - Projects relying on sensitive-file read warnings must set EXOSUIT_HOOK_PROFILE=strict, or set
+    the project profile to strict — `pre-read-check` no longer runs at the standard profile.
+  - Append `.DS_Store` and `Thumbs.db` to the project `.gitignore` if not already present;
+    re-running install.sh does this automatically.
+```
 
 ---
 
@@ -109,8 +685,8 @@ Open source readiness: critical bug fixes (macOS md5sum, BSD grep Unicode, plugi
 
 ### Added
 - `CONTRIBUTING.md` -- open source contribution guide
-- Explanation mode (`JD_EXPLAIN_MODE=off|brief|verbose`) for hook messages with WHY/INSTEAD explanations
-- `JD_STOP_MAX_ITERATIONS` env var to override stop hook safety valve
+- Explanation mode (`EXOSUIT_EXPLAIN_MODE=off|brief|verbose`) for hook messages with WHY/INSTEAD explanations
+- `EXOSUIT_STOP_MAX_ITERATIONS` env var to override stop hook safety valve
 - First-run detection in session-start.sh (suggests `/quickstart`)
 
 ### Changed
@@ -147,7 +723,7 @@ CORE_MERGE:
   (none)
 
 PROJECT_UPDATE_INSTRUCTIONS:
-  - Set JD_EXPLAIN_MODE=verbose in your shell profile if you want beginner-friendly hook explanations
+  - Set EXOSUIT_EXPLAIN_MODE=verbose in your shell profile if you want beginner-friendly hook explanations
   - The confidence gate in story-cycle now uses objective checks instead of self-assessed scoring
 ```
 

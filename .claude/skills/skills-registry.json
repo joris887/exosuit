@@ -21,7 +21,7 @@
   },
   {
     "name": "backlog-review",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "description": "Execute comprehensive backlog review. Analyzes theme coverage, story quality, dependencies, and generates a backlog health report.",
     "trigger": "manual",
     "depends_on": [],
@@ -43,7 +43,7 @@
   },
   {
     "name": "bootstrap",
-    "version": "2.13.0",
+    "version": "2.13.2",
     "description": "First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.",
     "trigger": "manual",
     "depends_on": [
@@ -87,9 +87,7 @@
     "depends_on": [
       "ideate"
     ],
-    "calls": [
-      "ideate"
-    ],
+    "calls": [],
     "references": [],
     "path": ".claude/skills/brainstorm/SKILL.md"
   },
@@ -115,7 +113,7 @@
   },
   {
     "name": "continue",
-    "version": "2.7.0",
+    "version": "2.7.1",
     "description": "Resume development with smart session continuation. Reads session handoff files, analyzes git state, and determines the best path forward.",
     "trigger": "manual",
     "depends_on": [],
@@ -201,7 +199,7 @@
   {
     "name": "framework-upgrade",
     "version": "1.2.0",
-    "description": "Upgrade JD-LLM Development Framework to a newer version while preserving project customizations.",
+    "description": "Upgrade Exosuit to a newer version while preserving project customizations.",
     "trigger": "manual",
     "depends_on": [
       "doctor"
@@ -217,7 +215,7 @@
   },
   {
     "name": "handoff",
-    "version": "2.6.0",
+    "version": "2.6.1",
     "description": "Generate a structured handoff document for ending a development session. Saves to docs/sessions/ for the continue skill to read.",
     "trigger": "manual",
     "depends_on": [],
@@ -274,13 +272,33 @@
   },
   {
     "name": "parallel-work",
-    "version": "2.4.0",
-    "description": "Manage git worktrees for parallel Claude Code instances working on different stories. List, create, and clean up worktrees.",
+    "version": "3.0.1",
+    "description": "Work on multiple stories at the same time. Creates isolated parallel streams (git worktrees) from the current branch, wires up local settings, and opens each in its own Claude Code session. Also shows stream status and cleans up finished streams. Pairs with /merge-up (publish a stream's work to the parent branch) and /merge-down (pull the parent's accumulated work into a stream).",
     "trigger": "manual",
     "depends_on": [],
     "calls": [],
     "references": [],
     "path": ".claude/skills/parallel-work/SKILL.md"
+  },
+  {
+    "name": "merge-up",
+    "version": "1.0.0",
+    "description": "Use when the user is inside a parallel stream (worktree branch) and wants to merge that branch's committed work into the parent branch it was created from, then bring the stream back up to date with the parent. True merge (keeps individual commits); prompts before pushing the parent. Pairs with /parallel-work, which records the parent in git config (branch.<name>.exosuitParent), and with /merge-down (the inverse direction).",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/merge-up/SKILL.md"
+  },
+  {
+    "name": "merge-down",
+    "version": "1.0.0",
+    "description": "Use when the user is inside a parallel stream (worktree branch) and wants to bring that branch up to date with the LATEST of its parent branch — typically after one or more sibling streams have merged their work up into the parent (via /merge-up). Pulls the parent's accumulated commits down into the current branch with a true merge. Inverse of /merge-up; the parent is recorded by /parallel-work in git config (branch.<name>.exosuitParent). Read-only on the parent — safe to run while the parent worktree is busy.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/merge-down/SKILL.md"
   },
   {
     "name": "phase-review",
@@ -343,8 +361,8 @@
   },
   {
     "name": "research",
-    "version": "1.0.0",
-    "description": "Deep online research on any topic. Produces structured reports with citations and confidence scores. Three depth modes \u2014 quick scan, standard investigation, or deep dive.",
+    "version": "1.0.1",
+    "description": "Deep online research on any topic. Produces structured reports with citations and confidence scores. Three depth modes — quick scan, standard investigation, or deep dive.",
     "trigger": "manual",
     "depends_on": [],
     "calls": [],
@@ -475,7 +493,7 @@
   {
     "name": "uninstall",
     "version": "1.0.0",
-    "description": "Cleanly remove the JD-LLM Development Framework from a project while preserving project-specific content.",
+    "description": "Cleanly remove the Exosuit framework from a project while preserving project-specific content.",
     "trigger": "manual",
     "depends_on": [],
     "calls": [],
@@ -494,7 +512,7 @@
   },
   {
     "name": "build",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Build a project from a plain-English description. Handles all technical decisions automatically. Designed for non-technical users but useful for anyone who wants fast results.",
     "trigger": "manual",
     "depends_on": [

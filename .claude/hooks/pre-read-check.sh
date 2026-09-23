@@ -12,21 +12,28 @@ RULES_DIR="$HOOKS_DIR/rules"
 PATTERNS_FILE="$RULES_DIR/sensitive-files.patterns"
 
 # --- Hook guard: profile + disable check ---
-"$HOOKS_DIR/lib/hook-guard.sh" "pre-read-check" "standard" || exit 0
+# Raised from "standard" to "strict": this fires on EVERY Read to match a path
+# regex, and is advisory only (never blocks). The cost is latency on every file
+# read across a whole session; the benefit is a warning the model can also reach
+# by reading .claude/rules/security.md. Strict projects still get it.
+"$HOOKS_DIR/lib/hook-guard.sh" "pre-read-check" "strict" || exit 0
 
 # --- JSON field extraction ---
-extract_json_string() {
-    _field="$1"
+# Supports dotted paths with jq, flat keys with sed. The sed fallback matches the
+# key anywhere in the payload, so it finds nested values too when jq is missing.
+extract_json() {
+    _jq_path="$1"
+    _sed_key="$2"
     if command -v jq >/dev/null 2>&1; then
-        jq -r ".$_field // empty"
+        jq -r "$_jq_path // empty"
     else
-        sed -n 's/.*"'"$_field"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1
+        sed -n 's/.*"'"$_sed_key"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1
     fi
 }
 
 # Read stdin once
 INPUT=$(cat)
-FILE_PATH=$(printf '%s' "$INPUT" | extract_json_string "file_path")
+FILE_PATH=$(printf '%s' "$INPUT" | extract_json ".tool_input.file_path" "file_path")
 
 # If no file path, allow through
 [ -z "$FILE_PATH" ] && exit 0

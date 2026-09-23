@@ -5,7 +5,7 @@
 
 **Profile:** standard
 <!-- Project complexity profile: lean | standard | strict. Set by /bootstrap or manually. -->
-<!-- Override per-session: JD_PROJECT_PROFILE=lean|standard|strict -->
+<!-- Override per-session: EXOSUIT_PROJECT_PROFILE=lean|standard|strict -->
 
 ## Tech Stack
 <!-- /bootstrap: Fill with detected versions. Prevents AI from mixing incompatible API versions. -->
@@ -64,7 +64,7 @@
 ## Testing
 TDD mandatory for feature, bug fix, and refactoring stories. See `docs/reference/TESTING_STRATEGY.md`.
 
-## Skills — JD-LLM Development Framework v5.0
+## Skills — Exosuit v5.0
 See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 
 ### Core Workflow
@@ -90,6 +90,8 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | UAT test case          | `/UAT-cycle <test-case-id>`    |
 | Sense check UAT cases  | `/claude-sense-check`          |
 | Parallel work          | `/parallel-work`               |
+| Publish stream work    | `/merge-up`                    |
+| Refresh stream         | `/merge-down`                  |
 | Architecture check     | `/architecture-check`          |
 | Framework health check | `/doctor`                      |
 | Upgrade framework      | `/framework-upgrade`           |
@@ -107,6 +109,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 ## Important Files
 - `docs/reference/CODING_STANDARDS.md` — Code conventions
 - `docs/reference/TESTING_STRATEGY.md` — Testing practices
+- `docs/reference/STORY_SIZING.md` — Project sizing policy (sizing is by cohesion, not file count)
 - `docs/architecture/ARCHITECTURE.md` — System architecture
 - `docs/reference/GROUND_RULES.md` — Architectural principles
 - `docs/adr/` — Architecture decision records (prior decisions and rejected alternatives)

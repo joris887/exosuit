@@ -191,6 +191,12 @@ Root cause: <explanation>
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
+**Skill metrics:** Emit a completion event:
+
+```bash
+echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"debug-session\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
+
 ## Example
 
 ```

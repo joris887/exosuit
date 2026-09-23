@@ -6,6 +6,7 @@ On-demand reference files loaded by skills when needed. Not auto-loaded at sessi
 - `BACKLOG_INDEX.md` — epic/story index (loaded by sprint skills)
 - `CODING_STANDARDS.md` — language-specific code conventions
 - `TESTING_STRATEGY.md` — TDD workflow, coverage targets, test patterns
+- `STORY_SIZING.md` — project sizing deviations (default: cohesion, not file count)
 - `GROUND_RULES.md` — architectural MUST/SHOULD principles
 - `GIT_WORKFLOW.md` — branching, commit, and PR conventions
 - `MCP_INTEGRATION.md` — MCP server selection and usage guide

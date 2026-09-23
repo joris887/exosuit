@@ -1,30 +1,40 @@
 {
-  "name": "jd-llm-development-framework",
-  "version": "4.1.0",
-  "description": "Structured development framework for Claude Code — TDD, sprints, quality gates, 45 skills, 8 agents, 11 hooks, path-scoped rules",
-  "homepage": "https://github.com/joris887/JD-LLM-Development_framework",
-  "author": "Joris de Umens",
-  "license": "MIT",
-  "permissions": {
-    "deny": [
-      "${CLAUDE_PLUGIN_ROOT}/**"
-    ]
+  "name": "exosuit",
+  "version": "5.0.0",
+  "description": "Suit up. Build anything. A full engineering organization for Claude Code \u2014 deep idea interrogation, TDD sprints, enforced quality gates. 43 skills, 8 agents, 13 hooks, path-scoped rules.",
+  "homepage": "https://github.com/joris887/exosuit",
+  "author": {
+    "name": "Joris Deumens",
+    "url": "https://github.com/joris887"
   },
+  "license": "MIT",
+  "skills": "./.claude/skills/",
+  "agents": [
+    "./.claude/agents/architecture-reviewer.md",
+    "./.claude/agents/code-reviewer.md",
+    "./.claude/agents/codebase-explorer.md",
+    "./.claude/agents/integration-tester.md",
+    "./.claude/agents/performance-engineer.md",
+    "./.claude/agents/research-analyst.md",
+    "./.claude/agents/security-analyst.md",
+    "./.claude/agents/spec-reviewer.md"
+  ],
+  "hooks": "./.claude/hooks/hooks.json",
   "settings": {
     "includeGitInstructions": false,
     "attribution": {
       "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
     },
     "plansDirectory": "docs/plans",
-    "outputStyle": "${CLAUDE_PLUGIN_ROOT}/output-styles/framework.md",
+    "outputStyle": "${CLAUDE_PLUGIN_ROOT}/.claude/output-styles/framework.md",
     "env": {
-      "JD_PROJECT_PROFILE": "standard",
-      "JD_EXPLAIN_MODE": "brief",
-      "JD_STOP_MAX_ITERATIONS": "5"
+      "EXOSUIT_PROJECT_PROFILE": "standard",
+      "EXOSUIT_EXPLAIN_MODE": "brief",
+      "EXOSUIT_STOP_MAX_ITERATIONS": "5"
     },
     "statusLine": {
       "type": "command",
-      "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/status-line.sh"
+      "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/status-line.sh"
     },
     "spinnerVerbs": {
       "mode": "append",
@@ -46,7 +56,7 @@
         "Use /story-cycle for structured story delivery",
         "Run /doctor to check framework health",
         "Use /research for evidence-backed decisions",
-        "TDD first — write tests before implementation",
+        "TDD first \u2014 write tests before implementation",
         "Use /handoff before ending a session",
         "Run /sprint-end to ship completed work",
         "Use /bootstrap to set up a new project",

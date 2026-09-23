@@ -9,10 +9,18 @@ source "$(dirname "$0")/lib/paths.sh"
 INPUT=$(cat)
 
 # --- Git state ---
-BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
-DIRTY=""
-git diff --quiet 2>/dev/null || DIRTY="*"
-git diff --cached --quiet 2>/dev/null || DIRTY="${DIRTY:+$DIRTY}+"
+# Outside a repo every git call fails, which must not render as detached/dirty.
+# Inside a repo, --show-current prints nothing (exit 0) on a detached HEAD.
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  BRANCH=$(git branch --show-current 2>/dev/null)
+  [[ -z "$BRANCH" ]] && BRANCH="detached"
+  DIRTY=""
+  git diff --quiet 2>/dev/null || DIRTY="*"
+  git diff --cached --quiet 2>/dev/null || DIRTY="${DIRTY:+$DIRTY}+"
+else
+  BRANCH="no git"
+  DIRTY=""
+fi
 
 # --- Sprint from progress.md ---
 PROGRESS_FILE="$(project_path "docs/progress.md")"
@@ -44,6 +52,7 @@ BLD='\033[1m'
 BC="$GRN"
 case "$BRANCH" in
   main|master) BC="$RED" ;;
+  "no git") BC="$DIM" ;;
 esac
 [[ -n "$DIRTY" ]] && BC="$YLW"
 

@@ -111,13 +111,13 @@ Compose the `deep-research` methodology (`.claude/prompts/deep-research.md`) at 
 
 ### Splitting Strategy (SPIDR)
 
-When a requirement is too large for a single story, apply these five splitting patterns in order of preference:
+When a story fails the cohesion test (see `references/story-template.md`), apply these five splitting patterns in order of preference:
 
-1. **Spike** — Uncertainty exists → create a time-boxed research story first
-2. **Path** — Multiple user flows → split by happy path, alternate paths, error paths
-3. **Interface** — Multiple devices/platforms → split by interface variant
-4. **Data** — Data variations → split by data complexity (basic fields first, advanced later)
-5. **Rules** — Business rules → split by happy path first, edge cases later
+1. **Paths** — Multiple user flows → split by happy path, alternate paths, error paths
+2. **Data** — Data variations → split by data complexity (basic fields first, advanced later)
+3. **Rules** — Business rules → split by happy path first, edge cases later
+4. **Interface** — Multiple devices/platforms → split by interface variant
+5. **Spike** — If unknowns prevent splitting, create a time-boxed research story first
 
 Each resulting story must be a **vertical slice** (UI + logic + data), not a horizontal layer.
 
@@ -169,7 +169,7 @@ Follow the story template in `references/story-template.md`. The structure separ
 
 For each story, produce:
 
-```markdown
+````markdown
 ---
 id: [PROJECT]-[NUMBER]
 title: [The OUTCOME — what the user gets, not what the code does]
@@ -391,6 +391,10 @@ Use the epic template from `docs/reference/backlog/_EPIC_TEMPLATE.md`. Each epic
   echo "{\"type\":\"story\",\"event\":\"created\",\"id\":\"<id>\",\"story_type\":\"<type>\",\"size\":\"<size>\",\"priority\":\"<priority>\",\"status\":\"<ready|draft>\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
   ```
 - **Update the repo brain:** Invoke `/brain-update ideate stories-added <epic-id>`. This seeds outcome-level intent (what's coming) into `docs/brain/current-state.md` "What's In Progress / What's Coming" section so future sprints have the context. Skip if `docs/brain/` doesn't exist.
+- **Skill metrics:** Emit a completion event:
+  ```bash
+  echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"ideate\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+  ```
 
 ## Example
 

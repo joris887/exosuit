@@ -1,6 +1,6 @@
 # Team Workflow Guide
 
-How to use the JD-LLM Development Framework with a team of 2–15 developers. AI-assisted development shifts the bottleneck from code production to code verification — this guide structures your team around that reality.
+How to use the Exosuit framework with a team of 2–15 developers. AI-assisted development shifts the bottleneck from code production to code verification — this guide structures your team around that reality.
 
 ## Branch Strategy
 
@@ -136,7 +136,7 @@ Assign epics to developers in epic files:
 Mark stories `IN_PROGRESS` in the epic file and commit the change. This signals to other developers that the story is taken.
 
 ### Conflict Prevention
-- Stories should touch distinct files (the 5–8 file limit helps)
+- Stories should touch distinct files (cohesion-sized stories keep file footprints focused)
 - Assign convergence-point files (routes, configs) to a single owner
 - Use `/parallel-work` with worktrees for concurrent stories
 - If stories overlap, coordinate via the dependency graph in `/ideate` output
@@ -192,7 +192,7 @@ Replace `@your-team` and role placeholders with actual GitHub usernames or team 
 |-------------------|--------------|
 | `/bootstrap` | Detects team (multiple contributors or CODEOWNERS exists), recommends tier-specific practices |
 | `/sprint-end` | Runs four-layer review, PR size check, detects required human reviewers, guides Layer 4 focus |
-| `/story-cycle` | Stories scoped to 5–8 files — natural conflict prevention |
+| `/story-cycle` | Stories scoped by cohesion to focused file footprints — natural conflict prevention |
 | `/parallel-work` | Sets up worktrees for concurrent development |
 | `/handoff` + `/continue` | Structured context transfer between developers, PR session summaries, agentic drift detection |
 | `/retrospective` | Team reviews AI learnings, comprehension debt, updates `CLAUDE.md` |

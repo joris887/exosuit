@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-version: 2.13.0
+version: 2.13.2
 description: First-run framework setup. Detects existing project stack or guides new project creation from vision/braindump.
 trigger: manual
 depends-on: [skill-create]
@@ -13,7 +13,7 @@ ______________________________________________________________________
 
 ## bootstrap
 
-Setting up the JD-LLM Development Framework for this project.
+Setting up the Exosuit framework for this project.
 
 **Interactive UX:** Read `@.claude/prompts/interactive-ux.md` for the shared protocol. Use AskUserQuestion for all closed-choice interactions. Show progress between major steps. Read `references/question-scaffolding.md` (in the discover skill) for question formatting rules — Rules 7-8 apply here too.
 
@@ -76,7 +76,7 @@ Detect and handle the framework's own README before proceeding:
 
 ```bash
 # Check if README.md is the framework's own README (not a project README)
-grep -q "JD-LLM Development Framework" README.md 2>/dev/null && \
+grep -qE "Exosuit|JD-LLM Development Framework" README.md 2>/dev/null && \
 grep -q "drop-in development framework" README.md 2>/dev/null
 ```
 
@@ -848,7 +848,7 @@ If no foundation stories were generated (all principles Ready), still initialize
 
 Create `docs/solutions/` with a `.gitkeep` file. This directory stores structured learnings from completed stories (see `capture-learnings` micro-component). Each solution document has searchable YAML frontmatter (title, tags, module, component) so future story-cycle Phase 1b can grep for prior learnings on affected modules.
 
-Also create `docs/brainstorms/` with a `.gitkeep` file. This directory stores design exploration documents from `/brainstorm` sessions for reference during `/ideate` and `/story-cycle`.
+Also create `docs/brainstorms/` with a `.gitkeep` file. This directory stores design exploration documents from `/brainstorm` sessions for reference during `/ideate`.
 
 Also create `docs/research/` with a `.gitkeep` file. This directory stores structured research reports from `/research` sessions and spike stories. Reports have searchable YAML frontmatter (title, tags, confidence, date) so future research and story-cycle Phase 1 can check for prior findings.
 
@@ -906,7 +906,7 @@ Also create `docs/reviews/` with a `.gitkeep` file. This directory stores phase 
 | [principle] | [✓/⚠️/✗] | [explanation] |
 | ... | ... | ... |
 
-**Summary:** [N]/12 ready, [N] at risk, [N] missing
+**Summary:** [N] of [assessed] principles ready, [N] at risk, [N] missing ([N] skipped as not applicable)
 
 **Foundation Backlog:** [N] stories across [L] levels in E00-foundation (Framework Ready Gate after Level 2: [N] checks) — or "No gaps found — project is ready"
 

@@ -39,19 +39,46 @@ All hooks are self-contained **POSIX shell scripts** — no Python or other runt
 
 ## Hook Profiles
 
-Control hook strictness via the `JD_HOOK_PROFILE` environment variable:
+Control hook strictness via the `EXOSUIT_HOOK_PROFILE` environment variable:
 
 | Profile | Level | What's Active |
 |---------|-------|---------------|
 | `minimal` | 1 | Critical safety blocks only (force push, rm -rf, --no-verify), activity logging, session checks |
-| `standard` | 2 | Everything in minimal + completion evidence, intent warnings, formatting, subagent checks, skill tracking, sensitive file warnings (default) |
-| `strict` | 3 | Everything in standard + strict-only patterns |
+| `standard` | 2 | Everything in minimal + completion evidence, intent warnings, formatting, subagent checks, skill tracking (default) |
+| `strict` | 3 | Everything in standard + strict-only patterns + sensitive-file read warnings |
+
+### Noise Control (stop hook)
+
+The stop hook is deliberately narrow about when it speaks. Both its checks —
+the debug audit and the completion-evidence gate — are **skipped entirely**
+unless the session changed at least one file matching `source_extensions` in
+`rules/quality.conf`. A docs, config, or planning session has nothing to audit
+and no tests to run.
+
+Three further guards:
+
+- The debug audit scans **only source files**, never the whole diff. Scanning
+  everything meant a markdown table column named `TODO` tripped the code-debug
+  patterns.
+- The evidence gate is skipped when the project has **no detectable test suite**
+  (`has_test_suite` in `stop.sh`). Demanding test output from a repo with no
+  test runner is unfixable by the model.
+- `completion_regex` requires a **subject** — "implementation is complete", not
+  the bare word "complete". The bare-word form matched ordinary prose and fired
+  on nearly every summary.
+
+`todo-fixme-hack` in `rules/debug.patterns` is **commented out by default** —
+TODO markers in real code are usually deliberate. Uncomment it if your team
+treats them as ship-blockers.
+
+`pre-read-check` was raised from `standard` to `strict`: it fired on every Read
+to match a path regex and never blocked anything.
 
 ```bash
 # Examples:
-export JD_HOOK_PROFILE=minimal    # Lightweight mode — safety only
-export JD_HOOK_PROFILE=standard   # Default — full enforcement
-export JD_HOOK_PROFILE=strict     # Maximum strictness
+export EXOSUIT_HOOK_PROFILE=minimal    # Lightweight mode — safety only
+export EXOSUIT_HOOK_PROFILE=standard   # Default — full enforcement
+export EXOSUIT_HOOK_PROFILE=strict     # Maximum strictness
 ```
 
 ### Pattern Severity
@@ -64,7 +91,7 @@ Safety patterns support an optional severity field: `id@@regex@@message@@severit
 
 ## Explanation Mode
 
-Control the verbosity of hook messages via `JD_EXPLAIN_MODE`:
+Control the verbosity of hook messages via `EXOSUIT_EXPLAIN_MODE`:
 
 | Mode | Behavior |
 |------|----------|
@@ -73,19 +100,19 @@ Control the verbosity of hook messages via `JD_EXPLAIN_MODE`:
 | `verbose` | Full explanations — WHY it matters + safer alternatives |
 
 ```bash
-export JD_EXPLAIN_MODE=verbose   # Recommended for beginners and newcomers
-export JD_EXPLAIN_MODE=brief     # Default
-export JD_EXPLAIN_MODE=off       # Experienced users who know the rules
+export EXOSUIT_EXPLAIN_MODE=verbose   # Recommended for beginners and newcomers
+export EXOSUIT_EXPLAIN_MODE=brief     # Default
+export EXOSUIT_EXPLAIN_MODE=off       # Experienced users who know the rules
 ```
 
-Pattern files support an optional 5th field for explanations: `id@@regex@@message@@severity@@explanation`. When `JD_EXPLAIN_MODE=verbose`, the explanation is appended to the message.
+Pattern files support an optional 5th field for explanations: `id@@regex@@message@@severity@@explanation`. When `EXOSUIT_EXPLAIN_MODE=verbose`, the explanation is appended to the message.
 
 ## Runtime Hook Disabling
 
 Disable specific hooks without editing settings.json:
 
 ```bash
-export JD_DISABLED_HOOKS="stop,post-edit-format"  # Comma-separated hook IDs
+export EXOSUIT_DISABLED_HOOKS="stop,post-edit-format"  # Comma-separated hook IDs
 ```
 
 Available hook IDs: `pre-tool-use`, `pre-read-check`, `post-tool-use`, `post-edit-format`, `session-start`, `stop`, `user-prompt`, `subagent-stop`
@@ -114,7 +141,7 @@ Advisory warnings via `rules/advisory.patterns`:
 `pre-read-check.sh`: Warns when reading sensitive files (.env, .key, .pem, credentials). Advisory only — never blocks.
 
 ### PostToolUse (Edit|Write|Bash)
-Activity logging to `docs/sessions/.activity-log.jsonl`. Rotates at 200 entries.
+Activity logging to `docs/sessions/.activity-log.jsonl`. Type-aware rotation: keeps the last 200 tool lines and the last 500 skill/story event lines, preserving order.
 - Tracks successful test runs → sets `state/tests-passed`
 - Tracks test/build failures → logs to `docs/sessions/.failure-log.jsonl`
 
@@ -125,7 +152,7 @@ Activity logging to `docs/sessions/.activity-log.jsonl`. Rotates at 200 entries.
 Auto-saves session state (git + active skill context), then:
 1. Debug statement audit: scans git diff for leftover debug statements (advisory)
 2. Completion evidence validation: blocks claims without test output
-3. Safety valve: allows after max iterations (default 5, override via `JD_STOP_MAX_ITERATIONS` env var or `quality.conf max_iterations`; ≤0 = no limit)
+3. Safety valve: allows after max iterations (default 5, override via `EXOSUIT_STOP_MAX_ITERATIONS` env var or `quality.conf max_iterations`; ≤0 = no limit)
 
 ### UserPromptSubmit
 - Advisory warning for destructive-sounding requests (intent.patterns)
@@ -159,6 +186,6 @@ Hooks are configured in `.claude/settings.json`. Each hook event points to its o
 
 Three options, from temporary to permanent:
 
-1. **Per-session:** `export JD_DISABLED_HOOKS="hook-id-1,hook-id-2"`
-2. **Per-profile:** `export JD_HOOK_PROFILE=minimal` (only critical hooks active)
+1. **Per-session:** `export EXOSUIT_DISABLED_HOOKS="hook-id-1,hook-id-2"`
+2. **Per-profile:** `export EXOSUIT_HOOK_PROFILE=minimal` (only critical hooks active)
 3. **Permanent:** Remove the relevant section in `.claude/settings.json`

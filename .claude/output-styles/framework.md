@@ -1,5 +1,5 @@
 ---
-name: JD-LLM Framework
+name: Exosuit
 description: Structured engineering output with sprint awareness and verification emphasis
 keep-coding-instructions: true
 ---

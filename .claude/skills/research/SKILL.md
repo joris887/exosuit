@@ -1,6 +1,6 @@
 ---
 name: research
-version: 1.0.0
+version: 1.0.1
 description: Deep online research on any topic. Produces structured reports with citations and confidence scores. Three depth modes — quick scan, standard investigation, or deep dive.
 trigger: manual
 depends-on: []
@@ -128,6 +128,12 @@ After presenting findings:
    - "This could become stories: `/ideate [idea based on findings]`"
    - "A spike story would help validate: [specific uncertainty]"
    - "Findings are informational only — no action needed"
+
+**Skill metrics:** Emit a completion event:
+
+```bash
+echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"research\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
+```
 
 ## Example
 

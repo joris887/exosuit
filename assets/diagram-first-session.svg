@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 460" role="img" aria-label="Your first session: /bootstrap checks whether the repo has code. No code leads to /discover, The Interrogation. Existing code leads to stack detection and readiness assessment. Both produce vision, backlog and project docs, then /sprint-start.">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#38342B"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="460" fill="#F1ECE1"/>
+
+  <!-- /bootstrap -->
+  <rect x="40" y="188" width="180" height="84" rx="14" fill="#FBF8F1" stroke="#38342B" stroke-width="2"/>
+  <text x="130" y="226" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="21" font-weight="700" fill="#C55B27">/bootstrap</text>
+  <text x="130" y="252" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" fill="#8A8578">start here</text>
+
+  <line x1="220" y1="230" x2="270" y2="230" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+
+  <!-- decision -->
+  <rect x="280" y="188" width="190" height="84" rx="14" fill="#38342B"/>
+  <text x="375" y="222" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#F1ECE1">code in</text>
+  <text x="375" y="248" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#F1ECE1">the repo?</text>
+
+  <!-- branch: no -->
+  <path d="M375,188 V105 H528" fill="none" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+  <text x="455" y="93" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" fill="#8A8578">no: just an idea</text>
+
+  <!-- branch: yes -->
+  <path d="M375,272 V355 H528" fill="none" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+  <text x="455" y="345" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" fill="#8A8578">yes: existing code</text>
+
+  <!-- /discover -->
+  <rect x="540" y="60" width="250" height="90" rx="14" fill="#FBF8F1" stroke="#38342B" stroke-width="2"/>
+  <text x="665" y="99" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="21" font-weight="700" fill="#C55B27">/discover</text>
+  <text x="665" y="127" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#38342B">The Interrogation</text>
+
+  <!-- stack detection -->
+  <rect x="540" y="310" width="250" height="90" rx="14" fill="#FBF8F1" stroke="#38342B" stroke-width="2"/>
+  <text x="665" y="349" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#38342B">stack detection</text>
+  <text x="665" y="375" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" fill="#8A8578">+ readiness assessment</text>
+
+  <!-- converge -->
+  <path d="M790,105 H950 V178" fill="none" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+  <path d="M790,355 H950 V282" fill="none" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+
+  <!-- outputs -->
+  <rect x="850" y="188" width="200" height="84" rx="14" fill="#FBF8F1" stroke="#38342B" stroke-width="2"/>
+  <text x="950" y="224" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#38342B">vision, backlog,</text>
+  <text x="950" y="248" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#38342B">project docs</text>
+
+  <line x1="1050" y1="230" x2="1080" y2="230" stroke="#38342B" stroke-width="2.5" marker-end="url(#ah)"/>
+
+  <!-- /sprint-start -->
+  <rect x="1090" y="188" width="170" height="84" rx="14" fill="#FBF8F1" stroke="#38342B" stroke-width="2"/>
+  <text x="1175" y="226" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" font-weight="700" fill="#C55B27">/sprint-start</text>
+  <text x="1175" y="252" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" fill="#8A8578">start building</text>
+</svg>
