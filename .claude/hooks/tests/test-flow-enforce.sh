@@ -36,8 +36,9 @@ cleanup() {
     [ -d "$SAVE_DIR/flow" ] && cp -rp "$SAVE_DIR/flow" "$STATE_DIR/flow"
     rm -rf "$SAVE_DIR"
     # strip any test-injected conf override even if a case aborted mid-run
-    sed '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf" > "$HOOKS_DIR/rules/quality.conf".sedtmp && mv "$HOOKS_DIR/rules/quality.conf".sedtmp "$HOOKS_DIR/rules/quality.conf" 2>/dev/null || true
+    sed -i '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf" 2>/dev/null || true
     unset EXOSUIT_FLOW_MODE 2>/dev/null || true
+    unset EXOSUIT_FLOW_MAX_BLOCKS 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -110,13 +111,24 @@ test_case "advisory: exit 0 on source edit at unevidenced gate" "0" "${OUT%%|*}"
 test_case "advisory: warning names gate and evidence" "true" "$(printf '%s' "${OUT#*|}" | grep -q "the-gate" && printf '%s' "${OUT#*|}" | grep -q "tests-green" && echo true || echo false)"
 
 # The advisory must reach the MODEL, not just a debug log: PreToolUse exit-0
-# stderr is debug-only, so it has to be JSON on stdout with a non-blocking
-# permissionDecision. Regression guard for that contract.
+# stderr is debug-only, so it has to be JSON on stdout. It must NOT carry a
+# permissionDecision: 'allow' would SKIP the user's permission prompt —
+# silently auto-approving the very edit it warns about. Regression guards
+# for both halves of that contract.
 rm -f "$STATE_DIR/flow/.advised-alpha.the-gate.tests-green" 2>/dev/null
 ADV_JSON="$(run_pre_edit_stdout src/main.go)"
 test_case "advisory: emitted as JSON on stdout" "true" "$(printf '%s' "$ADV_JSON" | grep -q '"hookEventName":"PreToolUse"' && echo true || echo false)"
 test_case "advisory: reaches the model via additionalContext" "true" "$(printf '%s' "$ADV_JSON" | grep -q '"additionalContext":"Flow advisory' && echo true || echo false)"
-test_case "advisory: never blocks the edit" "true" "$(printf '%s' "$ADV_JSON" | grep -q '"permissionDecision":"allow"' && echo true || echo false)"
+test_case "advisory: no permissionDecision (never auto-approves)" "false" "$(printf '%s' "$ADV_JSON" | grep -q '"permissionDecision"' && echo true || echo false)"
+if command -v python3 >/dev/null 2>&1; then
+    # a real parser, not substring greps — the emitted JSON must be valid
+    test_case "advisory: stdout parses as JSON" "true" "$(printf '%s' "$ADV_JSON" | python3 -c 'import json,sys; json.load(sys.stdin)' >/dev/null 2>&1 && echo true || echo false)"
+else
+    echo "  SKIP: advisory JSON-parse case (python3 not available)"
+fi
+# rm the advised-mark first: without it this exercises the dedup
+# short-circuit (which prints nothing anyway) instead of the emission path
+rm -f "$STATE_DIR/flow/.advised-alpha.the-gate.tests-green" 2>/dev/null
 test_case "advisory: nothing on stderr" "" "$(printf '{"tool_name":"Edit","tool_input":{"file_path":"src/main.go"}}' | sh "$PRE_EDIT" 2>&1 >/dev/null)"
 
 # Test-file edit is exempt (writing the test IS the evidence)
@@ -150,21 +162,92 @@ OUT="$(run_pre_edit src/main.go)"
 test_case "no cursor: silent" "0|" "$OUT"
 cd "$ORIG_PWD"
 
-# --- Block mode (explicit opt-in) ---
+# --- Block mode (explicit opt-in): fail-open — missing evidence NEVER
+# blocks; only positive red evidence (state/flow/tests-red) does ---
 d="$(make_repo)"; cd "$d"
 sh "$LIB" enter alpha the-gate
 export EXOSUIT_FLOW_MODE=block
 OUT="$(run_pre_edit src/main.go)"
-test_case "block: exit 2 on source edit at unevidenced gate" "2" "${OUT%%|*}"
-OUT="$(run_pre_edit tests/test_main.go)"
-test_case "block: test edit still exempt" "0|" "$OUT"
-mkdir -p "$STATE_DIR/flow"; date > "$STATE_DIR/flow/tests-green"
+test_case "block: no red evidence -> advisory, never blocks" "0" "${OUT%%|*}"
+test_case "block: fall-through advisory still warns" "true" "$(printf '%s' "${OUT#*|}" | grep -q "Flow advisory" && echo true || echo false)"
+mkdir -p "$STATE_DIR/flow"; date > "$STATE_DIR/flow/tests-red"
 OUT="$(run_pre_edit src/main.go)"
-test_case "block: silent when evidence present" "0|" "$OUT"
+test_case "block: red evidence blocks (exit 2)" "2" "${OUT%%|*}"
+test_case "block: reason names evidence and the FAILED run" "true" "$(printf '%s' "${OUT#*|}" | grep -q "tests-green" && printf '%s' "${OUT#*|}" | grep -q "FAILED" && echo true || echo false)"
+OUT="$(run_pre_edit tests/test_main.go)"
+test_case "block: test edit exempt even with red evidence" "0|" "$OUT"
+date > "$STATE_DIR/flow/tests-green"
+OUT="$(run_pre_edit src/main.go)"
+test_case "block: silent when evidence present (green beats red)" "0|" "$OUT"
 rm -rf "$STATE_DIR/flow"
 unset EXOSUIT_FLOW_MODE
+cd "$ORIG_PWD"
+
+# --- Valve: bounded blocks per gate, then explicit release to advisory ---
+d="$(make_repo)"; cd "$d"
+sh "$LIB" enter alpha the-gate
+export EXOSUIT_FLOW_MODE=block
+rm -rf "$STATE_DIR/flow"; mkdir -p "$STATE_DIR/flow"; date > "$STATE_DIR/flow/tests-red"
+VALVE_OK=true
+for i in 1 2 3; do
+    OUT="$(run_pre_edit src/main.go)"
+    [ "${OUT%%|*}" = "2" ] || { VALVE_OK="rc-at-$i:${OUT%%|*}"; break; }
+    COUNT=$(cat "$STATE_DIR/flow/.blocked-alpha.the-gate.tests-green" 2>/dev/null)
+    [ "$COUNT" = "$i" ] || { VALVE_OK="count-at-$i:$COUNT"; break; }
+done
+test_case "valve: three blocks counted on the same gate" "true" "$VALVE_OK"
+OUT="$(run_pre_edit src/main.go)"
+test_case "valve: fourth edit releases (exit 0)" "0" "${OUT%%|*}"
+test_case "valve: release is announced, bypassing warn-once dedup" "true" "$(printf '%s' "${OUT#*|}" | grep -q "valve released" && echo true || echo false)"
+OUT="$(run_pre_edit src/main.go)"
+test_case "valve: release note dedups after announcing once" "0|" "$OUT"
+date > "$STATE_DIR/flow/tests-green"
+OUT="$(run_pre_edit src/main.go)"
+test_case "valve: green run silences the gate" "0|" "$OUT"
+# env override, sanitized like stop.sh's max_iterations
+rm -rf "$STATE_DIR/flow"; mkdir -p "$STATE_DIR/flow"; date > "$STATE_DIR/flow/tests-red"
+export EXOSUIT_FLOW_MAX_BLOCKS=1
+OUT="$(run_pre_edit src/main.go)"
+test_case "valve: EXOSUIT_FLOW_MAX_BLOCKS=1 blocks once" "2" "${OUT%%|*}"
+OUT="$(run_pre_edit src/main.go)"
+test_case "valve: EXOSUIT_FLOW_MAX_BLOCKS=1 releases on second edit" "0" "${OUT%%|*}"
+unset EXOSUIT_FLOW_MAX_BLOCKS
+rm -rf "$STATE_DIR/flow"
+unset EXOSUIT_FLOW_MODE
+cd "$ORIG_PWD"
+
+# --- Fail-open: evidence classes with no red analog can never block ---
+d="$(make_repo)"; cd "$d"
+cat > .claude/skills/alpha/flow.yaml <<'EOF'
+flow: alpha
+spec: 1
+start: work
+nodes:
+  work: {type: step, next: the-gate}
+  the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: test-written, doc: "### Gate"}
+  done: {type: terminal, doc: "## Done"}
+EOF
+sh "$LIB" enter alpha the-gate
+export EXOSUIT_FLOW_MODE=block
+mkdir -p "$STATE_DIR/flow"; date > "$STATE_DIR/flow/tests-red"
+OUT="$(run_pre_edit src/main.go)"
+test_case "block: test-written gate never blocks (even with red)" "0" "${OUT%%|*}"
+test_case "block: test-written gate still advises" "true" "$(printf '%s' "${OUT#*|}" | grep -q "Flow advisory" && echo true || echo false)"
+rm -rf "$STATE_DIR/flow"
+unset EXOSUIT_FLOW_MODE
+cd "$ORIG_PWD"
+
+# --- Short-circuit: no cursor file => exit before ANY external command ---
+# PATH= leaves only shell builtins; /bin/sh by absolute path so the shell
+# itself still starts. Proves the exit precedes dirname/hook-guard/git.
+d="$(make_repo)"; cd "$d"
+RC=0; OUT=$(printf '{"tool_name":"Edit","tool_input":{"file_path":"src/main.go"}}' | env PATH= /bin/sh "$PRE_EDIT" 2>&1) || RC=$?
+test_case "short-circuit: no cursor file needs no external commands" "0|" "$RC|$OUT"
+cd "$ORIG_PWD"
 
 # --- Off mode ---
+d="$(make_repo)"; cd "$d"
+sh "$LIB" enter alpha the-gate
 export EXOSUIT_FLOW_MODE=off
 OUT="$(run_pre_edit src/main.go)"
 test_case "off: silent" "0|" "$OUT"
@@ -192,8 +275,12 @@ nodes:
 EOF
 sh "$LIB" enter alpha the-gate
 export EXOSUIT_FLOW_MODE=block
+# inline-test paths only count once their content exists on disk
+mkdir -p src lib
+printf 'fn a() {}\n#[cfg(test)]\nmod tests {}\n' > src/inline_lib.rs
+printf 'defmodule Foo do\n  doctest Foo\nend\n' > lib/foo_doc.ex
 SUPERSET_OK=true
-for tp in spec/user_spec.rb src/__tests__/user.js conftest.py t/basic.t Foo.Tests/FooTests.cs cypress/e2e/login.cy.js features/login.feature src/user.test.js tests/test_user.py; do
+for tp in spec/user_spec.rb src/__tests__/user.js conftest.py t/basic.t Foo.Tests/FooTests.cs cypress/e2e/login.cy.js features/login.feature src/user.test.js tests/test_user.py src/inline_lib.rs lib/foo_doc.ex; do
     RC="${OUT%%|*}"; OUT="$(run_pre_edit "$tp")"; RC="${OUT%%|*}"
     if [ "$RC" != "0" ] || [ -n "${OUT#*|}" ]; then SUPERSET_OK="blocked:$tp"; break; fi
     rm -rf "$STATE_DIR/flow"
@@ -218,7 +305,7 @@ test_case "glob regression: source still not-test" "1" "$(sh "$HOOKS_DIR/lib/tes
 # uppercase user override folds too
 printf 'test_path_patterns=*.Tests/*\n' >> "$HOOKS_DIR/rules/quality.conf"
 test_case "uppercase override matches after folding" "0" "$(sh "$HOOKS_DIR/lib/test-paths.sh" Foo.Tests/Bar.cs; echo $?)"
-sed '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf" > "$HOOKS_DIR/rules/quality.conf".sedtmp && mv "$HOOKS_DIR/rules/quality.conf".sedtmp "$HOOKS_DIR/rules/quality.conf"
+sed -i '/^test_path_patterns=\*\.Tests\//d' "$HOOKS_DIR/rules/quality.conf"
 cd "$ORIG_PWD"
 
 # --- Green-noise guard: honest green runs must stamp, not veto ---
@@ -226,7 +313,7 @@ d="$(make_repo)"; cd "$d"
 if command -v jq >/dev/null 2>&1; then
     for green in "100% tests passed, 0 tests failed out of 12" "12 tests passed\nERROR StatusLogger could not find log4j2" "test_handles_error PASSED\n12 passed" "Passed! - Failed: 0, Passed: 12, Total: 12 tests passed"; do
         rm -rf "$STATE_DIR/flow"; rm -f "$STATE_DIR/tests-passed"
-        printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"%s"}' "$green" | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+        printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_response":{"stdout":"%s","stderr":""}}' "$green" | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
         if [ ! -f "$STATE_DIR/flow/tests-green" ]; then
             test_case "green-noise stamps: ${green%%\\n*}" "stamped" "missing"
         else
@@ -274,23 +361,35 @@ cd "$ORIG_PWD"
 d="$(make_repo)"; cd "$d"
 if command -v jq >/dev/null 2>&1; then
     rm -rf "$STATE_DIR/flow"; rm -f "$STATE_DIR/tests-passed"
-    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"3 passed, 9 failed"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_response":{"stdout":"3 passed, 9 failed","stderr":""}}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
     test_case "mixed run does not stamp tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
     test_case "mixed run does not stamp tests-passed" "false" "$([ -f "$STATE_DIR/tests-passed" ] && echo true || echo false)"
-    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"12 passed"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "mixed run stamps tests-red" "true" "$([ -f "$STATE_DIR/flow/tests-red" ] && echo true || echo false)"
+    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_response":{"stdout":"12 passed","stderr":""}}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
     test_case "clean pass stamps tests-green" "true" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
-    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"12 failed"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "clean pass removes tests-red" "false" "$([ -f "$STATE_DIR/flow/tests-red" ] && echo true || echo false)"
+    # summaries on STDERR count too (runners split streams differently)
+    rm -rf "$STATE_DIR/flow"
+    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_response":{"stdout":"","stderr":"12 passed"}}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "stderr-only pass summary stamps tests-green" "true" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    # legacy payload shape (flat tool_output string) still stamps —
+    # pins the defensive fallback for older harness versions
+    rm -rf "$STATE_DIR/flow"
+    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_output":"12 passed"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    test_case "legacy tool_output payload still stamps tests-green" "true" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"tool_response":{"stdout":"12 failed","stderr":""}}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
     test_case "failing run revokes tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+    test_case "failing run stamps tests-red" "true" "$([ -f "$STATE_DIR/flow/tests-red" ] && echo true || echo false)"
     # unittest and maven red formats also revoke
     date > "$STATE_DIR/flow/tests-green"
-    printf '{"tool_name":"Bash","tool_input":{"command":"make test"},"tool_output":"FAILED (errors=2)"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    printf '{"tool_name":"Bash","tool_input":{"command":"make test"},"tool_response":{"stdout":"FAILED (errors=2)","stderr":""}}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
     test_case "unittest errors=2 revokes tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
     date > "$STATE_DIR/flow/tests-green"
-    printf '{"tool_name":"Bash","tool_input":{"command":"mvn test"},"tool_output":"BUILD FAILURE"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    printf '{"tool_name":"Bash","tool_input":{"command":"mvn test"},"tool_response":{"stdout":"BUILD FAILURE","stderr":""}}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
     test_case "maven BUILD FAILURE revokes tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
     # failure log lines are valid single-line JSON even at zero fail-count
     rm -f docs/sessions/.failure-log.jsonl
-    printf '{"tool_name":"Bash","tool_input":{"command":"npm test"},"tool_output":"npm ERR! code ELIFECYCLE"}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    printf '{"tool_name":"Bash","tool_input":{"command":"npm test"},"tool_response":{"stdout":"npm ERR! code ELIFECYCLE","stderr":""}}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
     FLOG_LINES=$(wc -l < docs/sessions/.failure-log.jsonl 2>/dev/null | tr -d ' ')
     FLOG_VALID=$(head -1 docs/sessions/.failure-log.jsonl 2>/dev/null | jq -e . >/dev/null 2>&1 && echo true || echo false)
     test_case "failure log: one line per failure entry" "1" "$FLOG_LINES"
@@ -299,6 +398,82 @@ if command -v jq >/dev/null 2>&1; then
 else
     echo "  SKIP: mixed-run cases (jq not available)"
 fi
+cd "$ORIG_PWD"
+
+# --- Runner stamping matrix: every covered runner, green and red ---
+# run_stamp resets the markers, feeds one Bash payload through
+# post-tool-use.sh, and reports "<green|nogreen>-<red|nored>". printf
+# leaves backslashes in %s ARGUMENTS untouched, so \t/\n below reach jq
+# as JSON escapes (real tabs/newlines in the decoded output).
+run_stamp() {
+    local cmd="$1" output="$2"
+    rm -rf "$STATE_DIR/flow"; rm -f "$STATE_DIR/tests-passed"
+    printf '{"tool_name":"Bash","tool_input":{"command":"%s"},"tool_response":{"stdout":"%s","stderr":""}}' "$cmd" "$output" \
+        | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+    printf '%s-%s' "$([ -f "$STATE_DIR/flow/tests-green" ] && echo green || echo nogreen)" "$([ -f "$STATE_DIR/flow/tests-red" ] && echo red || echo nored)"
+}
+d="$(make_repo)"; cd "$d"
+if command -v jq >/dev/null 2>&1; then
+    test_case "go quiet ok stamps green" "green-nored" "$(run_stamp 'go test ./...' 'ok  \texample.com/pkg\t0.004s')"
+    test_case "go FAIL stamps red" "nogreen-red" "$(run_stamp 'go test ./...' '--- FAIL: TestFoo (0.00s)\nFAIL\nFAIL\texample.com/pkg\t0.012s')"
+    test_case "minitest summary stamps green" "green-nored" "$(run_stamp 'rake test' '12 runs, 30 assertions, 0 failures, 0 errors, 0 skips')"
+    test_case "minitest failures stamp red" "nogreen-red" "$(run_stamp 'rake test' '12 runs, 30 assertions, 2 failures, 0 errors, 0 skips')"
+    test_case "minitest errors stamp red, never green" "nogreen-red" "$(run_stamp 'rake test' '12 runs, 30 assertions, 0 failures, 2 errors, 0 skips')"
+    test_case "rake with minitest output passes the command gate" "green-nored" "$(run_stamp 'bundle exec rake test' '8 runs, 20 assertions, 0 failures, 0 errors, 0 skips')"
+    test_case "phpunit OK stamps green" "green-nored" "$(run_stamp './vendor/bin/phpunit' 'OK (12 tests, 34 assertions)')"
+    test_case "phpunit FAILURES! stamps red" "nogreen-red" "$(run_stamp './vendor/bin/phpunit' 'FAILURES!\nTests: 12, Assertions: 30, Failures: 2.')"
+    test_case "mix zero failures stamps green" "green-nored" "$(run_stamp 'mix test' 'Finished in 0.5 seconds\n12 tests, 0 failures')"
+    test_case "mix failures stamp red" "nogreen-red" "$(run_stamp 'mix test' 'Finished in 0.5 seconds\n12 tests, 2 failures')"
+    test_case "dotnet Passed! stamps green" "green-nored" "$(run_stamp 'dotnet test' 'Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3')"
+    test_case "dotnet Failed! stamps red" "nogreen-red" "$(run_stamp 'dotnet test' 'Failed!  - Failed:     2, Passed:     1, Skipped:     0, Total:     3')"
+    test_case "swift XCTest suite passed stamps green" "green-nored" "$(run_stamp 'swift test' "Test Suite 'All tests' passed at 2026-08-23 10:00:00.000")"
+    test_case "swift XCTest suite failed stamps red" "nogreen-red" "$(run_stamp 'swift test' "Test Suite 'All tests' failed at 2026-08-23 10:00:00.000\n     Executed 12 tests, with 2 failures")"
+    test_case "cargo test result ok still stamps (regression)" "green-nored" "$(run_stamp 'cargo test' 'test result: ok. 12 passed; 0 failed; 0 ignored')"
+    # precision guards
+    test_case "unrecognized output stamps neither marker" "nogreen-nored" "$(run_stamp 'go test ./...' 'some output no pattern recognizes')"
+    test_case "'12 tests, 20 failures' stamps red, not green" "nogreen-red" "$(run_stamp 'mix test' '12 tests, 20 failures')"
+    test_case "echo-spoof never stamps" "nogreen-nored" "$(run_stamp 'echo \"pytest 12 passed\"' '12 passed')"
+    rm -rf "$STATE_DIR/flow"; rm -f "$STATE_DIR/tests-passed"
+else
+    echo "  SKIP: runner matrix cases (jq not available)"
+fi
+cd "$ORIG_PWD"
+
+# --- Inline-test carve-out: content makes a source path a test file ---
+d="$(make_repo)"; cd "$d"
+mkdir -p src lib
+printf 'fn a() {}\n#[cfg(test)]\nmod tests {}\n' > src/inline.rs
+printf 'fn a() {}\n' > src/plain.rs
+printf 'defmodule FooTest do\n  use ExUnit.Case\nend\n' > lib/foo_inline.exs
+test_case "carve-out: .rs with cfg(test) is a test file" "0" "$(sh "$HOOKS_DIR/lib/test-paths.sh" src/inline.rs; echo $?)"
+test_case "carve-out: plain .rs stays source" "1" "$(sh "$HOOKS_DIR/lib/test-paths.sh" src/plain.rs; echo $?)"
+test_case "carve-out: .exs with ExUnit.Case is a test file" "0" "$(sh "$HOOKS_DIR/lib/test-paths.sh" lib/foo_inline.exs; echo $?)"
+sh "$LIB" enter alpha the-gate
+export EXOSUIT_FLOW_MODE=block
+mkdir -p "$STATE_DIR/flow"; date > "$STATE_DIR/flow/tests-red"
+OUT="$(run_pre_edit src/inline.rs)"
+test_case "carve-out: inline .rs edit exempt in block mode" "0|" "$OUT"
+OUT="$(run_pre_edit src/plain.rs)"
+test_case "carve-out: plain .rs still blocked" "2" "${OUT%%|*}"
+unset EXOSUIT_FLOW_MODE
+rm -rf "$STATE_DIR/flow"
+printf '{"tool_name":"Write","tool_input":{"file_path":"src/inline.rs"}}' | sh "$HOOKS_DIR/post-tool-use.sh" >/dev/null 2>&1 || true
+test_case "carve-out: inline .rs write stamps test-written" "true" "$([ -f "$STATE_DIR/flow/test-written" ] && echo true || echo false)"
+rm -rf "$STATE_DIR/flow"
+cd "$ORIG_PWD"
+
+# --- PostToolUseFailure: harness-reported test failure stamps red ---
+d="$(make_repo)"; cd "$d"
+mkdir -p "$STATE_DIR/flow"; date > "$STATE_DIR/flow/tests-green"
+printf '{"tool_name":"Bash","tool_input":{"command":"pytest"},"error_message":"exit code 1"}' | sh "$HOOKS_DIR/post-tool-failure.sh" >/dev/null 2>&1 || true
+test_case "tool-failure on test command stamps tests-red" "true" "$([ -f "$STATE_DIR/flow/tests-red" ] && echo true || echo false)"
+test_case "tool-failure on test command revokes tests-green" "false" "$([ -f "$STATE_DIR/flow/tests-green" ] && echo true || echo false)"
+rm -rf "$STATE_DIR/flow"
+printf '{"tool_name":"Bash","tool_input":{"command":"ls -la"},"error_message":"exit code 2"}' | sh "$HOOKS_DIR/post-tool-failure.sh" >/dev/null 2>&1 || true
+test_case "tool-failure on non-test command stamps nothing" "false" "$([ -f "$STATE_DIR/flow/tests-red" ] && echo true || echo false)"
+printf '{"tool_name":"Bash","tool_input":{"command":"grep -r pytest src/"},"error_message":"exit code 1"}' | sh "$HOOKS_DIR/post-tool-failure.sh" >/dev/null 2>&1 || true
+test_case "tool-failure print-command guard: failing grep is not a red run" "false" "$([ -f "$STATE_DIR/flow/tests-red" ] && echo true || echo false)"
+rm -rf "$STATE_DIR/flow"
 cd "$ORIG_PWD"
 
 # --- Advisory dedup: identical warning fires once, not per edit ---
@@ -324,7 +499,7 @@ nodes:
   done: {type: terminal, doc: "## Done"}
 EOF
 # gate has NO evidence attr; put fake 'evidence: tests-green' in a doc string
-sed 's|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate evidence: tests-green"}|' .claude/skills/alpha/flow.yaml > .claude/skills/alpha/flow.yaml.sedtmp && mv .claude/skills/alpha/flow.yaml.sedtmp .claude/skills/alpha/flow.yaml
+sed -i 's|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, doc: "### Gate evidence: tests-green"}|' .claude/skills/alpha/flow.yaml
 printf '%s\n' "### Gate evidence: tests-green" >> .claude/skills/alpha/SKILL.md
 sh "$LIB" enter alpha the-gate
 export EXOSUIT_FLOW_MODE=block
@@ -367,7 +542,7 @@ test_case "stop block: fires on CLEAN working tree too" "2" "$RC"
 echo "0" > "$STATE_DIR/stop-iteration"
 
 # Terminal prose-spoof: doc mentioning 'type: terminal' must not fake type
-sed 's|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate type: terminal"}|' .claude/skills/alpha/flow.yaml > .claude/skills/alpha/flow.yaml.sedtmp && mv .claude/skills/alpha/flow.yaml.sedtmp .claude/skills/alpha/flow.yaml 2>/dev/null || true
+sed -i 's|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate"}|the-gate: {type: gate.hard, ok: done, fail: STOP, evidence: tests-green, doc: "### Gate type: terminal"}|' .claude/skills/alpha/flow.yaml 2>/dev/null || true
 if grep -q 'type: terminal"' .claude/skills/alpha/flow.yaml; then
     printf '%s\n' "### Gate type: terminal" >> .claude/skills/alpha/SKILL.md
     sh "$LIB" enter alpha the-gate

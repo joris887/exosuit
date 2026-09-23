@@ -172,7 +172,20 @@ for flow_file in "$SKILLS_DIR"/*/flow.yaml; do
       val=$(printf '%s' "$pair" | sed -E 's/^ *[a-z_-]+: *//; s/ *$//')
       [[ -z "$key" || -z "$val" ]] && continue
       case "$key" in
-        type|max|require|evidence) continue ;;
+        type) continue ;;
+        max)
+          # 'max' is loop-only (FLOW_SPEC attribute table); skipping it
+          # unconditionally let 'max: 5' on any type pass silently.
+          [[ "$ntype" != "loop" ]] && report FAIL "$skill_name" "node '$id': attribute 'max' is only valid on loop nodes (type is $ntype)"
+          continue ;;
+        require)
+          [[ "$ntype" != "join" ]] && report FAIL "$skill_name" "node '$id': attribute 'require' is only valid on join nodes (type is $ntype)"
+          continue ;;
+        evidence)
+          # evidence markers attach to hard gates only (see FLOW_SPEC ->
+          # Gate Evidence & Enforcement); elsewhere the attr is dead weight.
+          [[ "$ntype" != "gate.hard" ]] && report FAIL "$skill_name" "node '$id': attribute 'evidence' is only valid on gate.hard nodes (type is $ntype)"
+          continue ;;
       esac
       attrs_seen="$attrs_seen $key"
       # Edge-key vocabulary check. step/loop/fanout/join/terminal have a
@@ -194,6 +207,8 @@ for flow_file in "$SKILLS_DIR"/*/flow.yaml; do
           case "$key" in
             oks|okay|failed|faill|fial|defualt|deafult|defaul|nex|nextt|next)
               report WARN "$skill_name" "node '$id': attribute '$key' looks like a typo of a reserved edge key (ok/fail/default) — it will resolve as a named branch" ;;
+            evidnce|evidense|evdence)
+              report WARN "$skill_name" "node '$id': attribute '$key' looks like a typo of 'evidence' — it will resolve as a named branch and the gate will carry no evidence" ;;
           esac ;;
       esac
       if [[ "$key" == "next_skill" ]]; then

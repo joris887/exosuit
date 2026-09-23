@@ -261,6 +261,22 @@ OUT=$(sh "$SESSION_START" 2>&1 || true)
 test_case "advisory silent without cursor keys" "true" "$(printf '%s' "$OUT" | grep -q "Interrupted /" && echo false || echo true)"
 cd "$ORIG_PWD"
 
+# --- Case 9: git-root anchoring — enter from a nested subdirectory writes the
+# repo-root state file and leaves no stray docs/sessions/ behind (T01-001 class)
+d="$(make_repo)"; mkdir -p "$d/src/deep/nested"; cd "$d/src/deep/nested"
+sh "$LIB" enter story-cycle write-plan
+test_case "subdir enter writes repo-root state file" "true" "$([ -f "$d/$FS" ] && echo true || echo false)"
+test_case "subdir enter leaves no stray docs/sessions" "false" "$([ -d "$d/src/deep/nested/docs" ] && echo true || echo false)"
+OUT=$(cd "$d/src/deep/nested" && sh "$LIB" show story-cycle)
+test_case "subdir show reads the repo-root cursor" "true" "$(printf '%s' "$OUT" | grep -q "write-plan" && echo true || echo false)"
+cd "$ORIG_PWD"
+
+# --- Case 10: outside any git repo the cursor is anchored to the CWD (fallback)
+d="$(mktemp -d "$TMP_ROOT/nongit.XXXXXX")"; cd "$d"
+sh "$LIB" enter story-cycle write-plan
+test_case "non-git enter anchors to CWD" "true" "$([ -f "$d/$FS" ] && echo true || echo false)"
+cd "$ORIG_PWD"
+
 echo ""
 echo "graph-state: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1

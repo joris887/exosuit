@@ -39,7 +39,8 @@ All hooks are self-contained **POSIX shell scripts** — no Python or other runt
     session-started      — Session start timestamp
     tests-passed         — Test pass timestamp (set by post-tool-use.sh)
     flow/                — Per-session gate evidence markers (test-written,
-                           tests-green) + advisory-dedup dotfiles
+                           tests-green, tests-red) + advisory-dedup and
+                           block-valve counter dotfiles
 ```
 
 ## Hook Profiles
@@ -143,14 +144,16 @@ Advisory warnings via `rules/advisory.patterns`:
 - Long-running dev servers (npm dev, flask run, rails server, etc.)
 
 ### PreToolUse (Edit|Write)
-`flow-pre-edit.sh`: Flow gate evidence check (see `.claude/skills/FLOW_SPEC.md` → Gate Evidence & Enforcement). Advisory by default; blocks only with explicit `EXOSUIT_FLOW_MODE=block`. Test/docs edits always exempt; fails open.
+`flow-pre-edit.sh`: Flow gate evidence check (see `.claude/skills/FLOW_SPEC.md` → Gate Evidence & Enforcement). Advisory by default; blocks only with explicit `EXOSUIT_FLOW_MODE=block`, and even then only on positive red evidence (`state/flow/tests-red` — a recognized test run demonstrably failed this session); missing evidence downgrades to the advisory. Blocks are bounded per gate by `EXOSUIT_FLOW_MAX_BLOCKS` (default 3), then the valve releases to advisory with an explicit note. Test/docs edits always exempt; fails open.
+
+The hook short-circuits with shell builtins when no flow cursor file exists, which depends on its registration wrapper: both settings.json and hooks.json register it as `cd "$(git rev-parse --show-toplevel ...)" && sh .../flow-pre-edit.sh`. Registering the script WITHOUT that cd-wrapper makes it a silent no-op (fail-open — enforcement quietly off), because the relative cursor path never resolves.
 
 ### PreToolUse (Read)
 `pre-read-check.sh`: Warns when reading sensitive files (.env, .key, .pem, credentials). Advisory only — never blocks.
 
 ### PostToolUse (Edit|Write|Bash)
 Activity logging to `docs/sessions/.activity-log.jsonl`. Type-aware rotation: keeps the last 200 tool lines and the last 500 skill/story event lines, preserving order.
-- Stamps flow gate evidence per session: `state/flow/test-written` (test-path Edit/Write, shared patterns in `lib/test-paths.sh`) and `state/flow/tests-green` (passing test run with no nonzero failure count — a failing run revokes it)
+- Stamps flow gate evidence per session: `state/flow/test-written` (test-path or inline-test Edit/Write, shared matcher in `lib/test-paths.sh`), `state/flow/tests-green` (passing test run with no nonzero failure count) and `state/flow/tests-red` (demonstrably failing run — revokes green, and is revoked by the next green run; post-tool-failure.sh also stamps it when the harness reports a test command failed)
 - Tracks successful test runs → sets `state/tests-passed`
 - Tracks test/build failures → logs to `docs/sessions/.failure-log.jsonl`
 

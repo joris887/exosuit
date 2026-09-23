@@ -82,6 +82,19 @@ RC=0; bash "$RENDER" --check >/dev/null 2>&1 || RC=$?
 check "--check fails after flow.yaml change" "1" "$RC"
 cd "$ORIG_PWD"
 
+# --- MISSING vs STALE: a never-generated view is reported as MISSING with the
+# regeneration command, distinct from a stale one ---
+d="$(make_fixture)"; cd "$d"
+OUT=$(bash "$RENDER" --check 2>&1 || true)
+check "--check on never-generated view exits 1" "1" "$(RC=0; bash "$RENDER" --check >/dev/null 2>&1 || RC=$?; echo $RC)"
+check "never-generated view reported MISSING" "true" "$(printf '%s' "$OUT" | grep -q 'MISSING' && echo true || echo false)"
+check "MISSING message prints the regeneration command" "true" "$(printf '%s' "$OUT" | grep -q -- 'render-flow.sh --write' && echo true || echo false)"
+bash "$RENDER" --write >/dev/null 2>&1
+printf '# manual edit\n' >> .claude/skills/alpha/flow.generated.md
+OUT=$(bash "$RENDER" --check 2>&1 || true)
+check "edited view reported STALE not MISSING" "true" "$(printf '%s' "$OUT" | grep -q 'STALE' && echo true || echo false)"
+cd "$ORIG_PWD"
+
 # --- Orphan detection: generated view without flow.yaml fails --check ---
 d="$(make_fixture)"; cd "$d"
 bash "$RENDER" --write >/dev/null 2>&1

@@ -7,7 +7,7 @@ depends-on: [ideate]
 references: []
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Edit, Write, WebSearch, WebFetch, Agent, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Agent
 argument-hint: "<idea-or-topic>"
 ---
 ______________________________________________________________________
@@ -187,15 +187,9 @@ decision: "<Chosen approach name>"
 ---
 ```
 
-Include the design brief (from Phase 5), the approaches explored (from Phase 3), and the risks identified (from Phase 4). This document is referenced by `/ideate` when the idea becomes a story.
+Include the design brief (from Phase 5), the approaches explored (from Phase 3), and the risks identified (from Phase 4). This document is referenced by `/ideate` and `/story-cycle` when the idea becomes a story.
 
 **If the decision is architecturally significant** (from Phase 4 assessment): also create an ADR using `docs/adr/TEMPLATE.md`. The brainstorm document captures the exploration; the ADR captures the decision in machine-parseable format with rejected alternatives and compliance checks. Map the brainstorm's approaches to the ADR's Alternatives Considered section (chosen → ✅, rejected → ❌ with rationale and reconsider-when conditions).
-
-**Skill metrics:** Emit a completion event:
-
-```bash
-echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"brainstorm\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
-```
 
 ## 7. Next Steps
 

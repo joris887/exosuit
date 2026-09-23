@@ -104,15 +104,141 @@ sweep finishes the propagation:
   2.13.1 → 2.13.2
 - `.claude/skills/SKILLS_INVENTORY.md` — `/ideate` row's "(single
   context window sized)" → "(cohesion-sized)"
+- `docs/reference/TEAM_WORKFLOW.md` + scaffold copy — the two
+  conflict-prevention mentions of the retired 5-8 file limit reworded
+- `scaffold/docs/reference/backlog/_EPIC_TEMPLATE.md` — "[list, max 5]"
+  → "[list — proportionate to size]"
+- `.claude/skills/build/SKILL.md` — Phase 1 step sizing ("aim for steps
+  that touch ≤5 files", predating #47 entirely) replaced with the
+  canonical wording; FRAMEWORK_REFERENCE mirror updated; build
+  1.0.0 → 1.0.1
 
----
+Note the two reviewer surfaces (spec-reviewer, backlog-review) are
+deliberate behavior changes: until now they flagged as DoR failures
+exactly the LARGE/XL cohesive stories the canonical policy legitimizes.
 
-## Experimental: flow contracts (#77) — NOT on main
+Not touched (verified non-stale or deliberately deferred): PRD_SUMMARY's
+"3-7 acceptance criteria per requirement" (EARS requirement guidance, not
+story DoR), refine-loop / reasoning-tools "max 5" (loop and question
+caps), GROUND_RULES "3-7 rules", and `confidence-gate.md`'s Scope Bounded
+file-count thresholds — a distinct pre-implementation gate. Note a
+legitimately-sized cohesive LARGE/XL story will trip its >10-file FAIL;
+reconciling that gate with the cohesion policy is an open maintainer
+decision, deliberately not attempted here.
+### Parallel-work script fixes
+Three defects in the `/parallel-work` helper scripts, plus a stale registry
+entry:
 
-> This section documents work living only on `experimental/flow-contracts`.
-> Merged here for evaluation; not part of any released version.
+- `.claude/skills/parallel-work/scripts/open-worktree-terminals.sh` — the WSL
+  branch called `cygpath` (an MSYS/Cygwin tool absent on WSL) and ran a
+  Windows-side `cmd /k claude`, so tabs opened in the wrong directory with the
+  wrong claude. WSL now launches
+  `wt.exe -w 0 nt wsl.exe --cd <dir> -- bash -lc ...` (Linux path, Linux-side
+  claude); `cygpath` stays only in the native Git-Bash/MSYS branch. Openers
+  are now per-directory and the final report is honest — it lists which
+  directories opened and prints `cd` hints only for the ones that didn't,
+  instead of claiming success unconditionally.
+- `.claude/skills/parallel-work/scripts/worktree-status.sh` — compared every
+  stream against a hardcoded `main` instead of its recorded
+  `branch.<name>.exosuitParent`, printed a phantom "(detached)" row for every
+  worktree (porcelain emits a `HEAD <sha>` line for all of them), and broke on
+  paths with spaces. Rewritten parent-aware: table is now
+  Path | Branch | Parent | Ahead/Behind parent (matching SKILL.md v3.0.0),
+  the main worktree shows as the base, and only genuinely detached worktrees
+  show as detached.
+- `.claude/skills/parallel-work/scripts/new-worktree.sh` — `MAIN_ROOT` was
+  truncated at the first space (`awk '{print $2}'`); a detached HEAD silently
+  recorded `exosuitParent=HEAD`; and the `.mcp.json` path rewrite used
+  `sed s#...#...#` (breaks when a path contains `#`, and is regex-based).
+  Now: line-wise porcelain parse, an explicit detached-HEAD error (exit 1),
+  and a literal awk `index()`/`substr()` substitution.
+- `.claude/skills/skills-registry.json` — parallel-work entry was stale at
+  2.4.0 with the pre-v3 description; synced to the current SKILL.md.
 
-Flow contracts (#77): an optional, declarative `flow.yaml` beside a skill's
+Versions: parallel-work 3.0.0 → 3.0.1.
+
+### Project file changes
+None required. Existing `docs/sessions/.activity-log.jsonl` files need no
+migration — the new rotation applies on the next tool use.
+
+### Test-run tracking read a payload field production never sends
+`post-tool-use.sh` extracted the Bash result from `.tool_output`, but
+PostToolUse delivers it as `tool_response` (for Bash: an object holding
+`stdout`/`stderr`). The `tests-passed` stamp that `stop.sh`'s completion
+check reads, and the failure capture feeding `.failure-log.jsonl`, were
+silently inert — the #59 failure class, in the one hook #59 did not
+re-audit. The extraction now reads `tool_response` (stdout + stderr;
+string form accepted; legacy `.tool_output` fallback kept) and the test
+suite gains four cases feeding the real payload shape — the stamping had
+no coverage at all before.
+
+- `core/hooks/post-tool-use.sh` — tool_response extraction
+- `core/hooks/tests/test-post-tool-use.sh` — four payload-shape cases
+
+### Installer no longer touches project files or ships framework CI (#105, #106)
+`install.sh` copied the framework repo's own `.github/` into every project:
+`workflows/ci.yml` shellchecks `install.sh`, which projects don't have, so the
+first PR after install went red. `--force` also dropped the no-clobber guard for
+`CLAUDE.md` and the whole scaffold, replacing a mature project's `CLAUDE.md`,
+`README.md`, `docs/progress.md`, context docs and ADRs with placeholders, and
+replaced `skills-registry.json`, silently unregistering every project skill.
+
+- Only consumer-facing GitHub files are installed: `pull_request_template.md`,
+  `CODEOWNERS`, `workflows/claude-pr-review.yml`. The review workflow is skipped
+  when a workflow already runs `anthropics/claude-code-action`.
+- `--force` now means "reinstall framework files under `.claude/`". `CLAUDE.md`,
+  the scaffold (`docs/`, `README.md`, `vision/`, ...) and the `.github` templates
+  are never overwritten.
+- `skills-registry.json` is merged on every install: framework entries are
+  refreshed, the project's own entries kept. Previously a default (no-clobber)
+  upgrade also kept a stale registry that never learned about new framework skills.
+- `merge-up` and `merge-down` were missing from the registry (43 entries vs 45
+  skills since 5.0.1); both are registered now.
+
+- `install.sh` — project-safe `--force`, consumer-only `.github`, registry merge
+- `core/skills/skills-registry.json` — `merge-up`, `merge-down` entries
+- `core/hooks/tests/test-install.sh` — 13 cases running the real installer offline
+- `core/MANIFEST.md`, `docs/FRAMEWORK_REFERENCE.md` — `.github` and registry strategy
+### Safety hook fails closed; formatter hook no longer hangs on npx (#107, #109)
+`pre-tool-use.sh` treated "jq could not parse the payload" like "the payload has
+no command" and allowed the call, so malformed input switched the safety check
+off. It now blocks (exit 2) with an explanation. Its test harness fed payloads
+through `echo`, which expands `\n` under escape-expanding shells (macOS `sh`),
+corrupting the two heredoc cases; it uses `printf` now.
+
+`post-edit-format.sh` fell back to `npx biome` when prettier wasn't on PATH.
+Without a local install npx fetches the package from the registry, blocking
+every JS/TS edit on the network (>60s reported). Local devDependencies were
+also invisible, because `node_modules/.bin` isn't on PATH when hooks run. The
+hook now adds every `node_modules/.bin` from the edited file's directory upward
+to PATH, calls `biome` directly (never `npx`), uses `biome lint --write`
+(`--apply` was removed in Biome 2), and the "missing prettier/biome" warning is
+shown once per session as intended (the `/` in the name broke its state file).
+
+- `core/hooks/pre-tool-use.sh` — fail closed on unparseable JSON
+- `core/hooks/post-edit-format.sh` — local tool resolution, no npx
+- `core/hooks/tests/test-pre-tool-use.sh` — printf harness, 3 input-parsing cases
+- `core/hooks/tests/test-post-edit-format.sh` — 4 cases running the real hook
+
+### Skill validation no longer stops at the first non-conformant skill (#108, #101)
+`validate-skills.sh` runs under `set -euo pipefail`. A skill without `version:`
+made the version `grep` fail its pipeline, and `set -e` ended the run right
+there: one bad skill hid every skill after it (one report: "4 failures" was
+hiding 45 unchecked skills). `/doctor` embeds the script, so it inherited the
+blind spot. Every "may find nothing" pipeline is guarded now, and a
+pipeline that could SIGPIPE on large skills was rewritten.
+Frontmatter checks now tolerate CRLF files, read only the first `---` block, and
+warn when a skill directory has no `skills-registry.json` entry (which would
+have caught the missing `merge-up`/`merge-down` entries).
+
+`story-template.md` opened by binding stories to "a single context window", which
+contradicts its own Size Classification. It now leads with cohesion.
+
+- `core/skills/doctor/scripts/validate-skills.sh` — no truncation, CRLF, registry presence; doctor 3.0.0 → 3.0.1
+- `core/skills/ideate/references/story-template.md` — cohesion-first opener; ideate 2.10.2 → 2.10.3
+
+### Flow contracts (#77)
+An optional, declarative `flow.yaml` beside a skill's
 SKILL.md describing its control flow as a graph (steps, gates, routers,
 loops, fanout/join, terminals). NOT executed — nothing changes at runtime.
 Validated by a new `validate-flows.sh` (graph soundness + verbatim SKILL.md
@@ -162,39 +288,7 @@ cursor writes in the test suite.
   registry sync; `core/MANIFEST.md` and `.claude/hooks/README.md` rows
   for the new lib file
 
-### Level 5 — Evidence & Enforcement (stacked on the above)
-Gate evidence becomes observable and, only by explicit opt-in, enforceable.
-`gate.hard` nodes may declare `evidence: <marker>`; post-tool-use.sh stamps
-observed facts per session (`test-written`, `tests-green`) into
-`.claude/hooks/state/flow/`, cleared at session start. The ONE new hook
-registration of the whole ladder: PreToolUse Edit|Write → `flow-pre-edit.sh`
-(in both settings.json and hooks.json). `EXOSUIT_FLOW_MODE` ladder:
-lean defaults `off`, standard/strict default `advisory` (one-line warning,
-never blocks); `block` is explicit opt-in — flow-pre-edit exits 2 on source
-edits at unevidenced gates, and stop.sh refuses completion mid-flow at
-non-terminal nodes (bounded by the existing stop-iteration valve, which the
-new check increments like every other exit-2 path). Test/docs edits are
-always exempt — writing the test IS the evidence being asked for. Judgment
-gates are never machine-enforced. Fails open everywhere; kill switches:
-`EXOSUIT_FLOW_MODE=off`, `EXOSUIT_DISABLED_HOOKS=flow-pre-edit`.
-
-- Added: `.claude/hooks/flow-pre-edit.sh`, `.claude/hooks/lib/test-paths.sh`
-  (single shared test-path source — stamping set equals exemption set by
-  construction), `.claude/hooks/tests/test-flow-enforce.sh` (exemptions,
-  kill switches, valve interaction, mixed-run and superset invariants)
-- Changed: `.claude/hooks/post-tool-use.sh` (evidence stamps),
-  `.claude/hooks/session-start.sh` (per-session marker reset),
-  `.claude/hooks/stop.sh` (block-mode flow check), `.claude/settings.json` +
-  `.claude/hooks/hooks.json` (registration),
-  `doctor/scripts/validate-flows.sh` (`evidence` attr),
-  `.claude/skills/FLOW_SPEC.md` (Gate Evidence & Enforcement),
-  `.claude/skills/story-cycle/flow.yaml` (evidence on the TDD and quality
-  gates) with `story-cycle/SKILL.md` + registry bumped to 4.6.0,
-  `.claude/hooks/rules/quality.conf` (documented test_path_patterns
-  override), `test-validate-flows.sh` (evidence cases), MANIFEST + hooks
-  README rows
-
-### Level 6 — Generated Views (stacked on the above)
+### Level 6 — Generated Views (stacked on Level 4; Level 5 — enforcement — is a separate opt-in rung, not on this line)
 Flow diagrams become generated artifacts: `render-flow.sh` emits a
 deterministic `flow.generated.md` (mermaid + grep-friendly edge table,
 marked GENERATED) beside each flow.yaml, and CI's `--check` fails when a
@@ -284,25 +378,55 @@ middle of the file as code today.
   block; 2.10.0 → 2.11.0, `.claude/skills/skills-registry.json` —
   ideate version sync
 
-  that touch ≤5 files", predating #47 entirely) replaced with the
-  canonical wording; FRAMEWORK_REFERENCE mirror updated; build
-  1.0.0 → 1.0.1
+### Level 5 — Evidence & Enforcement (side rung, stacked on the ladder top; opt-in)
+Gate evidence becomes observable and, only by explicit opt-in, best-effort
+enforceable. `gate.hard` nodes may declare `evidence: <marker>`;
+post-tool-use.sh stamps observed facts per session (`test-written`,
+`tests-green`, `tests-red`) into `.claude/hooks/state/flow/`, cleared at
+session start; post-tool-failure.sh also stamps `tests-red` when the
+harness itself reports a test command failed. The ONE new hook registration
+of the whole ladder: PreToolUse Edit|Write → `flow-pre-edit.sh` (in both
+settings.json and hooks.json), short-circuiting with shell builtins when no
+flow cursor exists. `EXOSUIT_FLOW_MODE` ladder: lean defaults `off`,
+standard/strict default `advisory` (PreToolUse JSON warning, never blocks);
+`block` is explicit opt-in and FAIL-OPEN — it exits 2 only on positive red
+evidence (the last observed test run FAILED, no green run since); missing
+evidence — an unrecognized runner, or no run yet — downgrades to the
+advisory, and `test-written` gates can never block. Blocks per gate are
+bounded by `EXOSUIT_FLOW_MAX_BLOCKS` (default 3), then the valve releases
+to advisory with an explicit note. stop.sh refuses completion mid-flow at
+non-terminal nodes (bounded by the existing stop-iteration valve, which the
+new check increments like every other exit-2 path). Test/docs edits are
+always exempt — writing the test IS the evidence being asked for — and
+inline-test files (Rust `#[cfg(test)]`, Elixir doctest/ExUnit) are carved
+out by content. Judgment gates are never machine-enforced, the evidence
+markers are substring heuristics — a best-effort speed bump, not a wall —
+and everything fails open; kill switches: `EXOSUIT_FLOW_MODE=off`,
+`EXOSUIT_DISABLED_HOOKS=flow-pre-edit`.
 
-Note the two reviewer surfaces (spec-reviewer, backlog-review) are
-deliberate behavior changes: until now they flagged as DoR failures
-exactly the LARGE/XL cohesive stories the canonical policy legitimizes.
+- Added: `.claude/hooks/flow-pre-edit.sh`, `.claude/hooks/lib/test-paths.sh`
+  (single shared test-file source, path patterns plus inline-test content
+  carve-out — stamping set equals exemption set by construction),
+  `.claude/hooks/tests/test-flow-enforce.sh` (exemptions, kill switches,
+  fail-open and red-evidence blocking, valve counting and release,
+  short-circuit, runner stamping matrix, mixed-run and superset invariants)
+- Changed: `.claude/hooks/post-tool-use.sh` (evidence stamps, tool_response
+  payload read, runner coverage, print-command spoof guard),
+  `.claude/hooks/post-tool-failure.sh` (harness-failure red stamp),
+  `.claude/hooks/session-start.sh` (per-session marker reset),
+  `.claude/hooks/stop.sh` (block-mode flow check), `.claude/settings.json` +
+  `.claude/hooks/hooks.json` (registration),
+  `doctor/scripts/validate-flows.sh` (`evidence` attr),
+  `.claude/skills/FLOW_SPEC.md` (Gate Evidence & Enforcement),
+  `.claude/skills/story-cycle/flow.yaml` (evidence on the TDD and quality
+  gates) with `story-cycle/SKILL.md` + registry bumped to 4.6.0,
+  `.claude/hooks/rules/quality.conf` (documented test_path_patterns
+  override), `test-validate-flows.sh` (evidence cases), MANIFEST + hooks
+  README rows
 
-Not touched (verified non-stale or deliberately deferred): PRD_SUMMARY's
-"3-7 acceptance criteria per requirement" (EARS requirement guidance, not
-story DoR), refine-loop / reasoning-tools "max 5" (loop and question
-caps), GROUND_RULES "3-7 rules", and `confidence-gate.md`'s Scope Bounded
-file-count thresholds — a distinct pre-implementation gate. Note a
-legitimately-sized cohesive LARGE/XL story will trip its >10-file FAIL;
-reconciling that gate with the cohesion policy is an open maintainer
-decision, deliberately not attempted here.
 ### Project file changes
-None required. Existing `docs/sessions/.activity-log.jsonl` files need no
-migration — the new rotation applies on the next tool use.
+None required. Flow contracts are opt-in per skill; existing projects are
+unaffected until a skill directory containing a `flow.yaml` is upgraded.
 
 ### Breaking changes
 None.

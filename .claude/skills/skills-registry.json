@@ -75,7 +75,9 @@
     "depends_on": [
       "ideate"
     ],
-    "calls": [],
+    "calls": [
+      "ideate"
+    ],
     "references": [],
     "path": ".claude/skills/brainstorm/SKILL.md"
   },
@@ -260,13 +262,33 @@
   },
   {
     "name": "parallel-work",
-    "version": "2.4.0",
-    "description": "Manage git worktrees for parallel Claude Code instances working on different stories. List, create, and clean up worktrees.",
+    "version": "3.0.1",
+    "description": "Work on multiple stories at the same time. Creates isolated parallel streams (git worktrees) from the current branch, wires up local settings, and opens each in its own Claude Code session. Also shows stream status and cleans up finished streams. Pairs with /merge-up (publish a stream's work to the parent branch) and /merge-down (pull the parent's accumulated work into a stream).",
     "trigger": "manual",
     "depends_on": [],
     "calls": [],
     "references": [],
     "path": ".claude/skills/parallel-work/SKILL.md"
+  },
+  {
+    "name": "merge-up",
+    "version": "1.0.0",
+    "description": "Use when the user is inside a parallel stream (worktree branch) and wants to merge that branch's committed work into the parent branch it was created from, then bring the stream back up to date with the parent. True merge (keeps individual commits); prompts before pushing the parent. Pairs with /parallel-work, which records the parent in git config (branch.<name>.exosuitParent), and with /merge-down (the inverse direction).",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/merge-up/SKILL.md"
+  },
+  {
+    "name": "merge-down",
+    "version": "1.0.0",
+    "description": "Use when the user is inside a parallel stream (worktree branch) and wants to bring that branch up to date with the LATEST of its parent branch — typically after one or more sibling streams have merged their work up into the parent (via /merge-up). Pulls the parent's accumulated commits down into the current branch with a true merge. Inverse of /merge-up; the parent is recorded by /parallel-work in git config (branch.<name>.exosuitParent). Read-only on the parent — safe to run while the parent worktree is busy.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/merge-down/SKILL.md"
   },
   {
     "name": "phase-review",

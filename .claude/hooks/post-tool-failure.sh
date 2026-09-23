@@ -47,6 +47,23 @@ SAFE_ERROR=$(printf '%s' "$ERROR_MSG" | cut -c1-200 | sed 's/"/\\"/g' | tr '\n' 
 printf '{"ts":"%s","type":"tool-failure","tool":"%s","target":"%s","error":"%s"}\n' \
     "$TS" "$TOOL_NAME" "$SAFE_TARGET" "$SAFE_ERROR" >> "$FAIL_LOG" 2>/dev/null
 
+# --- Flow gate evidence: a test command the HARNESS deemed failed ---
+# PostToolUse payloads carry no exit code, so post-tool-use.sh's red
+# stamp depends on recognizing runner output. This event fires exactly
+# when the tool failed — a harness-level signal needing no output
+# parsing. Same runner list and print-command guard as post-tool-use.sh
+# (a failing grep/sed over test files is not a failing test run).
+if [ "$TOOL_NAME" = "Bash" ]; then
+    case "$TARGET" in
+        echo\ *|printf\ *|cat\ *|grep\ *|sed\ *|awk\ *|head\ *|tail\ *) ;;
+        *pytest*|*"npm test"*|*"npm run test"*|*"cargo test"*|*"go test"*|*jest*|*vitest*|*"dotnet test"*|*rspec*|*"gradle test"*|*"mvn test"*|*"make test"*|*"swift test"*|*"mix test"*|*phpunit*|*"rake test"*|*"rake spec"*|*"rails test"*|*"composer test"*|*minitest*)
+            rm -f "$HOOKS_DIR/state/flow/tests-green" 2>/dev/null
+            mkdir -p "$HOOKS_DIR/state/flow" 2>/dev/null
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > "$HOOKS_DIR/state/flow/tests-red" 2>/dev/null
+            ;;
+    esac
+fi
+
 # --- 2. Cascading failure detection ---
 CASCADE_COUNT=0
 if [ -f "$FAIL_LOG" ]; then

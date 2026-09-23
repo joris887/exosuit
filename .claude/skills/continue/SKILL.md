@@ -255,10 +255,4 @@ Based on analysis, present relevant options:
 
 ## 7. Wait for Direction
 
-**Skill metrics:** The analysis is complete once findings are ready — emit a completion event BEFORE presenting them (the turn ends waiting for the user, so anything after the wait may never run):
-
-```bash
-echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"continue\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
-```
-
 Present findings and wait for user choice before proceeding.

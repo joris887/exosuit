@@ -520,12 +520,6 @@ git log --oneline -3
 
 ## 7. Sprint Complete
 
-**Skill metrics:** Emit a completion event:
-
-```bash
-echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"sprint-end\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
-```
-
 ```markdown
 ### Sprint Complete
 

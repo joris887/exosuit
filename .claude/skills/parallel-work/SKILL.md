@@ -1,6 +1,6 @@
 ---
 name: parallel-work
-version: 3.0.0
+version: 3.0.1
 description: Work on multiple stories at the same time. Creates isolated parallel streams (git worktrees) from the current branch, wires up local settings, and opens each in its own Claude Code session. Also shows stream status and cleans up finished streams. Pairs with /merge-up (publish a stream's work to the parent branch) and /merge-down (pull the parent's accumulated work into a stream).
 trigger: manual
 depends-on: []

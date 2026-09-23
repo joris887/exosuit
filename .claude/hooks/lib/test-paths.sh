@@ -15,7 +15,10 @@
 # config). Defaults cover: pytest/unittest, Jest/Vitest (__tests__, .test.,
 # .spec.), RSpec/Elixir/Lua (_spec., spec/), Go/C/Java (_test., test/,
 # tests/), Perl (.t), Cucumber (.feature), Cypress/Playwright (e2e/),
-# C#/.NET (.tests/ via case folding), pytest conftest.
+# C#/.NET (.tests/ via case folding), pytest conftest. Inline-test
+# languages (Rust #[cfg(test)], Elixir doctests/inline ExUnit) are caught
+# by a content check when no path pattern matches — see the carve-out at
+# the bottom.
 # POSIX-compliant — no bash required.
 
 HOOKS_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -51,4 +54,22 @@ for pat in $PATTERNS; do
 done
 IFS="$OLD_IFS"
 set +f
+
+# --- Inline-test carve-out (content-based) ---
+# Rust and Elixir put tests IN source files. If no path pattern matched,
+# a .rs file containing #[cfg(test)] — or an .ex/.exs containing an
+# inline ExUnit case or doctest — still counts as a test file, for BOTH
+# the gate exemption and the test-written stamp (this file is the single
+# source of truth for both sides, so the exempt⟺stamps invariant holds
+# by construction). One grep of one file; fail-open when the file does
+# not exist yet — a Write CREATING a new inline-test file cannot be
+# content-checked at PreToolUse time, so it gets at most one advisory
+# and then stamps at PostToolUse (never a block: test-written has no
+# red analog).
+if [ "$MATCHED" -ne 0 ] && [ -f "${1:-}" ]; then
+    case "$PATH_LC" in
+        *.rs)       grep -q '#\[cfg(test)\]' "$1" 2>/dev/null && MATCHED=0 ;;
+        *.ex|*.exs) grep -qE 'doctest |use ExUnit\.Case' "$1" 2>/dev/null && MATCHED=0 ;;
+    esac
+fi
 exit "$MATCHED"

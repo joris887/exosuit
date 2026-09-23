@@ -18,7 +18,7 @@ git checkout -b feat/your-change
 
 ## Adding a Flow Contract to a Skill
 
-1. Read `.claude/skills/FLOW_SPEC.md` (grammar, node types, cursor, evidence).
+1. Read `.claude/skills/FLOW_SPEC.md` (grammar, node types, cursor).
 2. Transcribe the skill's INLINE prose 1:1 into `flow.yaml` — every gate and
    branch explicit, judgment calls documented in header comments. Do not
    redesign the flow while transcribing.
@@ -27,8 +27,7 @@ git checkout -b feat/your-change
 4. `bash .claude/skills/doctor/scripts/validate-flows.sh` until clean, then
    `bash .claude/skills/doctor/scripts/render-flow.sh --write` and commit the
    generated view.
-5. Optional: add `graph-state.sh` cursor call-sites and `evidence:` attrs on
-   mechanically checkable hard gates (see FLOW_SPEC → Gate Evidence).
+5. Optional: add `graph-state.sh` cursor call-sites for phase-exact resume.
 
 ## Development Environment
 

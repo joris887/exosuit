@@ -51,7 +51,7 @@ Grammar rules:
 | Type | Required attrs | Optional attrs | Meaning |
 |------|---------------|----------------|---------|
 | `step` | `next` | | An action; proceed to `next` |
-| `gate.hard` | `ok`, `fail` | `evidence` | Deterministic check; `fail` edge on violation (often `STOP`) |
+| `gate.hard` | `ok`, `fail` | `evidence` | Mechanically stated check (best-effort — see Enforcement); `fail` edge on violation (often `STOP`) |
 | `gate.human` | `ok` | `fail` | User checkpoint/approval; `fail` = decline path |
 | `router` | `default` + ≥1 named edge | | Conditional branch; edge keys name the conditions |
 | `loop` | `back`, `done`, `max` | | Bounded retry: repeat via `back` at most `max` times, then `done` |
@@ -153,26 +153,63 @@ observable fact the harness stamps into `.claude/hooks/state/flow/<marker>`
 |--------|----------------------------------|
 | `test-written` | an Edit/Write touches a test path (patterns in `lib/test-paths.sh`, overridable via `test_path_patterns` in `rules/quality.conf` — the SAME list exempts those edits from gate checks, so a stamping edit can never itself be blocked) |
 | `tests-green` | a test command's output shows a pass pattern AND no failure pattern — a mixed run never stamps, and a failing run revokes the marker (requires `jq`; without it the marker is unproducible and enforcement of such gates fails open) |
+| `tests-red` | a recognized test command demonstrably FAILED — a failure summary in its output, or the harness itself reporting the tool call failed (post-tool-failure.sh). Revoked by the next green run. The ONLY marker block mode acts on |
+
+Enforcement is an **advisory nudge, not a guarantee**. The evidence markers
+are substring heuristics over tool output: they miss runners they do not
+recognize, and output that merely *looks* like a passing run can satisfy
+them. **Block mode is a best-effort speed bump, not a wall** — it blocks
+only on positive red evidence (a recognized runner demonstrably failed this
+session, `tests-red`), it releases to advisory after a bounded number of
+blocked edits on the same gate (`EXOSUIT_FLOW_MAX_BLOCKS`, default 3,
+mirroring stop.sh's valve), and a single environment variable turns it off.
+And the cursor itself is **model-writable state**: `graph-state.sh` is
+callable by the same agent the gate observes, so nothing here is a security
+boundary. Treat the whole mechanism as friction against honest mistakes —
+momentum, autopilot, a skipped step — not as proof that a step happened.
+
+**Inline-test languages.** Rust (`#[cfg(test)]` modules), Elixir (doctests,
+inline ExUnit) and kin put tests inside source files, so a path-based test
+list would make block mode punish the TDD-correct action. `test-paths.sh`
+therefore also counts a `.rs` file containing `#[cfg(test)]`, or an
+`.ex`/`.exs` containing `doctest `/`use ExUnit.Case`, as a test file —
+exempt from gate checks AND stamping `test-written`, preserving the superset
+invariant. This is deliberately loose: one test marker exempts the whole
+file, and adding the marker is trivially easy. That looseness is the point —
+an edit that could plausibly be the asked-for test must never be the thing
+the gate stops. (A Write CREATING a new inline-test file is not on disk at
+check time, so it gets at most one advisory, then stamps — never a block.)
 
 Evidence is **per-session by design** (cleared by session-start.sh): a
 resumed session must re-produce evidence rather than trust last session's
-runs. The advisory warns once per (flow, node, evidence), not on every edit.
+runs. `tests-red`, like all markers, is cleared at session start — last
+session's failure never blocks a new session. The advisory warns once per
+(flow, node, evidence), not on every edit.
 
-Only mechanically checkable facts may be evidence — judgment gates
-(`gate.human`, review quality, plan approval) are never enforced by machine.
+Only mechanically observable facts may be evidence — and "observable" means
+a best-effort pattern match, not proof; judgment gates (`gate.human`,
+review quality, plan approval) are never machine-enforced.
 
-`EXOSUIT_FLOW_MODE` controls what missing evidence does
+`EXOSUIT_FLOW_MODE` controls what the evidence markers do
 (`off | advisory | block`; default derived from the project profile —
 lean: `off`, standard/strict: `advisory`; **blocking is an explicit opt-in,
 never a default**):
 
-- **advisory** — flow-pre-edit.sh prints a one-line warning when a source
-  file is edited while the cursor sits on an unevidenced `gate.hard`;
-  nothing is ever blocked. Test/docs/config edits are always exempt
-  (writing the test IS the evidence being asked for).
-- **block** — the same condition blocks the edit (exit 2), and stop.sh
-  refuses completion while a branch-matched cursor sits on a non-terminal
-  node (bounded by the existing stop-iteration safety valve).
+- **advisory** — flow-pre-edit.sh emits a one-line warning (PreToolUse
+  JSON: `additionalContext` for the model, `systemMessage` for the user)
+  when a source file is edited while the cursor sits on an unevidenced
+  `gate.hard`; nothing is ever blocked. Test/docs/config edits are always
+  exempt (writing the test IS the evidence being asked for).
+- **block** — blocks a source-file edit (exit 2) only while the last
+  observed test run FAILED and no green run has been seen since
+  (`tests-red` present, `tests-green` absent), and only for gates whose
+  evidence is `tests-green` — evidence classes with no red analog
+  (`test-written`) can never block. Missing evidence alone — an
+  unrecognized runner, or no run yet — downgrades to the advisory. After
+  `EXOSUIT_FLOW_MAX_BLOCKS` blocked edits on the same gate (default 3),
+  the valve releases to advisory with an explicit note. stop.sh
+  additionally refuses completion while a branch-matched cursor sits on a
+  non-terminal node (bounded by the existing stop-iteration safety valve).
 
 Kill switches: `EXOSUIT_FLOW_MODE=off` disables both checks;
 `EXOSUIT_DISABLED_HOOKS=flow-pre-edit` disables only the edit-time check

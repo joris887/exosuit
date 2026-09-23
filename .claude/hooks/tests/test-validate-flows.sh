@@ -197,7 +197,46 @@ nodes:
 printf '%s\n' "- a dash-prefixed anchor line" >> "$d/.claude/skills/alpha/SKILL.md"
 check "dash-prefixed doc anchor passes" "0" "$(run_validator "$d")"
 
-# Case 10f: evidence attr on a gate.hard with a stampable marker passes
+# Case 10f: typo'd edge key on a closed-vocabulary type is a FAIL, not an edge
+d="$(make_fixture alpha 'flow: alpha
+spec: 1
+start: work
+nodes:
+  work: {type: step, nxt: done, next: done}
+  done: {type: terminal}')"
+vocab_fails=$( ( cd "$d" && bash "$VALIDATOR" 2>/dev/null || true ) | grep -Ec "unknown attribute 'nxt'" || true)
+check "unknown key on step fails closed-vocab check" "1" "$vocab_fails"
+
+# Case 10g: 'max' outside a loop node is a FAIL (was silently skipped)
+d="$(make_fixture alpha 'flow: alpha
+spec: 1
+start: work
+nodes:
+  work: {type: step, next: done, max: 5}
+  done: {type: terminal}')"
+check "max on non-loop fails" "1" "$(run_validator "$d")"
+
+# Case 10h: reserved-word near-miss on a gate warns (named branches stay legal)
+d="$(make_fixture alpha 'flow: alpha
+spec: 1
+start: g
+nodes:
+  g: {type: gate.hard, ok: done, faill: done, fail: done}
+  done: {type: terminal}')"
+nearmiss=$( ( cd "$d" && bash "$VALIDATOR" 2>/dev/null || true ) | grep -Ec "looks like a typo" || true)
+check "gate near-miss key warns" "1" "$nearmiss"
+
+# Case 10i: 'evidnce' (evidence family) on a gate warns instead of passing silent
+d="$(make_fixture alpha 'flow: alpha
+spec: 1
+start: g
+nodes:
+  g: {type: gate.hard, ok: done, fail: done, evidnce: done}
+  done: {type: terminal}')"
+evwarn=$( ( cd "$d" && bash "$VALIDATOR" 2>/dev/null || true ) | grep -Ec "typo of .evidence." || true)
+check "evidence-family key on gate warns" "1" "$evwarn"
+
+# Case 10j: evidence attr on a gate.hard with a stampable marker passes
 d="$(make_fixture alpha 'flow: alpha
 spec: 1
 start: work
@@ -206,7 +245,7 @@ nodes:
   done: {type: terminal, doc: "## Done"}')"
 check "evidence on gate.hard with known marker passes" "0" "$(run_validator "$d")"
 
-# Case 10g: evidence with an unstampable marker fails
+# Case 10k: evidence with an unstampable marker fails
 d="$(make_fixture alpha 'flow: alpha
 spec: 1
 start: work
@@ -215,7 +254,7 @@ nodes:
   done: {type: terminal}')"
 check "evidence with unknown marker fails" "1" "$(run_validator "$d")"
 
-# Case 10h: evidence on a non-gate.hard node fails
+# Case 10l: evidence on a non-gate.hard node fails
 d="$(make_fixture alpha 'flow: alpha
 spec: 1
 start: work

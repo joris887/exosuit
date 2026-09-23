@@ -1,6 +1,6 @@
 # Story Template
 
-Stories are the unit of AI implementation. Each story must be completable in a single context window, have machine-verifiable acceptance criteria, and include explicit scope boundaries. This template produces zero-ambiguity stories that an AI agent implements correctly on the first attempt.
+Stories are the unit of AI implementation. Each story must be one cohesive unit of intent, have machine-verifiable acceptance criteria, and include explicit scope boundaries. This template produces zero-ambiguity stories that an AI agent implements correctly on the first attempt.
 
 ## Full Story Structure (STANDARD)
 

@@ -3,6 +3,10 @@ set -euo pipefail
 
 # validate-skills.sh — Check skill conformance against framework standards
 # Usage: bash validate-skills.sh [--verbose]
+#
+# Under pipefail a grep that finds nothing fails its whole pipeline, and set -e
+# then kills the loop: one non-conformant skill would silently end validation
+# for every skill after it. Every "may find nothing" pipeline ends in || true.
 
 if [[ "${1:-}" == "--help" ]]; then
   echo "Usage: bash validate-skills.sh [--verbose]"
@@ -51,14 +55,19 @@ for skill_file in "$SKILLS_DIR"/*/SKILL.md; do
   skill_dir=$(dirname "$skill_file")
   skill_name=$(basename "$skill_dir")
 
+  # CRLF files (authored on Windows) would defeat every ^---$ anchor below.
+  content=$(tr -d '\r' < "$skill_file")
+
   # --- 1. YAML frontmatter exists ---
-  if head -1 "$skill_file" | grep -q "^---$"; then
-    # Extract frontmatter
-    frontmatter=$(sed -n '/^---$/,/^---$/p' "$skill_file" | sed '1d;$d')
+  frontmatter=""
+  if [[ "${content%%$'\n'*}" == "---" ]]; then
+    # First --- block only; later --- lines are Markdown rules, not frontmatter.
+    # awk reads to EOF: an early exit would SIGPIPE printf and abort (pipefail).
+    frontmatter=$(printf '%s\n' "$content" | awk 'NR == 1 || done { next } /^---$/ { done = 1; next } { print }')
 
     # Check required fields
     for field in name version description trigger depends-on references; do
-      if echo "$frontmatter" | grep -q "^${field}:"; then
+      if grep -q "^${field}:" <<< "$frontmatter"; then
         report PASS "$skill_name" "has $field"
       else
         report FAIL "$skill_name" "missing required frontmatter field: $field"
@@ -107,12 +116,18 @@ for skill_file in "$SKILLS_DIR"/*/SKILL.md; do
 
   # --- 5. Version match with registry ---
   if [[ -f "$REGISTRY" ]]; then
-    skill_version=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep "^version:" | sed 's/version: *//' | head -1)
+    skill_version=$(printf '%s\n' "$frontmatter" | grep "^version:" | sed 's/version: *//' | head -1 || true)
+    if command -v jq &>/dev/null; then
+      registered=$(jq --arg n "$skill_name" '[.[] | select(.name == $n)] | length' "$REGISTRY" 2>/dev/null || echo "?")
+      if [[ "$registered" == "0" ]]; then
+        report WARN "$skill_name" "not registered in skills-registry.json"
+      fi
+    fi
     if [[ -n "$skill_version" ]]; then
       if command -v jq &>/dev/null; then
-        registry_version=$(jq -r ".[] | select(.name == \"$skill_name\") | .version" "$REGISTRY" 2>/dev/null || echo "")
+        registry_version=$(jq -r --arg n "$skill_name" '.[] | select(.name == $n) | .version' "$REGISTRY" 2>/dev/null || echo "")
       else
-        registry_version=$(grep -A1 "\"name\": \"$skill_name\"" "$REGISTRY" | grep '"version"' | sed 's/.*: *"\(.*\)".*/\1/' | head -1)
+        registry_version=$(grep -A1 "\"name\": \"$skill_name\"" "$REGISTRY" | grep '"version"' | sed 's/.*: *"\(.*\)".*/\1/' | head -1 || true)
       fi
       if [[ -n "$registry_version" && "$skill_version" != "$registry_version" ]]; then
         report WARN "$skill_name" "version mismatch: SKILL.md=$skill_version registry=$registry_version"

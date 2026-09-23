@@ -268,12 +268,6 @@ Ready to start work.
 
 Always show the actual first story ID from the sprint plan (e.g., `/story-cycle E01-S01`), not a placeholder.
 
-**Skill metrics:** Emit a completion event:
-
-```bash
-echo "{\"type\":\"skill\",\"event\":\"end\",\"skill\":\"sprint-start\",\"outcome\":\"success\",\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" >> docs/sessions/.activity-log.jsonl
-```
-
 ## What This Skill Does NOT Do
 
 - Does not load story context (that's `/story-cycle`'s job)
