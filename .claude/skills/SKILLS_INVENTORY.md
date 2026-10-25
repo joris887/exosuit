@@ -39,6 +39,7 @@ For technology skill generation: `/skill-create`
 | `/story-cycle`  | Delivering a story | `<story-description>` | Universal story delivery (intent decomposition, confidence gate, reasoning scaffolds, control flow markers, error recovery tables, error learning, completion verification, parallel stream decomposition, wave execution) |
 | `/continue`     | Session start      | -                     | Smart continuation from session files + git state |
 | `/handoff`      | Session end        | -                     | Structured session file to docs/sessions/ |
+| `/wrap-up`      | Leaving a session  | -                     | Nothing lost: "you're all set to leave" when all is committed and pushed, else commit, push, PR, and on a yes merge and deploy |
 
 ### Backlog & Planning (Manual-only)
 

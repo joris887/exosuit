@@ -248,6 +248,7 @@ These are exit-code shell scripts wired into Claude Code's hook events. There is
 | `/pr-status` | Check open PRs and decide next steps |
 | `/continue` | Resume exactly where you left off |
 | `/handoff` | Save session state for next time |
+| `/wrap-up` | Before you leave: says "all set", or commits, pushes and opens the PR |
 
 ### Planning & Design
 | Command | What it does |

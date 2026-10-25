@@ -212,6 +212,16 @@
     "path": ".claude/skills/handoff/SKILL.md"
   },
   {
+    "name": "wrap-up",
+    "version": "1.0.0",
+    "description": "Use when the user is about to leave a session (closing the laptop, locking the phone, \"wrap up\", \"I'm off\"). First checks whether anything could be lost; when nothing can, says \"you're all set to leave\" and does nothing else. Otherwise commits, pushes and opens a PR, and only with the user's yes merges and deploys.",
+    "trigger": "manual",
+    "depends_on": [],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/wrap-up/SKILL.md"
+  },
+  {
     "name": "help-me",
     "version": "1.0.0",
     "description": "Natural language skill discovery — describe what you want to do and get matched to the right skill.",
