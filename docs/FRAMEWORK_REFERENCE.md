@@ -46,7 +46,7 @@ Install it once. Run `/quickstart`. Start building. The framework provides that 
 
 ### What It Is
 
-A drop-in development framework for Claude Code that provides 45 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
+A drop-in development framework for Claude Code that provides 46 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
 
 ### Who It's For
 
@@ -1713,6 +1713,13 @@ In each stream: /story-cycle as normal
                 removes child worktrees and branches, ships the sprint via PR
 ```
 
+Over SSH, `/lanes start a:<story> b:<story>` replaces the first step: each lane is made by
+the same `new-worktree.sh` (under `~/lanes/<repo>/<letter>`) and opened as a tmux window
+that installs dependencies and runs `/story-cycle <story>`. In a lane whose story is done:
+`/merge-down`, the project's tests and typecheck, then `/merge-up`, which is then a
+fast-forward. `/lanes status` and `/lanes cleanup` stand in for the `/parallel-work` ones
+and also report and close the lanes' windows.
+
 ### /commit — Conventional Commit
 
 Review changes → determine type → generate `<type>(<scope>): <description>` → execute → verify. Includes `Co-Authored-By` footer.
@@ -2208,9 +2215,10 @@ Standalone (no dependencies):
 | `/fix-issue` | v2.4.0 | GitHub issue → TDD fix → PR | Manual |
 | `/undo-work` | v3.0.1 | Safe revert (3 levels) | Manual |
 | `/commit` | v2.4.0 | Conventional commit | Manual |
-| `/parallel-work` | v3.0.0 | Parallel streams (create, status, cleanup) | Manual |
+| `/parallel-work` | v3.0.2 | Parallel streams (create, status, cleanup) | Manual |
 | `/merge-up` | v1.0.0 | Merge stream into its parent branch | Manual |
 | `/merge-down` | v1.0.0 | Pull parent branch into stream | Manual |
+| `/lanes` | v1.0.0 | Parallel streams as tmux windows, over SSH | Manual |
 | `/weekly-maintenance` | v2.6.0 | Weekly health check | Manual |
 | `/retrospective` | v3.0.0 | Sprint review (4Ls) | Manual |
 | `/backlog-review` | v3.0.0 | Backlog health analysis | Manual |
@@ -2547,7 +2555,7 @@ project-root/
 │   ├── rules/                        # 9 path-scoped rule files
 │   ├── scripts/file-suggestions.sh   # File suggestion utility
 │   │
-│   └── skills/                       # 45 skills
+│   └── skills/                       # 46 skills
 │       ├── SKILLS_INVENTORY.md       # Human-readable index
 │       ├── SKILL_TEMPLATE.md         # Skill writing conventions
 │       ├── skills-registry.json      # Machine-readable registry

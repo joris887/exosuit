@@ -1,6 +1,6 @@
 ---
 name: parallel-work
-version: 3.0.1
+version: 3.0.2
 description: Work on multiple stories at the same time. Creates isolated parallel streams (git worktrees) from the current branch, wires up local settings, and opens each in its own Claude Code session. Also shows stream status and cleans up finished streams. Pairs with /merge-up (publish a stream's work to the parent branch) and /merge-down (pull the parent's accumulated work into a stream).
 trigger: manual
 depends-on: []
@@ -137,6 +137,9 @@ in its own terminal tab running Claude Code?"
   `EXOSUIT_WORKTREE_LAUNCH_CMD`, or set `EXOSUIT_WORKTREE_TABS=0` to print
   `cd` hints only.
 - **No:** print one `cd '<dir>' && claude` hint per stream.
+
+Over SSH there are no tabs to open. Working inside tmux, use `/lanes` instead:
+it opens each stream as a tmux window with Claude Code started on its story.
 
 **7. Report.** Print the final `git worktree list` and the working agreement:
 

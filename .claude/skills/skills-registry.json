@@ -260,7 +260,7 @@
   },
   {
     "name": "parallel-work",
-    "version": "3.0.1",
+    "version": "3.0.2",
     "description": "Work on multiple stories at the same time. Creates isolated parallel streams (git worktrees) from the current branch, wires up local settings, and opens each in its own Claude Code session. Also shows stream status and cleans up finished streams. Pairs with /merge-up (publish a stream's work to the parent branch) and /merge-down (pull the parent's accumulated work into a stream).",
     "trigger": "manual",
     "depends_on": [],
@@ -287,6 +287,18 @@
     "calls": [],
     "references": [],
     "path": ".claude/skills/merge-down/SKILL.md"
+  },
+  {
+    "name": "lanes",
+    "version": "1.0.0",
+    "description": "Parallel work inside tmux, for a server you reach over SSH (also from a phone). Each lane is a branch off the sprint branch, a git worktree, and a tmux window with Claude Code already started on its story. Shows lane status and cleans up merged lanes. Lanes merge with /merge-down and /merge-up, like /parallel-work's streams.",
+    "trigger": "manual",
+    "depends_on": [
+      "parallel-work"
+    ],
+    "calls": [],
+    "references": [],
+    "path": ".claude/skills/lanes/SKILL.md"
   },
   {
     "name": "phase-review",

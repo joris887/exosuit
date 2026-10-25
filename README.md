@@ -296,6 +296,7 @@ These are exit-code shell scripts wired into Claude Code's hook events. There is
 | `/parallel-work` | Work on multiple stories at once in isolated parallel streams |
 | `/merge-up` | Publish a stream's finished work to the branch it came from |
 | `/merge-down` | Pull the parent branch's accumulated work into a stream |
+| `/lanes` | Parallel work inside tmux over SSH: one window per lane, Claude Code started on its story |
 | `/commit` | Conventional commit with quality checks |
 | `/refine-loop` | Iterative refinement until criteria met |
 | `/optimize` | Optimize a specific metric (performance, bundle size, etc.) |
@@ -385,7 +386,7 @@ Everything is plain markdown and shell scripts. Edit directly:
 <details>
 <summary><strong>Does this support parallel work on multiple stories?</strong></summary>
 
-Yes, when the stories are independent. `/parallel-work` creates isolated streams (git worktrees) from your sprint branch, one story each, and checks first that the stories don't depend on each other or touch the same files. Inside a stream, `/merge-up` publishes finished work to the sprint branch and `/merge-down` pulls in what other streams have shipped. `/sprint-end` verifies every stream is merged before it ships, and cleans them up. Sequential single-branch work stays the default; parallel is opt-in.
+Yes, when the stories are independent. `/parallel-work` creates isolated streams (git worktrees) from your sprint branch, one story each, and checks first that the stories don't depend on each other or touch the same files. Inside a stream, `/merge-up` publishes finished work to the sprint branch and `/merge-down` pulls in what other streams have shipped. `/sprint-end` verifies every stream is merged before it ships, and cleans them up. On a server you reach over SSH, `/lanes` does the same inside tmux: one window per lane, with Claude Code already working on its story. Sequential single-branch work stays the default; parallel is opt-in.
 </details>
 
 <details>
