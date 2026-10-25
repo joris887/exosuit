@@ -70,7 +70,9 @@ if [ "$HAVE_TMUX" = 1 ]; then
   done < <(tmux list-windows -a -F '#{window_id}|#{@exosuit-lane}' 2>/dev/null || true)
 fi
 
-echo "Removed: ${removed[*]:-none}"
+# Every array is read behind a length check: bash 3.2 (macOS) treats an empty
+# array as unset under set -u.
+if [ "${#removed[@]}" -gt 0 ]; then echo "Removed: ${removed[*]}"; else echo "Removed: none"; fi
 if [ "${#kept[@]}" -gt 0 ]; then
   echo "Kept:"
   printf '  %s\n' "${kept[@]}"
