@@ -290,7 +290,7 @@
   },
   {
     "name": "lanes",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Parallel work inside tmux, for a server you reach over SSH (also from a phone). Each lane is a branch off the sprint branch, a git worktree, and a tmux window with Claude Code already started on its story. Shows lane status and cleans up merged lanes. Lanes merge with /merge-down and /merge-up, like /parallel-work's streams.",
     "trigger": "manual",
     "depends_on": [

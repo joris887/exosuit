@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Show every lane: its branch, how far it is ahead of and behind its parent,
 # uncommitted files, whether its tmux window is open, and the last commit.
-# Run from the main checkout or from any lane.
+# Run from the main checkout or from any lane. Also binds Alt+<number> again
+# (lane-keys.sh), for a tmux server that restarted since the lanes were made.
 set -euo pipefail
+
+bash "$(cd "$(dirname "$0")" && pwd)/lane-keys.sh"
 
 MAIN_ROOT="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
 REPO_NAME="$(basename "$MAIN_ROOT")"

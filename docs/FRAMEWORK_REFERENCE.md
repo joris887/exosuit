@@ -2218,7 +2218,7 @@ Standalone (no dependencies):
 | `/parallel-work` | v3.0.2 | Parallel streams (create, status, cleanup) | Manual |
 | `/merge-up` | v1.0.0 | Merge stream into its parent branch | Manual |
 | `/merge-down` | v1.0.0 | Pull parent branch into stream | Manual |
-| `/lanes` | v1.0.0 | Parallel streams as tmux windows, over SSH | Manual |
+| `/lanes` | v1.1.0 | Parallel streams as tmux windows, over SSH; Alt+<number> to switch | Manual |
 | `/weekly-maintenance` | v2.6.0 | Weekly health check | Manual |
 | `/retrospective` | v3.0.0 | Sprint review (4Ls) | Manual |
 | `/backlog-review` | v3.0.0 | Backlog health analysis | Manual |

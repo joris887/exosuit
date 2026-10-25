@@ -1,6 +1,6 @@
 ---
 name: lanes
-version: 1.0.0
+version: 1.1.0
 description: Parallel work inside tmux, for a server you reach over SSH (also from a phone). Each lane is a branch off the sprint branch, a git worktree, and a tmux window with Claude Code already started on its story. Shows lane status and cleans up merged lanes. Lanes merge with /merge-down and /merge-up, like /parallel-work's streams.
 trigger: manual
 depends-on: [parallel-work]
@@ -54,7 +54,8 @@ Per lane: branch `<sprint>-<letter>`, worktree `~/lanes/<repo>/<letter>`, and a
 window named after the letter that installs dependencies (from the lockfile:
 pnpm, npm, yarn, bun, uv or poetry) and then runs `claude '/story-cycle <story>'`,
 or plain `claude` without a story. Outside tmux the windows go into a session
-named after the repo; the script prints how to attach to it.
+named after the repo; the script prints how to attach to it. It also binds
+Alt+<number> to jump to a window, and prints each lane's window number and key.
 
 Settings, as environment variables:
 
@@ -64,6 +65,7 @@ Settings, as environment variables:
 | `EXOSUIT_LANE_SETUP` | from the lockfile | first command in each lane; empty skips it |
 | `EXOSUIT_LANE_CLAUDE` | `claude` | how Claude Code starts, for example with `--model` |
 | `EXOSUIT_LANE_SESSION` | the current session | which tmux session gets the windows |
+| `EXOSUIT_LANE_ALT_KEYS` | on | `0` leaves Alt+<number> unbound |
 
 The first start in a new folder shows Claude Code's folder-trust question once:
 press Enter in that window and the story starts.
@@ -77,6 +79,7 @@ bash "${CLAUDE_PLUGIN_ROOT:-.claude}/skills/lanes/scripts/lane-status.sh"
 Tell the user what it means: BEHIND above 0, that lane should run `/merge-down`;
 AHEAD above 0, work not merged up yet; DIRTY above 0, work in progress; WINDOW no,
 the lane's window was closed (open one with `tmux new-window -c <worktree>`).
+Status also binds the Alt keys again, for a tmux server that restarted.
 
 ### `cleanup`
 
@@ -119,9 +122,19 @@ Claude Code session in it.
 
 | Keys | What it does |
 |---|---|
-| `Ctrl-b w` | list of windows to pick from (easiest on a phone) |
+| `Alt+1` to `Alt+9` | go straight to that window, without Ctrl-b. In Termius: tap Alt, then the number |
+| `Alt+0` | back to the window you were in before |
+| `Ctrl-b w` | list of windows to pick from |
 | `Ctrl-b <number>` | go to that window; the status bar shows each number and name |
 | `Ctrl-b n` / `Ctrl-b p` | next / previous window |
 | `Ctrl-b d` | leave tmux; every lane keeps running |
 
-`status` from the main window shows every lane without visiting them.
+The Alt keys are bound by `start` and `status` (`scripts/lane-keys.sh`) on the
+running tmux server, for every session, until the server stops. A key the user
+bound already is left as it is. With tmux's defaults the first window is 0, so
+lanes a, b, c sit on windows 1, 2, 3 and Alt+1, Alt+2, Alt+3 reach them. In a
+Mac terminal the Option key must send Meta: iTerm2, Profiles, Keys, Left Option
+key: Esc+; Terminal.app, Profiles, Keyboard, Use Option as Meta key.
+
+`status` from the window you started the lanes from shows every lane without
+visiting them.
