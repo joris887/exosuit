@@ -300,8 +300,8 @@
   },
   {
     "name": "lanes",
-    "version": "1.1.0",
-    "description": "Parallel work inside tmux, for a server you reach over SSH (also from a phone). Each lane is a branch off the sprint branch, a git worktree, and a tmux window with Claude Code already started on its story. Shows lane status and cleans up merged lanes. Lanes merge with /merge-down and /merge-up, like /parallel-work's streams.",
+    "version": "1.1.1",
+    "description": "Parallel work inside tmux, for a server you reach over SSH (also from a phone). Each lane is a git worktree with its own branch and its own tmux window, Claude Code open in it; do in it whatever you want. Alt+<number> switches between them. Lanes merge with /merge-up and /merge-down, like /parallel-work's streams. Also shows lane status and cleans up merged lanes.",
     "trigger": "manual",
     "depends_on": [
       "parallel-work"

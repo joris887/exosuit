@@ -1717,11 +1717,11 @@ In each stream: /story-cycle as normal
                 removes child worktrees and branches, ships the sprint via PR
 ```
 
-Over SSH, `/lanes start a:<story> b:<story>` replaces the first step: each lane is made by
-the same `new-worktree.sh` (under `~/lanes/<repo>/<letter>`) and opened as a tmux window
-that installs dependencies and runs `/story-cycle <story>`. In a lane whose story is done:
-`/merge-down`, the project's tests and typecheck, then `/merge-up`, which is then a
-fast-forward. `/lanes status` and `/lanes cleanup` stand in for the `/parallel-work` ones
+Over SSH, `/lanes start a b` replaces the first step: each lane is made by the same
+`new-worktree.sh` (under `~/lanes/<repo>/<letter>`) and opened as a tmux window that
+installs dependencies and opens Claude Code (`a:<story>` starts it on `/story-cycle`).
+When a piece of work in a lane is done: `/merge-down`, the project's tests and typecheck,
+then `/merge-up`, which is then a fast-forward. `/lanes status` and `/lanes cleanup` stand in for the `/parallel-work` ones
 and also report and close the lanes' windows.
 
 ### /commit — Conventional Commit
@@ -2223,7 +2223,7 @@ Standalone (no dependencies):
 | `/parallel-work` | v3.0.2 | Parallel streams (create, status, cleanup) | Manual |
 | `/merge-up` | v1.0.0 | Merge stream into its parent branch | Manual |
 | `/merge-down` | v1.0.0 | Pull parent branch into stream | Manual |
-| `/lanes` | v1.1.0 | Parallel streams as tmux windows, over SSH; Alt+<number> to switch | Manual |
+| `/lanes` | v1.1.1 | Parallel streams as tmux windows, over SSH; Alt+<number> to switch | Manual |
 | `/weekly-maintenance` | v2.6.0 | Weekly health check | Manual |
 | `/retrospective` | v3.0.0 | Sprint review (4Ls) | Manual |
 | `/backlog-review` | v3.0.0 | Backlog health analysis | Manual |

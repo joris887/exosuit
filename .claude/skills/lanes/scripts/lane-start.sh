@@ -4,12 +4,12 @@
 # A lane = branch <parent>-<letter>
 #        + worktree <lanes-dir>/<letter>, made by parallel-work's new-worktree.sh
 #          (local settings copied, parent recorded for /merge-up and /merge-down)
-#        + tmux window <letter> that installs dependencies and starts Claude Code,
-#          on /story-cycle <story> when a story id is given.
+#        + tmux window <letter> that installs dependencies and opens Claude Code
+#          (on /story-cycle <story> when a story id is given).
 # It also binds Alt+<number> to jump to a window (lane-keys.sh), so on a phone
 # a lane is one tap away: in Termius, tap Alt, then the window's number.
 #
-# Usage: lane-start.sh <letter>[:<story-id>] ...   e.g. lane-start.sh a:E03-S03 b:E03-S04 c
+# Usage: lane-start.sh <letter>[:<story-id>] ...   e.g. lane-start.sh a b c
 # Env:
 #   EXOSUIT_LANES_DIR     where the lanes live            (default: ~/lanes/<repo>)
 #   EXOSUIT_LANE_SETUP    command run first in each lane  (default: from the lockfile;
@@ -24,7 +24,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 NEW_WORKTREE="$HERE/../../parallel-work/scripts/new-worktree.sh"
 
 if [ $# -lt 1 ]; then
-  echo "usage: lane-start.sh <letter>[:<story-id>] ...   e.g. lane-start.sh a:E03-S03 b:E03-S04 c" >&2
+  echo "usage: lane-start.sh <letter>[:<story-id>] ...   e.g. lane-start.sh a b c" >&2
   exit 2
 fi
 command -v tmux >/dev/null 2>&1 || { echo "ERROR: tmux is not installed" >&2; exit 1; }
@@ -38,13 +38,13 @@ DEFAULT="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null
 DEFAULT="${DEFAULT#origin/}"
 
 case "$PARENT" in
-  HEAD) echo "ERROR: HEAD is detached; check out the sprint branch first" >&2; exit 1 ;;
+  HEAD) echo "ERROR: HEAD is detached; check out your working branch first" >&2; exit 1 ;;
   main|master|"$DEFAULT")
-    echo "ERROR: refusing to fan out from '$PARENT'; start a sprint branch first (/sprint-start)" >&2
+    echo "ERROR: refusing to fan out from '$PARENT'; switch to a working branch first (lanes merge into it locally)" >&2
     exit 1 ;;
 esac
 if [ -n "$(git config "branch.$PARENT.exosuitParent" || true)" ]; then
-  echo "ERROR: '$PARENT' is itself a lane or stream; create lanes from the sprint branch" >&2
+  echo "ERROR: '$PARENT' is itself a lane or stream; create lanes from the branch it came from" >&2
   exit 1
 fi
 if [ -n "$(git status --porcelain)" ]; then
