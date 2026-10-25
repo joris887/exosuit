@@ -84,6 +84,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | Deep research          | `/research <topic>`            |
 | End sprint             | `/sprint-end`                  |
 | End session            | `/handoff`                     |
+| Leave safely           | `/wrap-up`                     |
 | Debug an issue         | `/debug-session <error>`       |
 | Test plan              | `/manual-test`                 |
 | Test feedback          | `/testing-cycle <feedback>`    |

@@ -46,7 +46,7 @@ Install it once. Run `/quickstart`. Start building. The framework provides that 
 
 ### What It Is
 
-A drop-in development framework for Claude Code that provides 46 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
+A drop-in development framework for Claude Code that provides 47 skills (slash commands), 13 hook scripts, path-scoped rules, quality gates, backlog management, session continuity, 8 native agents with deterministic tool restrictions for multi-perspective review, 20 reusable prompt snippets, deep guided elicitation with 11 project archetypes, and a persistent project knowledge base, all as markdown and shell scripts that live inside the repository.
 
 ### Who It's For
 
@@ -1431,6 +1431,10 @@ Graceful degradation: own failures never block the user
 
 Captures: branch, work completed, decisions, blockers, files accessed (modified/read/investigated), test status, next steps, activity summary from log → writes to `docs/sessions/session-YYYY-MM-DD.md` with YAML frontmatter (date, sprint, sprint_goal, branch, stories, status). Includes quality check sub-agent to verify the handoff is complete from a reader's perspective. Optionally adds a PR session summary comment for team visibility.
 
+### /wrap-up — Leaving Without Losing Work
+
+`scripts/wrap-up-check.sh` (read-only) lists what could be lost: uncommitted changes in this worktree, branches with commits no remote has, commits on a detached HEAD, no remote at all. Lanes and streams, other worktrees, branches whose remote branch is gone and stashes are notes. Nothing to lose → "You're all set to leave" and the skill stops. Otherwise: commit (never on the default branch), push (not a lane: it merges up locally), offer a PR; on the user's yes, squash-merge once CI is green and `/deploy`. A sprint branch is shipped by `/sprint-end`. Complements `/handoff`, which records what was done.
+
 ### /continue — Smart Session Resumption
 
 ```
@@ -2197,6 +2201,7 @@ Standalone (no dependencies):
 | `/sprint-end` | v2.10.0 | Ship sprint via PR (quality gates + merge) | Manual |
 | `/continue` | v2.7.0 | Smart session resumption | Manual |
 | `/handoff` | v2.6.0 | Structured session end | Manual |
+| `/wrap-up` | v1.0.0 | Nothing lost before leaving: commit, push, PR | Manual |
 | `/discover` | v1.0.0 | Deep guided elicitation (archetype-aware, 7-phase, 4 modes) | Manual |
 | `/phase-review` | v1.0.0 | Phase transition review (walkthrough, assumptions, next phase) | Manual |
 | `/brainstorm` | v2.7.0 | Design exploration with alternatives | Manual |
@@ -2555,7 +2560,7 @@ project-root/
 │   ├── rules/                        # 9 path-scoped rule files
 │   ├── scripts/file-suggestions.sh   # File suggestion utility
 │   │
-│   └── skills/                       # 46 skills
+│   └── skills/                       # 47 skills
 │       ├── SKILLS_INVENTORY.md       # Human-readable index
 │       ├── SKILL_TEMPLATE.md         # Skill writing conventions
 │       ├── skills-registry.json      # Machine-readable registry

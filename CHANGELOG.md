@@ -44,6 +44,26 @@ capping the metric below its green threshold.
 ### Files added
 - `core/hooks/tests/test-post-tool-use.sh` — rotation regression tests
 
+### Wrap-up: leave a session without losing work
+New skill `/wrap-up`, for the moment you close the laptop or lock the phone. Its
+first step is a read-only check (`scripts/wrap-up-check.sh`); when nothing can be
+lost it says "You're all set to leave" and stops. Otherwise it commits (never on
+the default branch), pushes (a lane's commits merge up locally instead), offers a
+PR, and only on the user's yes squash-merges once CI is green and deploys with
+`/deploy`. It never touches another worktree. Taken from a project-local skill
+used for phone-only work on a server; its site URL, deploy workflow and checkout
+path are gone, and its check now covers every branch, lanes, other worktrees,
+gone branches, stashes and a detached HEAD instead of HEAD alone.
+
+Files added:
+- `core/skills/wrap-up/SKILL.md`, `core/skills/wrap-up/scripts/wrap-up-check.sh`
+- `core/hooks/tests/test-wrap-up.sh` (a throwaway repo with a local bare remote)
+
+Files changed:
+- `core/skills/skills-registry.json`, `core/skills/SKILLS_INVENTORY.md`, `CLAUDE.md`,
+  `README.md`, `docs/FRAMEWORK_REFERENCE.md` — `/wrap-up` listed, 47 skills
+- `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` — 46 → 47 skills
+
 ### Lanes: Alt+<number> jumps to a lane
 On a phone `Ctrl-b` then a number is three taps; in Termius Alt then a number is
 two, with no prefix to remember. `/lanes start` and `/lanes status` now bind
