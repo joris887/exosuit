@@ -44,6 +44,29 @@ capping the metric below its green threshold.
 ### Files added
 - `core/hooks/tests/test-post-tool-use.sh` — rotation regression tests
 
+### Lanes: parallel work inside tmux
+`/parallel-work` opens streams as tabs of a desktop terminal; over SSH it can only
+print `cd` hints. The new `/lanes` skill opens each stream as a window of the tmux
+session you are in, with dependencies installed and Claude Code started on the
+lane's story, so the work keeps running when the connection drops (a phone that
+locks, a laptop that sleeps). Lanes are made by `new-worktree.sh`, so `/merge-up`,
+`/merge-down` and `/sprint-end` treat them as streams. Taken from a project-local
+skill that ran three lanes in one sprint; its hardcoded paths, package manager and
+`--dangerously-skip-permissions` start are now settings (`EXOSUIT_LANES_DIR`,
+`EXOSUIT_LANE_SETUP`, `EXOSUIT_LANE_CLAUDE`, `EXOSUIT_LANE_SESSION`), and its
+force-delete of squash-merged branches is gone (`git branch -d` only).
+
+Files added:
+- `core/skills/lanes/SKILL.md`
+- `core/skills/lanes/scripts/lane-start.sh`, `lane-status.sh`, `lane-cleanup.sh`
+- `core/hooks/tests/test-lanes.sh` (skips when tmux is not installed)
+
+Files changed:
+- `core/skills/parallel-work/SKILL.md` — points to `/lanes` over SSH; 3.0.1 → 3.0.2
+- `core/skills/skills-registry.json`, `core/skills/SKILLS_INVENTORY.md`, `CLAUDE.md`,
+  `README.md`, `docs/FRAMEWORK_REFERENCE.md` — `/lanes` listed, 46 skills
+- `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` — skill count 43 → 46
+
 
 ### Ideation-wing fixes (#89)
 Six pre-existing defects across `/brainstorm` and `/ideate`, all found by

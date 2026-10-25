@@ -92,6 +92,7 @@ See `.claude/skills/SKILLS_INVENTORY.md` for full inventory.
 | Parallel work          | `/parallel-work`               |
 | Publish stream work    | `/merge-up`                    |
 | Refresh stream         | `/merge-down`                  |
+| Parallel work in tmux  | `/lanes start a:<story> ...`   |
 | Architecture check     | `/architecture-check`          |
 | Framework health check | `/doctor`                      |
 | Upgrade framework      | `/framework-upgrade`           |
