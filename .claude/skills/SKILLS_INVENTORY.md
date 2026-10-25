@@ -84,7 +84,7 @@ For technology skill generation: `/skill-create`
 | `/parallel-work` | `[status\|start [count]\|cleanup]` | Work on multiple stories at once: creates isolated parallel streams (git worktrees) from the current branch with local settings wired up, shows stream status, cleans up finished streams (worktree-aware bash hook ensures correct working directory) |
 | `/merge-up`      | —                               | Inside a stream: merge its committed work into the parent branch it was created from, then sync the stream back up to the parent |
 | `/merge-down`    | —                               | Inside a stream: pull the parent branch's accumulated work (other streams' merged stories) down into this stream |
-| `/lanes`         | `[start <a:STORY ...>\|status\|cleanup]` | Parallel work inside tmux, over SSH: each lane is a branch, a worktree and a tmux window with Claude Code started on its story; Alt+<number> jumps between windows (one tap in Termius); status and cleanup of merged lanes |
+| `/lanes`         | `[start <a b ...>\|status\|cleanup]` | Parallel work inside tmux, over SSH: each lane is a worktree with its own branch and tmux window, Claude Code open; Alt+<number> jumps between windows (one tap in Termius); status and cleanup of merged lanes |
 
 ### Testing Workflow (Manual-only)
 

@@ -44,6 +44,13 @@ capping the metric below its green threshold.
 ### Files added
 - `core/hooks/tests/test-post-tool-use.sh` — rotation regression tests
 
+### Lanes: a lane is a worktree, a story is optional
+`/lanes` read as if every lane ran a story. A lane is a worktree with its own branch
+and tmux window where the user does whatever they want; `a:<story>` only opens Claude
+Code on `/story-cycle`. Wording in `SKILL.md` (1.1.0 → 1.1.1), the registry, the
+inventory, `CLAUDE.md`, `README.md`, the reference and lane-start.sh's messages, which
+said "sprint branch" where any working branch will do. No change in behaviour.
+
 ### Wrap-up: leave a session without losing work
 New skill `/wrap-up`, for the moment you close the laptop or lock the phone. Its
 first step is a read-only check (`scripts/wrap-up-check.sh`); when nothing can be
