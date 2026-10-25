@@ -6,6 +6,8 @@
 #          (local settings copied, parent recorded for /merge-up and /merge-down)
 #        + tmux window <letter> that installs dependencies and starts Claude Code,
 #          on /story-cycle <story> when a story id is given.
+# It also binds Alt+<number> to jump to a window (lane-keys.sh), so on a phone
+# a lane is one tap away: in Termius, tap Alt, then the window's number.
 #
 # Usage: lane-start.sh <letter>[:<story-id>] ...   e.g. lane-start.sh a:E03-S03 b:E03-S04 c
 # Env:
@@ -15,6 +17,7 @@
 #   EXOSUIT_LANE_CLAUDE   command that starts Claude Code (default: claude)
 #   EXOSUIT_LANE_SESSION  tmux session for the windows    (default: the current one;
 #                         outside tmux, a session named after the repo)
+#   EXOSUIT_LANE_ALT_KEYS 0 leaves Alt+<number> unbound   (default: bound)
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -60,6 +63,15 @@ if ! tmux has-session -t "=$SESSION" 2>/dev/null; then
   tmux new-session -d -s "$SESSION" -c "$MAIN_ROOT"
   echo "Started tmux session $SESSION (attach with: tmux attach -t $SESSION)"
 fi
+bash "$HERE/lane-keys.sh"
+
+# "Alt+N" when Alt+N jumps to window N, so the report only names keys that work.
+alt_key () {
+  case "$1" in [1-9]) ;; *) return 0 ;; esac
+  if tmux list-keys -T root "M-$1" 2>/dev/null | grep -Eq "select-window -t :?$1( |$)"; then
+    printf ' (Alt+%s)' "$1"
+  fi
+}
 
 setup_cmd () {
   if [ -n "${EXOSUIT_LANE_SETUP+set}" ]; then printf '%s' "$EXOSUIT_LANE_SETUP"; return; fi
@@ -101,8 +113,9 @@ for arg in "$@"; do
   wid="$(tmux new-window -d -P -F '#{window_id}' -t "=$SESSION:" -n "$letter" -c "$wt")"
   tmux set-option -w -t "$wid" @exosuit-lane "$wt"
   tmux send-keys -t "$wid" "$cmd" C-m
-  echo "LANE $letter ready: branch=$branch worktree=$wt window=$SESSION:$letter story=${story:-none}"
+  idx="$(tmux display-message -p -t "$wid" '#{window_index}')"
+  echo "LANE $letter ready: branch=$branch worktree=$wt window=$SESSION:$idx$(alt_key "$idx") story=${story:-none}"
 done
 
 echo
-echo "Switch lanes: Ctrl-b w (list) | Ctrl-b <number> | Ctrl-b n / Ctrl-b p"
+echo "Switch lanes: Alt+<number> (Termius: tap Alt, then the number) | Ctrl-b w (list) | Ctrl-b <number> | Alt+0 back"

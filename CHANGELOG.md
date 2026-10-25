@@ -44,6 +44,25 @@ capping the metric below its green threshold.
 ### Files added
 - `core/hooks/tests/test-post-tool-use.sh` — rotation regression tests
 
+### Lanes: Alt+<number> jumps to a lane
+On a phone `Ctrl-b` then a number is three taps; in Termius Alt then a number is
+two, with no prefix to remember. `/lanes start` and `/lanes status` now bind
+Alt+1 to Alt+9 (go to that window) and Alt+0 (back to the last window) on the
+running tmux server, leave alone any of those keys the user bound already, and
+`start` prints each lane's window number with its key. `status` binds them again
+after a tmux restart. `EXOSUIT_LANE_ALT_KEYS=0` turns it off. Checked with a real
+tmux client sent the bytes Termius sends for Alt then a number (Esc, digit).
+
+Files added:
+- `core/skills/lanes/scripts/lane-keys.sh`
+
+Files changed:
+- `core/skills/lanes/scripts/lane-start.sh`, `lane-status.sh` — run lane-keys.sh;
+  start reports `window=<session>:<n> (Alt+<n>)`
+- `core/skills/lanes/SKILL.md` — the keys, the setting, Option as Meta on a Mac; 1.0.0 → 1.1.0
+- `core/hooks/tests/test-lanes.sh` — 6 checks for the keys, run without the user's ~/.tmux.conf
+- `core/skills/skills-registry.json`, `core/skills/SKILLS_INVENTORY.md`, `docs/FRAMEWORK_REFERENCE.md` — 1.1.0
+
 ### Lanes: parallel work inside tmux
 `/parallel-work` opens streams as tabs of a desktop terminal; over SSH it can only
 print `cd` hints. The new `/lanes` skill opens each stream as a window of the tmux

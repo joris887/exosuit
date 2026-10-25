@@ -30,7 +30,10 @@ fi
 TMP=$(mktemp -d)
 export TMUX_TMPDIR="$TMP/tmux"
 mkdir -p "$TMUX_TMPDIR"
-unset TMUX
+unset TMUX XDG_CONFIG_HOME
+# A home of its own, so tmux loads no ~/.tmux.conf and every key starts unbound.
+export HOME="$TMP/home"
+mkdir -p "$HOME"
 trap 'tmux kill-server 2>/dev/null || true; rm -rf "$TMP"' EXIT
 
 export EXOSUIT_LANES_DIR="$TMP/lanes"
@@ -54,6 +57,9 @@ rc=0; bash "$SCRIPTS/lane-start.sh" a >/dev/null 2>&1 || rc=$?
 test_case "refuses to fan out from main" "1" "$rc"
 
 git switch -qc sprint-1
+# A key of your own, bound before the lanes start, must survive them.
+tmux new-session -d -s other
+tmux bind-key -n M-7 display-message mine
 rc=0; out=$(bash "$SCRIPTS/lane-start.sh" "a:E01-S01" b 'c:x;rm' 2>&1) || rc=$?
 test_case "start exits 0" "0" "$rc"
 test_case "lane a branch exists" "yes" "$(git show-ref --verify --quiet refs/heads/sprint-1-a && echo yes || echo no)"
@@ -65,6 +71,17 @@ test_case "no lane made for the unsafe story" "no" "$([ -e "$EXOSUIT_LANES_DIR/c
 test_case "session made outside tmux" "yes" "$(tmux has-session -t =lanes-test 2>/dev/null && echo yes || echo no)"
 test_case "one window per lane" "a b" "$(tmux list-windows -t =lanes-test -F '#{window_name}' | grep -E '^[ab]$' | tr '\n' ' ' | sed 's/ $//')"
 test_case "window tagged with its lane" "$EXOSUIT_LANES_DIR/a" "$(tmux display-message -p -t =lanes-test:a '#{@exosuit-lane}')"
+test_case "Alt+1 jumps to window 1" "bind-key -T root M-1 select-window -t :1" "$(tmux list-keys -T root M-1)"
+test_case "Alt+0 goes back to the last window" "bind-key -T root M-0 last-window" "$(tmux list-keys -T root M-0)"
+test_case "a key bound before is left as it was" "bind-key -T root M-7 display-message mine" "$(tmux list-keys -T root M-7)"
+a_idx="$(tmux display-message -p -t =lanes-test:a '#{window_index}')"
+test_case "report names the lane's Alt key" "1" "$(printf '%s\n' "$out" | grep -c "^LANE a ready: .*window=lanes-test:$a_idx (Alt+$a_idx)" || true)"
+
+tmux unbind-key -n M-9
+EXOSUIT_LANE_ALT_KEYS=0 bash "$SCRIPTS/lane-keys.sh"
+test_case "EXOSUIT_LANE_ALT_KEYS=0 binds nothing" "" "$(tmux list-keys -T root M-9 2>/dev/null || true)"
+bash "$SCRIPTS/lane-status.sh" >/dev/null
+test_case "status binds the keys again" "bind-key -T root M-9 select-window -t :9" "$(tmux list-keys -T root M-9)"
 
 rc=0; out=$(bash "$SCRIPTS/lane-start.sh" a 2>&1) || rc=$?
 test_case "existing lane skipped" "1" "$(printf '%s\n' "$out" | grep -c '^SKIP a:' || true)"
