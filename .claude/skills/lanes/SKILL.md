@@ -1,6 +1,6 @@
 ---
 name: lanes
-version: 1.1.1
+version: 1.1.2
 description: Parallel work inside tmux, for a server you reach over SSH (also from a phone). Each lane is a git worktree with its own branch and its own tmux window, Claude Code open in it; do in it whatever you want. Alt+<number> switches between them. Lanes merge with /merge-up and /merge-down, like /parallel-work's streams. Also shows lane status and cleans up merged lanes.
 trigger: manual
 depends-on: [parallel-work]
@@ -67,8 +67,9 @@ Settings, as environment variables:
 | `EXOSUIT_LANE_SESSION` | the current session | which tmux session gets the windows |
 | `EXOSUIT_LANE_ALT_KEYS` | on | `0` leaves Alt+<number> unbound |
 
-The first start in a new folder shows Claude Code's folder-trust question once:
-press Enter in that window and Claude Code opens.
+The first start in a new folder shows Claude Code's folder-trust question once.
+Its default is "No, exit": in that window press Down to "Yes, I trust this
+folder", then Enter, and Claude Code opens. Enter alone closes it.
 
 ### `status` (default)
 
