@@ -44,6 +44,12 @@ capping the metric below its green threshold.
 ### Files added
 - `core/hooks/tests/test-post-tool-use.sh` — rotation regression tests
 
+### Lanes: the folder-trust question needs Down, then Enter
+The first start in a new lane shows Claude Code's folder-trust question, and its
+default is "No, exit". `SKILL.md` said to press Enter, which closes Claude Code. It
+now says Down to "Yes, I trust this folder", then Enter (1.1.1 → 1.1.2, registry
+too). Seen on prod-01 on 2026-11-03 with Claude Code 2.1.317. No change in behaviour.
+
 ### Lanes: a lane is a worktree, a story is optional
 `/lanes` read as if every lane ran a story. A lane is a worktree with its own branch
 and tmux window where the user does whatever they want; `a:<story>` only opens Claude
